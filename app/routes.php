@@ -80,7 +80,7 @@ $router->addRoute('/page\/([0-9a-zA-Z-_]+)\.html', function($page_url) {
     $controller->showPage($page_url);
 });
 
-// Список постов по тэгу
+// Список постов по тэг
 $router->addRoute('/tag\/([0-9a-zA-Z-_]+)', function($tag_url) {
     $controller = new PostController();
     //$controller->showPage($tag_url);
