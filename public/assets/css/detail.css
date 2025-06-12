@@ -1,0 +1,122 @@
+/* Стиль блока post_preview */
+.post_full {
+    background-color: #ffffff;
+    border-radius: 10px;
+    padding: 25px;
+    margin-top: 20px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Стиль блока post_date_category */
+.post_preview_date_category {
+    display: flex; /* Горизонтальное расположение элементов */
+    align-items: center; /* Выравнивание по центру по вертикали */
+}
+
+.post_preview_date {
+    font-size: 16px;
+    color: #706f69;
+}
+
+/* Стиль заголовка поста */
+h1.post_preview_header {
+    font-size: 18px;
+    font-weight: bold;
+    margin-top: 20px; /* Отступ сверху от предыдущего блока */
+    color: #353833;
+}
+
+/* Стиль текстового превью поста */
+.post_text_preview {
+    font-size: 16px;
+    margin-top: 25px; /* Отступ сверху от предыдущего блока */
+    color: #706f69;
+    line-height: 1.5; /* Интервал между строками */
+}
+
+.post_preview_oblozhka {
+    width: auto;
+    max-width: 100%;
+    margin-top: 25px; /* Отступ сверху от предыдущего блока */
+    height: auto;
+}
+
+/* Стиль блока реакций */
+.post_reactions {
+    display: flex; /* Горизонтальное расположение элементов */
+    align-items: center; /* Выравнивание по центру по вертикали */
+    margin-top: 30px; /* Отступ сверху от предыдущего блока */
+}
+
+
+.admin-block {
+    background-color: #fff9f0;
+    border: 1px solid #eaebe3;
+    border-radius: 10px;
+    padding: 25px;
+    display: flex;
+    align-items: center;
+}
+
+.admin-block-icon-container {
+    width: 66px;
+    height: 66px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.admin-block-icon-container img {
+    width: 20px;
+    height: 20px;
+}
+
+.admin-block-text-container {
+    flex-grow: 1;
+    padding-left: 15px;
+}
+
+.admin-block-title {
+    font-size: 16px;
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 22px;
+}
+
+.admin-block-description {
+    font-size: 14px;
+    color: #666;
+}
+
+.tags-container {
+    display: flex;
+    flex-wrap: wrap; /* Перенос на новую строку */
+    gap: 10px; /* Расстояние между тегами */
+    margin-top: 30px;
+    margin-bottom: 30px;
+    background-color: #fff;
+    border: 1px solid #e9e2dd;
+    border-radius: 20px;
+    padding: 30px;
+}
+
+.tag {
+    display: inline-block;
+    font-size: 14px;
+    color: #706f69;
+    padding: 8px 15px;
+    background-color: #fff;
+    border: 1px solid #e9e2dd;
+    border-radius: 20px;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+.tag:hover {
+    background-color: #f0f0f0;
+    color: #353833;
+    border-color: #dcdcdc;
+}

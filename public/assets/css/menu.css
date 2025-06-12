@@ -1,0 +1,74 @@
+/* Класс для отключения прокрутки */
+.no-scroll {
+    overflow: hidden; /* Отключаем прокрутку */
+    touch-action: none; /* Отключаем жесты прокрутки на тачскринах */
+}
+
+nav.navbar {
+    position: relative;
+    z-index: 1000;
+    /* Чтобы меню было поверх других элементов */
+}
+
+.mobilemenu-overlay {
+    display: none;
+    /* Скрываем фоновую плашку */
+    position: fixed;
+    top: 90px;
+    left: 10px;
+    width: calc(100% - 20px);
+    height: calc(100% - 90px); /* Высота минус отступ сверху */
+    background-color: #f3f4ee;
+    color: white;
+    /* padding: 20px; */
+    box-sizing: border-box;
+    overflow-y: auto;
+    z-index: 1000;
+}
+
+.mobilemenu-overlay.hidden {
+    display: none;
+    /* Класс для скрытия */
+}
+
+.mobilemenu-overlay.visible {
+    display: block;
+    /* Класс для отображения */
+}
+
+@media (max-width: 1024px) {
+    /* Скрываем обе иконки по умолчанию */
+    .menu-toggle .hamburger-button,
+    .menu-toggle .close-button {
+        display: none;
+    }
+
+    /* Показываем только "бургер" при дефолтном состоянии */
+    .menu-toggle:not(.active) .hamburger-button {
+        display: block;
+    }
+
+    /* Показываем только "крестик" при активном состоянии */
+    .menu-toggle.active .close-button {
+        display: block;
+    }
+
+
+
+    .mobilemenu-container {
+        margin-top: 20px;
+    }
+
+    .mobilemenu-container a.add-button {
+        margin-left: 25px;
+        margin-right: 25px;
+        width: auto;
+    }
+}
+
+@media (max-width: 767px) {
+    .mobilemenu-overlay {
+        left: 6px;
+        width: calc(100% - 12px);
+    }
+}

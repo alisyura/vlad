@@ -1,0 +1,264 @@
+/* === Модальное окно === */
+.modal-header {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: calc(100% - 60px); /* Учитываем внутренние отступы */
+    padding: 30px; /* Верхний и нижний отступы */
+    display: flex;
+    justify-content: space-between; /* Заголовок слева, крестик справа */
+    align-items: center; /* Выравнивание по вертикали */
+    background-color: #fff;
+    z-index: 10;
+    border-radius: 30px;
+}
+
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
+    display: none;
+    justify-content: center;
+    align-items: flex-start;
+    z-index: 1000;
+    overflow-y: auto;
+}
+
+.modal-window {
+    background-color: #fff;
+    width: 662px;
+    padding-top: 30px;
+    padding-left: 30px;
+    padding-right: 30px;
+    padding-bottom:30px;
+    border-radius: 30px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    margin: 30px;
+    gap: 20px;
+    min-height: fit-content;
+}
+
+/* Заголовок внутри окна */
+.modal-window h2 {
+    margin: 0;
+    font-size: 20px;
+    color: #333;
+}
+
+.modal-open {
+    overflow: hidden;
+}
+
+/* Кнопка закрытия */
+.close-modal {
+    position: absolute;
+    top: 20px;
+    right: 25px;
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: #777;
+}
+
+.close-modal:hover {
+    color: #000;
+}
+
+
+
+.info-block {
+    background-color: #f2fdff;
+    border: 1px solid #dbf9fe;
+    border-radius: 10px;
+    padding: 25px;
+    display: flex;
+    align-items: center;
+}
+
+.icon-container {
+    width: 66px;
+    height: 66px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.icon-container img {
+    width: 20px;
+    height: 20px;
+}
+
+.text-container {
+    flex-grow: 1;
+    padding-left: 15px;
+}
+
+.info-title {
+    font-size: 16px;
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 22px;
+}
+
+.info-description {
+    font-size: 14px;
+    color: #666;
+}
+
+.email-block {
+    margin-top: 20px;
+}
+
+.email-label {
+    display: block;
+    font-weight: bold;
+    margin-bottom: 15px;
+    font-size: 16px;
+}
+
+.required {
+    color: red;
+    font-weight: bold;
+}
+
+input[type="email"],
+input[type="url"] {
+    width: 100%;
+    height: 40px;
+    padding: 10px 15px;
+    border: 1px solid #e9e2dd;
+    border-radius: 10px;
+    box-sizing: border-box;
+    font-size: 14px;
+    outline: none;
+}
+
+input[type="email"]:focus,
+input[type="url"]:focus {
+    border-color: #dd6e53;
+}
+
+
+/* === Блок с многострочным текстом === */
+.text-block {
+    margin-top: 15px;
+    position: relative; /* Чтобы разместить счетчик внутри */
+}
+
+.text-block textarea {
+    width: 100%;
+    height: 100px;
+    padding: 10px 15px;
+    border: 1px solid #e9e2dd;
+    border-radius: 10px;
+    box-sizing: border-box;
+    font-size: 14px;
+    resize: vertical; /* Позволяем изменять высоту вручную */
+    outline: none;
+}
+
+.text-block textarea:focus {
+    border-color: #dd6e53;
+}
+
+/* === Счетчик символов === */
+.char-counter {
+    position: absolute;
+    bottom: 10px;
+    right: 15px;
+    font-size: 14px;
+    color: #706f69;
+    font-weight: bold;
+}
+
+.video-block {
+    margin-top: 15px;
+}
+
+.video-hint {
+    margin-top: 15px;
+    font-size: 14px;
+    color: #797873;
+    font-weight: normal;
+}
+
+/* === Блок загрузки файла === */
+.upload-block {
+    margin-top: 15px;
+}
+
+.upload-block .upload-content {
+    border: 2px dashed #e9e2dd;
+    border-radius: 10px;
+    padding: 20px 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    cursor: pointer;
+}
+
+.upload-block img {
+    width: 13px;
+    height: 20px;
+}
+
+.upload-block .upload-title {
+    margin-top: 15px;
+    font-size: 16px;
+    color: #353833;
+    font-weight: bold;
+}
+
+.upload-block .upload-description {
+    margin-top: 18px;
+    font-size: 14px;
+    color: #706f69;
+}
+
+.upload-block .upload-hints {
+    margin-top: 18px;
+    font-size: 13px;
+    color: #a8a7a3;
+}
+.upload-block .upload-hints div {
+    margin-bottom: 15px;
+}
+.upload-block .upload-hints div:last-child {
+    margin-bottom: 0;
+}
+
+.form-error {
+    margin-top: 15px;
+    font-size: 14px;
+    color: red;
+    display: none;
+}
+
+.publish-button {
+    margin-top: 15px;
+}
+
+.publish-button button {
+    width: 100%;
+    padding: 10px 25px;
+    background-color: #dd6e53;
+    color: #ffffff;
+    border: none;
+    border-radius: 10px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.publish-button button:hover {
+    background-color: #c95e47;
+}

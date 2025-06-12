@@ -1,0 +1,10 @@
+# OSPanel / локальные файлы
+*.log
+/cache/
+/temp/
+/session/
+/logs/
+/vendor/
+/node_modules/
+.DS_Store
+Thumbs.db

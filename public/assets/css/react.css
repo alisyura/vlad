@@ -1,0 +1,90 @@
+/* === Меню поделиться === */
+.share-dropdown {
+    position: relative;
+    display: inline-block;
+    cursor: pointer;
+}
+
+.share-menu {
+    position: absolute;
+    width: 300px;
+    height: 250px;
+    background-color: #fff;
+    border-radius: 15px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    padding: 20px 25px;
+    display: none;
+    z-index: 999;
+    top: calc(100% + 10px); /* По умолчанию вниз */
+    left: 0;
+}
+
+/* Показываем меню при активном классе */
+.share-dropdown.active .share-menu {
+    display: block;
+}
+
+/* Если нужно показать вверх — добавляем класс .up */
+.share-menu.up {
+    top: auto;
+    bottom: calc(100% + 10px);
+}
+
+/* === Элемент внутри меню === */
+.share-option {
+    display: flex;
+    align-items: center;
+    margin-bottom: 15px;
+    width: 100%;
+}
+
+.share-icon-container {
+    width: 26px;
+    height: 26px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.share-text-container {
+    flex-grow: 1;
+    margin-left: 10px;
+}
+
+.share-link {
+    font-size: 16px;
+    color: #333;
+    text-decoration: none;
+    display: block;
+    padding: 10px 0;
+}
+
+.share-link:hover {
+    color: #dd6e53;
+}
+
+
+
+/* === Блок реакций === */
+.reaction {
+    pointer-events: auto;
+    opacity: 1;
+}
+
+.reaction.disabled {
+    pointer-events: none;
+    opacity: 0.5;
+}
+
+.reaction_count {
+    font-size: 16px;
+}
+
+.like_count {
+    color: #a2c0ac; /* Цвет для лайков */
+}
+
+.dislike_count {
+    color: #dd6e53; /* Цвет для комментариев */
+}

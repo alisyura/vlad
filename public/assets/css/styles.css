@@ -1,0 +1,498 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
+
+/* Базовые стили */
+body {
+    margin: 0;
+    font-family: 'Roboto', sans-serif;
+    background-color: #c3b08f;
+    display: flex;
+    justify-content: center; /* Выравнивание по центру */
+    align-items: center;
+    /*min-height: 100vh;*/
+}
+.container {
+    display: grid;
+    grid-template-columns: 300px 1fr 380px; /* Левый блок, центральный блок, правый блок */
+    gap: 0px; /* Расстояние между блоками */
+
+    /*display: flex;*/
+    max-width: 1400px; /* Ограничение максимальной ширины */
+    width: 100%;
+    background-color: #f1f1e9;
+    overflow: hidden; /* Убираем выход за пределы скруглений */
+    align-items: stretch;
+    /*min-height: 100vh; /*Занимает всю высоту экрана*/
+    border-radius: 35px;
+    margin-top: 30px; 
+    margin-bottom: 30px;
+    border: 10px solid #d0c0a6;
+}
+
+/* Левая часть (меню) */
+.menu {
+    /*width: 300px;*/
+    background-color: #f3f4ee;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start; /* Вертикальное выравнивание по верхнему краю [[1]] */
+    height: 100%; /* Занимает всю высоту контейнера */
+}
+
+/* Средняя часть (контент) */
+.content {
+    flex-grow: 1; /* Занимает всё доступное пространство */
+    background-color: #f1f1e9;
+    padding-top: 0px;
+    padding-bottom: 40px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start; /* Вертикальное выравнивание по верхнему краю [[1]] */
+    height: 100%; /* Занимает всю высоту контейнера */
+}
+
+/* Правая часть (реклама) */
+.ad {
+    /*width: 380px;*/
+    background-color: #f3f4ee;
+    padding-top: 20px;
+    padding-left: 25px;
+    padding-right: 25px;
+    padding-bottom: 40px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start; /* Вертикальное выравнивание по верхнему краю [[1]] */
+    height: 100%; /* Занимает всю высоту контейнера */
+}
+
+
+
+
+/* Блок с логотипом и названием сайта */
+.logo-block {
+    display: flex;
+    flex-direction: column; /* Элементы идут вертикально */
+    align-items: center; /* Центрирование по горизонтали */
+    padding-left: 50px; /* Отступы сверху, слева и справа */
+    padding-right: 50px; /* Отступы сверху, слева и справа */
+    padding-top: 20px; /* Отступы сверху, слева и справа */
+    box-sizing: border-box;
+    width: 100%; /* Занимает всю ширину минус отступы */
+}
+
+/* Блок logo-site-block */
+.logo-site-block {
+    display: flex; /* Элементы идут горизонтально */
+    flex-direction: column;
+    align-items: center; /* Выравнивание по вертикали */
+    justify-content: center; /* Выравнивание по левому краю */
+    width: auto; /* Автоматическая ширина */
+}
+
+/* Логотип */
+.logo-block img.logo {
+    width: 93px; /* Размер логотипа */
+    height: 64px;
+    margin-bottom: 20px; /* Отступ между логотипом и названием сайта */
+}
+
+/* Название сайта */
+.logo-block img.site-name {
+    width: 196px; /* Размер названия сайта */
+    height: 25px;
+    margin-bottom: 26px; /* Отступ между названием и слоганом */
+}
+
+/* Слоган сайта */
+.logo-block p.slogan {
+    font-size: 16px;
+    color: #706f69;
+    text-align: center; /* Центрирование текста */
+    margin: 0; /* Убираем стандартные отступы */
+}
+
+.mobile-menu .hamburger-button {
+    display: none; /* Скрываем кнопку */
+}
+.mobile-menu .close-button {
+    display: none; /* Скрываем кнопку */
+}
+
+    
+/* Блок меню */
+.menu-block {
+    margin-top: 15px; /* Отступ от слогана */
+    padding-left: 25px; /* Отступы слева и справа */
+    padding-right: 25px; /* Отступы слева и справа */
+}
+
+/* Пункт меню */
+.menu-item {
+    display: flex;
+    align-items: center; /* Выравнивание по вертикали */
+    height: 40px; /* Фиксированная высота */
+    background-color: #f3f4ee;
+    border-radius: 10px; /* Скругления углов */
+    padding-left: 25px; /* Отступ слева */
+    margin-bottom: 0px; /* Отступ между пунктами */
+    cursor: pointer; /* Курсор при наведении */
+}
+
+/* Иконка пункта меню */
+.menu-item img {
+    width: 20px;
+    height: 20px;
+    margin-right: 10px; /* Отступ между иконкой и текстом */
+}
+
+/* Текст пункта меню */
+.menu-item a {
+    text-decoration: underline; /* Убираем подчеркивание */
+    color: #706f69; /* Цвет текста */
+    font-size: 16px;
+}
+
+/* Эффект при наведении */
+.menu-item:hover {
+    background-color: #ffffff; /* Фон меняется */
+}
+
+/* Подчеркиваем текст пункта меню при наведении */
+.menu-item:hover a
+{
+    text-decoration: none;
+}
+
+/* Меняем иконку на уникальную для каждого пункта */
+/* Исходное состояние */
+.menu-item:nth-child(1) img {
+    content: url('/assets/pic/menu/glavnaya.png'); /* Исходная иконка для первого пункта */
+}
+/* Активное состояние */
+.menu-item:nth-child(1):hover img {
+    content: url('/assets/pic/menu/glavnaya_hover.png'); /* Уникальная иконка для первого пункта [[1]] */
+}
+
+/* Исходное состояние */
+.menu-item:nth-child(2) img {
+    content: url('/assets/pic/menu/anekdoty.png'); /* Исходная иконка для первого пункта */
+}
+/* Активное состояние */
+.menu-item:nth-child(2):hover img {
+    content: url('/assets/pic/menu/anekdoty_hover.png'); /* Уникальная иконка для второго пункта */
+}
+
+/* Исходное состояние */
+.menu-item:nth-child(3) img {
+    content: url('/assets/pic/menu/veselaya-rifma.png'); /* Исходная иконка для первого пункта */
+}
+/* Активное состояние */
+.menu-item:nth-child(3):hover img {
+    content: url('/assets/pic/menu/veselaya-rifma_hover.png'); /* Уникальная иконка для третьего пункта */
+}
+
+/* Исходное состояние */
+.menu-item:nth-child(4) img {
+    content: url('/assets/pic/menu/citatnik.png'); /* Исходная иконка для первого пункта */
+}
+/* Активное состояние */
+.menu-item:nth-child(4):hover img {
+    content: url('/assets/pic/menu/citatnik_hover.png'); /* Уникальная иконка для четвертого пункта */
+}
+
+/* Исходное состояние */
+.menu-item:nth-child(5) img {
+    content: url('/assets/pic/menu/istorii.png'); /* Исходная иконка для первого пункта */
+}
+/* Активное состояние */
+.menu-item:nth-child(5):hover img {
+    content: url('/assets/pic/menu/istorii_hover.png'); /* Уникальная иконка для пятого пункта */
+}
+
+/* Исходное состояние */
+.menu-item:nth-child(6) img {
+    content: url('/assets/pic/menu/kartinki.png'); /* Исходная иконка для первого пункта */
+}
+/* Активное состояние */
+.menu-item:nth-child(6):hover img {
+    content: url('/assets/pic/menu/kartinki_hover.png'); /* Уникальная иконка для шестого пункта */
+}
+
+/* Исходное состояние */
+.menu-item:nth-child(7) img {
+    content: url('/assets/pic/menu/video.png'); /* Исходная иконка для первого пункта */
+}
+/* Активное состояние */
+.menu-item:nth-child(7):hover img {
+    content: url('/assets/pic/menu/video_hover.png'); /* Уникальная иконка для седьмого пункта */
+}
+
+/* Исходное состояние */
+.menu-item:nth-child(8) img {
+    content: url('/assets/pic/menu/tegi.png'); /* Исходная иконка для первого пункта */
+}
+/* Активное состояние */
+.menu-item:nth-child(8):hover img {
+    content: url('/assets/pic/menu/tegi_hover.png'); /* Уникальная иконка для восьмого пункта */
+}
+
+/* Исходное состояние */
+.menu-item:nth-child(9) img {
+    content: url('/assets/pic/menu/luchshee.png'); /* Исходная иконка для первого пункта */
+}
+/* Активное состояние */
+.menu-item:nth-child(9):hover img {
+    content: url('/assets/pic/menu/luchshee_hover.png'); /* Уникальная иконка для девятого пункта */
+}
+
+/* Кнопка "Добавить" */
+.add-button {
+    width: 200px;
+    display: block;
+    margin: 40px auto 0; /* Отступ сверху 40px, авто для центрирования */
+    padding: 10px 25px; /* Внутренние отступы */
+    background-color: #dd6e53; /* Цвет фона кнопки */
+    color: #ffffff; /* Цвет текста */
+    text-decoration: none; /* Убираем подчеркивание */
+    border-radius: 10px; /* Скругления углов */
+    text-align: center; /* Центрирование текста */
+    font-size: 16px;
+    cursor: pointer; /* Курсор при наведении */
+}
+
+/* Блок меню */
+.links-block {
+    margin-top: 40px; /* Отступ от слогана */
+    padding-left: 25px; /* Отступы слева и справа */
+    padding-right: 25px; /* Отступы слева и справа */
+}
+
+.links-block a
+{
+    font-size: 16px;
+    color: #706f69;
+    display: flex;
+    margin-bottom:20px;
+    text-decoration: underline;
+}
+
+.links-block a:hover
+{
+    text-decoration: none;
+}
+
+.sitemap-block {
+    display: flex; /* Размещаем иконку и текст на одной строке [[1]] */
+    align-items: baseline; /* Вертикальное выравнивание по центру [[8]] */
+    gap: 10px; /* Отступ между иконкой и текстом */
+}
+
+.sitemap-block a {
+    font-size: 16px; /* Размер текста */
+    color: #706f69; /* Цвет текста */
+}
+
+
+
+.ad_block {
+    width: auto;
+    max-width: 100%;
+    margin-bottom: 25px; /* Отступ сверху от предыдущего блока */
+    height: auto;
+}
+
+/* Адаптивность */
+@media (max-width: 1024px) {
+    /* На планшетах и мобильных устройствах */
+    .container {
+        /*flex-direction: column; /* Блоки располагаются вертикально */
+        /*align-items: flex-start; /* Вертикальное выравнивание по верхнему краю [[1]] */
+        /*border-radius: 0; /* Убираем скругления */
+        /*height: auto; /* Высота становится автоматической */
+
+        grid-template-columns: 1fr; /* Одна колонка */
+        grid-template-rows: auto; /* Автоматическая высота */
+
+        border-radius: 35px;
+        margin-top: 10px; 
+        margin-bottom: 10px;
+        border: 8px solid #d0c0a6;
+    }
+    .menu {
+       order: 1; /* меню идет первым */
+    }
+    .menu div.menu-block {
+        display: none;
+    }
+    .menu a.add-button {
+        display: none;
+    }
+    .menu div.links-block {
+        display: none;
+    }
+
+
+   
+
+    .logo-block {
+        flex-direction: row; /* Элементы идут горизонтально */
+        justify-content: space-between; /* Логотип слева, кнопка справа */
+        align-items: center; /* Выравнивание по вертикали */
+        padding-left: 20px; /* Уменьшаем отступы для мобильных */
+        padding-right: 20px;
+        padding-top: 10px; /* Уменьшаем отступ сверху */
+        padding-bottom: 10px;
+        width: 100%;
+    }
+
+    /* Блок logo-site-block */
+    .logo-site-block {
+        display: flex; /* Элементы идут горизонтально */
+        flex-direction: row;
+        align-items: center; /* Выравнивание по вертикали */
+        justify-content: flex-start; /* Выравнивание по левому краю */
+        width: auto; /* Автоматическая ширина */
+    }
+
+    /* Логотип */
+    .logo-site-block img.logo {
+        width: 76px; /* Новый размер логотипа */
+        height: 54px;
+        margin-bottom: 10px; /* Убираем отступ, так как элементы идут горизонтально */
+    }
+
+    /* Блок с названием сайта и слоганом */
+    .logo-site-block div.text-block {
+        display: flex;
+        flex-direction: column; /* Название и слоган идут вертикально */
+        align-items: flex-start; /* Выравнивание по левому краю */
+        margin-left: 20px; /* Отступ между логотипом и текстом */
+    }
+
+    /* Название сайта */
+    .logo-site-block div.text-block img.site-name {
+        width: 150px; /* Уменьшаем размер названия сайта */
+        height: auto;
+        margin-bottom: 5px; /* Отступ между названием и слоганом */
+    }
+
+    /* Слоган */
+    .logo-site-block div.text-block p.slogan {
+        font-size: 14px; /* Уменьшаем размер шрифта слогана */
+        color: #706f69; /* Цвет текста */
+        text-align: left; /* Выравнивание по левому краю */
+        margin: 0;
+    }
+
+    /* Мобильное меню */
+    .mobile-menu {
+        display: flex;
+        justify-content: flex-end; /* Выравнивание по правому краю */
+        align-items: center; /* Выравнивание по вертикали */
+    }
+
+    /* Кнопка гамбургера */
+    .mobile-menu .hamburger-button {
+        display: block;
+        width: 30px; /* Ширина кнопки */
+        height: 20px; /* Высота кнопки */
+        cursor: pointer; /* Курсор при наведении */
+    }
+
+    /* Крестик закрытия */
+    .mobile-menu .close-button {
+        display: none; /* Скрываем кнопку */
+        width: 30px; /* Ширина кнопки */
+        height: 20px; /* Высота кнопки */
+        cursor: pointer; /* Курсор при наведении */
+    }
+
+
+
+
+
+
+
+
+    .ad {
+        width: 100%; /* Реклама занимает всю ширину */
+        border-radius: 0; /* Убираем скругления */
+        order: 3; /* Перемещаем рекламу под контент */
+    }
+    .content {
+        order: 2; /* Контент идёт вторым */
+        border-radius: 0; /* Убираем скругления */
+    }
+}
+
+/* Медиа-запрос для планшетов (для рекламных блоков) */
+@media (min-width: 768px) and (max-width: 1024px) {
+    .ad {
+        flex-direction: row; /* Горизонтальное расположение */
+        flex-wrap: wrap; /* Перенос блоков на новую строку, если не хватает места */
+        justify-content: space-between; /* Равномерное распределение блоков */
+    }
+
+    .ad .ad_block {
+        width: calc(50% - 10px); /* Два блока в ряд с отступом между ними */
+        margin-bottom: 20px; /* Отступ между рядами */
+    }
+}
+
+/* Медиа-запрос для мобильных устройств (для рекламных блоков) */
+@media (max-width: 767px) {
+    .container {
+        border-radius: 25px;
+        margin-top: 0px; 
+        margin-bottom: 0px;
+        border: 6px solid #d0c0a6;
+    }
+
+    .ad {
+        flex-direction: column; /* Вертикальное расположение */
+        justify-content: center; /* Центрирование блоков по горизонтали */
+    }
+
+    .ad .ad_block {
+        width: 100%; /* Блок занимает всю ширину */
+        margin-bottom: 20px; /* Отступ между блоками */
+    }
+}
+
+/* Стиль пагинации */
+.pagination {
+    display: flex;
+    justify-content: center; /* Центрирование */
+    margin-top: auto; /* Отталкиваем вниз */
+    padding: 20px 0;
+}
+
+.page-number {
+    display: inline-block;
+    width: 36px;
+    height: 36px;
+    line-height: 36px;
+    text-align: center;
+    font-size: 16px;
+    color: #706f69;
+    border: 1px solid #ccc;
+    margin: 0 5px;
+    border-radius: 4px;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.page-number:hover {
+    background-color: #eee;
+}
+
+.page-number.active {
+    background-color: #dd6e53;
+    color: white;
+    border-color: #dd6e53;
+}
+
+
+

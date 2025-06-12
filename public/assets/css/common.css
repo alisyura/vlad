@@ -1,0 +1,103 @@
+
+.spacer {
+    width: 25px; /* Промежуток 25px */
+}
+
+.icon {
+    width: 20px;
+    height: 20px;
+}
+
+.spacer_small {
+    width: 10px; /* Промежуток 10px */
+}
+
+.text_link {
+    font-size: 16px;
+    color: #706f69;
+    text-decoration: underline;
+}
+
+.text_link:hover {
+    text-decoration: none;
+}
+
+.spacer_large {
+    width: 35px; /* Промежуток 35px */
+}
+
+/* === Всплывающее уведомление === */
+.toast {
+    position: fixed;
+    left: 50%;
+    bottom: -100px; /* Сначала скрыто под экраном */
+    transform: translateX(-50%);
+    background-color: #333;
+    color: #fff;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 14px;
+    z-index: 9999;
+    transition: bottom 0.5s ease;
+    max-width: 300px;
+    text-align: center;
+}
+
+.toast.show {
+    bottom: 30px; /* Отступ от нижнего края */
+}
+
+.toast.hidden {
+    bottom: -100px;
+}
+
+.cookie-consent {
+    position: fixed;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #fff;
+    border-top: 1px solid #ddd;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+    padding: 15px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    z-index: 9999;
+    width: 90%;
+    max-width: 90vw;
+    font-size: 14px;
+    color: #333;
+    transition: opacity 0.3s ease;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.cookie-consent.show {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.cookie-text {
+    flex-grow: 1;
+    margin-right: 20px;
+}
+
+.cookie-text a {
+    color: #dd6e53;
+    text-decoration: none;
+}
+
+.cookie-btn {
+    background-color: #dd6e53;
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.cookie-btn:hover {
+    background-color: #c95e47;
+}

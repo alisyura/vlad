@@ -1,0 +1,53 @@
+/* Стиль блока post_preview */
+.post_preview {
+    background-color: #ffffff;
+    border-radius: 10px; /* Закругление углов */
+    padding: 25px; /* Отступы внутри блока */
+    margin-top: 20px; /* Отступ сверху от предыдущего элемента */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Легкая тень для эффекта карточки */
+}
+
+/* Стиль блока post_date_category */
+.post_preview_date_category {
+    display: flex; /* Горизонтальное расположение элементов */
+    align-items: center; /* Выравнивание по центру по вертикали */
+}
+
+.post_preview_date {
+    font-size: 16px;
+    color: #706f69;
+}
+
+/* Стиль заголовка поста */
+h3.post_preview_header a {
+    font-size: 18px;
+    font-weight: bold;
+    margin-top: 20px; /* Отступ сверху от предыдущего блока */
+    color: #353833;
+}
+
+h3.post_preview_header a:hover {
+    text-decoration: none;
+}
+
+/* Стиль текстового превью поста */
+.post_text_preview {
+    font-size: 16px;
+    margin-top: 25px; /* Отступ сверху от предыдущего блока */
+    color: #706f69;
+    line-height: 1.5; /* Интервал между строками */
+}
+
+.post_preview_oblozhka {
+    width: auto;
+    max-width: 100%;
+    margin-top: 25px; /* Отступ сверху от предыдущего блока */
+    height: auto;
+}
+
+/* Стиль блока реакций */
+.post_reactions {
+    display: flex; /* Горизонтальное расположение элементов */
+    align-items: center; /* Выравнивание по центру по вертикали */
+    margin-top: 30px; /* Отступ сверху от предыдущего блока */
+}
