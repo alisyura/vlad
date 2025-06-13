@@ -105,8 +105,9 @@ function generateStructuredData($data)
     echo '<meta property="og:site_name" content="' . $site_name . '">' . "\n";
     echo '<meta property="og:locale" content="ru_RU">' . "\n";
 
-    // === JSON-LD (Schema.org) ===
+    // === JSON-LD Schema.org ===
     if ($type === 'post') {
+        // Если это страница поста
         $structured_data = [
             '@context' => 'https://schema.org', 
             '@type' => 'NewsArticle',
@@ -131,7 +132,28 @@ function generateStructuredData($data)
                 '@id' => $url
             ]
         ];
+
+        if (!empty($data['tags'])) {
+            $structured_data['keywords'] = is_array($data['tags']) 
+                ? implode(',', $data['tags']) 
+                : $data['tags'];
+        }
+
+        if (!empty($data['category'])) {
+            $structured_data['articleSection'] = $data['category'];
+        }
+
+        if (!empty($data['image'])) {
+            $structured_data['image'] = [
+                '@type' => 'ImageObject',
+                'url' => $data['image'],
+                'width' => 800,
+                'height' => 600
+            ];
+        }
+
     } else {
+        // Для главной, категорий, тегов — ItemList
         $items = [];
         if (!empty($data['posts'])) {
             foreach ($data['posts'] as $i => $post) {
@@ -142,12 +164,14 @@ function generateStructuredData($data)
                     'name' => $post['title'],
                     'description' => create_excerpt($post['content']),
                 ];
-            
-                // Проверяем, есть ли изображение
-                if (isset($post['image']) && is_string($post['image']) && trim($post['image']) !== '') {
-                    $item['image'] = rtrim($data['url'], '/') . $post['image']; // Добавляем поле image
+
+                if (!empty($post['image'])) {
+                    $item['image'] = [
+                        '@type' => 'ImageObject',
+                        'url' => rtrim($data['url'], '/') . $post['image']
+                    ];
                 }
-            
+
                 $items[] = $item;
             }
         }
@@ -163,10 +187,12 @@ function generateStructuredData($data)
         ];
     }
 
-    echo '<script type="application/ld+json">' . json_encode($structured_data, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . '</script>' . "\n";
+    // === Выводим JSON-LD ===
+    echo '<script type="application/ld+json">' . "\n";
+    echo json_encode($structured_data, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+    echo "\n</script>\n";
 
-
-    // === prev / next для пагинации, категории, тегов ===
+    // === prev / next для пагинации ===
     if (in_array($type, ['home', 'category', 'tag']) && !empty($data['current_page'])) {
         $current_page = (int)$data['current_page'];
         $total_pages = (int)$data['total_pages'];

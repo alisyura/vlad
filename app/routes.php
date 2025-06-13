@@ -91,3 +91,8 @@ $router->addRoute('/cat\/(anekdoty|veselaya-rifma|citatnik|istorii|kartinki|vide
     $controller = new PostController();
     $controller->showSection($cat_url, $cat_url === 'istorii');
 });
+
+$router->addRoute('/api/publish', function () {
+    $controller = new \App\Controllers\AjaxController();
+    $controller->publish();
+});

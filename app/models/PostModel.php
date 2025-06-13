@@ -199,4 +199,33 @@ class PostModel {
         $stmt->execute([':cat_url' => $cat_url]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
+
+    public function savePost($data, $imagePath = null)
+    {
+        $sql = "
+            INSERT INTO
+                posts (content, user_id, title, created_at, updated_at, status, article_type)
+            VALUES
+                (?, ?, ?, NOW(), NOW(), 'pending', 'post');";
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute([
+            //$data['email'],
+            $data['text'],
+            $data['video_link'] ?? '',
+            $imagePath ?? ''
+        ]);
+
+        return $this->pdo->lastInsertId();
+    }
+
+    private function getAdminUserId()
+    {
+        $stmt = $this->db->query("SELECT u.id
+            FROM users u
+            JOIN roles r ON u.role = r.id
+            WHERE r.name = 'Администратор'
+            ORDER BY u.id ASC
+            LIMIT 1");
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
 }
