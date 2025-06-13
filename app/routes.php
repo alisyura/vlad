@@ -15,6 +15,7 @@ class Router {
         
         foreach ($this->routes as $pattern => $handler) {
             if (preg_match("#^$pattern$#", $uri, $matches)) {
+                //if ($pattern == '/api/publish') echo 'ddd';
                 array_shift($matches);
                 call_user_func_array($handler, $matches);
                 return;
@@ -93,6 +94,7 @@ $router->addRoute('/cat\/(anekdoty|veselaya-rifma|citatnik|istorii|kartinki|vide
 });
 
 $router->addRoute('/api/publish', function () {
-    $controller = new \App\Controllers\AjaxController();
+    require_once __DIR__ . '/../app/controllers/AjaxController.php';
+    $controller = new AjaxController();
     $controller->publish();
 });

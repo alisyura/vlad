@@ -153,21 +153,24 @@ document.addEventListener("DOMContentLoaded", function () {
             if (file) formData.append('image', file);
 
             try {
+                console.error('Вызов сервера /api/publish');
                 const response = await fetch('/api/publish', {
                     method: 'POST',
                     body: formData,
                 });
 
                 if (!response.ok) throw new Error('Ошибка сети');
-
                 const result = await response.json();
 
-                alert('Материал успешно отправлен!');
+                console.error('Ответ сервера:\n'+JSON.stringify(result, null, 2));
+                showToast('Материал успешно отправлен!');
+
                 closeModal();
                 resetForm();
 
             } catch (error) {
                 console.error('Ошибка:', error);
+                alert('error '+error);
                 showError('Произошла ошибка при отправке. Попробуйте позже.');
             }
         });
@@ -202,7 +205,7 @@ window.addEventListener('click', function (e) {
 
 // === Очистка формы ===
 function resetForm() {
-    document.getElementById('email').value = '';
+    // document.getElementById('email').value = '';
     document.getElementById('post-text').value = '';
     document.getElementById('video-link').value = '';
     document.getElementById('file-upload').value = '';

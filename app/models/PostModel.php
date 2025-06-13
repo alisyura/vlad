@@ -1,4 +1,5 @@
 <?php
+
 class PostModel {
     private $db;
     

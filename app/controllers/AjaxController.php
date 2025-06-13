@@ -1,45 +1,36 @@
 <?php
-namespace App\Controllers;
-
-use App\Models\PostModel;
-use App\Core\Config;
-use App\Helpers\transliterate;
 
 class AjaxController
 {
-    private $pdo;
+    private $db;
 
     public function __construct()
     {
-        // Подключение к БД
-        $host = Config::getDbHost('DB_HOST');
-        $dbName = Config::getDbHost('DB_NAME');
-        $user = Config::getDbHost('DB_USER');
-        $pass = Config::getDbHost('DB_PASS');
+        header('Content-Type: application/json');
 
-        $this->pdo = new \PDO("mysql:host=$host;dbname=$dbName;charset=utf8mb4", $user, $pass, [
-            \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION
-        ]);
+        $dbHost = Config::getDbHost('DB_HOST');
+        $dbName = Config::getDbHost('DB_NAME');
+        $dbUser = Config::getDbHost('DB_USER');
+        $dbPass = Config::getDbHost('DB_PASS');
+
+        $this->db = new PDO('mysql:host='.$dbHost.';dbname='.$dbName, $dbUser, $dbPass);
     }
 
     public function publish()
     {
+        // if (!$this->isAjaxRequest()) {
+        //     http_response_code(403);
+        //     echo json_encode(['success' => false, 'message' => 'Доступ запрещён']);
+        //     exit;
+        // }
+
         $content = $_POST['text'] ?? '';
         $file = $_FILES['image'] ?? null;
 
-        // === Получаем ID администратора ===
-        $stmt = $this->pdo->prepare("
-            SELECT u.id 
-            FROM users u
-            JOIN roles r ON u.role = r.id
-            WHERE r.name = 'Администратор'
-            ORDER BY u.id ASC
-            LIMIT 1
-        ");
-        $stmt->execute();
-        $admin = $stmt->fetch();
+        
+        $adminId = $this->getAdminId();
 
-        if (!$admin) {
+        if (!$adminId) {
             echo json_encode([
                 'success' => false,
                 'message' => 'Администратор не найден'
@@ -47,19 +38,95 @@ class AjaxController
             return;
         }
 
+
         // === Генерируем заголовок и дату ===
         $currentDate = date('Y-m-d H:i:s');
         $title = "Пост от " . date('d.m.Y');
 
-        // === Вставляем пост со статусом pending ===
-        $stmt = $this->pdo->prepare("
-            INSERT INTO posts (
-                title, content, user_id, status, article_type, created_at, updated_at
-            ) VALUES (?, ?, ?, 'pending', 'post', NOW(), NOW())
-        ");
+        try {
+            $this->db->beginTransaction();
 
-        $stmt->execute([$title, $content, $admin['id']]);
-        $postId = $this->pdo->lastInsertId();
+            // === Вставляем пост со статусом pending ===
+            $stmt = $this->db->prepare("
+                INSERT INTO posts (
+                    url, title, content, user_id, status, article_type, created_at, updated_at
+                ) VALUES (:url, :title, :content, :user_id, 'pending', 'post', NOW(), NOW())
+            ");
+            $stmt->execute([
+                ':url' => transliterate('Предложенный материал ' . $currentDate),
+                ':title' => $title, 
+                ':content' => $content, 
+                ':user_id' => $adminId['id']
+            ]);
+            $newPostId = $this->db->lastInsertId();
+
+            echo json_encode([
+                'success' => true,
+                'message' => 'Материал успешно отправлен на модерацию',
+                'content' => $content,
+                'image' => $file,
+                'admId' => $adminId['id'],
+                'newpostId' => $newPostId
+            ]);
+
+            $this->db->commit(); // Сохраняем всё
+        }
+        catch(Exception $e) {
+            $this->db->rollBack(); // Откатываем при ошибке
+            //echo __DIR__ . '/../app/core/Logger.php';
+            // if (class_exists('Logger')) {
+            //     echo __DIR__ . '/../app/core/Logger.php';
+            //     require_once __DIR__ . '/../core/Logger.php';
+            // }
+            // Logger:error("Ошибка при добавлении пользовательского материала",
+            //     [$e->getMessage()]);
+
+            echo json_encode([
+                    'success' => false,
+                    'message' => 'Ошибка при добавлении материала',
+                    'error' => $e->getMessage()
+                ]);
+        }
+    }
+
+    public function publish1()
+    {
+        // $content = $_POST['text'] ?? '';
+        // $file = $_FILES['image'] ?? null;
+
+        // === Получаем ID администратора ===
+        // $stmt = $this->pdo->prepare("
+        //     SELECT u.id 
+        //     FROM users u
+        //     JOIN roles r ON u.role_id = r.id
+        //     WHERE r.name = 'Administrator'
+        //     ORDER BY u.id ASC
+        //     LIMIT 1
+        // ");
+        // $stmt->execute();
+        // $admin = $stmt->fetch();
+
+        // if (!$admin) {
+        //     echo json_encode([
+        //         'success' => false,
+        //         'message' => 'Администратор не найден'
+        //     ]);
+        //     return;
+        // }
+
+        // // === Генерируем заголовок и дату ===
+        // $currentDate = date('Y-m-d H:i:s');
+        // $title = "Пост от " . date('d.m.Y');
+
+        // // === Вставляем пост со статусом pending ===
+        // $stmt = $this->pdo->prepare("
+        //     INSERT INTO posts (
+        //         title, content, user_id, status, article_type, created_at, updated_at
+        //     ) VALUES (?, ?, ?, 'pending', 'post', NOW(), NOW())
+        // ");
+
+        // $stmt->execute([$title, $content, $admin['id']]);
+        // $postId = $this->pdo->lastInsertId();
 
         // === Обработка изображения ===
         if ($file && is_uploaded_file($file['tmp_name'])) {
@@ -135,5 +202,28 @@ class AjaxController
             'message' => 'Материал успешно отправлен на модерацию',
             'redirect' => "/post/$postId"
         ]);
+    }
+
+    private function getAdminId()
+    {
+        // === Получаем ID администратора ===
+        $stmt = $this->db->prepare("
+            SELECT u.id 
+            FROM users u
+            JOIN roles r ON u.role_id = r.id
+            WHERE r.name = 'Administrator'
+            ORDER BY u.id ASC
+            LIMIT 1");
+        $stmt->execute();
+        return $stmt->fetch();
+    }
+
+    protected function isAjaxRequest()
+    {
+        return (
+            $_SERVER['REQUEST_METHOD'] === 'POST'
+            && !empty($_SERVER['HTTP_X_REQUESTED_WITH'])
+            && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest'
+        );
     }
 }
