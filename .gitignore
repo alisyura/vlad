@@ -6,5 +6,6 @@
 /logs/
 /vendor/
 /node_modules/
+/public/assets/uploads/
 .DS_Store
 Thumbs.db

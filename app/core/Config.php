@@ -35,7 +35,8 @@ class Config
             'SITE_NAME'=>'Мой блог',
             'SITE_KEYWORDS'=>'Ключевые слова. мета тег, meta, метаданные, keywords, description',
             'SITE_DESCRIPTION'=>'Описание. Описание содержимого на данной странице',
-            'UseLogger' => true
+            'UseLogger' => true,
+            'UploadDir' => 'uploads'
         ];
 
         return $global[$propertyName];
