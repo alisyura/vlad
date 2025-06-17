@@ -61,3 +61,14 @@ document.addEventListener("DOMContentLoaded", function () {
         }, 300);
     });
 });
+
+function getAttribs(obj)
+{
+    if (obj == null) return;
+    
+    let attributes = '';
+    for (const attr of obj.attributes) {
+        attributes += `${attr.name}="${attr.value}"\n`;
+    }
+    console.log(attributes);
+}

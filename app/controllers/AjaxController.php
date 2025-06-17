@@ -16,6 +16,21 @@ class AjaxController
         $this->db = new PDO('mysql:host='.$dbHost.';dbname='.$dbName, $dbUser, $dbPass);
     }
 
+    public function reaction()
+    {
+        $postUrl = $_POST['postUrl'] ?? '';
+        $reactionType = $_POST['type'] ?? '';
+
+        echo json_encode([
+            'success' => true,
+            'postUrl' => $postUrl,
+            'type' => $reactionType,
+            'cookie' => getVisitorCookie(),
+            'likes' => 15,
+            'dislikes' => 25
+        ]);
+    }
+
     public function publish()
     {
         // if (!$this->isAjaxRequest()) {

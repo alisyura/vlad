@@ -1,5 +1,10 @@
 <?php
 
+function getVisitorCookie()
+{
+    return $_COOKIE['visitor_uid'];
+}
+
 function transliterate($string) {
     $converter = [
         'а' => 'a', 'б' => 'b', 'в' => 'v', 'г' => 'g', 'д' => 'd',

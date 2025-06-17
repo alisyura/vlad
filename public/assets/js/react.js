@@ -110,12 +110,17 @@ document.addEventListener("DOMContentLoaded", async function () {
 
         if (!reactionLink || !reactionLink.dataset.type) return;
 
+        // === ВЫВОДИМ АТРИБУТЫ В ALERT ===
+    getAttribs(reactionLink);
+
         e.preventDefault();
         e.stopPropagation();
 
         const postPreview = reactionLink.closest('.post_preview, .post_full');
-        const postId = postPreview.dataset.id;
+        const postUrl = postPreview.dataset.id;
         const type = reactionLink.dataset.type;
+
+    console.log(type);
 
         // Защита: если уже голосовали — не отправляем повторно
         if (reactionLink.classList.contains('disabled')) {
@@ -125,23 +130,25 @@ document.addEventListener("DOMContentLoaded", async function () {
 
         // === Отправка данных на сервер ===
         const data = new FormData();
-        data.append('postId', postId);
+        data.append('postUrl', postUrl);
         data.append('type', type);
 
         try {
-            // const response = await fetch('/api/reaction.php', {
-//             //     method: 'POST',
-//             //     body: data,
-//             // });
+            const response = await fetch('/api/reaction', {
+                method: 'POST',
+                body: data,
+            });
 
-//             // const result = await response.json();
+            const result = await response.json();
 
-//             // if (!response.ok || !result.success) {
-//             //     throw new Error('Ошибка голосования');
-//             // }
+            console.error('Ответ сервера:\n'+JSON.stringify(result, null, 2));
+            
+            if (!response.ok || !result.success) {
+                throw new Error('Ошибка голосования');
+            }
 
             // Для теста используем заглушку
-            const result = { likes: 5, dislikes: 767 };
+            // const result = { likes: 5, dislikes: 767 };
 
             const likeCountEl = postPreview.querySelector('.like_count');
             const dislikeCountEl = postPreview.querySelector('.dislike_count');
@@ -155,18 +162,42 @@ document.addEventListener("DOMContentLoaded", async function () {
             }
 
             // === Блокируем дальнейшие клики ===
-            document.querySelectorAll(`.post_preview[data-id="${postId}"], .post_full[data-id="${postId}"] .reaction`).forEach(link => {
-                link.classList.add('disabled');
-            });
+            // document.querySelectorAll(`.post_preview[data-id="${postUrl}"], .post_full[data-id="${postUrl}"] .reaction`).forEach(link => {
+            //     link.classList.add('disabled');
+            // });
 
-            // === Меняем иконку ===
-            const icon = reactionLink.querySelector('.reaction-icon');
+            // // === Меняем иконку ===
+            // const icon = reactionLink.querySelector('.reaction-icon');
 
-            if (type === 'like') {
-                icon.src = '/assets/pic/ponravilos_voted.png';
-            } else {
-                icon.src = '/assets/pic/ne_ponravilos_voted.png';
+            // if (type === 'like') {
+            //     icon.src = '/assets/pic/ponravilos_voted.png';
+            // } else {
+            //     icon.src = '/assets/pic/ne_ponravilos_voted.png';
+            // }
+
+            // === УДАЛЯЕМ ССЫЛКИ И ОСТАВЛЯЕМ ТОЛЬКО IMG У ОБЕИХ РЕАКЦИЙ ===
+            const likeButton = postPreview.querySelector('.reaction.like');
+            const dislikeButton = postPreview.querySelector('.reaction.dislike');
+
+            function replaceReactionLink(button, change_img) {
+                if (!button) return;
+    
+                const icon = button.querySelector('.reaction-icon');
+                if (!icon) return;
+    
+                const parent = button.parentNode;
+                const newImg = icon.cloneNode(true);
+
+                if (change_img)
+                {
+                    newImg.src = addVotedToSrc(newImg.src);
+                }
+
+                parent.replaceChild(newImg, button);
             }
+
+            replaceReactionLink(likeButton, type == 'like');
+            replaceReactionLink(dislikeButton, type == 'dislike');
 
             showToast('Спасибо за ваш голос!');
         } catch (err) {
@@ -175,3 +206,18 @@ document.addEventListener("DOMContentLoaded", async function () {
         }
     });
 });
+
+function addVotedToSrc(originalPath)
+{
+    // Разбиваем строку по точке
+    const suffix = '_voted';
+    const lastDotIndex = originalPath.lastIndexOf('.');
+    if (lastDotIndex === -1) {
+        return originalPath + suffix;
+    }
+    const name = originalPath.slice(0, lastDotIndex);
+    const ext = originalPath.slice(lastDotIndex);
+    const newPath = name + suffix + ext;
+
+    return newPath;
+}

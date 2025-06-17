@@ -98,3 +98,9 @@ $router->addRoute('/api/publish', function () {
     $controller = new AjaxController();
     $controller->publish();
 });
+
+$router->addRoute('/api/reaction', function () {
+    require_once __DIR__ . '/../app/controllers/AjaxController.php';
+    $controller = new AjaxController();
+    $controller->reaction();
+});
