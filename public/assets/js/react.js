@@ -111,7 +111,7 @@ document.addEventListener("DOMContentLoaded", async function () {
         if (!reactionLink || !reactionLink.dataset.type) return;
 
         // === ВЫВОДИМ АТРИБУТЫ В ALERT ===
-    getAttribs(reactionLink);
+    //getAttribs(reactionLink);
 
         e.preventDefault();
         e.stopPropagation();
@@ -120,7 +120,7 @@ document.addEventListener("DOMContentLoaded", async function () {
         const postUrl = postPreview.dataset.id;
         const type = reactionLink.dataset.type;
 
-    console.log(type);
+    //console.log(type);
 
         // Защита: если уже голосовали — не отправляем повторно
         if (reactionLink.classList.contains('disabled')) {
@@ -160,20 +160,6 @@ document.addEventListener("DOMContentLoaded", async function () {
             if (result.dislikes !== undefined && dislikeCountEl) {
                 dislikeCountEl.textContent = result.dislikes;
             }
-
-            // === Блокируем дальнейшие клики ===
-            // document.querySelectorAll(`.post_preview[data-id="${postUrl}"], .post_full[data-id="${postUrl}"] .reaction`).forEach(link => {
-            //     link.classList.add('disabled');
-            // });
-
-            // // === Меняем иконку ===
-            // const icon = reactionLink.querySelector('.reaction-icon');
-
-            // if (type === 'like') {
-            //     icon.src = '/assets/pic/ponravilos_voted.png';
-            // } else {
-            //     icon.src = '/assets/pic/ne_ponravilos_voted.png';
-            // }
 
             // === УДАЛЯЕМ ССЫЛКИ И ОСТАВЛЯЕМ ТОЛЬКО IMG У ОБЕИХ РЕАКЦИЙ ===
             const likeButton = postPreview.querySelector('.reaction.like');

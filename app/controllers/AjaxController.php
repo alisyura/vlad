@@ -16,20 +16,138 @@ class AjaxController
         $this->db = new PDO('mysql:host='.$dbHost.';dbname='.$dbName, $dbUser, $dbPass);
     }
 
+    private function getOrCreateVisitorId($uuid) {
+        // Уже в транзакции!
+        $stmt = $this->db->prepare("SELECT id FROM visitors WHERE uuid = :uuid FOR UPDATE");
+        $stmt->execute([':uuid' => $uuid]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if ($row) {
+            return $row['id'];
+        }
+
+        // Создаем нового visitor
+        $stmt = $this->db->prepare("INSERT INTO visitors (uuid) VALUES (:uuid)");
+        $stmt->execute([':uuid' => $uuid]);
+
+        // return $this->db->lastInsertId();
+    }
+
     public function reaction()
     {
         $postUrl = $_POST['postUrl'] ?? '';
         $reactionType = $_POST['type'] ?? '';
+        $uuid = getVisitorCookie();
 
-        echo json_encode([
-            'success' => true,
-            'postUrl' => $postUrl,
+        try {
+            $this->db->beginTransaction();
+
+            // Шаг 1: Получаем или создаём visitor_id
+            $visitorId = $this->getOrCreateVisitorId($uuid);
+
+            $this->db->commit();
+
+            echo json_encode([
+                'success' => true,
+                'postUrl' => $postUrl,
+                'type' => $reactionType,
+                'cookie' => $uuid,
+                'visitorId' => $visitorId,
+                'likes' => 15,
+                'dislikes' => 25
+            ]);
+        }
+        catch (Exception $e) {
+            $this->db->rollBack();
+            throw $e;
+        }
+
+        
+    }
+
+    public function reaction22(/*$postUrl, $uuid, $voteType*/) {
+        $postUrl = $_POST['postUrl'] ?? '';
+        $reactionType = $_POST['type'] ?? '';
+        $uuid = getVisitorCookie();
+
+        try {
+           // $this->db->beginTransaction();
+
+            // Шаг 1: Получаем или создаём visitor_id
+            //$visitorId = getOrCreateVisitorId($uuid);
+
+            // Шаг 2: Проверяем, уже голосовал этот visitor за этот пост
+            /*$stmt = $this->db->prepare("
+                SELECT pv.id 
+                FROM post_votes pv
+                JOIN posts p ON pv.post_id = p.id
+                WHERE p.url = :post_url
+                AND pv.visitor_id = :visitor_id;
+            ");
+            $stmt->execute(
+                [
+                    ':post_url' => $postUrl,
+                    ':visitor_id' => $visitorId
+                ]);
+            $existingVote = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if ($existingVote) {
+                $this->db->commit();
+                return ['success' => false, 'message' => 'Вы уже голосовали за этот пост'];
+            }
+
+            // Получаем post_id по его Url
+            $stmt = $this->db->prepare("SELECT id FROM posts WHERE url = :post_url");
+            $stmt->execute([':post_url' => $post_url]);
+            $post = $stmt->fetch();
+            if (!$post) {
+                $this->db->rollBack();
+                return ['success' => false, 'message' => 'Пост не найден'];
+            }
+            $postId = $post['id'];
+
+            // Шаг 3: Добавляем новый голос
+            $stmt = $this->db->prepare("
+                INSERT INTO post_votes (post_id, visitor_id, vote_type, created_at, updated_at)
+                SELECT :post_id, :visitor_id, :vote_type, NOW(), NOW()
+                FROM dual
+                WHERE NOT EXISTS (
+                    SELECT 1 FROM post_votes 
+                    WHERE post_id = :post_id AND visitor_id = :visitor_id
+                )
+            ");
+            $stmt->execute(
+                [
+                    ':post_id' => $postId,
+                    ':visitor_id' => $visitorId,
+                    ':vote_type' => $voteType
+                ]);
+
+            // Шаг 4: Возвращаем обновлённые счетчики
+            $stmt = $this->db->prepare("
+                SELECT likes_count, dislikes_count FROM posts WHERE id = :post_id
+            ");
+            $stmt->execute([':post_id' => $postId]);
+            $counts = $stmt->fetch(PDO::FETCH_ASSOC);*/
+
+            //$this->db->commit();
+
+            return [
+                'success' => true,
+                'postUrl' => $postUrl,
             'type' => $reactionType,
             'cookie' => getVisitorCookie(),
-            'likes' => 15,
-            'dislikes' => 25
-        ]);
+                'likes' => $counts['likes_count'],
+                'dislikes' => $counts['dislikes_count']
+            ];
+
+        } catch (Exception $e) {
+            $this->db->rollBack();
+            throw $e;
+        }
     }
+
+   
 
     public function publish()
     {
