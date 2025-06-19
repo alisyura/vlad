@@ -144,7 +144,8 @@ document.addEventListener("DOMContentLoaded", async function () {
             console.error('Ответ сервера:\n'+JSON.stringify(result, null, 2));
             
             if (!response.ok || !result.success) {
-                throw new Error('Ошибка голосования');
+                showToast(result.message);
+                return;
             }
 
             // Для теста используем заглушку
