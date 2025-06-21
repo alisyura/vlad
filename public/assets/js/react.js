@@ -110,17 +110,12 @@ document.addEventListener("DOMContentLoaded", async function () {
 
         if (!reactionLink || !reactionLink.dataset.type) return;
 
-        // === ВЫВОДИМ АТРИБУТЫ В ALERT ===
-    //getAttribs(reactionLink);
-
         e.preventDefault();
         e.stopPropagation();
 
         const postPreview = reactionLink.closest('.post_preview, .post_full');
         const postUrl = postPreview.dataset.id;
         const type = reactionLink.dataset.type;
-
-    //console.log(type);
 
         // Защита: если уже голосовали — не отправляем повторно
         if (reactionLink.classList.contains('disabled')) {
@@ -166,23 +161,6 @@ document.addEventListener("DOMContentLoaded", async function () {
             const likeButton = postPreview.querySelector('.reaction.like');
             const dislikeButton = postPreview.querySelector('.reaction.dislike');
 
-            function replaceReactionLink(button, change_img) {
-                if (!button) return;
-    
-                const icon = button.querySelector('.reaction-icon');
-                if (!icon) return;
-    
-                const parent = button.parentNode;
-                const newImg = icon.cloneNode(true);
-
-                if (change_img)
-                {
-                    newImg.src = addVotedToSrc(newImg.src);
-                }
-
-                parent.replaceChild(newImg, button);
-            }
-
             replaceReactionLink(likeButton, type == 'like');
             replaceReactionLink(dislikeButton, type == 'dislike');
 
@@ -192,6 +170,61 @@ document.addEventListener("DOMContentLoaded", async function () {
             showToast('Произошла ошибка при голосовании');
         }
     });
+
+
+
+
+    // === 6. Загрузка данных о голосах при открытии страницы ===
+    const postElements = document.querySelectorAll('.post_preview, .post_full');
+    if (postElements.length > 0) {
+        const postIds = Array.from(postElements).map(el => el.dataset.id);
+
+        // === Отправка данных на сервер ===
+        const data = new FormData();
+        postIds.forEach(id => data.append('posts[]', id));
+
+        try {
+            const response = await fetch('/api/post-votes', {
+                method: 'POST',
+                body: data
+            });
+
+            const result = await response.json();
+
+            if (!response.ok || !result.success) {
+                showToast('Не удалось загрузить данные о голосах:', result.message);
+                return;
+            }
+
+            // Обновляем интерфейс
+            result.votes.forEach(postData => {
+                const postEl = document.querySelector(
+                    `.post_preview[data-id="${postData.post_url}"], 
+                     .post_full[data-id="${postData.post_url}"]`
+                );
+                if (!postEl) return;
+
+                const likeBtn = postEl.querySelector('.reaction.like');
+                const dislikeBtn = postEl.querySelector('.reaction.dislike');
+                const likeCount = postEl.querySelector('.like_count');
+                const dislikeCount = postEl.querySelector('.dislike_count');
+
+                // Обновляем счётчики
+                if (likeCount) likeCount.textContent = postData.likes_count;
+                if (dislikeCount) dislikeCount.textContent = postData.dislikes_count;
+
+                // Блокируем кнопки, если пользователь уже голосовал
+                if ((postData.user_vote === 'like' && likeBtn) ||
+                    (postData.user_vote === 'dislike' && dislikeBtn))
+                {
+                    replaceReactionLink(likeBtn, postData.user_vote === 'like' && likeBtn);
+                    replaceReactionLink(dislikeBtn, postData.user_vote === 'dislike' && dislikeBtn);
+                }
+            });
+        } catch (err) {
+            console.error('Ошибка при загрузке голосов:', err);
+        }
+    }
 });
 
 function addVotedToSrc(originalPath)
@@ -207,4 +240,21 @@ function addVotedToSrc(originalPath)
     const newPath = name + suffix + ext;
 
     return newPath;
+}
+
+function replaceReactionLink(button, change_img) {
+    if (!button) return;
+
+    const icon = button.querySelector('.reaction-icon');
+    if (!icon) return;
+
+    const parent = button.parentNode;
+    const newImg = icon.cloneNode(true);
+
+    if (change_img)
+    {
+        newImg.src = addVotedToSrc(newImg.src);
+    }
+
+    parent.replaceChild(newImg, button);
 }

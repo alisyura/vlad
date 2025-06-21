@@ -16,6 +16,70 @@ class AjaxController
         $this->db = new PDO('mysql:host='.$dbHost.';dbname='.$dbName, $dbUser, $dbPass);
     }
 
+    public function getPostVotes()
+    {
+        $posts = $_POST['posts'] ?? '';
+        if (empty($posts)) {
+            echo json_encode(['success' => false, 'message' => 'Нет постов']);
+            exit;
+        }
+
+        try {
+
+            $uuid = getVisitorCookie();
+
+            $stmtVisitor = $this->db->prepare("SELECT id FROM visitors WHERE uuid = :uuid");
+            $stmtVisitor->execute([':uuid' => $uuid]);
+            $visitor = $stmtVisitor->fetch(PDO::FETCH_ASSOC);
+            $visitorId = $visitor ? $visitor['id'] : null;
+
+            // Убираем дубликаты и пустые значения
+            $postUrls = array_unique(array_filter($posts));
+
+            if (empty($postUrls)) {
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'Нет корректных постов'
+                ]);
+                exit;
+            }
+
+            // Готовим SQL-запрос
+            $placeholders = implode(',', array_fill(0, count($postUrls), '?'));
+
+            $sql = "
+                SELECT 
+                    p.url AS post_url,
+                    p.likes_count,
+                    p.dislikes_count,
+                    pv.vote_type AS user_vote
+                FROM posts p
+                LEFT JOIN post_votes pv ON p.id = pv.post_id AND pv.visitor_id = ?
+                WHERE p.url IN ($placeholders)
+            ";
+
+            $params = $postUrls;
+            array_unshift($params, $visitorId); // visitor_id первым
+
+            $stmt = $this->db->prepare($sql);
+            $stmt->execute($params);
+            $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            // Формируем ответ
+            echo json_encode([
+                'success' => true,
+                'votes' => $results
+            ]);
+
+        } catch (Exception $e) {
+            http_response_code(500);
+            echo json_encode([
+                'success' => false,
+                'message' => 'Ошибка сервера: ' . $e->getMessage()
+            ]);
+        }
+    }
+
     private function getOrCreateVisitorId($uuid) {
         // Уже в транзакции!
         $stmt = $this->db->prepare("SELECT id FROM visitors WHERE uuid = :uuid FOR UPDATE");
@@ -67,7 +131,7 @@ class AjaxController
                     'success' => false,
                     'message' => 'Вы уже голосовали за этот пост'
                 ]);
-                return;
+                exit;
             }
 
             // // Получаем post_id по его Url
@@ -81,7 +145,7 @@ class AjaxController
                     'success' => false,
                     'message' => 'Пост не найден'
                 ]);
-                return;
+                exit;
             }
             $postId = $post['id'];
 

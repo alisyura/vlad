@@ -1,4 +1,12 @@
 <?php
+// 1. Начинаем сессию
+session_start();
+
+// 2. Генерируем CSRF-токен, если его нет
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(50));
+}
+
 require_once __DIR__ . '/../app/core/Config.php';
 require_once __DIR__ . '/../app/core/Logger.php';
 require_once __DIR__ . '/../app/core/Helpers.php';

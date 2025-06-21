@@ -104,3 +104,9 @@ $router->addRoute('/api/reaction', function () {
     $controller = new AjaxController();
     $controller->reaction();
 });
+
+$router->addRoute('/api/post-votes', function () {
+    require_once __DIR__ . '/../app/controllers/AjaxController.php';
+    $controller = new AjaxController();
+    $controller->getPostVotes();
+});

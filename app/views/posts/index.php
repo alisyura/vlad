@@ -28,7 +28,7 @@
         <span class="spacer"></span> <!-- Промежуток 25px -->
         <img src="/assets/pic/menu/<?= $post['category_url'] ?>.png" alt="<?= $post['category_name'] ?>" class="icon">
         <span class="spacer_small"></span> <!-- Промежуток 10px -->
-        <a href="#" class="text_link"><?= $post['category_name'] ?></a>
+        <a href="/cat/<?= $post['category_url'] ?>" class="text_link"><?= $post['category_name'] ?></a>
     </div>
 
     <!-- Заголовок поста -->
