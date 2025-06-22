@@ -13,11 +13,24 @@ class PostModel {
         $this->db = new PDO('mysql:host='.$dbHost.';dbname='.$dbName, $dbUser, $dbPass);
     }
     
-    public function getAllPosts() {
+    public function countAllPosts() {
+        $stmt = $this->db->query("
+            SELECT COUNT(*) as total 
+            FROM posts 
+            WHERE status = 'published' AND article_type = 'post'
+        ");
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        return (int)$row['total'];
+    }
+
+    public function getAllPosts($page = 1) {
         //берем немного больше, чтобы учесть длинные слова.
         $posts_per_page = Config::getPostsCfg('posts_per_page');
 
-        $stmt = $this->db->query("
+        // Вычисляем offset
+        $offset = ($page - 1) * $posts_per_page;
+
+        $sql = "
             SELECT 
                 p.url AS url,
                 p.title AS title,
@@ -53,11 +66,18 @@ class PostModel {
                 p.article_type = 'post'
             ORDER BY
                 p.updated_at DESC
-            LIMIT 0, $posts_per_page");
+            LIMIT :limit OFFSET :offset";
+        
+             //echo debugPDO($sql, ['limit' => $posts_per_page, 'offset' => $offset]);
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindValue(':limit', $posts_per_page, PDO::PARAM_INT);
+        $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+        $stmt->execute();
+
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
     
-    public function getPostById($post_url) {
+    public function getPostByUrl($post_url) {
         $stmt = $this->db->prepare("
         SELECT 
             p.url AS url,
@@ -94,7 +114,7 @@ class PostModel {
         return $this->fillTags($row);
     }
 
-    public function getPageById($page_url) {
+    public function getPageByUrl($page_url) {
         $sql = "
         SELECT 
             p.url AS url,
@@ -201,6 +221,59 @@ class PostModel {
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
+    public function getAllPostsByTag($tag_url) {
+        //берем немного больше, чтобы учесть длинные слова.
+        $posts_per_page = Config::getPostsCfg('posts_per_page');
+
+        $sql = "
+            SELECT 
+                p.url AS url,
+                p.title AS title,
+                p.content AS content,
+                p.updated_at AS updated_at,
+                t.url AS tag_url,
+                t.name AS tag_name,
+                c.url AS category_url,
+                c.name AS category_name,
+                m.file_path AS image,
+                p.likes_count AS likes,
+                p.dislikes_count AS dislikes
+            FROM
+                posts AS p
+            INNER JOIN
+                post_tag AS pt ON pt.post_id = p.id
+            INNER JOIN
+                tags AS t ON t.id = pt.tag_id
+            INNER JOIN
+                post_category AS pc ON pc.post_id = p.id
+            INNER JOIN
+                categories AS c ON c.id = pc.category_id
+            LEFT JOIN (
+                -- Берём одну картинку (первую по id) для каждого поста
+                SELECT post_id, file_path
+                FROM media
+                WHERE id IN (
+                    SELECT MIN(id)
+                    FROM media
+                    WHERE file_type = 'image'
+                    GROUP BY post_id
+                )
+            ) AS m ON m.post_id = p.id
+            WHERE
+                p.status = 'published' AND
+                p.article_type = 'post' AND
+                t.url = :tag_url
+            ORDER BY
+                p.updated_at DESC
+            LIMIT 0, $posts_per_page";
+
+        Logger::debug(debugPDO($sql, ['tag_url' => $tag_url]));
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([':tag_url' => $tag_url]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
     public function savePost($data, $imagePath = null)
     {
         $sql = "
@@ -224,7 +297,7 @@ class PostModel {
         $stmt = $this->db->query("SELECT u.id
             FROM users u
             JOIN roles r ON u.role = r.id
-            WHERE r.name = 'Администратор'
+            WHERE r.name = 'Administrator'
             ORDER BY u.id ASC
             LIMIT 1");
         return $stmt->fetch(PDO::FETCH_ASSOC);

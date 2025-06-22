@@ -118,8 +118,12 @@
 <?php endforeach; ?>
 
 <!-- Пагинация -->
-<div class="pagination">
-    <a href="#" class="page-number active">1</a>
-    <a href="#" class="page-number">2</a>
-    <a href="#" class="page-number">3</a>
-</div>
+<?php if (!empty($pagination)) : ?>
+    <div class="pagination">
+        <?php foreach ($pagination_links as $num => $link) : ?>
+            <a href="<?= $link ?>" class="page-number<?= $num == $pagination['current_page'] ? ' active' : '' ?>">
+                <?= $num ?>
+            </a>
+        <?php endforeach; ?>
+    </div>
+<?php endif; ?>

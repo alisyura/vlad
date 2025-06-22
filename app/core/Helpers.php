@@ -5,6 +5,19 @@ function getVisitorCookie()
     return $_COOKIE['visitor_uid'];
 }
 
+function generatePaginationLinks($currentPage, $totalPosts, $postsPerPage, $baseUrl = '/') {
+    $totalPages = ceil($totalPosts / $postsPerPage);
+    if ($totalPages <= 1) return [];
+
+    $links = [];
+
+    for ($i = 1; $i <= $totalPages; $i++) {
+        $links[$i] = $i == 1 ? $baseUrl : "{$baseUrl}p/{$i}";
+    }
+
+    return $links;
+}
+
 function transliterate($string) {
     $converter = [
         'а' => 'a', 'б' => 'b', 'в' => 'v', 'г' => 'g', 'д' => 'd',

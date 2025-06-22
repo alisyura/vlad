@@ -19,9 +19,9 @@
         </time>
         <?php if ($is_post): ?>
         <span class="spacer"></span> <!-- Промежуток 25px -->
-        <img src="/assets/pic/menu/anekdoty.png" alt="Анекдоты" class="icon">
+        <img src="/assets/pic/menu/anekdoty.png" alt="<?= htmlspecialchars($post['category_name']) ?>" class="icon">
         <span class="spacer_small"></span> <!-- Промежуток 10px -->
-        <a href="#" class="text_link">Анекдоты</a>
+        <a href="/cat/<?= htmlspecialchars($post['category_url']) ?>" class="text_link"><?= htmlspecialchars($post['category_name']) ?></a>
         <?php endif ?>
     </div>
 

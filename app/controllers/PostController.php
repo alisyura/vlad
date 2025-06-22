@@ -15,8 +15,20 @@ class PostController {
     /*
     * Главная страница (список постов)
     */
-    public function index() {
-        $posts = $this->model->getAllPosts();
+    public function index($page = 1) {
+        $posts = $this->model->getAllPosts($page);
+        $posts_per_page = Config::getPostsCfg('posts_per_page');
+
+        // Получаем общее количество опубликованных постов
+        $total_posts = $this->model->countAllPosts();
+
+        // Генерируем ссылки пагинации
+        $pagination_links = generatePaginationLinks(
+            $page,
+            $total_posts,
+            $posts_per_page,
+            '/' // базовый URL
+        );
 
         $URL = rtrim(sprintf("%s", $this->uri), '/');
 
@@ -24,7 +36,13 @@ class PostController {
             'posts' => $posts,
             'show_caption' => false,
             'url' => $URL,
-            'show_read_next' => false
+            'show_read_next' => false,
+            'pagination' => [
+                'current_page' => $page,
+                'posts_per_page' => $posts_per_page,
+                'total_posts' => $total_posts,
+            ],
+            'pagination_links' => $pagination_links
         ]);
 
         $structuredData = [
@@ -44,7 +62,7 @@ class PostController {
     * Страница post
     */
     public function showPost($post_url) {
-        $post = $this->model->getPostById($post_url);
+        $post = $this->model->getPostByUrl($post_url);
         if (!$post) {
             header("HTTP/1.0 404 Not Found");
             $content = View::render('../app/views/errors/404.php', [
@@ -88,7 +106,7 @@ class PostController {
     * Страница page
     */
     public function showPage($page_url) {
-        $page = $this->model->getPageById($page_url);
+        $page = $this->model->getPageByUrl($page_url);
         if (!$page) {
             header("HTTP/1.0 404 Not Found");
             $content = View::render('../app/views/errors/404.php', [
@@ -123,7 +141,7 @@ class PostController {
     }
 
     /*
-    * Главная страница (список постов)
+    * Список постов раздела меню
     */
     public function showSection($cat_url, $show_link_next) {
         $posts = $this->model->getAllPostsBySection($cat_url, $show_link_next);
@@ -133,7 +151,36 @@ class PostController {
 
         $content = View::render('../app/views/posts/index.php', [
             'posts' => $posts,
-            'show_caption' => false,
+            'show_caption' => true,
+            'url' => $URL,
+            'show_read_next' => $show_link_next
+        ]);
+
+        $structuredData = [
+            'page_type' => 'home',
+            'site_name' => Config::getGlobalCfg('SITE_NAME'),
+            'keywords' => Config::getGlobalCfg('SITE_KEYWORDS'),
+            'description' => Config::getGlobalCfg('SITE_DESCRIPTION'),
+            'url' => $URL,
+            'image' => sprintf("%s/assets/pic/logo.png", $URL),
+            'posts' => $posts
+        ];
+
+        require '../app/views/layout.php';
+    }
+
+    /*
+    * Список постов по тэгу
+    */
+    public function showTag($tag_url) {
+        $posts = $this->model->getAllPostsByTag($tag_url);
+
+        //print_r($posts);
+        $URL = rtrim(sprintf("%s", $this->uri), '/');
+
+        $content = View::render('../app/views/posts/index.php', [
+            'posts' => $posts,
+            'show_caption' => true,
             'url' => $URL,
             'show_read_next' => $show_link_next
         ]);

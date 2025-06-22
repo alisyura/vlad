@@ -15,7 +15,6 @@ class Router {
         
         foreach ($this->routes as $pattern => $handler) {
             if (preg_match("#^$pattern$#", $uri, $matches)) {
-                //if ($pattern == '/api/publish') echo 'ddd';
                 array_shift($matches);
                 call_user_func_array($handler, $matches);
                 return;
@@ -63,10 +62,10 @@ $router->addRoute('^/assets/.*\.(jpg|jpeg|png|gif|css|js|webp|svg|ico|mp4)$', fu
     exit;
 });
 
-// Главная страница
-$router->addRoute('/', function() {
+// Главная страница. Или пустая, или номером страницы /p/2
+$router->addRoute('/(p/(\d+))?', function($fullMatch = null, $page = 1) {
     $controller = new PostController();
-    $controller->index();
+    $controller->index(max(1, (int)$page)); // защита от нуля и отрицательных
 });
 
 // Страница post
@@ -81,10 +80,10 @@ $router->addRoute('/page\/([0-9a-zA-Z-_]+)\.html', function($page_url) {
     $controller->showPage($page_url);
 });
 
-// Список постов по тэг
+// Список постов по тэгу
 $router->addRoute('/tag\/([0-9a-zA-Z-_]+)', function($tag_url) {
     $controller = new PostController();
-    //$controller->showPage($tag_url);
+    $controller->showTag($tag_url);
 });
 
 // Список постов по разделу
@@ -93,18 +92,23 @@ $router->addRoute('/cat\/(anekdoty|veselaya-rifma|citatnik|istorii|kartinki|vide
     $controller->showSection($cat_url, $cat_url === 'istorii');
 });
 
+// Вызовы Ajax
+
+// Добавление пользователем материала через кнопку Добавить из меню
 $router->addRoute('/api/publish', function () {
     require_once __DIR__ . '/../app/controllers/AjaxController.php';
     $controller = new AjaxController();
     $controller->publish();
 });
 
+// Лайк/дислайк
 $router->addRoute('/api/reaction', function () {
     require_once __DIR__ . '/../app/controllers/AjaxController.php';
     $controller = new AjaxController();
     $controller->reaction();
 });
 
+// Получение лайков/дислайков постов
 $router->addRoute('/api/post-votes', function () {
     require_once __DIR__ . '/../app/controllers/AjaxController.php';
     $controller = new AjaxController();

@@ -22,7 +22,7 @@ class Config
     {
         $posts = [
             'exerpt_len' => 200,
-            'posts_per_page' => 5
+            'posts_per_page' => 3
         ];
 
         return $posts[$propertyName];
