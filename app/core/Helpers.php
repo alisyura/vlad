@@ -5,14 +5,70 @@ function getVisitorCookie()
     return $_COOKIE['visitor_uid'];
 }
 
-function generatePaginationLinks($currentPage, $totalPosts, $postsPerPage, $baseUrl = '/') {
-    $totalPages = ceil($totalPosts / $postsPerPage);
+/**
+ * Генерирует массив ссылок для постраничного отображения
+ * 
+ */
+// function generateSmartPaginationLinks($currentPage, $totalPages, $maxVisible = 5) {
+//     if ($totalPages <= 1) return [];
+
+//     $links = [];
+//     $start = max(1, min($currentPage - floor($maxVisible / 2), $totalPages - $maxVisible + 1));
+//     $end = min($totalPages, $start + $maxVisible - 1);
+
+//     // Добавляем начало
+//     if ($start > 1) {
+//         $links[1] = '/';
+//         if ($start > 2) {
+//             $links['...left'] = '…';
+//         }
+//     }
+
+//     // Основные страницы
+//     for ($i = $start; $i <= $end; $i++) {
+//         $links[$i] = "/p$i";
+//     }
+
+//     // Конец
+//     if ($end < $totalPages) {
+//         if ($end < $totalPages - 1) {
+//             $links['...right'] = '…';
+//         }
+//         $links[$totalPages] = "/p{$totalPages}";
+//     }
+
+//     return $links;
+// }
+
+function generateSmartPaginationLinks($currentPage, $totalPages, $baseUrl = '/', $maxVisible = 5) {
     if ($totalPages <= 1) return [];
 
     $links = [];
+    $start = max(1, min($currentPage - floor($maxVisible / 2), $totalPages - $maxVisible + 1));
+    $end = min($totalPages, $start + $maxVisible - 1);
 
-    for ($i = 1; $i <= $totalPages; $i++) {
-        $links[$i] = $i == 1 ? $baseUrl : "{$baseUrl}p/{$i}";
+    // Убедимся, что baseUrl заканчивается на /
+    $baseUrl = rtrim($baseUrl, '/');
+
+    // Добавляем начало
+    if ($start > 1) {
+        $links[1] = "$baseUrl/p1";
+        if ($start > 2) {
+            $links['...left'] = '…';
+        }
+    }
+
+    // Основные страницы
+    for ($i = $start; $i <= $end; $i++) {
+        $links[$i] = "$baseUrl/p$i";
+    }
+
+    // Конец
+    if ($end < $totalPages) {
+        if ($end < $totalPages - 1) {
+            $links['...right'] = '…';
+        }
+        $links[$totalPages] = "$baseUrl/p{$totalPages}";
     }
 
     return $links;

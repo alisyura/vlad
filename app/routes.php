@@ -63,7 +63,7 @@ $router->addRoute('^/assets/.*\.(jpg|jpeg|png|gif|css|js|webp|svg|ico|mp4)$', fu
 });
 
 // Главная страница. Или пустая, или номером страницы /p/2
-$router->addRoute('/(p/(\d+))?', function($fullMatch = null, $page = 1) {
+$router->addRoute('/(p(\d+))?', function($fullMatch = null, $page = 1) {
     $controller = new PostController();
     $controller->index(max(1, (int)$page)); // защита от нуля и отрицательных
 });
@@ -81,9 +81,14 @@ $router->addRoute('/page\/([0-9a-zA-Z-_]+)\.html', function($page_url) {
 });
 
 // Список постов по тэгу
-$router->addRoute('/tag\/([0-9a-zA-Z-_]+)', function($tag_url) {
+// $router->addRoute('/tag\/([0-9a-zA-Z-_]+)', function($tag_url) {
+//     $controller = new PostController();
+//     $controller->showTag($tag_url);
+// });
+
+$router->addRoute('/tag\/([0-9a-zA-Z-_]+)(?:\/p(\d+))?', function($tagUrl, $page = 1) {
     $controller = new PostController();
-    $controller->showTag($tag_url);
+    $controller->showTag($tagUrl, max(1, (int)$page));
 });
 
 // Список постов по разделу

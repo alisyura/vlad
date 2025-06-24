@@ -118,12 +118,25 @@
 <?php endforeach; ?>
 
 <!-- Пагинация -->
-<?php if (!empty($pagination)) : ?>
-    <div class="pagination">
-        <?php foreach ($pagination_links as $num => $link) : ?>
-            <a href="<?= $link ?>" class="page-number<?= $num == $pagination['current_page'] ? ' active' : '' ?>">
-                <?= $num ?>
+<?php if (!empty($pagination_links)) : ?>
+<div class="pagination">
+    <?php if ($pagination['current_page'] > 1): ?>
+        <a class="page-number" href="<?= htmlspecialchars($baseUrl . '/p' . ($pagination['current_page'] - 1)) ?>">&laquo;</a>
+    <?php endif; ?>
+
+    <?php foreach ($pagination_links as $num => $link): ?>
+        <?php if ($num === '...left' || $num === '...right'): ?>
+            <span class="dots"><?= $link ?></span>
+        <?php else: ?>
+            <a href="<?= htmlspecialchars($link) ?>"
+            class="page-number<?= $num == $pagination['current_page'] ? ' active' : '' ?>">
+               <?= $num ?>
             </a>
-        <?php endforeach; ?>
-    </div>
+        <?php endif; ?>
+    <?php endforeach; ?>
+
+    <?php if ($pagination['current_page'] < $pagination['total_pages']): ?>
+        <a class="page-number" href="<?= htmlspecialchars($baseUrl . '/p' . ($pagination['current_page'] + 1)) ?>">&raquo;</a>
+    <?php endif; ?>
+</div>
 <?php endif; ?>

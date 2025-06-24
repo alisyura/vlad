@@ -23,6 +23,40 @@ class PostModel {
         return (int)$row['total'];
     }
 
+    public function countAllPostsByTag($tag_url) {
+        $stmt = $this->db->prepare("
+            SELECT COUNT(*) as total 
+            FROM posts p
+            INNER JOIN post_tag pt ON p.id = pt.post_id
+            INNER JOIN tags t ON pt.tag_id = t.id
+            WHERE p.status = 'published' 
+              AND p.article_type = 'post'
+              AND t.url = :tag_url
+        ");
+        
+        $stmt->execute([':tag_url' => $tag_url]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        
+        return (int)$row['total'];
+    }
+
+    public function countAllPostsByCategory($category_url) {
+        $stmt = $this->db->prepare("
+            SELECT COUNT(*) as total 
+            FROM posts p
+            INNER JOIN post_category pc ON p.id = pc.post_id
+            INNER JOIN categories c ON pc.category_id = c.id
+            WHERE p.status = 'published' 
+              AND p.article_type = 'post'
+              AND c.url = :category_url
+        ");
+    
+        $stmt->execute([':category_url' => $category_url]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+    
+        return (int)$row['total'];
+    }
+
     public function getAllPosts($page = 1) {
         //берем немного больше, чтобы учесть длинные слова.
         $posts_per_page = Config::getPostsCfg('posts_per_page');
@@ -221,10 +255,17 @@ class PostModel {
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public function getAllPostsByTag($tag_url) {
-        //берем немного больше, чтобы учесть длинные слова.
-        $posts_per_page = Config::getPostsCfg('posts_per_page');
+    public function getAllPostsByTag($tag_url, $page = 1) {
+        // проверяем, существует ли такй тэг
+        $stmt = $this->db->prepare("SELECT COUNT(*) FROM tags WHERE url = :tag_url");
+        $stmt->execute([':tag_url' => $tag_url]);
+        if ((int)$stmt->fetchColumn() === 0) {
+            return []; // такого тэга нет
+        }
 
+        $posts_per_page = Config::getPostsCfg('posts_per_page');
+        $offset = ($page - 1) * $posts_per_page;
+    
         $sql = "
             SELECT 
                 p.url AS url,
@@ -265,12 +306,14 @@ class PostModel {
                 t.url = :tag_url
             ORDER BY
                 p.updated_at DESC
-            LIMIT 0, $posts_per_page";
-
-        Logger::debug(debugPDO($sql, ['tag_url' => $tag_url]));
-
+            LIMIT :limit OFFSET :offset";
+    
         $stmt = $this->db->prepare($sql);
-        $stmt->execute([':tag_url' => $tag_url]);
+        $stmt->bindValue(':tag_url', $tag_url, PDO::PARAM_STR);
+        $stmt->bindValue(':limit', $posts_per_page, PDO::PARAM_INT);
+        $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+        $stmt->execute();
+    
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 

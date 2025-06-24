@@ -469,6 +469,15 @@ body {
     padding: 20px 0;
 }
 
+.pagination .dots {
+    display: inline-block;
+    font-size: 20px;
+    color: #bbb;
+    transform: translateY(12px); /* смещение вниз */
+    user-select: none;
+    pointer-events: none;
+}
+
 .page-number {
     display: inline-block;
     width: 36px;
