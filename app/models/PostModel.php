@@ -197,17 +197,17 @@ class PostModel {
         return $row;
     }
 
-    public function getAllPostsBySection($cat_url, $show_link_next) {
-        //берем немного больше, чтобы учесть длинные слова.
+    public function getAllPostsByCategory($cat_url, $show_link_next, $page = 1) {
         $posts_per_page = Config::getPostsCfg('posts_per_page');
+        $offset = ($page - 1) * $posts_per_page;
+    
         if ($show_link_next) {
-            $exerpt_len=Config::getPostsCfg('exerpt_len')+50;
+            $exerpt_len = Config::getPostsCfg('exerpt_len') + 50;
             $content = "SUBSTRING(p.content, 1, $exerpt_len) AS content";
-        }
-        else{
+        } else {
             $content = "p.content AS content";
         }
-
+    
         $sql = "
             SELECT 
                 p.url AS url,
@@ -227,7 +227,6 @@ class PostModel {
                 categories AS c ON c.id = pc.category_id
             LEFT JOIN (
                 -- Берём одну картинку (первую по id) для каждого поста
-                -- Брать главную картинку по флагу (is_main) → добавь AND is_main = 1
                 SELECT post_id, file_path
                 FROM media
                 WHERE id IN (
@@ -236,22 +235,27 @@ class PostModel {
                     WHERE file_type = 'image'
                     GROUP BY post_id
                 )
-            ) AS m
-            ON
-                m.post_id = p.id
+            ) AS m ON m.post_id = p.id
             WHERE
                 p.status = 'published' AND
                 p.article_type = 'post' AND
                 c.url = :cat_url
             ORDER BY
                 p.updated_at DESC
-            LIMIT
-                0, $posts_per_page";
-
-        Logger::debug(debugPDO($sql, ['cat_url' => $cat_url]));
-
+            LIMIT :limit OFFSET :offset";
+    
+        Logger::debug(debugPDO($sql, [
+            ':cat_url' => $cat_url,
+            ':limit' => $posts_per_page,
+            ':offset' => $offset
+        ]));
+    
         $stmt = $this->db->prepare($sql);
-        $stmt->execute([':cat_url' => $cat_url]);
+        $stmt->bindValue(':cat_url', $cat_url, PDO::PARAM_STR);
+        $stmt->bindValue(':limit', $posts_per_page, PDO::PARAM_INT);
+        $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+        $stmt->execute();
+    
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 

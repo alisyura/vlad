@@ -9,37 +9,6 @@ function getVisitorCookie()
  * Генерирует массив ссылок для постраничного отображения
  * 
  */
-// function generateSmartPaginationLinks($currentPage, $totalPages, $maxVisible = 5) {
-//     if ($totalPages <= 1) return [];
-
-//     $links = [];
-//     $start = max(1, min($currentPage - floor($maxVisible / 2), $totalPages - $maxVisible + 1));
-//     $end = min($totalPages, $start + $maxVisible - 1);
-
-//     // Добавляем начало
-//     if ($start > 1) {
-//         $links[1] = '/';
-//         if ($start > 2) {
-//             $links['...left'] = '…';
-//         }
-//     }
-
-//     // Основные страницы
-//     for ($i = $start; $i <= $end; $i++) {
-//         $links[$i] = "/p$i";
-//     }
-
-//     // Конец
-//     if ($end < $totalPages) {
-//         if ($end < $totalPages - 1) {
-//             $links['...right'] = '…';
-//         }
-//         $links[$totalPages] = "/p{$totalPages}";
-//     }
-
-//     return $links;
-// }
-
 function generateSmartPaginationLinks($currentPage, $totalPages, $baseUrl = '/', $maxVisible = 5) {
     if ($totalPages <= 1) return [];
 

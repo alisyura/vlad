@@ -142,8 +142,16 @@ class PostController {
     /*
     * Список постов раздела меню
     */
-    public function showSection($cat_url, $show_link_next) {
-        $posts = $this->model->getAllPostsBySection($cat_url, $show_link_next);
+    public function showSection($cat_url, $show_link_next, $page = 1) {
+        $posts_per_page = Config::getPostsCfg('posts_per_page');
+        $total_posts = $this->model->countAllPostsByCategory($cat_url); // из предыдущих улучшений
+        $total_pages = ceil($total_posts / $posts_per_page);
+        $page = max(1, min((int)$page, $total_pages));
+        $posts = $this->model->getAllPostsByCategory($cat_url, $show_link_next, $page);
+
+        $base_url = "/cat/{$cat_url}";
+        // Генерируем ссылки для умной пагинации
+        $pagination_links = generateSmartPaginationLinks($page, $total_pages, $base_url);
 
         //print_r($posts);
         $URL = rtrim(sprintf("%s", $this->uri), '/');
@@ -152,7 +160,15 @@ class PostController {
             'posts' => $posts,
             'show_caption' => true,
             'url' => $URL,
-            'show_read_next' => $show_link_next
+            'show_read_next' => $show_link_next,
+            'pagination' => [
+                'current_page' => $page,
+                'total_pages' => $total_pages,
+                'total_posts' => $total_posts,
+                'posts_per_page' => $posts_per_page,
+            ],
+            'pagination_links' => $pagination_links,
+            'baseUrl' => $base_url
         ]);
 
         $structuredData = [
@@ -171,33 +187,6 @@ class PostController {
     /*
     * Список постов по тэгу
     */
-    // public function showTag($tag_url) {
-    //     $posts = $this->model->getAllPostsByTag($tag_url);
-
-    //     //print_r($posts);
-    //     $URL = rtrim(sprintf("%s", $this->uri), '/');
-
-    //     $content = View::render('../app/views/posts/index.php', [
-    //         'posts' => $posts,
-    //         'show_caption' => true,
-    //         'url' => $URL,
-    //         'show_read_next' => $show_link_next
-    //     ]);
-
-    //     $structuredData = [
-    //         'page_type' => 'home',
-    //         'site_name' => Config::getGlobalCfg('SITE_NAME'),
-    //         'keywords' => Config::getGlobalCfg('SITE_KEYWORDS'),
-    //         'description' => Config::getGlobalCfg('SITE_DESCRIPTION'),
-    //         'url' => $URL,
-    //         'image' => sprintf("%s/assets/pic/logo.png", $URL),
-    //         'posts' => $posts
-    //     ];
-
-    //     require '../app/views/layout.php';
-    // }
-
-
     public function showTag($tag_url, $page = 1) {
         $posts_per_page = Config::getPostsCfg('posts_per_page');
         $total_posts = $this->model->countAllPostsByTag($tag_url); // из предыдущих улучшений
@@ -208,7 +197,6 @@ class PostController {
         $base_url = "/tag/{$tag_url}";
         // Генерируем ссылки для умной пагинации
         $pagination_links = generateSmartPaginationLinks($page, $total_pages, $base_url);
-        //($page, $total_pages, '/');
 
         //print_r($posts);
         $URL = rtrim(sprintf("%s", $this->uri), '/');

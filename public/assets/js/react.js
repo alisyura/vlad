@@ -46,19 +46,24 @@ document.addEventListener("DOMContentLoaded", async function () {
     window.copyLink = async function (e) {
         e.preventDefault();
         e.stopPropagation();
-
+    
         const dropdown = e.target.closest('.share-dropdown');
         const postPreview = dropdown?.closest('.post_preview, .post_full');
-
+    
         if (!postPreview) {
             showToast('Не удалось найти ссылку');
             return;
         }
-
+    
         const postUrl = postPreview.dataset.url;
-
+    
+        if (!postUrl) {
+            showToast('URL поста не найден');
+            return;
+        }
+    
         try {
-            await navigator.clipboard.writeText(postUrl);
+            await copyTextToClipboard(postUrl);
             showToast('Ссылка скопирована!');
             dropdown.closest('.share-dropdown').classList.remove('active');
             document.querySelector('.share-overlay')?.remove();
@@ -171,9 +176,6 @@ document.addEventListener("DOMContentLoaded", async function () {
         }
     });
 
-
-
-
     // === 6. Загрузка данных о голосах при открытии страницы ===
     const postElements = document.querySelectorAll('.post_preview, .post_full');
     if (postElements.length > 0) {
@@ -257,4 +259,32 @@ function replaceReactionLink(button, change_img) {
     }
 
     parent.replaceChild(newImg, button);
+}
+
+function copyTextToClipboard(text) {
+    return new Promise((resolve, reject) => {
+        if (navigator.clipboard && window.isSecureContext) {
+            // Современный способ (работает в Chrome, Edge, Safari)
+            navigator.clipboard.writeText(text)
+                .then(resolve)
+                .catch(reject);
+        } else {
+            // Резервный метод для Firefox и локального запуска
+            const textarea = document.createElement("textarea");
+            textarea.value = text;
+            textarea.style.position = "fixed";
+            textarea.style.top = "-9999px";
+            textarea.style.left = "-9999px";
+            document.body.appendChild(textarea);
+            textarea.select();
+            try {
+                document.execCommand('copy');
+                resolve();
+            } catch (err) {
+                reject(err);
+            } finally {
+                document.body.removeChild(textarea);
+            }
+        }
+    });
 }

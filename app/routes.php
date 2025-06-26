@@ -81,20 +81,15 @@ $router->addRoute('/page\/([0-9a-zA-Z-_]+)\.html', function($page_url) {
 });
 
 // Список постов по тэгу
-// $router->addRoute('/tag\/([0-9a-zA-Z-_]+)', function($tag_url) {
-//     $controller = new PostController();
-//     $controller->showTag($tag_url);
-// });
-
 $router->addRoute('/tag\/([0-9a-zA-Z-_]+)(?:\/p(\d+))?', function($tagUrl, $page = 1) {
     $controller = new PostController();
     $controller->showTag($tagUrl, max(1, (int)$page));
 });
 
 // Список постов по разделу
-$router->addRoute('/cat\/(anekdoty|veselaya-rifma|citatnik|istorii|kartinki|video|tegi|luchshee)', function($cat_url) {
+$router->addRoute('/cat\/(anekdoty|veselaya-rifma|citatnik|istorii|kartinki|video|tegi|luchshee)(?:\/p(\d+))?', function($cat_url, $page = 1) {
     $controller = new PostController();
-    $controller->showSection($cat_url, $cat_url === 'istorii');
+    $controller->showSection($cat_url, $cat_url === 'istorii', max(1, (int)$page));
 });
 
 // Вызовы Ajax
