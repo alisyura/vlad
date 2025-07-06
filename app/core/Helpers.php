@@ -97,6 +97,20 @@ function stringDate($date)
     return $formattedDate;
 }
 
+function DateYYYYmmdd($value): string
+{
+    // Если значение NULL или пустая строка — возвращаем пустую строку
+    if ($value === null || trim($value) === '') {
+        return '';
+    }
+
+    // Пытаемся создать дату
+    $date = date_create($value);
+
+    // Возвращаем форматированную дату или пустую строку, если формат был неверен
+    return $date ? $date->format('Y-m-d') : '';
+}
+
 function create_excerpt($content)
 {
     $max_length = Config::getPostsCfg('exerpt_len');

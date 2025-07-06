@@ -4,9 +4,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= htmlspecialchars($structuredData['site_name']) ?></title>
-    <meta name="keywords" content="<?= htmlspecialchars($structuredData['keywords']) ?>">
-    <meta name="description" content="<?= htmlspecialchars($structuredData['description']) ?>">
+    <title itemprop="headline"><?= htmlspecialchars($structuredData['site_name']) ?></title>
+    <meta itemprop="keywords" name="keywords" content="<?= htmlspecialchars($structuredData['keywords']) ?>">
+    <meta itemprop="description" name="description" content="<?= htmlspecialchars($structuredData['description']) ?>">
 
     <?= generateStructuredData($structuredData); ?>
 
@@ -42,42 +42,42 @@
                 </div>
             </div>
 
-            <div class="menu-block">
+            <div class="menu-block"  itemscope itemtype="http://schema.org/SiteNavigationElement">
                 <div class="menu-item">
                     <img src="/assets/pic/menu/glavnaya.png" alt="Главная">
-                    <a href="/">Главная</a>
+                    <a itemprop="url" href="/">Главная</a>
                 </div>
                 <div class="menu-item">
                     <img src="/assets/pic/menu/anekdoty.png" alt="Анекдоты">
-                    <a href="/cat/anekdoty">Анекдоты</a>
+                    <a itemprop="url" href="/cat/anekdoty">Анекдоты</a>
                 </div>
                 <div class="menu-item">
                     <img src="/assets/pic/menu/veselaya-rifma.png" alt="Веселая рифма">
-                    <a href="/cat/veselaya-rifma">Веселая рифма</a>
+                    <a itemprop="url" href="/cat/veselaya-rifma">Веселая рифма</a>
                 </div>
                 <div class="menu-item">
                     <img src="/assets/pic/menu/citatnik.png" alt="Цитатник">
-                    <a href="/cat/citatnik">Цитатник</a>
+                    <a itemprop="url" href="/cat/citatnik">Цитатник</a>
                 </div>
                 <div class="menu-item">
                     <img src="/assets/pic/menu/istorii.png" alt="Истории">
-                    <a href="/cat/istorii">Истории</a>
+                    <a itemprop="url" href="/cat/istorii">Истории</a>
                 </div>
                 <div class="menu-item">
                     <img src="/assets/pic/menu/kartinki.png" alt="Картинки">
-                    <a href="/cat/kartinki">Картинки</a>
+                    <a itemprop="url" href="/cat/kartinki">Картинки</a>
                 </div>
                 <div class="menu-item">
                     <img src="/assets/pic/menu/video.png" alt="Видео">
-                    <a href="/cat/video">Видео</a>
+                    <a itemprop="url" href="/cat/video">Видео</a>
                 </div>
                 <div class="menu-item">
                     <img src="/assets/pic/menu/tegi.png" alt="Тэги">
-                    <a href="/cat/tegi">Тэги</a>
+                    <a itemprop="url" href="/cat/tegi">Тэги</a>
                 </div>
                 <div class="menu-item">
                     <img src="/assets/pic/menu/luchshee.png" alt="Лучшее">
-                    <a href="/cat/luchshee">Лучшее</a>
+                    <a itemprop="url" href="/cat/luchshee">Лучшее</a>
                 </div>
             </div>
 
@@ -119,42 +119,42 @@
         <div class="mobilemenu-overlay hidden">
             <!-- Основное меню -->
             <div class="mobilemenu-container">
-                <div class="menu-block">
+                <div class="menu-block"itemscope itemtype="http://schema.org/SiteNavigationElement">
                     <div class="menu-item">
                         <img src="/assets/pic/menu/glavnaya.png" alt="Главная">
-                        <a href="/">Главная</a>
+                        <a itemprop="url" href="/">Главная</a>
                     </div>
                     <div class="menu-item">
                         <img src="/assets/pic/menu/anekdoty.png" alt="Анекдоты">
-                        <a href="/cat/anekdoty">Анекдоты</a>
+                        <a itemprop="url" href="/cat/anekdoty">Анекдоты</a>
                     </div>
                     <div class="menu-item">
                         <img src="/assets/pic/menu/veselaya-rifma.png" alt="Веселая рифма">
-                        <a href="/cat/veselaya-rifma">Веселая рифма</a>
+                        <a itemprop="url" href="/cat/veselaya-rifma">Веселая рифма</a>
                     </div>
                     <div class="menu-item">
                         <img src="/assets/pic/menu/citatnik.png" alt="Цитатник">
-                        <a href="/cat/citatnik">Цитатник</a>
+                        <a itemprop="url" href="/cat/citatnik">Цитатник</a>
                     </div>
                     <div class="menu-item">
                         <img src="/assets/pic/menu/istorii.png" alt="Истории">
-                        <a href="/cat/istorii">Истории</a>
+                        <a itemprop="url" href="/cat/istorii">Истории</a>
                     </div>
                     <div class="menu-item">
                         <img src="/assets/pic/menu/kartinki.png" alt="Картинки">
-                        <a href="/cat/kartinki">Картинки</a>
+                        <a itemprop="url" href="/cat/kartinki">Картинки</a>
                     </div>
                     <div class="menu-item">
                         <img src="/assets/pic/menu/video.png" alt="Видео">
-                        <a href="/cat/video">Видео</a>
+                        <a itemprop="url" href="/cat/video">Видео</a>
                     </div>
                     <div class="menu-item">
                         <img src="/assets/pic/menu/tegi.png" alt="Тэги">
-                        <a href="/cat/tegi">Тэги</a>
+                        <a itemprop="url" href="/cat/tegi">Тэги</a>
                     </div>
                     <div class="menu-item">
                         <img src="/assets/pic/menu/luchshee.png" alt="Лучшее">
-                        <a href="/cat/luchshee">Лучшее</a>
+                        <a itemprop="url" href="/cat/luchshee">Лучшее</a>
                     </div>
                 </div>
 

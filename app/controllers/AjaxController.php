@@ -308,7 +308,7 @@ class AjaxController
                     ':post_id' => $newPostId,
                     ':user_id' => $adminId,
                     ':file_name' => $filename = basename($filePath),
-                    ':file_path' => '/assets/uploads' . $filePath,
+                    ':file_path' => '/assets/uploads/' . $filePath,
                     ':mime_type' => $file['type'],
                     ':file_size' => $file['size']
                 ]);

@@ -1,12 +1,14 @@
-<?php if ($show_caption): ?>
+<?php if (($show_caption) && !empty($caption)): ?>
 <!-- Заголовок (при категории) -->
 <div style="background-color: #fafaf8; margin-top: 20px; padding: 20px; border-radius: 10px;">
     <div style="font-weight: bold; font-size: 18px;">
-        Это выделенный пост
+        <?= htmlspecialchars($caption) ?>
     </div>
+    <?php if (trim($caption_desc ?? '') !== ''): ?>
     <div class="post_text_preview">
-        Это текстовое превью выделенного поста. Здесь может быть краткое описание статьи или рекламное сообщение.
+        <?= htmlspecialchars($caption_desc) ?>
     </div>
+    <?php endif ?>
 </div>
 <?php endif ?>
 
@@ -14,17 +16,19 @@
 <!-- Блок post_preview -->
 <div class="post_preview" itemscope itemtype="https://schema.org/Article" data-url="<?= htmlspecialchars($url) ?>/<?= htmlspecialchars($post['url']) ?>.html" data-id="<?= htmlspecialchars($post['url']) ?>">
     <!-- Schema.org внутри блока -->
-    <meta itemprop="headline" content="Эскимос заблудился на охоте">
-    <meta itemprop="description" content="Эскимос шёл за тюленем, но попал к чукче. Теперь он не может найти обратную дорогу.">
-    <meta itemprop="url" content="https://вашсайт.ru/post/1"> 
-    <meta itemprop="image" content="https://вашсайт.ru/pic/oblozhка1.jpg"> 
-    <meta itemprop="datePublished" content="2024-10-12T12:00:00+03:00">
-    <meta itemprop="author" content="Автор 1">
-    <meta itemprop="publisher" content="Ваш сайт">
+    <!-- <meta itemprop="headline" content="<?= htmlspecialchars($post['title']) ?>">
+    <meta itemprop="description" content="<?= htmlspecialchars($post['description']) ?>">
+    <meta itemprop="url" content="<?= htmlspecialchars($url) ?>/<?= htmlspecialchars($post['url']) ?>.html"> 
+    <?php if (trim($post['image'] ?? '') !== ''): ?>
+    <meta itemprop="image" content="<?= htmlspecialchars($url) ?><?= htmlspecialchars($post['image']) ?>"> 
+    <?php endif ?>
+    <meta itemprop="datePublished" content="<?= htmlspecialchars($post['updated_at']) ?>">
+    <meta itemprop="author" content="<?= htmlspecialchars($post['user_name']) ?>"> -->
+    <!-- <meta itemprop="publisher" content="Ваш сайт"> -->
 
     <!-- Блок post_date_category -->
     <div class="post_preview_date_category">
-        <span class="post_preview_date"><?= stringDate($post['updated_at']) ?></span>
+        <time itemprop="datePublished" datetime="<?= htmlspecialchars($post['updated_at']) ?>" class="post_preview_date"><?= stringDate($post['updated_at']) ?></time>
         <span class="spacer"></span> <!-- Промежуток 25px -->
         <img src="/assets/pic/menu/<?= $post['category_url'] ?>.png" alt="<?= $post['category_name'] ?>" class="icon">
         <span class="spacer_small"></span> <!-- Промежуток 10px -->
@@ -32,17 +36,21 @@
     </div>
 
     <!-- Заголовок поста -->
-    <h3 class="post_preview_header"><a href="/<?= htmlspecialchars($post['url']) ?>.html"><?= htmlspecialchars($post['title']) ?></a></h3>
+    <h3 itemprop="headline" class="post_preview_header"><a href="/<?= htmlspecialchars($post['url']) ?>.html"><?= htmlspecialchars($post['title']) ?></a></h3>
 
     <!-- Текстовый превью поста -->
     <p class="post_text_preview">
         <?php if ($show_read_next): ?>
-        <?= htmlspecialchars(create_excerpt($post['content'])) ?>
+        <div itemprop="description"><?= htmlspecialchars(create_excerpt($post['content'])) ?></div>
         <a href="/<?= $post['url'] ?>.html" class="text_link">Читать ></a>
         <?php else: ?>
-        <?= htmlspecialchars($post['content']) ?>
+        <div itemprop="articleBody"><?= htmlspecialchars($post['content']) ?></div>
         <?php endif ?>
     </p>
+
+    <?php if (isset($post['image'])): ?>
+    <img class="post_preview_oblozhka" alt="Обложка поста" src="<?= htmlspecialchars($url).htmlspecialchars($post['image']) ?>" itemprop="image">
+    <?php endif ?>
 
     <!-- Блок реакций -->
     <div class="post_reactions">
@@ -120,8 +128,8 @@
 <!-- Пагинация -->
 <?php if (!empty($pagination_links)) : ?>
 <div class="pagination">
-    <?php if ($pagination['current_page'] > 1): ?>
-        <a class="page-number" href="<?= htmlspecialchars($baseUrl . '/p' . ($pagination['current_page'] - 1)) ?>">&laquo;</a>
+    <?php if ($pagination['current_page'] > 1): ?>     
+        <a class="page-number" href="<?= htmlspecialchars($base_page_url . '/p' . ($pagination['current_page'] - 1)) ?>">&laquo;</a>
     <?php endif; ?>
 
     <?php foreach ($pagination_links as $num => $link): ?>
@@ -136,7 +144,7 @@
     <?php endforeach; ?>
 
     <?php if ($pagination['current_page'] < $pagination['total_pages']): ?>
-        <a class="page-number" href="<?= htmlspecialchars($baseUrl . '/p' . ($pagination['current_page'] + 1)) ?>">&raquo;</a>
+        <a class="page-number" href="<?= htmlspecialchars($base_page_url . '/p' . ($pagination['current_page'] + 1)) ?>">&raquo;</a>
     <?php endif; ?>
 </div>
 <?php endif; ?>

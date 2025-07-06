@@ -114,3 +114,16 @@ $router->addRoute('/api/post-votes', function () {
     $controller = new AjaxController();
     $controller->getPostVotes();
 });
+
+// Sitemap.xml
+$router->addRoute('/sitemap\.xml', function () {
+    require_once __DIR__ . '/../app/controllers/SitemapController.php';
+    $controller = new SitemapController();
+    $controller->generateSitemapIndexXml();
+});
+
+$router->addRoute('/sitemap-(posts|pages)-(\d+)\.xml', function ($type, $page) {
+    require_once __DIR__ . '/../app/controllers/SitemapController.php';
+    $controller = new SitemapController();
+    $controller->generateSitemapPartXml($type, $page);
+});

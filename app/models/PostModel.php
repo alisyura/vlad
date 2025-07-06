@@ -275,14 +275,16 @@ class PostModel {
                 p.url AS url,
                 p.title AS title,
                 p.content AS content,
-                p.updated_at AS updated_at,
+                DATE_FORMAT(p.updated_at, '%Y-%m-%d') AS updated_at,
+                p.description AS description,
                 t.url AS tag_url,
                 t.name AS tag_name,
                 c.url AS category_url,
                 c.name AS category_name,
                 m.file_path AS image,
                 p.likes_count AS likes,
-                p.dislikes_count AS dislikes
+                p.dislikes_count AS dislikes,
+                u.name AS user_name
             FROM
                 posts AS p
             INNER JOIN
@@ -304,6 +306,8 @@ class PostModel {
                     GROUP BY post_id
                 )
             ) AS m ON m.post_id = p.id
+            LEFT JOIN
+                users AS u ON u.id = p.user_id
             WHERE
                 p.status = 'published' AND
                 p.article_type = 'post' AND
