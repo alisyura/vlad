@@ -136,7 +136,7 @@
         <?php if ($num === '...left' || $num === '...right'): ?>
             <span class="dots"><?= $link ?></span>
         <?php else: ?>
-            <a href="<?= htmlspecialchars($link) ?>"
+            <a href="<?= htmlspecialchars($base_page_url.$link) ?>"
             class="page-number<?= $num == $pagination['current_page'] ? ' active' : '' ?>">
                <?= $num ?>
             </a>
