@@ -12,25 +12,25 @@
     <meta itemprop="publisher" content="Ваш сайт">
     <meta itemprop="keywords" content="анекдоты, чукча, охота, юмор">
 
+    <?php if ($is_post): ?>
     <!-- Блок post_date_category -->
     <div class="post_preview_date_category" itemprop="datePublished category">
         <time class="post_preview_date" datetime="<?= date('Y-m-d', strtotime($post['updated_at'])) ?>">
             <?= date('d.m.Y', strtotime($post['updated_at'])) ?>
-        </time>
-        <?php if ($is_post): ?>
+        </time>        
         <span class="spacer"></span> <!-- Промежуток 25px -->
         <img src="/assets/pic/menu/anekdoty.png" alt="<?= htmlspecialchars($post['category_name']) ?>" class="icon">
         <span class="spacer_small"></span> <!-- Промежуток 10px -->
         <a href="/cat/<?= htmlspecialchars($post['category_url']) ?>" class="text_link"><?= htmlspecialchars($post['category_name']) ?></a>
-        <?php endif ?>
     </div>
+    <?php endif ?>
 
     <!-- Заголовок поста -->
     <h1 class="post_preview_header" itemprop="headline"><?= htmlspecialchars($post['title']) ?></h1>
 
-    <!-- Текстовый превью поста -->
+    <!-- Текст поста -->
     <p class="post_full_text" itemprop="articleBody">
-        <?= nl2br(htmlspecialchars($post['content'])) ?>
+        <?= nl2br($post['content']) ?>
     </p>
 
     <?php if ($is_post && isset($post_image)): ?>

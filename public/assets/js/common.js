@@ -21,24 +21,6 @@ function validateEmail(email) {
     return re.test(String(email).toLowerCase());
 }
 
-// document.addEventListener("DOMContentLoaded", function () {
-//     const cookieBanner = document.getElementById('cookie-consent');
-//     const acceptBtn = document.getElementById('accept-cookies');
-
-//     // Проверяем, есть ли уже принятое согласие
-//     if (!localStorage.getItem('cookiesAccepted')) {
-//         cookieBanner.classList.add('show');
-//     }
-
-//     alert('11');
-//     // При нажатии на кнопку "Согласиться"
-//     acceptBtn.addEventListener('click', function () {
-//         alert('22'+cookieBanner);
-//         localStorage.setItem('cookiesAccepted', 'true');
-//         cookieBanner.classList.remove('show');
-//     });
-// });
-
 document.addEventListener("DOMContentLoaded", function () {
     const cookieBanner = document.getElementById('cookie-consent');
     const acceptBtn = document.getElementById('accept-cookies');

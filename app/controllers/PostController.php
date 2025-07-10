@@ -59,6 +59,83 @@ class PostController {
     }
 
     /*
+    * Страница Контакты
+    */
+    public function showKontakty() {
+        // $page = $this->model->getPageByUrl($page_url);
+        // if (!$page) {
+        //     header("HTTP/1.0 404 Not Found");
+        //     $content = View::render('../app/views/errors/404.php', [
+        //         'title' => '404'
+        //     ]);
+            
+        //     require '../app/views/layout.php';
+        //     return;
+        // }
+
+        $URL = rtrim(sprintf("%s/%s", $this->uri, 'page/kontakty'), '/').'.html';
+    
+        $content = View::render('../app/views/pages/kontakty.php', [
+            //'post' => $page,
+            'full_url' => $URL,
+            'url_id' => 'kontakty'
+            //'tags_baseUrl' => sprintf("%s/tag/", $this->uri),
+            //'post_image' => sprintf("%s%s", $this->uri, $page['image']),
+            //'tags' => $tags,
+            //'is_post' => false
+        ]);
+
+        $structuredData = [
+            'page_type' => 'kontakty',
+            'site_name' => Config::getGlobalCfg('SITE_NAME'),
+            'keywords' => Config::getGlobalCfg('SITE_KEYWORDS'),
+            'description' => Config::getGlobalCfg('SITE_DESCRIPTION'),
+            'url' => $URL
+            //'image' => sprintf("%s%s", $this->uri, $page['image'])
+        ];
+        
+        require '../app/views/layout.php';
+    }
+
+    /*
+    * Страница Карта сайта
+    */
+    public function showSitemap() {
+        $page = $this->model->getPageByUrl($page_url);
+        if (!$page) {
+            header("HTTP/1.0 404 Not Found");
+            $content = View::render('../app/views/errors/404.php', [
+                'title' => '404'
+            ]);
+            
+            require '../app/views/layout.php';
+            return;
+        }
+
+        $URL = rtrim(sprintf("%s/%s", $this->uri, $page['url']), '/').'.html';
+    
+        $content = View::render('../app/views/posts/show.php', [
+            'post' => $page,
+            'full_url' => $URL,
+            'tags_baseUrl' => sprintf("%s/tag/", $this->uri),
+            //'post_image' => sprintf("%s%s", $this->uri, $page['image']),
+            //'tags' => $tags,
+            'is_post' => false
+        ]);
+
+        $structuredData = [
+            'page_type' => 'post',
+            'site_name' => Config::getGlobalCfg('SITE_NAME'),
+            'keywords' => Config::getGlobalCfg('SITE_KEYWORDS'),
+            'description' => Config::getGlobalCfg('SITE_DESCRIPTION'),
+            'url' => $URL
+            //'image' => sprintf("%s%s", $this->uri, $page['image'])
+        ];
+        
+        require '../app/views/layout.php';
+    }
+
+    /*
     * Страница page
     */
     public function showPage($page_url) {

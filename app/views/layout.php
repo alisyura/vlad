@@ -12,11 +12,23 @@
 
     <link rel="stylesheet" href="/assets/css/common.css">
     <link rel="stylesheet" href="/assets/css/styles.css">
-    <link rel="stylesheet" href="/assets/css/<?= $structuredData['page_type'] == 'post' ? 'detail' : 'list' ?>.css">
     <link rel="stylesheet" href="/assets/css/menu.css">
     <link rel="stylesheet" href="/assets/css/new_pub.css">
     <link rel="stylesheet" href="/assets/css/react.css">
     <link rel="stylesheet" href="/assets/css/modal.css">
+    <?php
+        switch ($structuredData['page_type']) {
+            case 'post':
+                $style = 'detail';
+                break;
+            case 'kontakty':
+                $style = 'kontakty';
+                break;
+            default:
+                $style = 'list';
+        }
+    ?>
+    <link rel="stylesheet" href="/assets/css/<?= $style ?>.css">
     <meta name="robots" content="noindex, follow">
 </head>
 
@@ -250,6 +262,13 @@
     <script src="/assets/js/common.js" defer></script>
     <script src="/assets/js/new_pub.js" defer></script>
     <script src="/assets/js/react.js" defer></script>
+    <?php
+        switch ($structuredData['page_type']) {
+            case 'kontakty':
+                echo '<script src="/assets/js/kontakty.js" defer></script>'."\n";
+                break;
+        }
+    ?>
 
     <!-- === Всплывающее уведомление о куках === -->
     <div id="cookie-consent" class="cookie-consent">

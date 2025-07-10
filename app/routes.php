@@ -74,6 +74,18 @@ $router->addRoute('/([0-9a-zA-Z-_]+)\.html', function($post_url) {
     $controller->showPost($post_url);
 });
 
+// Страница контакты
+$router->addRoute('/page/kontakty\.html', function() {
+    $controller = new PostController();
+    $controller->showKontakty();
+});
+
+// Страница карта сайта
+$router->addRoute('/page/sitemap\.html', function() {
+    $controller = new PostController();
+    $controller->showSitemap();
+});
+
 // Страница page
 $router->addRoute('/page\/([0-9a-zA-Z-_]+)\.html', function($page_url) {
     $controller = new PostController();
@@ -91,6 +103,8 @@ $router->addRoute('/cat\/(anekdoty|veselaya-rifma|citatnik|istorii|kartinki|vide
     $controller = new PostController();
     $controller->showSection($cat_url, $cat_url === 'istorii', max(1, (int)$page));
 });
+
+
 
 // Вызовы Ajax
 

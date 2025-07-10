@@ -1,0 +1,178 @@
+.post_full {
+    background-color: #ffffff;
+    border-radius: 10px;
+    padding: 25px;
+    margin-top: 20px;
+    /* box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); */
+}
+
+/* Основной контейнер */
+.contact-form-container {
+    margin-top: 20px;
+    width: 100%;
+}
+
+.contact-form-container p {
+    font-size: 16px;
+    color: #706f69;
+    line-height: 1.5; /* Интервал между строками */
+}
+
+h1.post_preview_header {
+    font-size: 18px;
+    font-weight: bold;
+    margin-top: 20px; /* Отступ сверху от предыдущего блока */
+    color: #353833;
+}
+
+/* Горизонтальный макет с flexbox */
+.form-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+    margin-bottom: 20px;
+    width: 100%;
+}
+
+/* Блоки слева и справа */
+.form-column {
+    width: 50%;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Заголовки */
+.form-column div,
+.form-section div {
+    font-weight: bold;
+    color: #353833;
+    margin-bottom: 8px;
+}
+
+/* Текстовые поля */
+.inp_text {
+    border: 1px solid #e9e2dd;
+    border-radius: 10px;
+    padding: 16px;
+    font-size: 14px;
+    box-sizing: border-box;
+    width: 100%;
+    height:40px;
+}
+
+.inp_text:focus {
+    border-color: #dd6e53 !important;
+    outline: none;
+}
+
+
+/* Многострочное поле */
+textarea.inp_text {
+    border: 1px solid #e9e2dd;
+    border-radius: 10px;
+    padding: 5px;
+    font-size: 14px;
+    resize: vertical;
+    min-height: 100px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* Красная звездочка */
+.required {
+    color: red;
+    display: inline;
+    margin-left: 4px;
+}
+
+/* Вертикальные отступы между секциями формы */
+.form-section {
+    margin-bottom: 20px;
+}
+
+.textarea-wrapper {
+    position: relative;
+    width: 100%;
+}
+
+.contact-char-counter {
+    position: absolute;
+    bottom: 8px; /* Отступ снизу от textarea */
+    right: 12px; /* Отступ справа от textarea */
+    font-size: 14px;
+    color: #999;
+    pointer-events: none; /* Чтобы не мешал при вводе */
+}
+
+/* === Блок загрузки файла === */
+.contact-upload-block {
+    margin-top: 15px;
+}
+
+.contact-upload-block .contact-upload-content {
+    border: 2px dashed #e9e2dd;
+    border-radius: 10px;
+    padding: 20px 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    cursor: pointer;
+}
+
+.contact-upload-block img {
+    width: 13px;
+    height: 20px;
+}
+
+.contact-upload-block .contact-upload-title {
+    margin-top: 15px;
+    font-size: 16px;
+    color: #353833;
+    font-weight: bold;
+}
+
+.contact-upload-block .contact-upload-description {
+    margin-top: 18px;
+    font-size: 14px;
+    color: #706f69;
+}
+
+.contact-upload-block .contact-upload-hints {
+    margin-top: 18px;
+    font-size: 13px;
+    color: #a8a7a3;
+}
+.contact-upload-block .contact-upload-hints div {
+    margin-bottom: 15px;
+}
+.contact-upload-block .contact-upload-hints div:last-child {
+    margin-bottom: 0;
+}
+
+.contact-form-error {
+    margin-top: 15px;
+    font-size: 14px;
+    color: red;
+    display: none;
+}
+
+.send-button {
+    margin-top: 15px;
+}
+
+.send-button button {
+    width: 100%;
+    padding: 10px 25px;
+    background-color: #dd6e53;
+    color: #ffffff;
+    border: none;
+    border-radius: 10px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.send-button button:hover {
+    background-color: #c95e47;
+}
