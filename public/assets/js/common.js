@@ -54,3 +54,10 @@ function getAttribs(obj)
     }
     console.log(attributes);
 }
+
+function getFormData(obj)
+{
+    for (let [key, value] of obj) {
+        console.log(key, value);
+    }
+}

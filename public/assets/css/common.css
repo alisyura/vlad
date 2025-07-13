@@ -48,7 +48,11 @@
 }
 
 .toast.hidden {
-    bottom: -100px;
+    bottom: -200px;
+}
+
+#toast-message {
+    white-space: pre-line;
 }
 
 .cookie-consent {

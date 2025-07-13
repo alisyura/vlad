@@ -353,12 +353,82 @@ class AjaxController
         return $stmt->fetch();
     }
 
-    protected function isAjaxRequest()
+    // protected function isAjaxRequest()
+    // {
+    //     return (
+    //         $_SERVER['REQUEST_METHOD'] === 'POST'
+    //         && !empty($_SERVER['HTTP_X_REQUESTED_WITH'])
+    //         && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest'
+    //     );
+    // }
+
+    public function sendMsg()
     {
-        return (
-            $_SERVER['REQUEST_METHOD'] === 'POST'
-            && !empty($_SERVER['HTTP_X_REQUESTED_WITH'])
-            && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest'
-        );
+        $msg_name = trim($_POST['name'] ?? '');
+        $msg_email = trim($_POST['email'] ?? '');
+        $msg_title = trim($_POST['title'] ?? '');
+        $msg_text = trim($_POST['text'] ?? '');
+        $file = $_FILES['image'] ?? null;
+
+        $errors = [];
+
+        // Проверка имени
+        if (empty($msg_name)) {
+            $errors[] = 'Имя не может быть пустым';
+        }
+
+        // Проверка темы
+        if (empty($msg_title)) {
+            $errors[] = 'Тема не может быть пустой';
+        }
+
+        // Проверка текста сообщения
+        $text_len = mb_strlen($msg_text, 'UTF-8');
+        if ($text_len < 10) {
+            $errors[] = 'Сообщение должно содержать минимум 10 символов';
+        }
+        if ($text_len > 5000) {
+            $errors[] = 'Сообщение не может превышать 5000 символов';
+        }
+
+        // Проверка email
+        if (!validateEmail($msg_email)) {
+            $errors[] = 'Некорректный адрес электронной почты';
+        }
+        
+        if (count($errors)>0) {
+            echo json_encode([
+                'success' => false,
+                'message' => $errors
+            ]);
+            return;
+        }
+
+         // === Настройки отправки ===
+        $to = Config::getAdminCfg('AdminEmail');
+        $subject = "Сообщение с сайта от пользователя: " . htmlspecialchars($msg_title);
+        $from = "From: $msg_email\r\n";
+        $from .= "Reply-To: $msg_email\r\n";
+        $from .= "Content-Type: text/plain; charset=UTF-8\r\n";
+
+        // === Тело письма ===
+        $message = "Имя: $msg_name\n";
+        $message .= "Email: $msg_email\n";
+        $message .= "Тема: $msg_title\n\n";
+        $message .= "Сообщение:\n$msg_text\n\n";
+        $message .= "-- Конец сообщения --";
+
+        // === Отправка ===
+        if (mail($to, $subject, $message, $from)) {
+            echo json_encode([
+                'success' => true,
+                'message' => 'Ваше сообщение успешно отправлено'
+            ]);
+        } else {
+            echo json_encode([
+                'success' => false,
+                'message' => ['Ошибка при отправке сообщения']
+            ]);
+        }
     }
 }

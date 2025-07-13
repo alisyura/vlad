@@ -153,7 +153,7 @@ document.addEventListener("DOMContentLoaded", function () {
             if (file) formData.append('image', file);
 
             try {
-                console.error('Вызов сервера /api/publish');
+                //console.error('Вызов сервера /api/publish');
                 const response = await fetch('/api/publish', {
                     method: 'POST',
                     body: formData,
@@ -162,7 +162,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 if (!response.ok) throw new Error('Ошибка сети');
                 const result = await response.json();
 
-                console.error('Ответ сервера:\n'+JSON.stringify(result, null, 2));
+                //console.error('Ответ сервера:\n'+JSON.stringify(result, null, 2));
                 showToast('Материал успешно отправлен!');
 
                 closeModal();
@@ -170,7 +170,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
             } catch (error) {
                 console.error('Ошибка:', error);
-                alert('error '+error);
                 showError('Произошла ошибка при отправке. Попробуйте позже.');
             }
         });

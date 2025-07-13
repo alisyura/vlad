@@ -25,27 +25,27 @@
                 <!-- Левый блок -->
                 <div class="form-column">
                     <div>Ваше имя</div>
-                    <input class="inp_text" type="text" placeholder="Как к вам обращаться">
+                    <input id="kontaktMsgName" class="inp_text" type="text" placeholder="Как к вам обращаться">
                 </div>
 
                 <!-- Правый блок -->
                 <div class="form-column">
                     <div>Введите свой e-mail <span class="required">*</span></div>
-                    <input class="inp_text" type="email" placeholder="Введите e-mail">
+                    <input id="kontaktMsgEmail" class="inp_text" type="email" placeholder="Введите e-mail">
                 </div>
             </div>
 
             <!-- Тема обращения -->
             <div class="form-section">
                 <div>Тема Вашего обращения <span class="required">*</span></div>
-                <input class="inp_text" type="text" placeholder="Введите тему Вашего обращения">
+                <input id="kontaktMsgTitle" class="inp_text" type="text" placeholder="Введите тему Вашего обращения">
             </div>
 
             <!-- Текст сообщения -->
             <div class="form-section">
                 <div>Текст Вашего сообщения <span class="required">*</span></div>
                 <div class="textarea-wrapper">
-                    <textarea id="msg-text" class="inp_text" placeholder="Текст Вашего сообщения"></textarea>
+                    <textarea id="kontaktMsgText" class="inp_text" placeholder="Текст Вашего сообщения"></textarea>
                     <div class="contact-char-counter">0 / 5000</div>
                 </div>
             </div>

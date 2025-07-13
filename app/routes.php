@@ -129,6 +129,15 @@ $router->addRoute('/api/post-votes', function () {
     $controller->getPostVotes();
 });
 
+// Отправка сообщения через форму обратной связи
+$router->addRoute('/api/send_msg', function () {
+    require_once __DIR__ . '/../app/controllers/AjaxController.php';
+    $controller = new AjaxController();
+    $controller->sendMsg();
+});
+
+
+
 // Sitemap.xml
 $router->addRoute('/sitemap\.xml', function () {
     require_once __DIR__ . '/../app/controllers/SitemapController.php';

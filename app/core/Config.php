@@ -42,4 +42,14 @@ class Config
 
         return $global[$propertyName];
     }
+
+    public static function getAdminCfg($propertyName)
+    {
+        $global = [
+            // Настройки сайта
+            'AdminEmail'=>'admin@admin.ru'
+        ];
+
+        return $global[$propertyName];
+    }
 }

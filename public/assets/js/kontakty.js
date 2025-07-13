@@ -94,7 +94,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
     // === 3. Счетчик символов для textarea ===
-    const postText = document.getElementById('msg-text');
+    const postText = document.getElementById('kontaktMsgText');
     const charCounter = document.querySelector('.contact-char-counter');
 
     if (postText && charCounter) {
@@ -105,4 +105,107 @@ document.addEventListener("DOMContentLoaded", function () {
             charCounter.textContent = `${currentLength} / 5000`;
         });
     }
+
+    // === 4. Отправка формы ===
+    const sendBtn = document.getElementById('sendBtn');
+
+    if (sendBtn) {
+        sendBtn.addEventListener('click', async () => {
+            const kontaktMsgName = document.getElementById('kontaktMsgName').value.trim();
+            const kontaktMsgEmail = document.getElementById('kontaktMsgEmail').value.trim();
+            const kontaktMsgTitle = document.getElementById('kontaktMsgTitle').value.trim();
+            const kontaktMsgText = document.getElementById('kontaktMsgText').value.trim();
+
+            const contactFile = contactFileInput?.files[0] || null;
+
+            // Валидация
+            if (!validateEmail(kontaktMsgEmail)) {
+                contactShowError('Введите корректный email');
+                return;
+            }
+
+            if (kontaktMsgName.length === 0) {
+                contactShowError('Введите имя');
+                return;
+            }
+
+            if (kontaktMsgText.length < 10 || kontaktMsgText.length > 5000) {
+                contactShowError('Текст должен быть от 10 до 5000 символов');
+                return;
+            }
+
+            if (kontaktMsgTitle.length === 0) {
+                contactShowError('Введите тему сообщения');
+                return;
+            }
+
+            if (contactFile && !contactIsValidFileType(contactFile)) {
+                contactShowError('Формат файла не поддерживается. Используйте: png, jpeg, jpg, gif');
+                return;
+            }
+
+            if (contactFile && !contactIsValidFileSize(contactFile)) {
+                contactShowError('Файл слишком большой. Максимальный размер — 20 MB');
+                return;
+            }
+
+            // Подготовка данных
+            const formData = new FormData();
+            formData.append('name', kontaktMsgName);
+            formData.append('email', kontaktMsgEmail);
+            formData.append('title', kontaktMsgTitle);
+            formData.append('text', kontaktMsgText);
+            if (contactFile) formData.append('image', contactFile);
+
+            getFormData(formData);
+            
+            try {
+                //console.error('Вызов сервера /api/send_msg');
+                const response = await fetch('/api/send_msg', {
+                    method: 'POST',
+                    body: formData,
+                });
+
+                if (!response.ok) throw new Error('Ошибка сети');
+                const result = await response.json();
+
+                if (result.success) {
+                    //console.error('Ответ сервера:\n' + JSON.stringify(result, null, 2));
+                    showToast('Ваше сообщение успешно отправлено!');
+                    resetContactForm();
+                } else {
+                    // Формируем текст ошибок из массива `message`
+                    let errorMessages = [];
+
+                    if (Array.isArray(result.message)) {
+                        errorMessages = result.message;
+                    } else if (typeof result.message === 'string') {
+                        errorMessages = [result.message];
+                    } else {
+                        errorMessages = ['Неизвестная ошибка'];
+                    }
+
+                    const errorMessage = 'Сообщение не отправлено\n\n' + errorMessages.join('\n');
+                    showToast(errorMessage);
+                }
+
+            } catch (error) {
+                console.error('Ошибка:', error);
+                contactShowError('Произошла ошибка при отправке. Попробуйте позже.');
+            }
+        });
+    }
 });
+
+// === Очистка формы ===
+function resetContactForm() {
+    // document.getElementById('email').value = '';
+    document.getElementById('kontaktMsgName').value = '';
+    document.getElementById('kontaktMsgEmail').value = '';
+    document.getElementById('kontaktMsgTitle').value = '';
+    document.getElementById('kontaktMsgText').value = '';
+    document.getElementById('contact-file-upload').value = '';
+    document.querySelector('.contact-char-counter').textContent = '0 / 5000';
+    document.getElementById('contactUploadTitle').textContent = 'Загрузка файла';
+    document.getElementById('contactFormError').style.display = 'none';
+}

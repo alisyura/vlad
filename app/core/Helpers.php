@@ -1,5 +1,10 @@
 <?php
 
+function validateEmail($email) {
+    $email = strtolower($email);
+    return filter_var($email, FILTER_VALIDATE_EMAIL) !== false;
+}
+
 function getVisitorCookie()
 {
     return $_COOKIE['visitor_uid'];
