@@ -1,0 +1,51 @@
+.sitemap_full {
+    background-color: #ffffff;
+    border-radius: 10px;
+    padding: 25px;
+    margin-top: 20px;
+    /* box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); */
+}
+
+h1.sitemap_header {
+    font-size: 18px;
+    font-weight: bold;
+    margin-top: 20px; /* Отступ сверху от предыдущего блока */
+    color: #353833;
+}
+
+.sitemap_content {
+    font-size: 16px;
+    margin-top: 20px; /* Отступ сверху от предыдущего блока */
+    color: #706f69;
+    line-height: 1.5; /* Интервал между строками */
+}
+
+div.section-part {
+    display: flex;
+    flex-direction: column; /* Теперь элементы будут друг под другом */
+    margin-bottom: 20px;
+}
+
+.category-link {
+    display: flex;
+    align-items: center;
+}
+
+.sitemap-link {
+    text-decoration: none;
+    font-size: 16px;
+    color: #706f69;
+}
+
+.sitemap-link:hover {
+    text-decoration: underline;
+}
+
+.posts-block {
+    margin-top: 8px;
+    margin-left: 35px; /* Отступ слева для вложенных постов */
+  }
+
+.post-item {
+   line-height: 1.5;
+}

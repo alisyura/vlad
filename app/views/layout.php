@@ -24,6 +24,9 @@
             case 'kontakty':
                 $style = 'kontakty';
                 break;
+            case 'sitemap':
+                $style = 'sitemap';
+                break;
             default:
                 $style = 'list';
         }
@@ -266,6 +269,9 @@
         switch ($structuredData['page_type']) {
             case 'kontakty':
                 echo '<script src="/assets/js/kontakty.js" defer></script>'."\n";
+                break;
+            case 'sitemap':
+                echo '<script src="/assets/js/sitemap.js" defer></script>'."\n";
                 break;
         }
     ?>

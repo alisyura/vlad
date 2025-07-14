@@ -62,17 +62,6 @@ class PostController {
     * Страница Контакты
     */
     public function showKontakty() {
-        // $page = $this->model->getPageByUrl($page_url);
-        // if (!$page) {
-        //     header("HTTP/1.0 404 Not Found");
-        //     $content = View::render('../app/views/errors/404.php', [
-        //         'title' => '404'
-        //     ]);
-            
-        //     require '../app/views/layout.php';
-        //     return;
-        // }
-
         $URL = rtrim(sprintf("%s/%s", $this->uri, 'page/kontakty'), '/').'.html';
     
         $content = View::render('../app/views/pages/kontakty.php', [
@@ -101,8 +90,8 @@ class PostController {
     * Страница Карта сайта
     */
     public function showSitemap() {
-        $page = $this->model->getPageByUrl($page_url);
-        if (!$page) {
+        $posts = $this->model->getSitemapData();
+        if (!$posts) {
             header("HTTP/1.0 404 Not Found");
             $content = View::render('../app/views/errors/404.php', [
                 'title' => '404'
@@ -112,10 +101,46 @@ class PostController {
             return;
         }
 
+        $result = [
+            'post' => [],
+            'page' => [
+                'pages' => []
+            ]
+        ];
+        
+        foreach ($posts as $row) {
+            if ($row['type'] === 'post') {
+                // Это обычный пост с категорией
+                $categoryUrl = $row['category_url'];
+        
+                if (!isset($result['post'][$categoryUrl])) {
+                    $result['post'][$categoryUrl] = [
+                        'name' => $row['category_name'],
+                        'url' => $row['category_url'],
+                        'posts' => []
+                    ];
+                }
+        
+                $result['post'][$categoryUrl]['posts'][] = [
+                    'title' => $row['post_title'],
+                    'url' => $row['post_url']
+                ];
+        
+            } elseif ($row['type'] === 'page') {
+                // Это страница без категории
+                $result['page']['pages'][] = [
+                    'title' => $row['post_title'],
+                    'url' => $row['post_url']
+                ];
+            }
+        }
+
+//        print_r($result);
+
         $URL = rtrim(sprintf("%s/%s", $this->uri, $page['url']), '/').'.html';
     
-        $content = View::render('../app/views/posts/show.php', [
-            'post' => $page,
+        $content = View::render('../app/views/pages/sitemap.php', [
+            'data' => $result,
             'full_url' => $URL,
             'tags_baseUrl' => sprintf("%s/tag/", $this->uri),
             //'post_image' => sprintf("%s%s", $this->uri, $page['image']),
@@ -124,7 +149,7 @@ class PostController {
         ]);
 
         $structuredData = [
-            'page_type' => 'post',
+            'page_type' => 'sitemap',
             'site_name' => Config::getGlobalCfg('SITE_NAME'),
             'keywords' => Config::getGlobalCfg('SITE_KEYWORDS'),
             'description' => Config::getGlobalCfg('SITE_DESCRIPTION'),
