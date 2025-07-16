@@ -135,8 +135,6 @@ class PostController {
             }
         }
 
-//        print_r($result);
-
         $URL = rtrim(sprintf("%s/%s", $this->uri, $page['url']), '/').'.html';
     
         $content = View::render('../app/views/pages/sitemap.php', [
@@ -150,6 +148,33 @@ class PostController {
 
         $structuredData = [
             'page_type' => 'sitemap',
+            'site_name' => Config::getGlobalCfg('SITE_NAME'),
+            'keywords' => Config::getGlobalCfg('SITE_KEYWORDS'),
+            'description' => Config::getGlobalCfg('SITE_DESCRIPTION'),
+            'url' => $URL
+            //'image' => sprintf("%s%s", $this->uri, $page['image'])
+        ];
+        
+        require '../app/views/layout.php';
+    }
+
+    /*
+    * Страница Карта сайта
+    */
+    public function showTagFilter() {
+        $URL = rtrim(sprintf("%s/%s", $this->uri, $page['url']), '/').'.html';
+    
+        $content = View::render('../app/views/posts/tegi.php', [
+            'show_caption' => true,
+            'full_url' => $URL,
+            'tags_baseUrl' => sprintf("%s/tag/", $this->uri),
+            //'post_image' => sprintf("%s%s", $this->uri, $page['image']),
+            //'tags' => $tags,
+            'is_post' => false
+        ]);
+
+        $structuredData = [
+            'page_type' => 'tegi',
             'site_name' => Config::getGlobalCfg('SITE_NAME'),
             'keywords' => Config::getGlobalCfg('SITE_KEYWORDS'),
             'description' => Config::getGlobalCfg('SITE_DESCRIPTION'),

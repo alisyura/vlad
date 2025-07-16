@@ -27,6 +27,9 @@
             case 'sitemap':
                 $style = 'sitemap';
                 break;
+            case 'tegi':
+                $style = 'tegi';
+                break;
             default:
                 $style = 'list';
         }
@@ -269,6 +272,9 @@
         switch ($structuredData['page_type']) {
             case 'kontakty':
                 echo '<script src="/assets/js/kontakty.js" defer></script>'."\n";
+                break;
+            case 'tegi':
+                echo '<script src="/assets/js/tegi.js" defer></script>'."\n";
                 break;
             case 'sitemap':
                 echo '<script src="/assets/js/sitemap.js" defer></script>'."\n";

@@ -1,0 +1,105 @@
+.tegi_full {
+    background-color: #ffffff;
+    border-radius: 10px;
+    padding: 25px;
+    margin-top: 20px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+@media (min-width: 1024px) {
+    .tegi_full {
+        min-height: 100vh;
+    }
+}
+
+h1.tegi_header {
+    font-size: 18px;
+    font-weight: bold;
+    margin-top: 0px; /* 20px. Отступ сверху от предыдущего блока */
+    color: #353833;
+}
+
+.tegi_content {
+    font-size: 16px;
+    margin-top: 20px; /* Отступ сверху от предыдущего блока */
+    color: #706f69;
+    line-height: 1.5; /* Интервал между строками */
+}
+
+/* Стили для контейнера поиска */
+.tegi-search-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 100%;
+}
+
+/* Стили для поля ввода */
+.tegi-search-input {
+    width: 100%;
+    padding: 16px 48px 16px 48px; /* Верх/нижний отступ 16px, левый и правый — 48px (учитывая иконки) */
+    border: 1px solid #B8B7B4;
+    border-radius: 10px;
+    font-size: 14px;
+    color: #353833;
+    outline: none;
+    transition: border-color 0.3s ease;
+}
+
+.tegi-search-input:focus {
+    border-color: #DD6E53;
+}
+
+/* Стили для иконок */
+.search-icon,
+.clear-icon {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background-color: transparent;
+    border: none;
+}
+
+.clear-icon {
+    cursor: pointer;
+}
+
+/* Лупа (иконка поиска) */
+.search-icon {
+    left: 16px;
+}
+
+/* Крестик (иконка очистки) */
+.clear-icon {
+    right: 16px;
+}
+
+.tegi-search-result {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 16px;
+}
+
+.tegi-search-result .tag {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 32px;
+    padding: 0 11px;
+    font-size: 14px;
+    color: #706f69;
+    background-color: #fff;
+    border: 1px solid #e9e2dd;
+    border-radius: 10px;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: all 0.3s ease;
+    box-sizing: border-box;
+}
+
+.tegi-search-result .tag:hover {
+    background-color: #f0f0f0;
+    color: #353833;
+    border-color: #dcdcdc;
+}

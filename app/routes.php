@@ -101,7 +101,12 @@ $router->addRoute('/tag\/([0-9a-zA-Z-_]+)(?:\/p(\d+))?', function($tagUrl, $page
 // Список постов по разделу
 $router->addRoute('/cat\/(anekdoty|veselaya-rifma|citatnik|istorii|kartinki|video|tegi|luchshee)(?:\/p(\d+))?', function($cat_url, $page = 1) {
     $controller = new PostController();
-    $controller->showSection($cat_url, $cat_url === 'istorii', max(1, (int)$page));
+    if ($cat_url === 'tegi') {
+        $controller->showTagFilter();
+    }
+    else {
+        $controller->showSection($cat_url, $cat_url === 'istorii', max(1, (int)$page));
+    }
 });
 
 
