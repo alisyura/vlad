@@ -431,4 +431,49 @@ class AjaxController
             ]);
         }
     }
+
+    public function searchTags()
+    {
+        // $tagName = trim($_POST['name']) ?? '';
+
+        $data = json_decode(file_get_contents('php://input'), true);
+        $tagName = $data['name'] ?? '';
+
+        try
+        {
+            $stmt = $this->db->prepare("SELECT 
+                    t.url,
+                    t.name,
+                    COUNT(pt.post_id) AS popularity
+                FROM 
+                    tags t
+                JOIN 
+                    post_tag pt ON t.id = pt.tag_id
+                JOIN 
+                    posts p ON pt.post_id = p.id
+                WHERE 
+                    p.status = 'published'  -- Только опубликованные посты
+                    AND p.article_type = 'post'
+                    AND t.name LIKE :tag_name
+                GROUP BY 
+                    t.url, t.name
+                ORDER BY 
+                    popularity DESC");
+            $stmt->execute([':tag_name' => "%$tagName%"]);
+            $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            echo json_encode([
+                'tagname' => $tagName,
+                'success' => true,
+                'tagslist' => $results
+             ]);
+        }
+        catch(Exception $e)
+        {
+            echo json_encode([
+                'success' => false,
+                'message' => $e->getMessage()
+            ]);
+        }
+    }
 }

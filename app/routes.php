@@ -141,6 +141,13 @@ $router->addRoute('/api/send_msg', function () {
     $controller->sendMsg();
 });
 
+// Отправка сообщения через форму обратной связи
+$router->addRoute('/api/search_tags', function () {
+    require_once __DIR__ . '/../app/controllers/AjaxController.php';
+    $controller = new AjaxController();
+    $controller->searchTags();
+});
+
 
 
 // Sitemap.xml

@@ -27,23 +27,6 @@
         </div>
 
         <div class="tegi-search-result">
-            <a href="http://vlad.local/tag/anekdot-dnya" class="tag">#Анекдот дня</a>
-            <a href="http://vlad.local/tag/smeshnoe" class="tag">#Смешное</a><a href="http://vlad.local/tag/anekdot-dnya" class="tag">#Анекдот дня</a>
-            <a href="http://vlad.local/tag/smeshnoe" class="tag">#Смешное</a><a href="http://vlad.local/tag/anekdot-dnya" class="tag">#Анекдот дня</a>
-            <a href="http://vlad.local/tag/smeshnoe" class="tag">#Смешное</a><a href="http://vlad.local/tag/anekdot-dnya" class="tag">#Анекдот дня</a>
-            <a href="http://vlad.local/tag/smeshnoe" class="tag">#Смешное</a><a href="http://vlad.local/tag/anekdot-dnya" class="tag">#Анекдот дня</a>
-            <a href="http://vlad.local/tag/smeshnoe" class="tag">#Смешное</a><a href="http://vlad.local/tag/anekdot-dnya" class="tag">#Анекдот дня</a>
-            <a href="http://vlad.local/tag/smeshnoe" class="tag">#Смешное</a><a href="http://vlad.local/tag/anekdot-dnya" class="tag">#Анекдот дня</a>
-            <a href="http://vlad.local/tag/smeshnoe" class="tag">#Смешное</a><a href="http://vlad.local/tag/anekdot-dnya" class="tag">#Анекдот дня</a>
-            <a href="http://vlad.local/tag/smeshnoe" class="tag">#Смешное</a><a href="http://vlad.local/tag/anekdot-dnya" class="tag">#Анекдот дня</a>
-            <a href="http://vlad.local/tag/smeshnoe" class="tag">#Смешное</a><a href="http://vlad.local/tag/anekdot-dnya" class="tag">#Анекдот дня</a>
-            <a href="http://vlad.local/tag/smeshnoe" class="tag">#Смешное</a><a href="http://vlad.local/tag/anekdot-dnya" class="tag">#Анекдот дня</a>
-            <a href="http://vlad.local/tag/smeshnoe" class="tag">#Смешное</a><a href="http://vlad.local/tag/anekdot-dnya" class="tag">#Анекдот дня</a>
-            <a href="http://vlad.local/tag/smeshnoe" class="tag">#Смешное</a><a href="http://vlad.local/tag/anekdot-dnya" class="tag">#Анекдот дня</a>
-            <a href="http://vlad.local/tag/smeshnoe" class="tag">#Смешное</a><a href="http://vlad.local/tag/anekdot-dnya" class="tag">#Анекдот дня</a>
-            <a href="http://vlad.local/tag/smeshnoe" class="tag">#Смешное</a><a href="http://vlad.local/tag/anekdot-dnya" class="tag">#Анекдот дня</a>
-            <a href="http://vlad.local/tag/smeshnoe" class="tag">#Смешное</a><a href="http://vlad.local/tag/anekdot-dnya" class="tag">#Анекдот дня</a>
-            <a href="http://vlad.local/tag/smeshnoe" class="tag">#Смешное</a>
         </div>
     </p>
 
