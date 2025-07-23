@@ -159,7 +159,7 @@ class PostController {
     }
 
     /*
-    * Страница Карта сайта
+    * Страница Тэги
     */
     public function showTagFilter() {
         $URL = rtrim(sprintf("%s/%s", $this->uri, $page['url']), '/').'.html';

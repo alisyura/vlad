@@ -49,3 +49,25 @@ div.section-part {
 .post-item {
    line-height: 1.5;
 }
+
+/* Скрытие постов */
+.post-item.hidden {
+    display: none;
+}
+
+/* Кнопка "Показать ещё" */
+.show-more-btn {
+    margin-top: 8px;
+    margin-left: 35px;
+    background: none;
+    border: none;
+    color: #706f69;
+    font-size: 16px;
+    cursor: pointer;
+    text-decoration: underline;
+    padding: 0;
+}
+
+.show-more-btn:hover {
+    color: #353833;
+}

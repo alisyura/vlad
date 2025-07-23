@@ -29,7 +29,7 @@
 
         <?php if(!empty($data['post'])): ?>
             <?php foreach($data['post'] as $category): ?>
-            <div class="section-part">
+            <div class="section-part" data-category="<?= htmlspecialchars($category['url']) ?>">
                 <div class="category-link">
                     <span class="spacer"></span> <!-- Промежуток 25px -->
                     <img src="/assets/pic/menu/<?= $category['url'] ?>.png" alt="<?= $category['name'] ?>" class="icon">
@@ -38,11 +38,30 @@
                 </div>
 
                 <div class="posts-block">
-                <?php foreach($category['posts'] as $post): ?>
-                    <div class="post-item">
-                        <a href="/<?= htmlspecialchars($post['url']) ?>.html" class="sitemap-link">&ndash; <?= htmlspecialchars($post['title']) ?></a>
-                    </div>
-                <?php endforeach ?>
+                    <?php
+                        $posts = $category['posts'];
+                        $firstFive = array_slice($posts, 0, 5);
+                        $rest = array_slice($posts, 5);
+                    ?>
+
+                    <!-- Первые 5 постов -->
+                    <?php foreach ($firstFive as $post): ?>
+                        <div class="post-item">
+                            <a href="/<?= htmlspecialchars($post['url']) ?>.html" class="sitemap-link">&ndash; <?= htmlspecialchars($post['title']) ?></a>
+                        </div>
+                    <?php endforeach ?>
+
+                    <!-- Остальные посты (скрыты по умолчанию) -->
+                    <?php if (!empty($rest)): ?>
+                        <?php foreach ($rest as $post): ?>
+                            <div class="post-item hidden">
+                                <a href="/<?= htmlspecialchars($post['url']) ?>.html" class="sitemap-link">&ndash; <?= htmlspecialchars($post['title']) ?></a>
+                            </div>
+                        <?php endforeach ?>
+
+                        <!-- Кнопка "Показать ещё" -->
+                        <button type="button" class="show-more-btn" data-category="<?= htmlspecialchars($category['url']) ?>">Показать ещё</button>
+                    <?php endif ?>
                 </div>
             </div>
             <?php endforeach ?>
