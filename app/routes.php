@@ -1,32 +1,64 @@
 <?php
 
 require_once __DIR__ ."/core/CheckVisitor.php";
+require_once __DIR__ . '/middleware/AdminAuthMiddleware.php';
+require_once __DIR__ . '/middleware/PageCacheMiddleware.php';
 
 class Router {
     private $routes = [];
     
-    public function addRoute($pattern, $handler) {
-        $this->routes[$pattern] = $handler;
+    public function addRoute($pattern, $handler, $middlewares = []) {
+        $this->routes[] = [
+            'pattern' => $pattern,
+            'handler' => $handler,
+            'middlewares' => $middlewares // Добавляем поддержку списка middleware
+        ];
     }
     
     public function dispatch($uri) {
-        // Удаляем query string
         $uri = strtok($uri, '?');
-        
-        foreach ($this->routes as $pattern => $handler) {
+        foreach ($this->routes as $route) {
+            $pattern = $route['pattern'];
+            $handler = $route['handler'];
+            $middlewares = $route['middlewares']; // Получаем список middleware для этого маршрута
+
             if (preg_match("#^$pattern$#", $uri, $matches)) {
                 array_shift($matches);
+
+                // Выполняем middleware ДО основного обработчика
+                foreach ($middlewares as $middleware) {
+                     // Проверяем, является ли $middleware строкой (именем класса) или объектом/замыканием
+                    if (is_string($middleware) && class_exists($middleware)) {
+                        $middlewareInstance = new $middleware();
+                        // Предполагаем, что у middleware есть метод handle, возвращающий true/false или выбрасывающий исключение
+                        if (method_exists($middlewareInstance, 'handle')) {
+                            $result = $middlewareInstance->handle();
+                            // Если middleware вернул false или выбросил исключение (например, редирект), останавливаем выполнение
+                            if ($result === false) {
+                                return; // Или можно бросить исключение
+                            }
+                        }
+                    } elseif (is_callable($middleware)) {
+                         // Поддержка анонимных функций как middleware
+                        $result = call_user_func($middleware);
+                         if ($result === false) {
+                            return;
+                        }
+                    }
+                    // Можно добавить другие типы middleware по необходимости
+                }
+
+                // Если все middleware прошли успешно, вызываем основной обработчик
                 call_user_func_array($handler, $matches);
                 return;
             }
         }
-        
+
         // Если маршрут не найден
         header("HTTP/1.0 404 Not Found");
         $content = View::render('../app/views/errors/404.php', [
             'title' => '404'
         ]);
-        
         require '../app/views/layout.php';
         return;
     }
@@ -66,7 +98,7 @@ $router->addRoute('^/assets/.*\.(jpg|jpeg|png|gif|css|js|webp|svg|ico|mp4)$', fu
 $router->addRoute('/(p(\d+))?', function($fullMatch = null, $page = 1) {
     $controller = new PostController();
     $controller->index(max(1, (int)$page)); // защита от нуля и отрицательных
-});
+}, ['PageCacheMiddleware']);
 
 // Страница post
 $router->addRoute('/([0-9a-zA-Z-_]+)\.html', function($post_url) {
@@ -162,3 +194,21 @@ $router->addRoute('/sitemap-(posts|pages)-(\d+)\.xml', function ($type, $page) {
     $controller = new SitemapController();
     $controller->generateSitemapPartXml($type, $page);
 });
+
+
+$adminRoute = Config::getAdminCfg('AdminRoute');
+// Админ
+$router->addRoute("/$adminRoute/login", function() {
+    require_once __DIR__ . '/../app/controllers/AdminController.php';
+    (new AdminController())->login();
+});
+
+$router->addRoute("/$adminRoute/dashboard", function() {
+    require_once __DIR__ . '/../app/controllers/AdminController.php';
+    (new AdminController())->dashboard();
+}, ['AdminAuthMiddleware']);
+
+$router->addRoute("/$adminRoute/logout", function() {
+    require_once __DIR__ . '/../app/controllers/AdminController.php';
+    (new AdminController())->logout();
+}, ['AdminAuthMiddleware']);

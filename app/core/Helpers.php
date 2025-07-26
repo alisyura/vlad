@@ -289,3 +289,21 @@ function debugPDO($sql, $params) {
 
     return $sql;
 }
+
+function asset(string $path): string {
+    // Абсолютный путь к файлу на сервере
+    $absolutePath = $_SERVER['DOCUMENT_ROOT'] . '/public/assets/' . ltrim($path, '/');
+    
+    // Базовый URL (без версии)
+    $url = '/assets/' . ltrim($path, '/');
+    
+    // Добавляем версию только если файл существует
+    if (file_exists($absolutePath)) {
+        $url .= '?v=' . filemtime($absolutePath);
+    } else {
+        // Логируем ошибку, если файл не найден
+        error_log("Asset not found: " . $absolutePath);
+    }
+    
+    return $url;
+}

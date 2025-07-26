@@ -37,7 +37,8 @@ class Config
             'SITE_KEYWORDS'=>'Ключевые слова. мета тег, meta, метаданные, keywords, description',
             'SITE_DESCRIPTION'=>'Описание. Описание содержимого на данной странице',
             'UseLogger' => true,
-            'UploadDir' => 'uploads'
+            'UploadDir' => 'uploads',
+            'CacheDir' => 'C:\\Users\\kriya\\Сайт\\soft\\OSPanel\\domains\\vlad.local\\cache'
         ];
 
         return $global[$propertyName];
@@ -47,7 +48,8 @@ class Config
     {
         $global = [
             // Настройки сайта
-            'AdminEmail'=>'admin@admin.ru'
+            'AdminEmail'=>'admin@admin.ru',
+            'AdminRoute'=>'adm'
         ];
 
         return $global[$propertyName];
