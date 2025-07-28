@@ -1,23 +1,31 @@
 <?php
 // app/Middleware/PageCacheMiddleware.php
 
-class PageCacheMiddleware
+class PageCacheMiddleware implements MiddlewareInterface
 {
-    private static $cacheDir = __DIR__ . '/../../cache/pages/'; // Убедитесь, что папка существует и доступна для записи
-    private static $cacheLifetime = 3600; // Время жизни кэша в секундах (1 час)
+    private $cacheDir;
+    private $cacheLifetime;
+    private $useCache;
+
+    public function __construct()
+    {
+        $this->cacheDir = Config::getGlobalCfg('CacheDir');
+        $this->cacheLifetime = Config::getGlobalCfg('CacheLifetime');
+        $this->useCache = Config::getGlobalCfg('UseCache');
+    }
 
     public function handle(): bool
     {
         // Убедимся, что это GET-запрос
-        if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
+        if (!$this->useCache || $_SERVER['REQUEST_METHOD'] !== 'GET') {
             return true; // Продолжаем выполнение для POST и других
         }
 
         $cacheKey = $this->getCacheKey(); // Уникальный ключ для текущего запроса
-        $cacheFile = self::$cacheDir . $cacheKey . '.html';
-
+        $cacheFile = $this->cacheDir . $cacheKey . '.html';
+//echo $cacheFile;
         // Проверяем, существует ли кэш и не истек ли срок его жизни
-        if (file_exists($cacheFile) && (time() - filemtime($cacheFile)) < self::$cacheLifetime) {
+        if (file_exists($cacheFile) && (time() - filemtime($cacheFile)) < $this->cacheLifetime) {
             // Кэш найден и актуален, отдаем его
             // Устанавливаем заголовки (опционально, для лучшего UX)
             header('X-Cache: HIT');
@@ -25,7 +33,7 @@ class PageCacheMiddleware
             // Выводим содержимое кэша
             readfile($cacheFile);
             // Останавливаем дальнейшее выполнение
-            exit;
+            exit; //так как выводим из кэша, return не нужен
         } else {
              // Кэш отсутствует или устарел
              // Регистрируем функцию для сохранения вывода в кэш после генерации страницы

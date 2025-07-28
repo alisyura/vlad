@@ -1,71 +1,5 @@
 <?php
 
-require_once __DIR__ ."/core/CheckVisitor.php";
-require_once __DIR__ . '/middleware/AdminAuthMiddleware.php';
-require_once __DIR__ . '/middleware/PageCacheMiddleware.php';
-
-class Router {
-    private $routes = [];
-    
-    public function addRoute($pattern, $handler, $middlewares = []) {
-        $this->routes[] = [
-            'pattern' => $pattern,
-            'handler' => $handler,
-            'middlewares' => $middlewares // Добавляем поддержку списка middleware
-        ];
-    }
-    
-    public function dispatch($uri) {
-        $uri = strtok($uri, '?');
-        foreach ($this->routes as $route) {
-            $pattern = $route['pattern'];
-            $handler = $route['handler'];
-            $middlewares = $route['middlewares']; // Получаем список middleware для этого маршрута
-
-            if (preg_match("#^$pattern$#", $uri, $matches)) {
-                array_shift($matches);
-
-                // Выполняем middleware ДО основного обработчика
-                foreach ($middlewares as $middleware) {
-                     // Проверяем, является ли $middleware строкой (именем класса) или объектом/замыканием
-                    if (is_string($middleware) && class_exists($middleware)) {
-                        $middlewareInstance = new $middleware();
-                        // Предполагаем, что у middleware есть метод handle, возвращающий true/false или выбрасывающий исключение
-                        if (method_exists($middlewareInstance, 'handle')) {
-                            $result = $middlewareInstance->handle();
-                            // Если middleware вернул false или выбросил исключение (например, редирект), останавливаем выполнение
-                            if ($result === false) {
-                                return; // Или можно бросить исключение
-                            }
-                        }
-                    } elseif (is_callable($middleware)) {
-                         // Поддержка анонимных функций как middleware
-                        $result = call_user_func($middleware);
-                         if ($result === false) {
-                            return;
-                        }
-                    }
-                    // Можно добавить другие типы middleware по необходимости
-                }
-
-                // Если все middleware прошли успешно, вызываем основной обработчик
-                call_user_func_array($handler, $matches);
-                return;
-            }
-        }
-
-        // Если маршрут не найден
-        header("HTTP/1.0 404 Not Found");
-        $content = View::render('../app/views/errors/404.php', [
-            'title' => '404'
-        ]);
-        require '../app/views/layout.php';
-        return;
-    }
-}
-
-$router = new Router();
-
 // Не обрабатываем. Отдаём файл напрямую (если существует)
 $router->addRoute('^/assets/.*\.(jpg|jpeg|png|gif|css|js|webp|svg|ico|mp4)$', function() {
     $filePath = $_SERVER['DOCUMENT_ROOT'] . $_SERVER['REQUEST_URI'];
@@ -104,31 +38,31 @@ $router->addRoute('/(p(\d+))?', function($fullMatch = null, $page = 1) {
 $router->addRoute('/([0-9a-zA-Z-_]+)\.html', function($post_url) {
     $controller = new PostController();
     $controller->showPost($post_url);
-});
+}, ['PageCacheMiddleware']);
 
 // Страница контакты
 $router->addRoute('/page/kontakty\.html', function() {
     $controller = new PostController();
     $controller->showKontakty();
-});
+}, ['PageCacheMiddleware']);
 
 // Страница карта сайта
 $router->addRoute('/page/sitemap\.html', function() {
     $controller = new PostController();
     $controller->showSitemap();
-});
+}, ['PageCacheMiddleware']);
 
 // Страница page
 $router->addRoute('/page\/([0-9a-zA-Z-_]+)\.html', function($page_url) {
     $controller = new PostController();
     $controller->showPage($page_url);
-});
+}, ['PageCacheMiddleware']);
 
 // Список постов по тэгу
 $router->addRoute('/tag\/([0-9a-zA-Z-_]+)(?:\/p(\d+))?', function($tagUrl, $page = 1) {
     $controller = new PostController();
     $controller->showTag($tagUrl, max(1, (int)$page));
-});
+}, ['PageCacheMiddleware']);
 
 // Список постов по разделу
 $router->addRoute('/cat\/(anekdoty|veselaya-rifma|citatnik|istorii|kartinki|video|tegi|luchshee)(?:\/p(\d+))?', function($cat_url, $page = 1) {
@@ -139,7 +73,7 @@ $router->addRoute('/cat\/(anekdoty|veselaya-rifma|citatnik|istorii|kartinki|vide
     else {
         $controller->showSection($cat_url, $cat_url === 'istorii', max(1, (int)$page));
     }
-});
+}, ['PageCacheMiddleware']);
 
 
 

@@ -38,7 +38,9 @@ class Config
             'SITE_DESCRIPTION'=>'Описание. Описание содержимого на данной странице',
             'UseLogger' => true,
             'UploadDir' => 'uploads',
-            'CacheDir' => 'C:\\Users\\kriya\\Сайт\\soft\\OSPanel\\domains\\vlad.local\\cache'
+            'CacheDir' => 'W:\\domains\\vlad.local\\cache\\pages/',
+            'CacheLifetime' => 3600, // Время жизни кэша в секундах
+            'UseCache' => false
         ];
 
         return $global[$propertyName];

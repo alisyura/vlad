@@ -1,12 +1,6 @@
 <?php
 // app/controllers/AdminController.php
 
-require_once __DIR__ . '/../core/Auth.php';
-require_once __DIR__.'/../models/UserModel.php';
-require_once __DIR__.'/../core/View.php';
-// Убедитесь, что CSRF подключен, если ещё нет глобально
-require_once __DIR__ . '/../core/CSRF.php';
-
 class AdminController {
 
     public function login() {

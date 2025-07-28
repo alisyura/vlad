@@ -17,7 +17,6 @@ class UserModel {
         SELECT
             u.id AS id,
             u.name AS name,
-            u.visible_name AS visible_name,
             u.login AS login,
             u.password AS password,
             r.name AS role_name
