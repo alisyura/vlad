@@ -23,7 +23,7 @@ class PageCacheMiddleware implements MiddlewareInterface
 
         $cacheKey = $this->getCacheKey(); // Уникальный ключ для текущего запроса
         $cacheFile = $this->cacheDir . $cacheKey . '.html';
-//echo $cacheFile;
+
         // Проверяем, существует ли кэш и не истек ли срок его жизни
         if (file_exists($cacheFile) && (time() - filemtime($cacheFile)) < $this->cacheLifetime) {
             // Кэш найден и актуален, отдаем его

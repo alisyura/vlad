@@ -2,13 +2,6 @@
 
 // app/middleware/AdminAuthMiddleware.php
 
-// if (!interface_exists('MiddlewareInterface')) {
-//     require_once __DIR__ . '/../middleware/MiddlewareInterface.php';
-// }
-// if (!class_exists('Auth')) {
-//     require_once __DIR__ . '/../core/Auth.php';
-// }
-
 class AdminAuthMiddleware implements MiddlewareInterface
 {
     /**

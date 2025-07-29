@@ -40,8 +40,23 @@ class AdminController {
             header("Location: /$adminRoute/login");
             exit;
         }
+
+        // Получаем данные для dashboard
+        $data = [
+            'title' => 'Dashboard',
+            'active' => 'dashboard',
+            'posts_count' => 4,//$this->getPostCount(),
+            'pages_count' => 5,//$this->getPageCount(),
+            'users_count' => 6,//$this->getUserCount(),
+            'recent_activities' => 7//$this->getRecentActivities()
+        ];
+        
+        $content = View::render('../app/views/admin/dashboard.php', $data);
+        //View::render('../app/views/admin/layout.php', array_merge($data, ['content' => $content]));
+
+
         // Здесь загружаем данные для админ-панели
-        require '../app/views/admin/dashboard.php';
+        require '../app/views/admin/admin_layout.php';
     }
 
     public function logout() {
