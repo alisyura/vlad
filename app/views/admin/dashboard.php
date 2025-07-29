@@ -4,7 +4,7 @@
             <div class="card-body">
                 <h5 class="card-title">Посты</h5>
                 <p class="card-text display-4"><?= $posts_count ?? 0 ?></p>
-                <a href="/admin/posts" class="btn btn-primary w-100">Управление</a>
+                <a href="/<?= $admin_route ?>/posts" class="btn btn-primary w-100">Управление</a>
             </div>
         </div>
     </div>
@@ -14,7 +14,7 @@
             <div class="card-body">
                 <h5 class="card-title">Страницы</h5>
                 <p class="card-text display-4"><?= $pages_count ?? 0 ?></p>
-                <a href="/admin/pages" class="btn btn-primary w-100">Управление</a>
+                <a href="/<?= $admin_route ?>/pages" class="btn btn-primary w-100">Управление</a>
             </div>
         </div>
     </div>
@@ -24,7 +24,7 @@
             <div class="card-body">
                 <h5 class="card-title">Пользователи</h5>
                 <p class="card-text display-4"><?= $users_count ?? 1 ?></p>
-                <a href="/admin/users" class="btn btn-primary w-100">Управление</a>
+                <a href="/<?= $admin_route ?>/users" class="btn btn-primary w-100">Управление</a>
             </div>
         </div>
     </div>
@@ -42,6 +42,7 @@
                         <div class="list-group-item">
                             <div class="d-flex justify-content-between">
                                 <strong><?= htmlspecialchars($activity['action']) ?></strong>
+                                <small class="text-muted"><?= $activity['user'] ?></small>&nbsp;
                                 <small class="text-muted"><?= $activity['date'] ?></small>
                             </div>
                         </div>

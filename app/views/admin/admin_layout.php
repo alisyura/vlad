@@ -5,20 +5,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title><?= htmlspecialchars($title ?? 'Admin Panel') ?></title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="/assets/admin/css/admin.css">
+    <link rel="stylesheet" href="<?= asset('admin/css/admin.css') ?>">
 </head>
 <body>
     <!-- Навигационная панель -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
         <div class="container-fluid">
             <button class="mobile-menu-toggle" id="mobileMenuToggle">☰</button>
-            <a class="navbar-brand" href="/adm/dashboard">Admin Panel</a>
+            <a class="navbar-brand" href="/<?= $adminRoute ?>/dashboard">Admin Panel</a>
             
             <div class="navbar-nav ms-auto">
                 <span class="navbar-text me-3 d-none d-sm-inline">
-                    Привет, <?= htmlspecialchars($_SESSION['admin_name'] ?? 'Админ') ?>
+                    Привет, <?= htmlspecialchars($user_name) ?>
                 </span>
-                <a class="nav-link" href="/admin/logout">Выйти</a>
+                <a class="nav-link" href="/<?= $adminRoute ?>/logout">Выйти</a>
             </div>
         </div>
     </nav>
@@ -34,25 +34,25 @@
                     <ul class="nav flex-column">
                         <li class="nav-item">
                             <a class="nav-link <?= ($active ?? '') === 'dashboard' ? 'active' : '' ?>" 
-                               href="/admin/dashboard">
+                               href="/<?= $adminRoute ?>/dashboard">
                                 Dashboard
                             </a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link <?= ($active ?? '') === 'posts' ? 'active' : '' ?>" 
-                               href="/admin/posts">
+                               href="/<?= $adminRoute ?>/posts">
                                 Посты
                             </a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link <?= ($active ?? '') === 'pages' ? 'active' : '' ?>" 
-                               href="/admin/pages">
+                               href="/<?= $adminRoute ?>/pages">
                                 Страницы
                             </a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link <?= ($active ?? '') === 'settings' ? 'active' : '' ?>" 
-                               href="/admin/settings">
+                               href="/<?= $adminRoute ?>/settings">
                                 Настройки
                             </a>
                         </li>

@@ -25,6 +25,12 @@ class AdminController {
             $error = 'Неверный логин или пароль';
             // Если логин неудачен, токен остаётся тем же, что и в форме
         }
+        elseif (($_SERVER['REQUEST_METHOD'] === 'GET') && (Auth::check())) {
+            CSRF::refreshToken();
+            $adminRoute = Config::getAdminCfg('AdminRoute');
+            header("Location: /$adminRoute/dashboard");
+            exit;
+        }
 
         // --- Отображение формы GET или повторный показ после ошибки ---
         // Генерируем (или получаем существующий) токен перед отображением формы
@@ -41,19 +47,24 @@ class AdminController {
             exit;
         }
 
+        $dm = new DashboardModel();
+
+        $adminRoute = Config::getAdminCfg('AdminRoute');
+        $user = (new UserModel())->getUserByLogin($_SESSION['user_login']);
+        $user_name = $user['name'];
+
         // Получаем данные для dashboard
         $data = [
+            'admin_route' => $adminRoute,
             'title' => 'Dashboard',
             'active' => 'dashboard',
-            'posts_count' => 4,//$this->getPostCount(),
-            'pages_count' => 5,//$this->getPageCount(),
-            'users_count' => 6,//$this->getUserCount(),
-            'recent_activities' => 7//$this->getRecentActivities()
+            'posts_count' => $dm->getPostsCount(),
+            'pages_count' => $dm->getPagesCount(),
+            'users_count' => $dm->getUsersCount(),
+            'recent_activities' => $dm->getRecentActivities()
         ];
         
         $content = View::render('../app/views/admin/dashboard.php', $data);
-        //View::render('../app/views/admin/layout.php', array_merge($data, ['content' => $content]));
-
 
         // Здесь загружаем данные для админ-панели
         require '../app/views/admin/admin_layout.php';
@@ -65,5 +76,23 @@ class AdminController {
         // CSRF::refreshToken(); // Можно добавить
         $adminRoute = Config::getAdminCfg('AdminRoute');
         header("Location: /$adminRoute/login");
+    }
+
+    private function getPostCount()
+    {
+        // Ваш код для получения количества постов
+        return 42; // пример
+    }
+
+    private function getPageCount()
+    {
+        // Ваш код для получения количества страниц
+        return 5; // пример
+    }
+
+    private function getUserCount()
+    {
+        // Ваш код для получения количества пользователей
+        return 1; // пример
     }
 }

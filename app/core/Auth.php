@@ -6,13 +6,16 @@ class Auth {
         
         if ($user && password_verify($password, $user['password'])) {
             $_SESSION['admin'] = true;
-            $_SESSION['user_id'] = $user['id'];
+            $_SESSION['user_login'] = $user['login'];
             return true;
         }
         
         return false;
     }
 
+    /**
+     * Проверяет, заолгинен ли админ
+     */
     public static function check() {
         return isset($_SESSION['admin']) && $_SESSION['admin'] === true;
     }

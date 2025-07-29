@@ -15,7 +15,6 @@ class UserModel {
     public function getUserByLogin($login) {
         $stmt = $this->db->prepare("
         SELECT
-            u.id AS id,
             u.name AS name,
             u.login AS login,
             u.password AS password,
