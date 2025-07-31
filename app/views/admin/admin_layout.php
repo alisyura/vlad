@@ -5,7 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title><?= htmlspecialchars($title ?? 'Admin Panel') ?></title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link rel="stylesheet" href="<?= asset('admin/css/admin.css') ?>">
+    <?php
+        if (!empty($route_path))
+        {
+            echo '<link rel="stylesheet" href="' . asset("admin/css/$route_path.css") .'">'."\n";
+        }
+    ?>
 </head>
 <body>
     <!-- Навигационная панель -->
@@ -74,7 +81,12 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
-    
+    <?php
+        if (!empty($route_path))
+        {
+            echo '<script src="' . asset("admin/js/$route_path.js") . '" defer></script>'."\n";
+        }
+    ?>
     <!-- Мобильное меню скрипт -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {

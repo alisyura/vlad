@@ -3,6 +3,15 @@
 
 class AdminController {
 
+    private function checkIfUserLoggedIn()
+    {
+        if (!Auth::check()) {
+            $adminRoute = Config::getAdminCfg('AdminRoute');
+            header("Location: /$adminRoute/login");
+            exit;
+        }
+    }
+
     public function login() {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // --- Проверка и обработка POST ---
@@ -41,11 +50,7 @@ class AdminController {
     }
 
     public function dashboard() {
-        if (!Auth::check()) {
-            $adminRoute = Config::getAdminCfg('AdminRoute');
-            header("Location: /$adminRoute/login");
-            exit;
-        }
+        $this->checkIfUserLoggedIn();
 
         $dm = new DashboardModel();
 
@@ -78,21 +83,127 @@ class AdminController {
         header("Location: /$adminRoute/login");
     }
 
-    private function getPostCount()
-    {
-        // Ваш код для получения количества постов
-        return 42; // пример
-    }
+    /**
+     * Отображает список постов в админ-панели с пагинацией.
+     * @param int $currentPage Номер текущей страницы (из URL, по умолчанию 1).
+     */
+    public function postsList($currentPage = 1) {
+        $this->checkIfUserLoggedIn();
 
-    private function getPageCount()
-    {
-        // Ваш код для получения количества страниц
-        return 5; // пример
-    }
+        try {
+            $admPostsModel = new AdminPostsModel();
 
-    private function getUserCount()
-    {
-        // Ваш код для получения количества пользователей
-        return 1; // пример
+            // Определяем параметры пагинации
+            $postsPerPage = Config::getAdminCfg('posts_per_page'); // Количество постов на страницу
+            $currentPage = max(1, (int)$currentPage); // Убеждаемся, что страница не меньше 1
+            $offset = ($currentPage - 1) * $postsPerPage; // Вычисляем смещение
+
+            // Получаем общее количество постов
+            $totalPosts = $admPostsModel->getTotalPostsCount();
+            // Вычисляем общее количество страниц
+            $totalPages = ceil($totalPosts / $postsPerPage);
+            
+            // Убеждаемся, что текущая страница не превышает общее количество
+            $currentPage = min($currentPage, $totalPages);
+            $offset = ($currentPage - 1) * $postsPerPage;
+
+            // Получаем посты для текущей страницы
+            $posts = $admPostsModel->getPosts($postsPerPage, $offset);
+            
+            // Обрабатываем каждый пост для форматирования и подготовки к выводу
+            foreach ($posts as &$post) {
+                $post['formatted_created_at'] = date('d.m.Y', strtotime($post['created_at']));
+                $post['formatted_updated_at'] = date('d.m.Y', strtotime($post['updated_at']));
+
+                // Собираем категории в строку HTML-ссылок
+                $category_names = [];
+                if (!empty($post['categories'])) {
+                    foreach ($post['categories'] as $category) {
+                        $category_names[] = '<a href="/cat/' . htmlspecialchars($category['url']) . '" target="_blank">' . htmlspecialchars($category['name']) . '</a>';
+                    }
+                }
+                $post['category_names'] = !empty($category_names) ? implode(', ', $category_names) : '<span class="text-muted">—</span>';
+
+                // Собираем теги в строку HTML-ссылок
+                $tag_names = [];
+                if (!empty($post['tags'])) {
+                    foreach ($post['tags'] as $tag) {
+                        $tag_names[] = '<a href="/tag/' . htmlspecialchars($tag['url']) . '" target="_blank">' . htmlspecialchars($tag['name']) . '</a>';
+                    }
+                }
+                $post['tag_names'] = !empty($tag_names) ? implode(', ', $tag_names) : '<span class="text-muted">—</span>';
+
+                // Определяем отображаемый статус
+                switch($post['status'])
+                {
+                    case 'draft':
+                        $post['display_status'] = '<span class="badge bg-warning text-dark">Черновик</span>';
+                        break;
+                    case 'published':
+                        $post['display_status'] = '<span class="badge bg-success">Опубликовано</span>';
+                        break;
+                    case 'pending':
+                        $post['display_status'] = '<span class="badge bg-info">Ожидание</span>'; // Используем bg-info
+                        break;
+                    case 'deleted':
+                        $post['display_status'] = '<span class="badge bg-secondary">Удален</span>'; // Используем bg-secondary
+                        break;
+                    default:
+                        $post['display_status'] = '<span class="badge bg-light-custom text-dark">Неизвестно</span>'; 
+                        break;
+                }
+            }
+            unset($post);
+
+            $adminRoute = Config::getAdminCfg('AdminRoute');
+            $user_name = '';
+            if (isset($_SESSION['user_login'])) {
+                $userModel = new UserModel();
+                $user = $userModel->getUserByLogin($_SESSION['user_login']);
+                $user_name = $user['name'] ?? 'Администратор';
+            }
+
+            // Генерируем массив ссылок для умной пагинации
+            // Базовый URL для админки
+            $basePageUrl = '/' . htmlspecialchars($adminRoute) . '/posts';
+            $paginationLinks = generateSmartPaginationLinks($currentPage, $totalPages, $basePageUrl);
+
+            $data = [
+                'adminRoute' => $adminRoute,
+                'user_name' => $user_name,
+                'title' => 'Список постов',
+                'active' => 'posts',
+                'posts' => $posts,
+                'pagination' => [ // Передаем данные для пагинации в представление
+                    'currentPage' => $currentPage,
+                    'totalPages' => $totalPages
+                ],
+                'pagination_links' => $paginationLinks,
+                'base_page_url' => $basePageUrl
+            ];
+            
+            $content = View::render('../app/views/admin/posts/list.php', $data);
+            $route_path = 'posts-list';
+            require '../app/views/admin/admin_layout.php';
+
+        } catch (PDOException $e) {
+            Logger::error("Database error in listPosts: " . $e->getMessage());
+            $data = [
+                'adminRoute' => Config::getAdminCfg('AdminRoute'),
+                'title' => 'Ошибка',
+                'error_message' => 'Не удалось загрузить посты. Пожалуйста, попробуйте позже.'
+            ];
+            $content = View::render('../app/views/admin/error_view.php', $data);
+            require '../app/views/admin/admin_layout.php';
+        } catch (Exception $e) {
+            Logger::error("Error in listPosts: " . $e->getMessage());
+            $data = [
+                'adminRoute' => Config::getAdminCfg('AdminRoute'),
+                'title' => 'Ошибка',
+                'error_message' => 'Произошла непредвиденная ошибка.'
+            ];
+            $content = View::render('../app/views/admin/error_view.php', $data);
+            require '../app/views/admin/admin_layout.php';
+        }
     }
 }

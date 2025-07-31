@@ -51,7 +51,8 @@ class Config
         $global = [
             // Настройки сайта
             'AdminEmail'=>'admin@admin.ru',
-            'AdminRoute'=>'adm'
+            'AdminRoute'=>'adm',
+            'posts_per_page' => 3
         ];
 
         return $global[$propertyName];

@@ -1,0 +1,264 @@
+/* public/admin/css/posts-list.css */
+
+/* --- Общие стили для таблицы постов --- */
+.posts-table {
+    margin-top: 20px;
+    width: 100%;
+}
+
+.posts-table th,
+.posts-table td {
+    vertical-align: middle; /* Выравнивание текста по центру вертикали */
+    padding: 0.75rem 0.5rem; /* Уменьшаем padding для заголовков и ячеек */
+}
+
+.posts-table th {
+    font-weight: 600;
+    white-space: nowrap; /* Запрещает перенос текста в заголовках */
+}
+
+/* Колонки с фиксированной шириной */
+.checkbox-col {
+    width: 1% !important; /* Для чекбокса */
+}
+
+.status-col {
+    width: 8%; /* Для статуса */
+    white-space: nowrap; /* Запрещает перенос текста */
+}
+
+.actions-header, 
+.post-actions-cell {
+    width: 15%; /* Для колонки действий */
+    white-space: nowrap;
+    text-align: right; /* Выравнивание действий вправо */
+}
+
+/* Стили для действий поста (Edit/Delete/View) на десктопе */
+/* Скрываем действия по умолчанию */
+.post-title-cell .post-actions {
+    display: none; 
+    font-size: 0.875em;
+    margin-top: 5px; /* Немного отступ от заголовка */
+    white-space: nowrap; /* Запрещает перенос действий */
+}
+
+.post-title-cell .post-actions a {
+    text-decoration: none; /* Убираем подчеркивание для действий */
+    margin-right: 10px; /* Отступ между ссылками */
+    color: #007bff; /* Цвет ссылок */
+}
+
+.post-title-cell .post-actions a:last-child {
+    margin-right: 0;
+}
+
+.post-title-cell .post-actions a.text-danger {
+    color: #dc3545 !important; /* Конкретный красный для удаления */
+}
+
+.post-title-cell .post-actions a:hover {
+    text-decoration: underline; /* Появляется при наведении */
+}
+
+/* Hover-эффект для десктопа: показать действия при наведении на ячейку заголовка */
+@media (min-width: 768px) {
+    .post-title-cell:hover .post-actions {
+        display: block; /* Показываем действия при наведении на ячейку заголовка */
+    }
+    /* Скрываем отдельную колонку "Действия" на десктопе, так как они встроены в заголовок при hover */
+    .actions-header, 
+    .post-actions-cell {
+        display: none !important;
+    }
+
+    /* При наведении на строку таблицы, немного подсвечиваем ее */
+    .posts-table tbody tr:hover {
+        background-color: #f5f5f5; /* Светлая подсветка */
+    }
+}
+
+/* --- Стили для мобильных устройств (менее 768px) --- */
+@media (max-width: 767.98px) {
+    /* Скрываем стандартную шапку таблицы и десктопные колонки на мобильных */
+    .posts-table thead {
+        display: none;
+    }
+    /* Скрываем ячейки, которые должны быть скрыты на мобильных */
+    .d-none.d-md-table-cell { /* Этот класс должен быть на тех TD, которые не нужны на мобильных */
+        display: none !important;
+    }
+
+    /* Мобильный заголовок для таблицы (если нужен, но обычно не используется в контексте list.php, так как там есть общий H1) */
+    /* .d-md-none.mb-3.p-3.bg-light.rounded {
+        display: block !important;
+    } */
+
+    /* Стиль для каждой строки поста на мобильных */
+    .posts-table tbody tr {
+        display: block; /* Строка таблицы как блок */
+        margin-bottom: 15px;
+        border: 1px solid #dee2e6;
+        border-radius: 5px;
+        background-color: #fff;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    }
+
+    /* Ячейки внутри строк на мобильных */
+    .posts-table td {
+        display: block; /* Каждая ячейка как блок */
+        width: 100% !important; /* Занимает всю ширину */
+        padding: 8px 15px; /* Уменьшаем отступы */
+        border-top: none !important; /* Убираем верхние границы между td внутри tr */
+    }
+
+    .posts-table td:not(:last-child) {
+        border-bottom: 1px solid #f2f2f2; /* Легкая граница между блоками td */
+    }
+
+    /* Колонка с чекбоксом на мобильных */
+    .checkbox-col {
+        width: auto !important; /* Автоматическая ширина */
+        padding-top: 15px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid #f2f2f2 !important;
+    }
+
+    /* Ячейка заголовка поста на мобильных (с кнопкой раскрытия) */
+    .post-title-cell {
+        display: flex; /* Flexbox для заголовка и действий/стрелки */
+        justify-content: space-between; /* Распределяем элементы */
+        align-items: center; /* Выравниваем по центру */
+        padding-top: 10px;
+        padding-bottom: 10px;
+        position: relative; /* Для позиционирования стрелки */
+        font-size: 1.1em; /* Чуть крупнее заголовок */
+        cursor: pointer; /* Указывает, что это кликабельный элемент */
+    }
+
+    .post-title-wrapper { /* Обертка для самого заголовка и действий */
+        flex-grow: 1; /* Позволяет заголовку занять доступное пространство */
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .post-title-cell strong {
+        font-weight: 600;
+        color: #343a40;
+        margin-bottom: 5px; /* Отступ между заголовком и действиями */
+    }
+
+    /* Действия на мобильных: всегда отображаются под заголовком */
+    .post-title-cell .post-actions {
+        display: flex !important; /* Показываем действия под заголовком */
+        flex-wrap: wrap; /* Если действий много, они переносятся */
+        font-size: 0.75em; /* Меньший шрифт для мобильных действий */
+        margin-top: 5px; /* Отступ сверху */
+    }
+
+    .post-title-cell .post-actions a {
+        margin-right: 15px; /* Отступы между мобильными действиями */
+        color: #6c757d; /* Более приглушенный цвет */
+    }
+    .post-title-cell .post-actions a:last-child {
+        margin-right: 0;
+    }
+
+    /* Стрелка для индикации раскрытия */
+    .post-title-cell:after {
+        content: '\25BC'; /* Стрелка вниз (▾) */
+        position: absolute;
+        right: 15px; /* Отступ от правого края */
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 0.7em;
+        color: #6c757d;
+        transition: transform 0.2s ease-in-out;
+    }
+
+    .post-title-cell.expanded:after {
+        content: '\25B2'; /* Стрелка вверх (▲) */
+        transform: translateY(-50%) rotate(0deg); /* Нет rotate, если используем другую стрелку */
+    }
+
+    /* Строка с мобильными деталями (для раскрывающегося списка) */
+    .mobile-details-row {
+        display: none; /* По умолчанию скрыта, будет показана JS */
+    }
+
+    .mobile-details-cell {
+        padding: 0 15px 15px 15px; /* Отступы внутри скрытых деталей */
+        font-size: 0.875em;
+        display: none; /* Изначально скрыты */
+        flex-direction: column;
+        background-color: #f8f9fa; /* Светлый фон для деталей */
+        border-top: 1px dashed #ced4da; /* Пунктирная граница */
+        border-bottom-left-radius: 5px;
+        border-bottom-right-radius: 5px;
+    }
+
+    .mobile-details-cell.expanded {
+        display: flex; /* Показываем при разворачивании */
+    }
+
+    .mobile-details-label {
+        font-weight: bold;
+        color: #6c757d; /* Темно-серый цвет для лейблов */
+        margin-top: 10px; /* Отступ между парами лейбл-значение */
+        margin-bottom: 2px;
+    }
+
+    .mobile-details-value {
+        margin-bottom: 5px;
+        color: #495057;
+    }
+
+    .mobile-details-cell .mobile-details-label:first-child {
+        margin-top: 0;
+    }
+}
+
+/* --- Вспомогательные классы и утилиты (стили для бейджей, если их нет в admin.css) --- */
+.no-posts-found {
+    color: #6c757d;
+}
+
+/* Если Bootstrap 5.1.3 уже содержит эти классы, можно удалить их отсюда */
+.badge {
+    padding: 0.4em 0.7em;
+    font-size: 0.75em;
+    font-weight: 600;
+    border-radius: 0.25rem;
+}
+
+.badge.bg-success {
+    background-color: #28a745 !important;
+    color: #fff;
+}
+
+.badge.bg-warning {
+    background-color: #ffc107 !important;
+    color: #212529; /* Темный текст для желтого фона */
+}
+
+.badge.bg-info {
+    background-color: #17a2b8 !important; /* Бирюзовый/голубой - используется для "В процессе", "Ожидание" */
+    color: #fff;
+}
+
+.badge.bg-secondary {
+    background-color: #6c757d !important; /* Серый - используется для "Удален", "Архив" */
+    color: #fff;
+}
+
+/* bg-dark для удаленных */
+.badge.bg-dark {
+    background-color: #343a40 !important; /* Темно-серый/черный */
+    color: #fff;
+}
+
+.badge.bg-light-custom { /* bg-light-custom, чтобы избежать конфликтов */
+    background-color: #f8f9fa !important; /* Стандартный светло-серый цвет из Bootstrap 4/5 */
+    color: #212529; /* Темный текст */
+}

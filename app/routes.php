@@ -146,3 +146,8 @@ $router->addRoute("/$adminRoute/logout", function() {
     require_once __DIR__ . '/../app/controllers/AdminController.php';
     (new AdminController())->logout();
 }, ['AdminAuthMiddleware']);
+
+$router->addRoute("/$adminRoute/posts(?:/p(\d+))?", function($page = 1) {
+    require_once __DIR__ . '/../app/controllers/AdminController.php';
+    (new AdminController())->postsList($page); // Передаем номер страницы в контроллер
+}, ['AdminAuthMiddleware']);
