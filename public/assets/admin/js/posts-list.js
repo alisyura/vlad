@@ -1,4 +1,7 @@
+// public/admin/js/posts-list-interactions.js
+
 document.addEventListener('DOMContentLoaded', function () {
+    // --- Логика для чекбокса "Выбрать все" ---
     const selectAllDesktop = document.getElementById('select-all-desktop');
     const postCheckboxes = document.querySelectorAll('input[name="post_ids[]"]');
 
@@ -22,12 +25,26 @@ document.addEventListener('DOMContentLoaded', function () {
     updateSelectAll(); // Инициализация состояния при загрузке страницы
 
 
-    // Логика раскрытия/скрытия деталей на мобильных
-    const mobileToggleButtons = document.querySelectorAll('.mobile-details-toggle');
+    // --- Логика раскрытия/скрытия деталей на мобильных ---
+    // Теперь слушаем клики по всей ячейке заголовка (.post-title-cell) на мобильных
+    const postTitleCells = document.querySelectorAll('.post-title-cell');
 
-    mobileToggleButtons.forEach(button => {
-        button.addEventListener('click', function () {
-            console.log('Клик по кнопке переключения:', this); 
+    postTitleCells.forEach(cell => {
+        // Добавляем слушатель кликов на всю ячейку
+        cell.addEventListener('click', function (event) {
+            // Игнорируем клики по чекбоксу внутри ячейки
+            if (event.target.tagName === 'INPUT' && event.target.type === 'checkbox') {
+                return; 
+            }
+
+            // Проверяем, что мы находимся на мобильном устройстве (d-md-none виден)
+            // Это важно, чтобы на десктопе не срабатывала логика раскрытия/скрытия
+            const mobileToggle = this.querySelector('.mobile-details-toggle');
+            if (!mobileToggle || window.getComputedStyle(mobileToggle).display === 'none') {
+                 return; // Если mobile-details-toggle скрыт (т.е. мы на десктопе), выходим
+            }
+
+            console.log('Клик по ячейке заголовка на мобильном:', this);
             const row = this.closest('.post-row'); // Находим родительскую строку <tr>
             
             if (row) {
@@ -47,12 +64,16 @@ document.addEventListener('DOMContentLoaded', function () {
                     // Меняем иконку
                     if (mobileDetails.classList.contains('d-none')) {
                         // Блок скрыт, показываем стрелку вниз
-                        toggleIcon.classList.remove('bi-chevron-up');
-                        toggleIcon.classList.add('bi-chevron-down');
+                        if (toggleIcon) { // Проверяем, что иконка найдена
+                            toggleIcon.classList.remove('bi-chevron-up');
+                            toggleIcon.classList.add('bi-chevron-down');
+                        }
                     } else {
                         // Блок виден, показываем стрелку вверх
-                        toggleIcon.classList.remove('bi-chevron-down');
-                        toggleIcon.classList.add('bi-chevron-up');
+                        if (toggleIcon) { // Проверяем, что иконка найдена
+                            toggleIcon.classList.remove('bi-chevron-down');
+                            toggleIcon.classList.add('bi-chevron-up');
+                        }
                     }
                 } else {
                     console.error('Блок .post-mobile-details НЕ НАЙДЕН в строке:', row);
