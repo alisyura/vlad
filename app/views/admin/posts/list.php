@@ -32,21 +32,27 @@
                         <td class="post-title-cell">
                             <strong><?= htmlspecialchars($post['title']) ?></strong>
                             <div class="post-actions mt-1">
-                                <a href="/<?= htmlspecialchars($data['adminRoute'] ?? 'admin') ?>/posts/edit/<?= htmlspecialchars($post['id']) ?>" class="text-primary me-2">Редактировать</a>
+                                <a href="/<?= htmlspecialchars($data['adminRoute'] ?? 'admin') ?>/posts/edit/<?= htmlspecialchars($post['id']) ?>" class="text-primary me-2">Редактировать</a><br>
                                 <a href="/<?= htmlspecialchars($data['adminRoute'] ?? 'admin') ?>/posts/delete/<?= htmlspecialchars($post['id']) ?>" class="text-danger" onclick="return confirm('Вы уверены, что хотите удалить этот пост?');">Удалить</a>
                                 <?php if (!empty($post['url'])): ?>
-                                    <a href="/<?= htmlspecialchars($post['url']) ?>.html" target="_blank" class="text-info">Посмотреть на сайте</a>
+                                    <br><a href="/<?= htmlspecialchars($post['url']) ?>.html" target="_blank" class="text-info">Посмотреть на сайте</a>
                                 <?php endif; ?>
                             </div>
                         </td>
                         <td><?= htmlspecialchars($post['author_name'] ?? 'Неизвестен') ?></td>
-                        <td><?= $post['category_names'] ?></td> <td><?= $post['tag_names'] ?></td>     <td><?= $post['display_status'] ?></td> <td>
+                        <td><?= $post['category_names'] ?></td>
+                        <td><?= $post['tag_names'] ?></td>
+                        <td><?= $post['display_status'] ?></td>
+                        <td>
                             <div>Изменено: <?= htmlspecialchars($post['formatted_updated_at']) ?></div>
                             <div>Создано: <?= htmlspecialchars($post['formatted_created_at']) ?></div>
                         </td>
                         <td class="post-actions-cell">
-                            <a href="/<?= htmlspecialchars($data['adminRoute'] ?? 'admin') ?>/posts/edit/<?= htmlspecialchars($post['id']) ?>" class="btn btn-sm btn-outline-primary me-2">Редактировать</a>
-                            <a href="/<?= htmlspecialchars($data['adminRoute'] ?? 'admin') ?>/posts/delete/<?= htmlspecialchars($post['id']) ?>" class="btn btn-sm btn-outline-danger" onclick="return confirm('Вы уверены, что хотите удалить этот пост?');">Удалить</a>
+                            <a href="/<?= htmlspecialchars($data['adminRoute'] ?? 'admin') ?>/posts/edit/<?= htmlspecialchars($post['id']) ?>" class="btn btn-sm btn-outline-primary mb-1 me-1">Редактировать</a>
+                            <a href="/<?= htmlspecialchars($data['adminRoute'] ?? 'admin') ?>/posts/delete/<?= htmlspecialchars($post['id']) ?>" class="btn btn-sm btn-outline-danger mb-1 me-1" onclick="return confirm('Вы уверены, что хотите удалить этот пост?');">Удалить</a>
+                            <?php if (!empty($post['url'])): ?>
+                                <a href="/<?= htmlspecialchars($post['url']) ?>.html" target="_blank" class="btn btn-sm btn-outline-info text-secondary mb-1">Посмотреть на сайте</a>
+                            <?php endif; ?>
                         </td>
                     </tr>
                 <?php endforeach; ?>

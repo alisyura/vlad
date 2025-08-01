@@ -33,7 +33,7 @@ class AdminPostsModel {
      * @return int Общее количество постов.
      */
     public function getTotalPostsCount() {
-        $sql = "SELECT COUNT(id) AS total_posts FROM posts";
+        $sql = "SELECT COUNT(id) AS total_posts FROM posts WHERE article_type='post'";
         try {
             $stmt = $this->db->prepare($sql);
             $stmt->execute();
@@ -76,6 +76,8 @@ class AdminPostsModel {
                     post_tag pt ON p.id = pt.post_id
                 LEFT JOIN
                     tags t ON pt.tag_id = t.id
+                WHERE
+                    article_type = 'post'
                 GROUP BY
                     p.id
                 ORDER BY
