@@ -4,17 +4,30 @@
 .posts-table {
     margin-top: 20px;
     width: 100%;
+    border-collapse: collapse; /* Убедимся, что границы схлопываются */
 }
 
 .posts-table th,
 .posts-table td {
     vertical-align: middle; /* Выравнивание текста по центру вертикали */
     padding: 0.75rem 0.5rem; /* Уменьшаем padding для заголовков и ячеек */
+    border-top: 1px solid #dee2e6; /* Базовая граница */
 }
 
 .posts-table th {
     font-weight: 600;
     white-space: nowrap; /* Запрещает перенос текста в заголовках */
+    text-align: left;
+    background-color: #f8f9fa; /* Светлый фон для шапки */
+    position: relative; /* Для стрелок сортировки */
+}
+.posts-table th:first-child,
+.posts-table td:first-child {
+    padding-left: 0.75rem; /* Немного больше отступ для первого элемента */
+}
+.posts-table th:last-child,
+.posts-table td:last-child {
+    padding-right: 0.75rem; /* Немного больше отступ для последнего элемента */
 }
 
 /* Колонки с фиксированной шириной */
@@ -33,6 +46,33 @@
     white-space: nowrap;
     text-align: right; /* Выравнивание действий вправо */
 }
+
+/* Стили для ссылок сортировки в заголовках таблиц */
+th .sort-link {
+    color: #6c757d; /* Серый цвет для неактивных */
+    text-decoration: none;
+    font-size: 0.7em; /* Меньший размер для стрелок */
+    margin-left: 3px;
+    opacity: 0.5; /* Немного приглушенный */
+    transition: opacity 0.2s ease-in-out;
+}
+
+th .sort-link:hover {
+    opacity: 1; /* Полностью видимый при наведении */
+    color: #007bff; /* Цвет акцента при наведении */
+}
+
+th .sort-link.active {
+    color: #007bff; /* Синий цвет для активной сортировки */
+    font-weight: bold;
+    opacity: 1; /* Полностью видимый */
+}
+
+/* Стили для заголовков таблицы, которые могут быть кликабельными (для сортировки) */
+.posts-table th {
+    cursor: pointer; 
+}
+
 
 /* Стили для действий поста (Edit/Delete/View) на десктопе */
 /* Скрываем действия по умолчанию */
@@ -80,19 +120,21 @@
 
 /* --- Стили для мобильных устройств (менее 768px) --- */
 @media (max-width: 767.98px) {
-    /* Скрываем стандартную шапку таблицы и десктопные колонки на мобильных */
-    .posts-table thead {
-        display: none;
+    /* НЕ СКРЫВАЕМ ВЕСЬ THEAD! Вместо этого скрываем отдельные заголовки */
+    .posts-table thead th:not(:first-child) {
+        display: none !important; /* Скрываем все th, кроме первого */
     }
-    /* Скрываем ячейки, которые должны быть скрыты на мобильных */
-    .d-none.d-md-table-cell { /* Этот класс должен быть на тех TD, которые не нужны на мобильных */
-        display: none !important;
+    
+    /* Убеждаемся, что первый th (с чекбоксом) всегда виден */
+    .posts-table thead th:first-child {
+        display: table-cell !important; /* Показываем его как обычную ячейку */
+        width: 1% !important; /* Сохраняем ширину */
     }
 
-    /* Мобильный заголовок для таблицы (если нужен, но обычно не используется в контексте list.php, так как там есть общий H1) */
-    /* .d-md-none.mb-3.p-3.bg-light.rounded {
-        display: block !important;
-    } */
+    /* Скрываем ячейки данных, которые не должны отображаться на мобильных в основной таблице */
+    .d-none.d-md-table-cell { 
+        display: none !important;
+    }
 
     /* Стиль для каждой строки поста на мобильных */
     .posts-table tbody tr {
@@ -105,20 +147,22 @@
     }
 
     /* Ячейки внутри строк на мобильных */
-    .posts-table td {
+    .posts-table tbody td { /* Изменено с .posts-table td */
         display: block; /* Каждая ячейка как блок */
         width: 100% !important; /* Занимает всю ширину */
         padding: 8px 15px; /* Уменьшаем отступы */
         border-top: none !important; /* Убираем верхние границы между td внутри tr */
     }
 
-    .posts-table td:not(:last-child) {
+    .posts-table tbody td:not(:last-child) {
         border-bottom: 1px solid #f2f2f2; /* Легкая граница между блоками td */
     }
 
-    /* Колонка с чекбоксом на мобильных */
-    .checkbox-col {
-        width: auto !important; /* Автоматическая ширина */
+    /* Колонка с чекбоксом на мобильных: Убеждаемся, что она видна */
+    .posts-table tbody td:first-child { /* Нацеливаемся на первую td в tbody */
+        display: table-cell !important; /* Показываем как ячейку таблицы */
+        width: 1% !important; /* Сохраняем ширину */
+        vertical-align: middle; /* Центрируем чекбокс вертикально */
         padding-top: 15px;
         padding-bottom: 10px;
         border-bottom: 1px solid #f2f2f2 !important;
@@ -126,7 +170,7 @@
 
     /* Ячейка заголовка поста на мобильных (с кнопкой раскрытия) */
     .post-title-cell {
-        display: flex; /* Flexbox для заголовка и действий/стрелки */
+        display: flex; /* Flexbox для заголовка и стрелки */
         justify-content: space-between; /* Распределяем элементы */
         align-items: center; /* Выравниваем по центру */
         padding-top: 10px;
@@ -135,87 +179,73 @@
         font-size: 1.1em; /* Чуть крупнее заголовок */
         cursor: pointer; /* Указывает, что это кликабельный элемент */
     }
-
-    .post-title-wrapper { /* Обертка для самого заголовка и действий */
-        flex-grow: 1; /* Позволяет заголовку занять доступное пространство */
-        display: flex;
-        flex-direction: column;
-        align-items: flex-start;
+    .post-title-cell strong { /* Заголовок поста */
+        flex-grow: 1; /* Занимает доступное пространство */
+        margin-right: 10px; /* Отступ от треугольника */
     }
 
-    .post-title-cell strong {
-        font-weight: 600;
-        color: #343a40;
-        margin-bottom: 5px; /* Отступ между заголовком и действиями */
-    }
 
-    /* Действия на мобильных: всегда отображаются под заголовком */
-    .post-title-cell .post-actions {
-        display: flex !important; /* Показываем действия под заголовком */
-        flex-wrap: wrap; /* Если действий много, они переносятся */
-        font-size: 0.75em; /* Меньший шрифт для мобильных действий */
-        margin-top: 5px; /* Отступ сверху */
-    }
-
-    .post-title-cell .post-actions a {
-        margin-right: 15px; /* Отступы между мобильными действиями */
-        color: #6c757d; /* Более приглушенный цвет */
-    }
-    .post-title-cell .post-actions a:last-child {
-        margin-right: 0;
-    }
-
-    /* Стрелка для индикации раскрытия */
-    .post-title-cell:after {
-        content: '\25BC'; /* Стрелка вниз (▾) */
+    /* Стили для кнопки-переключателя (треугольника) на мобильных */
+    .mobile-details-toggle { /* Новый класс-контейнер для иконки */
         position: absolute;
-        right: 15px; /* Отступ от правого края */
         top: 50%;
+        right: 15px;
         transform: translateY(-50%);
-        font-size: 0.7em;
+        font-size: 1.2rem;
+        cursor: pointer;
         color: #6c757d;
-        transition: transform 0.2s ease-in-out;
     }
 
-    .post-title-cell.expanded:after {
-        content: '\25B2'; /* Стрелка вверх (▲) */
-        transform: translateY(-50%) rotate(0deg); /* Нет rotate, если используем другую стрелку */
-    }
-
-    /* Строка с мобильными деталями (для раскрывающегося списка) */
-    .mobile-details-row {
-        display: none; /* По умолчанию скрыта, будет показана JS */
-    }
-
-    .mobile-details-cell {
-        padding: 0 15px 15px 15px; /* Отступы внутри скрытых деталей */
-        font-size: 0.875em;
-        display: none; /* Изначально скрыты */
-        flex-direction: column;
+    /* Скрываем блок деталей поста на мобильных по умолчанию при загрузке страницы */
+    .post-mobile-details {
+        /* display: none !important; Важно: скрыто по умолчанию */
+        margin-top: 10px;
+        padding-top: 10px;
+        border-top: 1px solid #eee; /* Разделитель сверху */
+        padding-left: 15px;
+        padding-right: 15px;
+        padding-bottom: 15px;
         background-color: #f8f9fa; /* Светлый фон для деталей */
-        border-top: 1px dashed #ced4da; /* Пунктирная граница */
         border-bottom-left-radius: 5px;
         border-bottom-right-radius: 5px;
+        display: block; 
     }
 
-    .mobile-details-cell.expanded {
-        display: flex; /* Показываем при разворачивании */
+    .d-none {
+        display: none !important;
     }
 
-    .mobile-details-label {
-        font-weight: bold;
-        color: #6c757d; /* Темно-серый цвет для лейблов */
-        margin-top: 10px; /* Отступ между парами лейбл-значение */
-        margin-bottom: 2px;
-    }
-
-    .mobile-details-value {
+    /* Стили для отдельных элементов внутри блока деталей */
+    .post-mobile-details .detail-item {
         margin-bottom: 5px;
-        color: #495057;
+        font-size: 0.9em;
+    }
+    .post-mobile-details .detail-item:last-child {
+        margin-bottom: 0;
     }
 
-    .mobile-details-cell .mobile-details-label:first-child {
-        margin-top: 0;
+    /* Выравнивание заголовков (например, "Автор:", "Статус:") внутри деталей */
+    .post-mobile-details .detail-item strong {
+        min-width: 70px; /* Фиксированная минимальная ширина для выравнивания */
+        display: inline-block; /* Позволяет задавать ширину */
+        color: #6c757d; /* Темно-серый цвет для лейблов */
+    }
+
+    /* Мобильные действия внутри раскрывающегося блока */
+    .post-mobile-details .post-actions {
+        display: flex;
+        flex-wrap: wrap;
+        margin-top: 15px;
+        padding-top: 10px;
+        border-top: 1px dashed #ced4da;
+    }
+
+    .post-mobile-details .post-actions .btn {
+        margin-right: 8px; /* Отступ между кнопками */
+        margin-bottom: 8px; /* Отступ снизу для переноса */
+    }
+    .post-mobile-details .post-actions .btn:last-child {
+        margin-right: 0;
     }
 }
 
@@ -230,6 +260,7 @@
     font-size: 0.75em;
     font-weight: 600;
     border-radius: 0.25rem;
+    white-space: nowrap; /* Чтобы статус не переносился */
 }
 
 .badge.bg-success {

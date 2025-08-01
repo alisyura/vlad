@@ -14,11 +14,52 @@
                 <th scope="col" style="width: 1%;">
                     <input type="checkbox" id="select-all-desktop">
                 </th>
-                <th scope="col">Заголовок</th>
-                <th scope="col">Автор</th>
+                <th scope="col">
+                    Заголовок
+                    <?php 
+                    $sortTitleUrlAsc = $data['base_page_url'] . '?sort=title&order=asc';
+                    $sortTitleUrlDesc = $data['base_page_url'] . '?sort=title&order=desc';
+                    ?>
+                    <a href="<?= htmlspecialchars($sortTitleUrlAsc) ?>" 
+                       class="sort-link <?= ($data['current_sort_by'] === 'title' && $data['current_sort_order'] === 'asc') ? 'active' : '' ?>">▲</a>
+                    <a href="<?= htmlspecialchars($sortTitleUrlDesc) ?>" 
+                       class="sort-link <?= ($data['current_sort_by'] === 'title' && $data['current_sort_order'] === 'desc') ? 'active' : '' ?>">▼</a>
+                </th>
+                <th scope="col">
+                    Автор
+                    <?php 
+                    $sortAuthorUrlAsc = $data['base_page_url'] . '?sort=author_name&order=asc';
+                    $sortAuthorUrlDesc = $data['base_page_url'] . '?sort=author_name&order=desc';
+                    ?>
+                    <a href="<?= htmlspecialchars($sortAuthorUrlAsc) ?>" 
+                       class="sort-link <?= ($data['current_sort_by'] === 'author_name' && $data['current_sort_order'] === 'asc') ? 'active' : '' ?>">▲</a>
+                    <a href="<?= htmlspecialchars($sortAuthorUrlDesc) ?>" 
+                       class="sort-link <?= ($data['current_sort_by'] === 'author_name' && $data['current_sort_order'] === 'desc') ? 'active' : '' ?>">▼</a>
+                </th>
                 <th scope="col">Рубрики</th>
                 <th scope="col">Метки</th>
-                <th scope="col" class="status-col">Статус</th> <th scope="col">Дата</th>
+                <th scope="col" class="status-col">
+                    Статус
+                    <?php 
+                    $sortStatusUrlAsc = $data['base_page_url'] . '?sort=status&order=asc';
+                    $sortStatusUrlDesc = $data['base_page_url'] . '?sort=status&order=desc';
+                    ?>
+                    <a href="<?= htmlspecialchars($sortStatusUrlAsc) ?>" 
+                       class="sort-link <?= ($data['current_sort_by'] === 'status' && $data['current_sort_order'] === 'asc') ? 'active' : '' ?>">▲</a>
+                    <a href="<?= htmlspecialchars($sortStatusUrlDesc) ?>" 
+                       class="sort-link <?= ($data['current_sort_by'] === 'status' && $data['current_sort_order'] === 'desc') ? 'active' : '' ?>">▼</a>
+                </th>
+                <th scope="col">
+                    Дата
+                    <?php 
+                    $sortDateUrlAsc = $data['base_page_url'] . '?sort=updated_at&order=asc';
+                    $sortDateUrlDesc = $data['base_page_url'] . '?sort=updated_at&order=desc';
+                    ?>
+                    <a href="<?= htmlspecialchars($sortDateUrlAsc) ?>" 
+                       class="sort-link <?= ($data['current_sort_by'] === 'updated_at' && $data['current_sort_order'] === 'asc') ? 'active' : '' ?>">▲</a>
+                    <a href="<?= htmlspecialchars($sortDateUrlDesc) ?>" 
+                       class="sort-link <?= ($data['current_sort_by'] === 'updated_at' && $data['current_sort_order'] === 'desc') ? 'active' : '' ?>">▼</a>
+                </th>
                 <th scope="col" class="actions-header">Действия</th>
             </tr>
         </thead>
@@ -31,34 +72,66 @@
                         </td>
                         <td class="post-title-cell">
                             <strong><?= htmlspecialchars($post['title']) ?></strong>
-                            <div class="post-actions mt-1">
-                                <a href="/<?= htmlspecialchars($data['adminRoute'] ?? 'admin') ?>/posts/edit/<?= htmlspecialchars($post['id']) ?>" class="text-primary me-2">Редактировать</a><br>
+                            <div class="mobile-details-toggle d-md-none">
+                                <i class="bi bi-chevron-down toggle-icon"></i> 
+                            </div>
+                            
+                            <div class="post-mobile-details d-md-none d-none">
+                                <div class="detail-item">
+                                    <strong>Автор:</strong> <?= htmlspecialchars($post['author_name'] ?? 'Неизвестен') ?>
+                                </div>
+                                <div class="detail-item">
+                                    <strong>Рубрики:</strong> <?= $post['category_names'] ?>
+                                </div>
+                                <div class="detail-item">
+                                    <strong>Метки:</strong> <?= $post['tag_names'] ?>
+                                </div>
+                                <div class="detail-item">
+                                    <strong>Статус:</strong> <?= $post['display_status'] ?>
+                                </div>
+                                <div class="detail-item">
+                                    <strong>Дата:</strong> 
+                                    <div>Изменено: <?= htmlspecialchars($post['formatted_updated_at']) ?></div>
+                                    <div>Создано: <?= htmlspecialchars($post['formatted_created_at']) ?></div>
+                                </div>
+                                <div class="post-actions mt-2">
+                                    <a href="/<?= htmlspecialchars($data['adminRoute'] ?? 'admin') ?>/posts/edit/<?= htmlspecialchars($post['id']) ?>" class="btn btn-sm btn-outline-primary mb-1 me-1">Редактировать</a>
+                                    <a href="/<?= htmlspecialchars($data['adminRoute'] ?? 'admin') ?>/posts/delete/<?= htmlspecialchars($post['id']) ?>" class="btn btn-sm btn-outline-danger mb-1 me-1" onclick="return confirm('Вы уверены?');">Удалить</a>
+                                    <?php if (!empty($post['url'])): ?>
+                                        <a href="/<?= htmlspecialchars($post['url']) ?>.html" target="_blank" class="btn btn-sm btn-outline-info text-secondary mb-1">Посмотреть на сайте</a>
+                                    <?php endif; ?>
+                                </div>
+                            </div>
+
+                            <div class="post-actions mt-1 d-none d-md-block">
+                                <a href="/<?= htmlspecialchars($data['adminRoute'] ?? 'admin') ?>/posts/edit/<?= htmlspecialchars($post['id']) ?>" class="text-primary me-2">Редактировать</a>
                                 <a href="/<?= htmlspecialchars($data['adminRoute'] ?? 'admin') ?>/posts/delete/<?= htmlspecialchars($post['id']) ?>" class="text-danger" onclick="return confirm('Вы уверены, что хотите удалить этот пост?');">Удалить</a>
                                 <?php if (!empty($post['url'])): ?>
-                                    <br><a href="/<?= htmlspecialchars($post['url']) ?>.html" target="_blank" class="text-info">Посмотреть на сайте</a>
+                                    <a href="/<?= htmlspecialchars($post['url']) ?>.html" target="_blank" class="text-info">Посмотреть на сайте</a>
                                 <?php endif; ?>
                             </div>
                         </td>
-                        <td><?= htmlspecialchars($post['author_name'] ?? 'Неизвестен') ?></td>
-                        <td><?= $post['category_names'] ?></td>
-                        <td><?= $post['tag_names'] ?></td>
-                        <td><?= $post['display_status'] ?></td>
-                        <td>
+                        <td class="d-none d-md-table-cell"><?= htmlspecialchars($post['author_name'] ?? 'Неизвестен') ?></td>
+                        <td class="d-none d-md-table-cell"><?= $post['category_names'] ?></td>
+                        <td class="d-none d-md-table-cell"><?= $post['tag_names'] ?></td>
+                        <td class="d-none d-md-table-cell"><?= $post['display_status'] ?></td>
+                        <td class="d-none d-md-table-cell">
                             <div>Изменено: <?= htmlspecialchars($post['formatted_updated_at']) ?></div>
                             <div>Создано: <?= htmlspecialchars($post['formatted_created_at']) ?></div>
                         </td>
-                        <td class="post-actions-cell">
-                            <a href="/<?= htmlspecialchars($data['adminRoute'] ?? 'admin') ?>/posts/edit/<?= htmlspecialchars($post['id']) ?>" class="btn btn-sm btn-outline-primary mb-1 me-1">Редактировать</a>
-                            <a href="/<?= htmlspecialchars($data['adminRoute'] ?? 'admin') ?>/posts/delete/<?= htmlspecialchars($post['id']) ?>" class="btn btn-sm btn-outline-danger mb-1 me-1" onclick="return confirm('Вы уверены, что хотите удалить этот пост?');">Удалить</a>
+                        <td class="post-actions-cell d-none d-md-table-cell">
+                            <a href="/<?= htmlspecialchars($data['adminRoute'] ?? 'admin') ?>/posts/edit/<?= htmlspecialchars($post['id']) ?>" class="btn btn-sm btn-outline-primary me-2">Редактировать</a>
+                            <a href="/<?= htmlspecialchars($data['adminRoute'] ?? 'admin') ?>/posts/delete/<?= htmlspecialchars($post['id']) ?>" class="btn btn-sm btn-outline-danger" onclick="return confirm('Вы уверены, что хотите удалить этот пост?');">Удалить</a>
                             <?php if (!empty($post['url'])): ?>
-                                <a href="/<?= htmlspecialchars($post['url']) ?>.html" target="_blank" class="btn btn-sm btn-outline-info text-secondary mb-1">Посмотреть на сайте</a>
+                                <a href="/<?= htmlspecialchars($post['url']) ?>.html" target="_blank" class="btn btn-sm btn-outline-info">Посмотреть</a>
                             <?php endif; ?>
                         </td>
                     </tr>
                 <?php endforeach; ?>
             <?php else: ?>
                 <tr>
-                    <td colspan="8" class="text-center py-5 no-posts-found"> <p class="mb-1">Посты не найдены</p>
+                    <td colspan="8" class="text-center py-5 no-posts-found">
+                        <p class="mb-1">Посты не найдены</p>
                         <a href="/<?= htmlspecialchars($data['adminRoute'] ?? 'admin') ?>/posts/create" class="btn btn-sm btn-outline-primary">Создать первый пост</a>
                     </td>
                 </tr>
