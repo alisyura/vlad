@@ -19,8 +19,10 @@
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
         <div class="container-fluid">
             <button class="mobile-menu-toggle" id="mobileMenuToggle">☰</button>
-            <a class="navbar-brand" href="/<?= $adminRoute ?>/dashboard">Admin Panel</a>
-            
+            <a class="navbar-brand" href="/<?= $adminRoute ?>/dashboard">Админ панель</a>
+            <div class="navbar-brand">|</div>
+            <a class="navbar-brand" href="/" target="_blank">Сайт</a>
+
             <div class="navbar-nav ms-auto">
                 <span class="navbar-text me-3 d-none d-sm-inline">
                     Привет, <?= htmlspecialchars($user_name) ?>
@@ -59,6 +61,18 @@
                         </li>
                         <li class="nav-item">
                             <a class="nav-link <?= ($active ?? '') === 'settings' ? 'active' : '' ?>" 
+                               href="/<?= $adminRoute ?>/pics">
+                                Картинки
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link <?= ($active ?? '') === 'settings' ? 'active' : '' ?>" 
+                               href="/<?= $adminRoute ?>/tags">
+                                Тэги
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link <?= ($active ?? '') === 'settings' ? 'active' : '' ?>" 
                                href="/<?= $adminRoute ?>/settings">
                                 Настройки
                             </a>
@@ -84,6 +98,12 @@
     <?php
         if (!empty($route_path))
         {
+            switch ($route_path)
+            {
+                case 'edit_create':
+                    echo '<script src="' . asset("tinymce/tinymce.min.js") . '" defer></script>'."\n";
+                    break;
+            }
             echo '<script src="' . asset("admin/js/$route_path.js") . '" defer></script>'."\n";
         }
     ?>

@@ -151,3 +151,20 @@ $router->addRoute("/$adminRoute/posts(?:/p(\d+))?", function($page = 1) {
     require_once __DIR__ . '/../app/controllers/AdminController.php';
     (new AdminController())->postsList($page); // Передаем номер страницы в контроллер
 }, ['AdminAuthMiddleware']);
+
+$router->addRoute("/$adminRoute/pages(?:/p(\d+))?", function($page = 1) {
+    require_once __DIR__ . '/../app/controllers/AdminController.php';
+    (new AdminController())->pagesList($page); // Передаем номер страницы в контроллер
+}, ['AdminAuthMiddleware']);
+
+// Маршрут для создания нового поста
+$router->addRoute("/$adminRoute/posts/create", function() {
+    require_once __DIR__ . '/../app/controllers/AdminController.php';
+    (new AdminController())->createPost();
+}, ['AdminAuthMiddleware']);
+
+// Маршрут для редактирования существующего поста
+$router->addRoute("/$adminRoute/posts/edit/(\d+)", function($postId) {
+    require_once __DIR__ . '/../app/controllers/AdminController.php';
+    (new AdminController())->editPost($postId);
+}, ['AdminAuthMiddleware']);
