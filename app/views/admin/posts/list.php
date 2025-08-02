@@ -60,7 +60,6 @@
                     <a href="<?= htmlspecialchars($sortDateUrlDesc) ?>" 
                        class="sort-link <?= ($data['current_sort_by'] === 'updated_at' && $data['current_sort_order'] === 'desc') ? 'active' : '' ?>">▼</a>
                 </th>
-                <th scope="col" class="actions-header">Действия</th>
             </tr>
         </thead>
         <tbody>
@@ -119,18 +118,11 @@
                             <div>Изменено: <?= htmlspecialchars($post['formatted_updated_at']) ?></div>
                             <div>Создано: <?= htmlspecialchars($post['formatted_created_at']) ?></div>
                         </td>
-                        <td class="post-actions-cell d-none d-md-table-cell">
-                            <a href="/<?= htmlspecialchars($data['adminRoute'] ?? 'admin') ?>/posts/edit/<?= htmlspecialchars($post['id']) ?>" class="btn btn-sm btn-outline-primary me-2">Редактировать</a>
-                            <a href="/<?= htmlspecialchars($data['adminRoute'] ?? 'admin') ?>/posts/delete/<?= htmlspecialchars($post['id']) ?>" class="btn btn-sm btn-outline-danger" onclick="return confirm('Вы уверены, что хотите удалить этот пост?');">Удалить</a>
-                            <?php if (!empty($post['url'])): ?>
-                                <a href="/<?= htmlspecialchars($post['url']) ?>.html" target="_blank" class="btn btn-sm btn-outline-info">Посмотреть</a>
-                            <?php endif; ?>
-                        </td>
                     </tr>
                 <?php endforeach; ?>
             <?php else: ?>
                 <tr>
-                    <td colspan="8" class="text-center py-5 no-posts-found">
+                    <td colspan="7" class="text-center py-5 no-posts-found">
                         <p class="mb-1">Посты не найдены</p>
                         <a href="/<?= htmlspecialchars($data['adminRoute'] ?? 'admin') ?>/posts/create" class="btn btn-sm btn-outline-primary">Создать первый пост</a>
                     </td>
