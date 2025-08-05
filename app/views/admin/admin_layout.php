@@ -104,7 +104,9 @@
                     echo '<script src="' . asset("tinymce/tinymce.min.js") . '" defer></script>'."\n";
                     break;
             }
-            echo '<script src="' . asset("admin/js/$route_path.js") . '" defer></script>'."\n";
+            if ($route_path !== 'edit_create') {
+                echo '<script src="' . asset("admin/js/$route_path.js") . '" defer></script>'."\n";
+            }
         }
     ?>
     <!-- Мобильное меню скрипт -->

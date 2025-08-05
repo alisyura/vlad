@@ -5,6 +5,10 @@
 
 // Проверяем, есть ли данные поста (для редактирования)
 $post = $data['post'] ?? null;
+$categories = $data['categories'] ?? [];
+$tags = $data['tags'] ?? [];
+$selectedCategories = $post['selected_categories'] ?? []; // Для формы создания, если были ошибки
+$selectedTags = $post['selected_tags'] ?? [];
 
 // Заголовок страницы
 $pageTitle = $post ? 'Редактировать пост: ' . htmlspecialchars($post['title']) : 'Создать новый пост';
@@ -36,7 +40,16 @@ $adminRoute = $data['adminRoute'] ?? 'admin';
     </div>
 </div>
 
-<form action="<?= $formAction ?>" method="POST">
+<?php if (!empty($data['errors'])): ?>
+    <div class="alert alert-danger" role="alert">
+        <?php foreach ($data['errors'] as $error): ?>
+            <?= htmlspecialchars($error) ?><br>
+        <?php endforeach; ?>
+    </div>
+<?php endif; ?>
+
+<form action="<?= $formAction ?>" method="POST" enctype="multipart/form-data">
+    <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($data['csrf_token']) ?>">
     <div class="row">
         <div class="col-md-9">
             <div class="mb-3">
@@ -95,7 +108,7 @@ $adminRoute = $data['adminRoute'] ?? 'admin';
         </div>
 
         <div class="col-md-3">
-            <div class="card mb-3">
+            <div class="card mb-3" style="z-index: 1;">
                 <div class="card-header">Публикация</div>
                 <div class="card-body">
                     <div class="mb-3">
@@ -115,25 +128,123 @@ $adminRoute = $data['adminRoute'] ?? 'admin';
             <div class="card mb-3">
                 <div class="card-header">Рубрики</div>
                 <div class="card-body">
-                    <div class="form-text">Пока нет функционала.</div>
+                    <?php if (!empty($categories)): ?>
+                        <div class="list-group">
+                            <?php foreach ($categories as $category): ?>
+                                <label class="list-group-item">
+                                    <input class="form-check-input me-1" type="checkbox" name="categories[]" value="<?= htmlspecialchars($category['id']) ?>" 
+                                           <?= in_array($category['id'], $selectedCategories) ? 'checked' : '' ?>>
+                                    <?= htmlspecialchars($category['name']) ?>
+                                </label>
+                            <?php endforeach; ?>
+                        </div>
+                    <?php else: ?>
+                        <div class="form-text text-muted">Категорий нет. Создайте их в разделе "Рубрики".</div>
+                    <?php endif; ?>
                 </div>
             </div>
 
             <div class="card mb-3">
                 <div class="card-header">Метки</div>
                 <div class="card-body">
-                    <div class="form-text">Пока нет функционала.</div>
+                    <div class="mb-3">
+                        <label for="tagsInput" class="form-label">Добавить метки</label>
+                        <input type="text" class="form-control" id="tagsInput" name="tags" placeholder="Метки через запятую">
+                        <div class="form-text">Вводите метки через запятую. Если метка не существует, она будет создана.</div>
+                    </div>
+                    <div id="tagsList" class="d-flex flex-wrap gap-2">
+                        </div>
                 </div>
             </div>
-
+            
             <div class="card mb-3">
                 <div class="card-header">Миниатюра поста</div>
                 <div class="card-body">
-                    <div class="form-text">Пока нет функционала.</div>
+                    <div class="mb-3">
+                        <label for="thumbnail" class="form-label">Загрузить файл</label>
+                        <input class="form-control" type="file" id="thumbnail" name="thumbnail">
+                    </div>
+                    <?php if (!empty($post['thumbnail_url'])): // Заглушка, если есть URL миниатюры ?>
+                        <div class="mt-3">
+                            <img src="<?= htmlspecialchars($post['thumbnail_url']) ?>" class="img-fluid" alt="Миниатюра">
+                        </div>
+                    <?php endif; ?>
                 </div>
             </div>
 
         </div>
     </div>
 </form>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    tinymce.init({
+        selector: '#postContent', // ID вашего textarea
+        plugins: 'advcode link image lists table code media fullscreen',
+        toolbar: 'undo redo | formatselect | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image table | code | fullscreen',
+        menubar: 'file edit view insert format tools table help',
+        height: 600,
+        language: 'ru',
+        extended_valid_elements: 'p[class|id|style]',
+        valid_elements: '*[*]',
+        file_picker_callback: function (cb, value, meta) {
+            alert('Функционал файлового менеджера пока не реализован.');
+        }
+    });
 
+    const tagsInput = document.getElementById('tagsInput');
+    const tagsList = document.getElementById('tagsList');
+    const existingTags = <?php echo json_encode($data['tags'] ?? []); ?>;
+
+    // Функция для создания тега в интерфейсе
+    function createTagElement(tagUrl, tagName) {
+        const tagSpan = document.createElement('span');
+        tagSpan.className = 'badge bg-secondary d-flex align-items-center me-2 mb-2';
+        tagSpan.innerHTML = `
+            ${tagName}
+            <input type="hidden" name="tags[]" value="${tagUrl}">
+            <button type="button" class="btn-close btn-close-white ms-2" aria-label="Remove tag"></button>
+        `;
+
+        const closeButton = tagSpan.querySelector('.btn-close');
+        closeButton.addEventListener('click', () => {
+            tagSpan.remove();
+        });
+
+        return tagSpan;
+    }
+
+    // Инициализация существующих тегов (при редактировании или ошибке)
+    const selectedTags = <?php echo json_encode($post['selected_tags'] ?? []); ?>;
+    if (selectedTags.length > 0) {
+        selectedTags.forEach(tagUrl => {
+            // Нужно найти имя тега по URL
+            const existingTag = existingTags.find(t => t.url === tagUrl);
+            const tagName = existingTag ? existingTag.name : tagUrl.replace(/-/g, ' ');
+            tagsList.appendChild(createTagElement(tagUrl, tagName));
+        });
+    }
+
+    // Обработчик нажатия на Enter или запятую в поле ввода
+    tagsInput.addEventListener('keydown', function(event) {
+        if (event.key === 'Enter' || event.key === ',') {
+            event.preventDefault();
+            const tagValue = this.value.trim();
+            if (tagValue) {
+                // Преобразуем имя в URL-формат
+                const tagUrl = tagValue.toLowerCase().replace(/[^a-z0-9- ]/g, '').replace(/ /g, '-');
+                // Проверяем, что тег не добавлен
+                const existingInput = tagsList.querySelector(`input[value="${tagUrl}"]`);
+                if (!existingInput) {
+                    tagsList.appendChild(createTagElement(tagUrl, tagValue));
+                }
+            }
+            this.value = '';
+        }
+    });
+
+    // Обработчик нажатия на пробел для автозамены на дефис
+    tagsInput.addEventListener('input', function() {
+        this.value = this.value.replace(/ /g, '-');
+    });
+});
+</script>

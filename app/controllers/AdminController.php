@@ -247,31 +247,117 @@ class AdminController {
 
     public function createPost() {
         $this->checkIfUserLoggedIn();
-    
+
+        $adminPostsModel = new AdminPostsModel();
         $adminRoute = Config::getAdminCfg('AdminRoute');
-        $user_name = (new UserModel())->getUserByLogin($_SESSION['user_login'])['name'] ?? 'Администратор';
-    
+        $user = (new UserModel())->getUserByLogin($_SESSION['user_login']);
+        $user_id = $user['id'];
+        $user_name = $user['name'] ?? 'Администратор';
+
         $data = [
             'adminRoute' => $adminRoute,
             'user_name' => $user_name,
             'title' => 'Создать новый пост',
-            'active' => 'posts', // Выделяем "Посты" в меню
-            'post' => null // Для новой статьи данных поста нет
+            'active' => 'posts',
+            'post' => null, // Для новой статьи данных поста нет
+            'categories' => [],
+            'tags' => [],
+            'errors' => []
         ];
     
         // Если это POST-запрос (отправка формы создания)
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            // Здесь будет логика сохранения нового поста в БД
-            // Получите данные из $_POST, валидируйте, сохраните
-            // После сохранения перенаправьте пользователя на список постов или на редактирование созданного поста
-            // Пример:
-            // $postId = (new AdminPostsModel())->createPost($_POST);
-            // header("Location: /$adminRoute/posts/edit/$postId");
-            // exit;
-            // Пока просто выведем сообщение для отладки:
-            $data['message'] = 'Форма создания поста отправлена!';
-            // Обычно здесь логика перенаправления
+            // Проверка CSRF токена
+            $token = $_POST['csrf_token'] ?? '';
+            if (!CSRF::validateToken($token)) {
+                $data['errors'][] = 'Ошибка CSRF-токена. Попробуйте ещё раз.';
+                CSRF::refreshToken();
+            } else {
+                // Валидация данных
+                $title = trim($_POST['title'] ?? '');
+                $content = $_POST['content'] ?? '';
+                $url = $_POST['url'] ?? '';
+                $status = $_POST['status'] ?? 'draft';
+                $meta_title = trim($_POST['meta_title'] ?? '');
+                $meta_description = trim($_POST['meta_description'] ?? '');
+                $meta_keywords = trim($_POST['meta_keywords'] ?? '');
+                $excerpt = trim($_POST['excerpt'] ?? '');
+                $selectedCategories = $_POST['categories'] ?? [];
+                $selectedTags = $_POST['tags'] ?? [];
+                $thumbnailFile = $_FILES['thumbnail'] ?? null;
+            
+                if (empty($title)) {
+                    $data['errors'][] = 'Заголовок поста обязателен.';
+                }
+
+                // Генерация URL, если он пустой
+                if (empty($url)) {
+                    $url = generateUrl($title);
+                }
+
+                // Если нет ошибок, сохраняем пост
+                if (empty($data['errors'])) {
+                    // Формируем данные для модели
+                    $postData = [
+                        'user_id' => $user_id,
+                        'article_type' => 'post', // Задаем тип статьи
+                        'status' => $status,
+                        'title' => $title,
+                        'content' => $content,
+                        'url' => $url,
+                        'meta_title' => $meta_title,
+                        'meta_description' => $meta_description,
+                        'meta_keywords' => $meta_keywords,
+                        'excerpt' => $excerpt
+                    ];
+
+                    $postId = $adminPostsModel->createPost($postData);
+                    
+                    if ($postId) {
+                        // Связываем пост с категориями
+                        if (!empty($selectedCategories)) {
+                            $adminPostsModel->linkPostToCategories($postId, $selectedCategories);
+                        }
+
+                        // Связываем пост с тегами
+                        if (!empty($selectedTags)) {
+                             $adminPostsModel->linkPostToTags($postId, $selectedTags);
+                        }
+
+                        // Логика загрузки миниатюры (пока заглушка, но готова для реализации)
+                        // if ($thumbnailFile && $thumbnailFile['error'] === UPLOAD_ERR_OK) {
+                        //     // Здесь будет логика сохранения файла и записи в таблицу `media`
+                        // }
+                        
+                        header("Location: /$adminRoute/posts");
+                        exit;
+                    } else {
+                        $data['errors'][] = 'Произошла ошибка при сохранении поста в базу данных.';
+                    }
+                }
+                
+                // Если были ошибки, заполняем данные для формы из POST
+                $data['post'] = [
+                    'title' => $title,
+                    'url' => $url,
+                    'content' => $content,
+                    'status' => $status,
+                    'meta_title' => $meta_title,
+                    'meta_description' => $meta_description,
+                    'meta_keywords' => $meta_keywords,
+                    'excerpt' => $excerpt,
+                    'selected_categories' => $selectedCategories,
+                    'selected_tags' => $selectedTags
+                ];
+            }
         }
+    
+        // Получаем категории и теги для формы (при GET-запросе или при ошибке POST)
+        $data['categories'] = $adminPostsModel->getAllCategories();
+        $data['tags'] = $adminPostsModel->getAllTags();
+
+        // Обновляем CSRF токен для формы
+        $data['csrf_token'] = CSRF::getToken();
     
         $content = View::render('../app/views/admin/posts/edit_create.php', $data);
         $route_path = 'edit_create';
@@ -313,5 +399,22 @@ class AdminController {
         $content = View::render('../app/views/admin/posts/edit_create.php', $data);
         $route_path = 'edit_create';
         require '../app/views/admin/admin_layout.php';
+    }
+}
+
+// Вспомогательная функция для генерации URL
+if (!function_exists('generateUrl')) {
+    function generateUrl(string $string): string
+    {
+        $converter = [
+            'а' => 'a', 'б' => 'b', 'в' => 'v', 'г' => 'g', 'д' => 'd', 'е' => 'e', 'ё' => 'yo', 'ж' => 'zh', 'з' => 'z', 'и' => 'i', 'й' => 'j', 'к' => 'k', 'л' => 'l', 'м' => 'm', 'н' => 'n', 'о' => 'o', 'п' => 'p', 'р' => 'r', 'с' => 's', 'т' => 't', 'у' => 'u', 'ф' => 'f', 'х' => 'kh', 'ц' => 'ts', 'ч' => 'ch', 'ш' => 'sh', 'щ' => 'shch', 'ы' => 'y', 'э' => 'e', 'ю' => 'yu', 'я' => 'ya',
+            'А' => 'A', 'Б' => 'B', 'В' => 'V', 'Г' => 'G', 'Д' => 'D', 'Е' => 'E', 'Ё' => 'YO', 'Ж' => 'ZH', 'З' => 'Z', 'И' => 'I', 'Й' => 'J', 'К' => 'K', 'Л' => 'L', 'М' => 'M', 'Н' => 'N', 'О' => 'O', 'П' => 'P', 'Р' => 'R', 'С' => 'S', 'Т' => 'T', 'У' => 'U', 'Ф' => 'F', 'Х' => 'KH', 'Ц' => 'TS', 'Ч' => 'CH', 'Ш' => 'SH', 'Щ' => 'SHCH', 'Ы' => 'Y', 'Э' => 'E', 'Ю' => 'YU', 'Я' => 'YA',
+            ' ' => '-',
+        ];
+        $string = strtr($string, $converter);
+        $string = mb_strtolower($string, 'UTF-8');
+        $string = preg_replace('~[^-a-z0-9_]+~u', '', $string);
+        $string = trim($string, '-');
+        return $string;
     }
 }
