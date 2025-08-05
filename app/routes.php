@@ -81,35 +81,30 @@ $router->addRoute('/cat\/(anekdoty|veselaya-rifma|citatnik|istorii|kartinki|vide
 
 // Добавление пользователем материала через кнопку Добавить из меню
 $router->addRoute('/api/publish', function () {
-    require_once __DIR__ . '/../app/controllers/AjaxController.php';
     $controller = new AjaxController();
     $controller->publish();
 });
 
 // Лайк/дислайк
 $router->addRoute('/api/reaction', function () {
-    require_once __DIR__ . '/../app/controllers/AjaxController.php';
     $controller = new AjaxController();
     $controller->reaction();
 });
 
 // Получение лайков/дислайков постов
 $router->addRoute('/api/post-votes', function () {
-    require_once __DIR__ . '/../app/controllers/AjaxController.php';
     $controller = new AjaxController();
     $controller->getPostVotes();
 });
 
 // Отправка сообщения через форму обратной связи
 $router->addRoute('/api/send_msg', function () {
-    require_once __DIR__ . '/../app/controllers/AjaxController.php';
     $controller = new AjaxController();
     $controller->sendMsg();
 });
 
-// Отправка сообщения через форму обратной связи
+// Получение списка тэгов
 $router->addRoute('/api/search_tags', function () {
-    require_once __DIR__ . '/../app/controllers/AjaxController.php';
     $controller = new AjaxController();
     $controller->searchTags();
 });
@@ -118,13 +113,11 @@ $router->addRoute('/api/search_tags', function () {
 
 // Sitemap.xml
 $router->addRoute('/sitemap\.xml', function () {
-    require_once __DIR__ . '/../app/controllers/SitemapController.php';
     $controller = new SitemapController();
     $controller->generateSitemapIndexXml();
 });
 
 $router->addRoute('/sitemap-(posts|pages)-(\d+)\.xml', function ($type, $page) {
-    require_once __DIR__ . '/../app/controllers/SitemapController.php';
     $controller = new SitemapController();
     $controller->generateSitemapPartXml($type, $page);
 });
@@ -133,38 +126,35 @@ $router->addRoute('/sitemap-(posts|pages)-(\d+)\.xml', function ($type, $page) {
 $adminRoute = Config::getAdminCfg('AdminRoute');
 // Админ
 $router->addRoute("/$adminRoute/login", function() {
-    require_once __DIR__ . '/../app/controllers/AdminController.php';
     (new AdminController())->login();
 });
 
 $router->addRoute("/$adminRoute/dashboard", function() {
-    require_once __DIR__ . '/../app/controllers/AdminController.php';
     (new AdminController())->dashboard();
 }, ['AdminAuthMiddleware']);
 
 $router->addRoute("/$adminRoute/logout", function() {
-    require_once __DIR__ . '/../app/controllers/AdminController.php';
     (new AdminController())->logout();
 }, ['AdminAuthMiddleware']);
 
 $router->addRoute("/$adminRoute/posts(?:/p(\d+))?", function($page = 1) {
-    require_once __DIR__ . '/../app/controllers/AdminController.php';
     (new AdminController())->postsList($page); // Передаем номер страницы в контроллер
 }, ['AdminAuthMiddleware']);
 
 $router->addRoute("/$adminRoute/pages(?:/p(\d+))?", function($page = 1) {
-    require_once __DIR__ . '/../app/controllers/AdminController.php';
     (new AdminController())->pagesList($page); // Передаем номер страницы в контроллер
 }, ['AdminAuthMiddleware']);
 
 // Маршрут для создания нового поста
 $router->addRoute("/$adminRoute/posts/create", function() {
-    require_once __DIR__ . '/../app/controllers/AdminController.php';
     (new AdminController())->createPost();
 }, ['AdminAuthMiddleware']);
 
 // Маршрут для редактирования существующего поста
 $router->addRoute("/$adminRoute/posts/edit/(\d+)", function($postId) {
-    require_once __DIR__ . '/../app/controllers/AdminController.php';
     (new AdminController())->editPost($postId);
+}, ['AdminAuthMiddleware']);
+
+$router->addRoute("/$adminRoute/tags/search", function() {
+    (new AdminController())->searchTags();
 }, ['AdminAuthMiddleware']);

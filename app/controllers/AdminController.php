@@ -292,7 +292,7 @@ class AdminController {
 
                 // Генерация URL, если он пустой
                 if (empty($url)) {
-                    $url = generateUrl($title);
+                    $url = transliterate($title);
                 }
 
                 // Если нет ошибок, сохраняем пост
@@ -400,21 +400,47 @@ class AdminController {
         $route_path = 'edit_create';
         require '../app/views/admin/admin_layout.php';
     }
-}
 
-// Вспомогательная функция для генерации URL
-if (!function_exists('generateUrl')) {
-    function generateUrl(string $string): string
+
+    /**
+     * Поиск меток по названию для автодополнения (POST-запрос).
+     */
+    public function searchTags()
     {
-        $converter = [
-            'а' => 'a', 'б' => 'b', 'в' => 'v', 'г' => 'g', 'д' => 'd', 'е' => 'e', 'ё' => 'yo', 'ж' => 'zh', 'з' => 'z', 'и' => 'i', 'й' => 'j', 'к' => 'k', 'л' => 'l', 'м' => 'm', 'н' => 'n', 'о' => 'o', 'п' => 'p', 'р' => 'r', 'с' => 's', 'т' => 't', 'у' => 'u', 'ф' => 'f', 'х' => 'kh', 'ц' => 'ts', 'ч' => 'ch', 'ш' => 'sh', 'щ' => 'shch', 'ы' => 'y', 'э' => 'e', 'ю' => 'yu', 'я' => 'ya',
-            'А' => 'A', 'Б' => 'B', 'В' => 'V', 'Г' => 'G', 'Д' => 'D', 'Е' => 'E', 'Ё' => 'YO', 'Ж' => 'ZH', 'З' => 'Z', 'И' => 'I', 'Й' => 'J', 'К' => 'K', 'Л' => 'L', 'М' => 'M', 'Н' => 'N', 'О' => 'O', 'П' => 'P', 'Р' => 'R', 'С' => 'S', 'Т' => 'T', 'У' => 'U', 'Ф' => 'F', 'Х' => 'KH', 'Ц' => 'TS', 'Ч' => 'CH', 'Ш' => 'SH', 'Щ' => 'SHCH', 'Ы' => 'Y', 'Э' => 'E', 'Ю' => 'YU', 'Я' => 'YA',
-            ' ' => '-',
-        ];
-        $string = strtr($string, $converter);
-        $string = mb_strtolower($string, 'UTF-8');
-        $string = preg_replace('~[^-a-z0-9_]+~u', '', $string);
-        $string = trim($string, '-');
-        return $string;
+        $this->checkIfUserLoggedIn();
+
+        // Получаем токен из заголовка AJAX-запроса
+        $csrfTokenFromHeader = $_SERVER['HTTP_X_CSRF_TOKEN'] ?? '';
+        
+        // Используем ваш существующий метод для валидации токена
+        if (!CSRF::validateToken($csrfTokenFromHeader)) {
+            http_response_code(403); // Forbidden
+            echo json_encode(['error' => 'Invalid CSRF token']);
+            return;
+        }
+        
+        // Считываем JSON из тела запроса
+        $input = file_get_contents('php://input');
+        $data = json_decode($input, true);
+        
+        $query = $data['q'] ?? '';
+        
+        if (mb_strlen($query) < 2) {
+            header('Content-Type: application/json');
+            echo json_encode([]);
+            return;
+        }
+
+        try {
+            $adminPostsModel = new AdminPostsModel();
+            $tags = $adminPostsModel->searchTagsByName($query);
+            
+            header('Content-Type: application/json');
+            echo json_encode($tags);
+        } catch (Exception $e) {
+            header('Content-Type: application/json');
+            echo json_encode([]);
+            Logger::error('Ошибка при поиске меток: ' . $e->getMessage());
+        }
     }
 }

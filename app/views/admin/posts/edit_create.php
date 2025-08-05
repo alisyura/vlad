@@ -108,16 +108,32 @@ $adminRoute = $data['adminRoute'] ?? 'admin';
         </div>
 
         <div class="col-md-3">
-            <div class="card mb-3" style="z-index: 1;">
+        <div class="card mb-3">
                 <div class="card-header">Публикация</div>
                 <div class="card-body">
                     <div class="mb-3">
-                        <label for="postStatus" class="form-label">Статус</label>
-                        <select class="form-select" id="postStatus" name="status">
-                            <option value="draft" <?= ($post['status'] ?? 'draft') === 'draft' ? 'selected' : '' ?>>Черновик</option>
-                            <option value="published" <?= ($post['status'] ?? '') === 'published' ? 'selected' : '' ?>>Опубликовано</option>
-                            <option value="pending" <?= ($post['status'] ?? '') === 'pending' ? 'selected' : '' ?>>Ожидание</option>
-                        </select>
+                        <label class="form-label">Статус</label>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="status" id="statusDraft" value="draft"
+                                <?= ($post['status'] ?? 'draft') === 'draft' ? 'checked' : '' ?>>
+                            <label class="form-check-label" for="statusDraft">
+                                Черновик
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="status" id="statusPublished" value="published"
+                                <?= ($post['status'] ?? '') === 'published' ? 'checked' : '' ?>>
+                            <label class="form-check-label" for="statusPublished">
+                                Опубликовано
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="status" id="statusPending" value="pending"
+                                <?= ($post['status'] ?? '') === 'pending' ? 'checked' : '' ?>>
+                            <label class="form-check-label" for="statusPending">
+                                Ожидание
+                            </label>
+                        </div>
                     </div>
                     <button type="submit" class="btn btn-primary w-100">
                         <?= $post ? 'Обновить пост' : 'Опубликовать пост' ?>
@@ -152,6 +168,8 @@ $adminRoute = $data['adminRoute'] ?? 'admin';
                         <input type="text" class="form-control" id="tagsInput" name="tags" placeholder="Метки через запятую">
                         <div class="form-text">Вводите метки через запятую. Если метка не существует, она будет создана.</div>
                     </div>
+                    <div id="tagSuggestions" class="list-group mb-3" style="position: relative;">
+                    </div>
                     <div id="tagsList" class="d-flex flex-wrap gap-2">
                         </div>
                 </div>
@@ -176,75 +194,157 @@ $adminRoute = $data['adminRoute'] ?? 'admin';
     </div>
 </form>
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    tinymce.init({
-        selector: '#postContent', // ID вашего textarea
-        plugins: 'advcode link image lists table code media fullscreen',
-        toolbar: 'undo redo | formatselect | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image table | code | fullscreen',
-        menubar: 'file edit view insert format tools table help',
-        height: 600,
-        language: 'ru',
-        extended_valid_elements: 'p[class|id|style]',
-        valid_elements: '*[*]',
-        file_picker_callback: function (cb, value, meta) {
-            alert('Функционал файлового менеджера пока не реализован.');
+    document.addEventListener('DOMContentLoaded', function() {
+        const adminRoute = '<?= htmlspecialchars($adminRoute) ?>';
+        const csrfToken = document.querySelector('input[name="csrf_token"]').value;
+
+        tinymce.init({
+            selector: '#postContent',
+            plugins: 'link image lists code media emoticons wordcount',
+            toolbar: 'undo redo | bold italic underline strikethrough | forecolor backcolor | alignleft aligncenter alignright alignjustify | bullist numlist | link image | emoticons | code',
+            menubar: false,
+            height: 600,
+            language: 'ru',
+            extended_valid_elements: 'p[class|id|style]',
+            valid_elements: '*[*]',
+            license_key: 'gpl',
+            file_picker_callback: function (cb, value, meta) {
+                // Создаем скрытое поле для загрузки файла
+                const input = document.createElement('input');
+                input.setAttribute('type', 'file');
+                input.setAttribute('accept', 'image/*'); // Принимаем только картинки
+                
+                // Слушаем событие, когда файл выбран
+                input.onchange = function () {
+                    // Файл выбран. Здесь будет логика загрузки на сервер
+                    const file = this.files[0];
+                    alert(`Выбран файл: ${file.name}. Теперь его нужно отправить на сервер.`);
+                    // Тут мы будем вызывать cb() с URL картинки
+                };
+                
+                // Вызываем диалог выбора файла
+                input.click();
+            },
+            branding: false
+        });
+
+        const tagsInput = document.getElementById('tagsInput');
+        const tagsList = document.getElementById('tagsList');
+        const tagSuggestions = document.getElementById('tagSuggestions');
+        
+        function createTagElement(tagUrl, tagName) {
+            const tagSpan = document.createElement('span');
+            tagSpan.className = 'badge bg-secondary d-flex align-items-center me-2 mb-2';
+            tagSpan.innerHTML = `
+                ${tagName}
+                <input type="hidden" name="tags[]" value="${tagUrl}">
+                <button type="button" class="btn-close btn-close-white ms-2" aria-label="Remove tag"></button>
+            `;
+
+            const closeButton = tagSpan.querySelector('.btn-close');
+            closeButton.addEventListener('click', () => {
+                tagSpan.remove();
+            });
+
+            return tagSpan;
         }
-    });
-
-    const tagsInput = document.getElementById('tagsInput');
-    const tagsList = document.getElementById('tagsList');
-    const existingTags = <?php echo json_encode($data['tags'] ?? []); ?>;
-
-    // Функция для создания тега в интерфейсе
-    function createTagElement(tagUrl, tagName) {
-        const tagSpan = document.createElement('span');
-        tagSpan.className = 'badge bg-secondary d-flex align-items-center me-2 mb-2';
-        tagSpan.innerHTML = `
-            ${tagName}
-            <input type="hidden" name="tags[]" value="${tagUrl}">
-            <button type="button" class="btn-close btn-close-white ms-2" aria-label="Remove tag"></button>
-        `;
-
-        const closeButton = tagSpan.querySelector('.btn-close');
-        closeButton.addEventListener('click', () => {
-            tagSpan.remove();
-        });
-
-        return tagSpan;
-    }
-
-    // Инициализация существующих тегов (при редактировании или ошибке)
-    const selectedTags = <?php echo json_encode($post['selected_tags'] ?? []); ?>;
-    if (selectedTags.length > 0) {
-        selectedTags.forEach(tagUrl => {
-            // Нужно найти имя тега по URL
-            const existingTag = existingTags.find(t => t.url === tagUrl);
-            const tagName = existingTag ? existingTag.name : tagUrl.replace(/-/g, ' ');
-            tagsList.appendChild(createTagElement(tagUrl, tagName));
-        });
-    }
-
-    // Обработчик нажатия на Enter или запятую в поле ввода
-    tagsInput.addEventListener('keydown', function(event) {
-        if (event.key === 'Enter' || event.key === ',') {
-            event.preventDefault();
-            const tagValue = this.value.trim();
-            if (tagValue) {
-                // Преобразуем имя в URL-формат
-                const tagUrl = tagValue.toLowerCase().replace(/[^a-z0-9- ]/g, '').replace(/ /g, '-');
-                // Проверяем, что тег не добавлен
-                const existingInput = tagsList.querySelector(`input[value="${tagUrl}"]`);
-                if (!existingInput) {
-                    tagsList.appendChild(createTagElement(tagUrl, tagValue));
-                }
+        
+        function addTag(tagUrl, tagName) {
+            const existingInput = tagsList.querySelector(`input[value="${tagUrl}"]`);
+            if (!existingInput) {
+                tagsList.appendChild(createTagElement(tagUrl, tagName));
             }
-            this.value = '';
         }
-    });
+        
+        const selectedTags = <?php echo json_encode($post['selected_tags'] ?? []); ?>;
+        const existingTags = <?php echo json_encode($data['tags'] ?? []); ?>;
+        if (selectedTags.length > 0) {
+            selectedTags.forEach(tagUrl => {
+                const existingTag = existingTags.find(t => t.url === tagUrl);
+                const tagName = existingTag ? existingTag.name : tagUrl.replace(/-/g, ' ');
+                addTag(tagUrl, tagName);
+            });
+        }
+        
+        tagsInput.addEventListener('keydown', function(event) {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                const tagValue = this.value.trim();
+                
+                if (tagValue) {
+                    // Разделяем строку на отдельные теги по запятой
+                    const tags = tagValue.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0);
+                    
+                    tags.forEach(tagName => {
+                        const tagUrl = tagName.toLowerCase()
+                                            .replace(/[^a-zа-яё0-9- ]/g, '')
+                                            .replace(/ /g, '-');
+                        addTag(tagUrl, tagName);
+                    });
+                }
+                
+                this.value = '';
+                tagSuggestions.innerHTML = '';
+            }
+        });
+        
+        let debounceTimeout;
+        tagsInput.addEventListener('input', function() {
+            clearTimeout(debounceTimeout);
+            const query = this.value.trim();
 
-    // Обработчик нажатия на пробел для автозамены на дефис
-    tagsInput.addEventListener('input', function() {
-        this.value = this.value.replace(/ /g, '-');
+            if (query.length < 3) {
+                tagSuggestions.innerHTML = '';
+                return;
+            }
+
+            debounceTimeout = setTimeout(async () => {
+                try {
+                    const url = `/${adminRoute}/tags/search`;
+                    
+                    const response = await fetch(url, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'X-CSRF-Token': csrfToken
+                        },
+                        body: JSON.stringify({ q: query })
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    
+                    const tags = await response.json();
+                    
+                    tagSuggestions.innerHTML = '';
+                    if (tags.length > 0) {
+                        tags.forEach(tag => {
+                            const suggestionItem = document.createElement('a');
+                            suggestionItem.href = '#';
+                            suggestionItem.className = 'list-group-item list-group-item-action';
+                            suggestionItem.textContent = tag.name;
+                            suggestionItem.addEventListener('click', (e) => {
+                                e.preventDefault();
+                                addTag(tag.url, tag.name);
+                                tagsInput.value = '';
+                                tagSuggestions.innerHTML = '';
+                            });
+                            tagSuggestions.appendChild(suggestionItem);
+                        });
+                    }
+                } catch (error) {
+                    console.error('Ошибка при поиске меток:', error);
+                }
+            }, 300);
+        });
+        
+        document.addEventListener('click', (e) => {
+            if (!tagsInput.contains(e.target) && !tagSuggestions.contains(e.target)) {
+                tagSuggestions.innerHTML = '';
+            }
+        });
+
     });
-});
 </script>
