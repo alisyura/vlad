@@ -3,6 +3,13 @@
 
 class AdminController {
 
+    public function lll()
+    {
+        header('Content-Type: application/json');
+        echo json_encode(['msg' => 'worked']);
+        exit;
+    }
+    
     private function checkIfUserLoggedIn()
     {
         if (!Auth::check()) {

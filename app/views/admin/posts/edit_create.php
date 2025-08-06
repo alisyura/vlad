@@ -193,6 +193,32 @@ $adminRoute = $data['adminRoute'] ?? 'admin';
         </div>
     </div>
 </form>
+
+<div class="modal fade" id="mediaModal" tabindex="-1" aria-labelledby="mediaModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="mediaModalLabel">Медиатека</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label for="mediaUpload" class="form-label">Загрузить новое изображение</label>
+                    <input class="form-control" type="file" id="mediaUpload" accept="image/*">
+                </div>
+                <hr>
+                <h5>Выбрать из существующих</h5>
+                <div class="row row-cols-2 row-cols-sm-3 row-cols-md-4 row-cols-lg-5 g-3" id="mediaGallery">
+                    </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+                <button type="button" class="btn btn-primary" id="insertMediaBtn" disabled>Вставить</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         const adminRoute = '<?= htmlspecialchars($adminRoute) ?>';
@@ -209,21 +235,11 @@ $adminRoute = $data['adminRoute'] ?? 'admin';
             valid_elements: '*[*]',
             license_key: 'gpl',
             file_picker_callback: function (cb, value, meta) {
-                // Создаем скрытое поле для загрузки файла
-                const input = document.createElement('input');
-                input.setAttribute('type', 'file');
-                input.setAttribute('accept', 'image/*'); // Принимаем только картинки
-                
-                // Слушаем событие, когда файл выбран
-                input.onchange = function () {
-                    // Файл выбран. Здесь будет логика загрузки на сервер
-                    const file = this.files[0];
-                    alert(`Выбран файл: ${file.name}. Теперь его нужно отправить на сервер.`);
-                    // Тут мы будем вызывать cb() с URL картинки
-                };
-                
-                // Вызываем диалог выбора файла
-                input.click();
+                if (meta.filetype === 'image') {
+                    currentCallback = cb; // Сохраняем колбэк для передачи URL
+                    loadMediaItems(); // Загружаем картинки в модалку
+                    mediaModal.show(); // Показываем модальное окно
+                }
             },
             branding: false
         });
@@ -346,5 +362,117 @@ $adminRoute = $data['adminRoute'] ?? 'admin';
             }
         });
 
+
+
+
+
+        // Определяем переменные для работы с медиатекой
+        const mediaModal = new bootstrap.Modal(document.getElementById('mediaModal'));
+        const mediaGallery = document.getElementById('mediaGallery');
+        const mediaUploadInput = document.getElementById('mediaUpload');
+        const insertMediaBtn = document.getElementById('insertMediaBtn');
+
+        let currentCallback;
+
+        // Функция для загрузки и отображения картинок из медиатеки
+        async function loadMediaItems() {
+            // В следующих шагах мы создадим этот роут на сервере
+            const url = `/${adminRoute}/media/list`;
+
+            try {
+                console.log('loadMediaItems fetch');
+                const response = await fetch(url, {
+                    method: 'GET',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                });
+
+                console.log('loadMediaItems !response.ok');
+                // Проверяем, что ответ успешен
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                console.log('loadMediaItems await response.text');
+                // Получаем текст ответа, чтобы избежать ошибки парсинга JSON
+                const responseText = await response.text();
+
+                console.log('loadMediaItems JSON.parse(responseText)');
+                // Теперь попробуем распарсить JSON. Если здесь опять ошибка,
+                // значит, ответ действительно не JSON.
+                const items = JSON.parse(responseText);
+
+                mediaGallery.innerHTML = '';
+                items.forEach(item => {
+                    const itemElement = document.createElement('div');
+                    itemElement.className = 'col media-item';
+                    itemElement.innerHTML = `
+                        <img src="${item.url}" class="img-thumbnail" alt="${item.alt}" data-url="${item.url}">
+                    `;
+                    mediaGallery.appendChild(itemElement);
+
+                    itemElement.addEventListener('click', () => {
+                        // Снимаем выделение со всех картинок
+                        document.querySelectorAll('.media-item img').forEach(img => img.classList.remove('selected'));
+                        // Выделяем текущую
+                        itemElement.querySelector('img').classList.add('selected');
+                        insertMediaBtn.disabled = false; // Активируем кнопку "Вставить"
+                    });
+                });
+
+            } catch (error) {
+                console.error('Ошибка при загрузке медиатеки:', error);
+            }
+        }
+
+        // Обработчик нажатия на кнопку "Вставить"
+        insertMediaBtn.addEventListener('click', () => {
+            const selectedImage = document.querySelector('.media-item img.selected');
+            if (selectedImage && currentCallback) {
+                currentCallback(selectedImage.dataset.url); // Передаём URL картинки в TinyMCE
+                mediaModal.hide(); // Закрываем модальное окно
+            }
+        });
+
+        // Обработчик загрузки файла
+        mediaUploadInput.addEventListener('change', async (event) => {
+            const file = event.target.files[0];
+            if (file) {
+                // В следующих шагах мы создадим этот роут на сервере
+                const url = `/${adminRoute}/media/upload`;
+                
+                const formData = new FormData();
+                formData.append('file', file);
+                formData.append('csrf_token', csrfToken);
+
+                try {
+                    console.log('upload fetch');
+                    const response = await fetch(url, {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    });
+                    console.log('upload response.ok');
+                    if (response.ok) {
+                        // Если загрузка успешна, обновляем галерею
+                        console.log('upload retData');
+                        const retData = await response.json();
+                        console.log('retData '+JSON.stringify(retData));
+                        console.log('upload await loadMediaItems');
+                        await loadMediaItems();
+                        event.target.value = ''; // Очищаем поле ввода файла
+                    } else {
+                        console.log('upload await response.json');
+                        const errorData = await response.json();
+                        alert('Ошибка загрузки: ' + errorData.error);
+                    }
+                } catch (error) {
+                    console.error('Ошибка при загрузке файла:', error);
+                }
+            }
+        });
     });
 </script>

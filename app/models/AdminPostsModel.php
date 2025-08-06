@@ -22,7 +22,7 @@ class AdminPostsModel {
                 ]
             );
         } catch (PDOException $e) {
-            error_log("Database connection error: " . $e->getMessage());
+            Logger::error("Database connection error: " . $e->getMessage());
             die("Произошла ошибка при подключении к базе данных. Пожалуйста, попробуйте позже.");
         }
     }

@@ -52,7 +52,9 @@ class Config
             // Настройки сайта
             'AdminEmail'=>'admin@admin.ru',
             'AdminRoute'=>'adm',
-            'posts_per_page' => 3
+            'posts_per_page' => 3,
+            'EnableCreateCategory' => false, // включает/выключает возможность создавать категории
+            'EnableEditCategory' => false // включает/выключает возможность изменять категории
         ];
 
         return $global[$propertyName];

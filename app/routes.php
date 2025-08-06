@@ -158,3 +158,12 @@ $router->addRoute("/$adminRoute/posts/edit/(\d+)", function($postId) {
 $router->addRoute("/$adminRoute/tags/search", function() {
     (new AdminController())->searchTags();
 }, ['AdminAuthMiddleware']);
+
+// Маршруты для работы с медиа изображениями
+$router->addRoute("/$adminRoute/media/list", function() {
+    (new AdminMediaController())->list();
+}, ['AdminAuthMiddleware']);
+
+$router->addRoute("/$adminRoute/media/upload", function() {
+    (new AdminMediaController())->upload();
+}, ['AdminAuthMiddleware']);
