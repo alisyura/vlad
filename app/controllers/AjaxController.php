@@ -252,10 +252,10 @@ class AjaxController
                     return;
                 }
 
-                if ($file['size'] > 20 * 1024 * 1024) { // 20 MB
+                if ($file['size'] > Config::getGlobalCfg('UploadedMaxFilesize')) { // 2 MB
                     echo json_encode([
                         'success' => false,
-                        'message' => 'Размер файла превышает 20 Мб'
+                        'message' => 'Размер файла превышает 2 Мб'
                     ]);
                     return;
                 }
@@ -470,6 +470,7 @@ class AjaxController
         }
         catch(Exception $e)
         {
+            Logger::error('Ошибка при поиске тэгов: ' . $e->getMessage());
             echo json_encode([
                 'success' => false,
                 'message' => $e->getMessage()

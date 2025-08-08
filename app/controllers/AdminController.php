@@ -199,12 +199,7 @@ class AdminController {
             unset($post);
 
             $adminRoute = Config::getAdminCfg('AdminRoute');
-            $user_name = '';
-            if (isset($_SESSION['user_login'])) {
-                $userModel = new UserModel();
-                $user = $userModel->getUserByLogin($_SESSION['user_login']);
-                $user_name = $user['name'] ?? 'Администратор';
-            }
+            $user_name = Auth::getUserName();
 
             // Генерируем массив ссылок для умной пагинации
             // Базовый URL для админки
@@ -213,7 +208,7 @@ class AdminController {
 
             $data = [
                 'adminRoute' => $adminRoute,
-                'user_name' => $user_name,
+               // 'user_name' => $user_name,
                 'title' => 'Список постов',
                 'active' => 'posts',
                 'posts' => $posts,

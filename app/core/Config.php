@@ -38,6 +38,9 @@ class Config
             'SITE_DESCRIPTION'=>'Описание. Описание содержимого на данной странице',
             'UseLogger' => true,
             'UploadDir' => 'uploads',
+            'UploadedMaxFilesize' => 2*1024*1024, // 2 MB
+            'UploadedMaxHeight' => 6000,
+            'UploadedMaxWidth' => 8400,
             'CacheDir' => 'W:\\domains\\vlad.local\\cache\\pages/',
             'CacheLifetime' => 3600, // Время жизни кэша в секундах
             'UseCache' => false
@@ -54,7 +57,8 @@ class Config
             'AdminRoute'=>'adm',
             'posts_per_page' => 3,
             'EnableCreateCategory' => false, // включает/выключает возможность создавать категории
-            'EnableEditCategory' => false // включает/выключает возможность изменять категории
+            'EnableEditCategory' => false, // включает/выключает возможность изменять категории
+            'AdminRoleName' => 'Administrator'
         ];
 
         return $global[$propertyName];
