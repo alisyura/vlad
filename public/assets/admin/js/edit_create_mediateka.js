@@ -112,22 +112,51 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
+    // --- НОВАЯ ФУНКЦИЯ ДЛЯ ОТКРЫТИЯ ДИАЛОГА ---
+    function openMyCustomImageDialog(editor) {
+        // Очищаем предыдущее выделение и отключаем кнопку
+        document.querySelectorAll('.media-item img').forEach(img => img.classList.remove('selected'));
+        insertMediaBtn.disabled = true;
+
+        // Определяем колбэк, который будет вставлять изображение в редактор
+        currentCallback = function(imageUrl) {
+            // Вставляем изображение, используя стандартную команду TinyMCE
+            const relativeUrl = imageUrl.replace('../../', '/');
+
+            console.log(relativeUrl);
+            editor.insertContent(`<img src="${relativeUrl}">`);
+        };
+
+        // Загружаем список медиафайлов и открываем модальное окно
+        loadMediaItems();
+        mediaModal.show();
+    }
+    // --- КОНЕЦ НОВОЙ ФУНКЦИИ ---
+
     tinymce.init({
         selector: '#postContent',
-        plugins: 'link image lists code media emoticons wordcount',
-        toolbar: 'undo redo | bold italic underline strikethrough | forecolor backcolor | alignleft aligncenter alignright alignjustify | bullist numlist | link image | emoticons | code',
+        plugins: 'link  lists code media emoticons wordcount',
+        toolbar: 'undo redo | bold italic underline strikethrough | forecolor backcolor | alignleft aligncenter alignright alignjustify | bullist numlist | link mycustomimage | emoticons | code',
         menubar: false,
         height: 600,
         language: 'ru',
         extended_valid_elements: 'p[class|id|style]',
         valid_elements: '*[*]',
         license_key: 'gpl',
-        file_picker_callback: function (cb, value, meta) {
-            if (meta.filetype === 'image') {
-                currentCallback = cb; // Сохраняем колбэк для передачи URL
-                loadMediaItems(); // Загружаем картинки в модалку
-                mediaModal.show(); // Показываем модальное окно
+        convert_urls: false,
+        setup: function(editor) {
+            editor.ui.registry.addButton('mycustomimage', {
+            icon: 'image',
+            tooltip: 'Insert/Edit Image (Custom)',
+            onAction: function() {
+                openMyCustomImageDialog(editor);
             }
+            });
+
+            // Опционально: если где-то вызывается mceImage — тоже перехватываем
+            editor.addCommand('mceImage', function() {
+                openMyCustomImageDialog(editor);
+            });
         },
         branding: false
     });
