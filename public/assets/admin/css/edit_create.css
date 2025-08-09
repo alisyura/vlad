@@ -5,3 +5,17 @@
         max-width: 100%;
     }
 }
+
+/* Стиль для подсветки выбранного изображения в медиатеке */
+.media-item img.selected {
+    border: 3px solid #0d6efd; /* Синяя рамка */
+    box-shadow: 0 0 10px rgba(13, 110, 253, 0.5); /* Лёгкая синяя тень */
+    transform: scale(1.05); /* Немного увеличиваем, чтобы было заметно */
+    transition: all 0.2s ease-in-out; /* Плавный переход */
+}
+
+/* Дополнительный стиль для красоты, когда наводим курсор */
+.media-item img:not(.selected):hover {
+    cursor: pointer;
+    border: 3px solid #adb5bd;
+}

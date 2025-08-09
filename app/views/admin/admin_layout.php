@@ -102,6 +102,8 @@
             {
                 case 'edit_create':
                     echo '<script src="' . asset("tinymce/tinymce.min.js") . '" defer></script>'."\n";
+                    echo '<script src="' . asset("admin/js/edit_create_tag_selector.js") . '" defer></script>'."\n";
+                    echo '<script src="' . asset("admin/js/edit_create_mediateka.js") . '" defer></script>'."\n";
                     break;
             }
             if ($route_path !== 'edit_create') {

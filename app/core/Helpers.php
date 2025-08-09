@@ -71,7 +71,7 @@ function transliterate($string) {
     $string = strtr($string, $converter);
     
     // Очистка оставшихся символов
-    $string = preg_replace('/[^a-z0-9-\s]/', '', mb_strtolower($string, 'UTF-8'));
+    $string = preg_replace('/[^a-z0-9-_\s]/', '', mb_strtolower($string, 'UTF-8'));
     
     // Замена пробелов на дефисы
     $string = str_replace(' ', '-', $string);

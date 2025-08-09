@@ -132,10 +132,6 @@ class AdminMediaController extends AdminController
         $fileNameWithoutExt = transliterate(pathinfo($fileName, PATHINFO_FILENAME));
         $newFileName = "${fileNameWithoutExt}.${fileExtension}";
 
-        //  echo json_encode(['success' => false, 'fileName' => $fileNameWithoutExt,
-        // 'basename'=>basename($file['name']), 'new_filename'=> $newFileName]);
-        //         exit;
-
         $i = 1;
         while (file_exists($targetDir . $newFileName)) {
             $newFileName = $fileNameWithoutExt . '_' . $i . '.' . $fileExtension;

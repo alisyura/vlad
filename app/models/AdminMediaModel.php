@@ -48,11 +48,11 @@ class AdminMediaModel {
         $stmt = $this->db->prepare("
                 INSERT INTO media (
                     post_id, user_id, file_name, file_path, file_type, 
-                    mime_type, file_size, uploaded_at, updated_at
+                    mime_type, file_size, alt_text, uploaded_at, updated_at
                 )
                 VALUES (
                     NULL, :user_id, :file_name, :file_path, 'image', 
-                    :mime_type, :file_size, NOW(), NOW()
+                    :mime_type, :file_size, :alt_text, NOW(), NOW()
                 )
             ");
             $stmt->execute([
@@ -61,7 +61,8 @@ class AdminMediaModel {
                 ':file_name' => basename($fileUrl),
                 ':file_path' => $fileUrl,
                 ':mime_type' => $imageType,
-                ':file_size' => $fileSize
+                ':file_size' => $fileSize,
+                'alt_text' => ''
             ]);
         
 
