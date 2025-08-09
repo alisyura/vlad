@@ -155,6 +155,10 @@ $router->addRoute("/$adminRoute/posts/edit/(\d+)", function($postId) {
     (new AdminController())->editPost($postId);
 }, ['AdminAuthMiddleware']);
 
+$router->addRoute("/$adminRoute/posts/check-url", function() {
+    (new AdminController())->checkUrl();
+}, ['AdminAuthMiddleware']);
+
 $router->addRoute("/$adminRoute/tags/search", function() {
     (new AdminController())->searchTags();
 }, ['AdminAuthMiddleware']);

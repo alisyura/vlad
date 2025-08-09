@@ -382,4 +382,16 @@ class AdminPostsModel {
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
+
+    public function isUrlUnique($url)
+    {
+        $sql = "SELECT COUNT(*) FROM posts WHERE url = :url";
+        $params = [':url' => $url];
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute($params);
+        $count = $stmt->fetchColumn();
+
+        return $count === 0;
+    }
 }
