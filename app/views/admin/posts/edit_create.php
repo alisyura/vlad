@@ -205,15 +205,34 @@ $adminRoute = $data['adminRoute'] ?? 'admin';
                 <h5 class="modal-title" id="mediaModalLabel">Медиатека</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body">
-                <div class="mb-3">
-                    <label for="mediaUpload" class="form-label">Загрузить новое изображение</label>
-                    <input class="form-control" type="file" id="mediaUpload" accept="image/*">
-                </div>
+            
+            <div class="modal-body p-3">
+            <h5>Загрузить новое изображение</h5>
+            <div class="mb-3 p-3 border rounded">
+                <form id="mediaUploadForm" enctype="multipart/form-data">
+                    <div class="row align-items-end">
+                        <div class="col-md-6 mb-3 mb-md-0">
+                            <!-- <label for="mediaUpload" class="form-label">Файл</label> -->
+                            <input class="form-control" type="file" id="mediaUpload" name="file" accept="image/*" required>
+                        </div>
+                        <div class="col-md-4 mb-3 mb-md-0">
+                            <!-- <label for="altText" class="form-label">Alt-текст</label> -->
+                            <input class="form-control" type="text" id="altText" name="alt" placeholder="Описание для SEO и доступности" required>
+                        </div>
+                        <div class="col-md-2">
+                            <button type="submit" class="btn btn-primary w-100">Добавить</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
                 <hr>
                 <h5>Выбрать из существующих</h5>
-                <div class="row row-cols-2 row-cols-sm-3 row-cols-md-4 row-cols-lg-5 g-3" id="mediaGallery">
-                    </div>
+                
+                <div id="mediaGalleryContainer" style="max-height: 45vh; overflow-y: auto;">
+                    <div class="row row-cols-2 row-cols-sm-3 row-cols-md-4 row-cols-lg-5 g-3" id="mediaGallery">
+                        </div>
+                </div>
+                
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>

@@ -114,6 +114,8 @@ class AdminMediaController extends AdminController
             exit;
         }
 
+        $altText = htmlspecialchars(trim($_POST['alt'] ?? ''));
+
         // --- Новая логика для создания уникального пути и имени файла ---
         $baseUploadDir = $_SERVER['DOCUMENT_ROOT'] . '/assets/' . rtrim(Config::getGlobalCfg('UploadDir'), '/') . '/';
         $yearDir = date('Y');
@@ -151,7 +153,7 @@ class AdminMediaController extends AdminController
             {
                 $amm = new AdminMediaModel();
                 $amm->saveImgToMedia(Auth::getUserId(), $fileUrl,
-                    $file['size'], $imageMimeType);
+                    $file['size'], $imageMimeType, $altText);
             }
             catch(Exception $e)
             {

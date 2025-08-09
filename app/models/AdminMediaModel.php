@@ -43,7 +43,7 @@ class AdminMediaModel {
         }
     }
 
-    public function saveImgToMedia($userId, $fileUrl, $fileSize, $imageType)
+    public function saveImgToMedia($userId, $fileUrl, $fileSize, $imageType, $altText)
     {
         $stmt = $this->db->prepare("
                 INSERT INTO media (
@@ -62,7 +62,7 @@ class AdminMediaModel {
                 ':file_path' => $fileUrl,
                 ':mime_type' => $imageType,
                 ':file_size' => $fileSize,
-                'alt_text' => ''
+                'alt_text' => $altText 
             ]);
         
 

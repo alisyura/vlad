@@ -6,8 +6,11 @@ document.addEventListener('DOMContentLoaded', function() {
     // Определяем переменные для работы с медиатекой
     const mediaModal = new bootstrap.Modal(document.getElementById('mediaModal'));
     const mediaGallery = document.getElementById('mediaGallery');
-    const mediaUploadInput = document.getElementById('mediaUpload');
     const insertMediaBtn = document.getElementById('insertMediaBtn');
+
+    const mediaUploadForm = document.getElementById('mediaUploadForm');
+    const mediaUploadInput = document.getElementById('mediaUpload'); // Переменная уже была, но теперь она часть формы
+    const altTextInput = document.getElementById('altText');
 
     let currentCallback;
 
@@ -56,6 +59,17 @@ document.addEventListener('DOMContentLoaded', function() {
                     itemElement.querySelector('img').classList.add('selected');
                     insertMediaBtn.disabled = false; // Активируем кнопку "Вставить"
                 });
+
+                // НОВЫЙ обработчик ДВОЙНОГО клика
+                itemElement.addEventListener('dblclick', () => {
+                    const imageUrl = itemElement.querySelector('img').dataset.url;
+                    const altText = itemElement.querySelector('img').alt;
+                    if (currentCallback) {
+                        const relativeUrl = imageUrl.replace('../../', '/');
+                        currentCallback(relativeUrl, altText);
+                        mediaModal.hide();
+                    }
+                });
             });
 
         } catch (error) {
@@ -67,24 +81,31 @@ document.addEventListener('DOMContentLoaded', function() {
     insertMediaBtn.addEventListener('click', () => {
         const selectedImage = document.querySelector('.media-item img.selected');
         if (selectedImage && currentCallback) {
-            currentCallback(selectedImage.dataset.url); // Передаём URL картинки в TinyMCE
+            const imageUrl = selectedImage.dataset.url;
+            const altText = selectedImage.alt; // Получаем alt-текст
+            const relativeUrl = imageUrl.replace('../../', '/');
+            currentCallback(relativeUrl, altText); // Передаём URL картинки в TinyMCE
             mediaModal.hide(); // Закрываем модальное окно
         }
     });
 
-    // Обработчик загрузки файла
-    mediaUploadInput.addEventListener('change', async (event) => {
-        const file = event.target.files[0];
-        if (file) {
-            // В следующих шагах мы создадим этот роут на сервере
+    // НОВЫЙ обработчик загрузки файла
+    mediaUploadForm.addEventListener('submit', async (event) => {
+        event.preventDefault(); // Отменяем стандартную отправку формы
+        
+        const file = mediaUploadInput.files[0];
+        const altText = altTextInput.value;
+
+        if (file && altText) {
             const url = `/${adminRoute}/media/upload`;
             
             const formData = new FormData();
             formData.append('file', file);
+            formData.append('alt', altText); // Добавляем alt-текст в FormData
             formData.append('csrf_token', csrfToken);
 
             try {
-                console.log('upload fetch');
+                // ... ваш код для fetch запроса ...
                 const response = await fetch(url, {
                     method: 'POST',
                     body: formData,
@@ -92,23 +113,21 @@ document.addEventListener('DOMContentLoaded', function() {
                         'X-Requested-With': 'XMLHttpRequest'
                     }
                 });
-                console.log('upload response.ok');
+
                 if (response.ok) {
-                    // Если загрузка успешна, обновляем галерею
-                    console.log('upload retData');
-                    const retData = await response.json();
-                    console.log('retData '+JSON.stringify(retData));
-                    console.log('upload await loadMediaItems');
+                    await response.json();
                     await loadMediaItems();
-                    event.target.value = ''; // Очищаем поле ввода файла
+                    // Очищаем форму после успешной загрузки
+                    mediaUploadForm.reset();
                 } else {
-                    console.log('upload await response.json');
                     const errorData = await response.json();
                     alert('Ошибка загрузки: ' + errorData.error);
                 }
             } catch (error) {
                 console.error('Ошибка при загрузке файла:', error);
             }
+        } else {
+            alert('Пожалуйста, выберите файл и укажите Alt-текст.');
         }
     });
 
@@ -119,12 +138,10 @@ document.addEventListener('DOMContentLoaded', function() {
         insertMediaBtn.disabled = true;
 
         // Определяем колбэк, который будет вставлять изображение в редактор
-        currentCallback = function(imageUrl) {
+        currentCallback = function(imageUrl, altText) {
             // Вставляем изображение, используя стандартную команду TinyMCE
             const relativeUrl = imageUrl.replace('../../', '/');
-
-            console.log(relativeUrl);
-            editor.insertContent(`<img src="${relativeUrl}">`);
+            editor.insertContent(`<img src="${relativeUrl}" alt="${altText}">`);
         };
 
         // Загружаем список медиафайлов и открываем модальное окно
