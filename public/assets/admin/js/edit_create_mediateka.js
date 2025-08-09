@@ -12,7 +12,40 @@ document.addEventListener('DOMContentLoaded', function() {
     const mediaUploadInput = document.getElementById('mediaUpload'); // Переменная уже была, но теперь она часть формы
     const altTextInput = document.getElementById('altText');
 
+    // Новые переменные для миниатюры
+    const openImageModalBtn = document.getElementById('openImageModalBtn');
+    const postImageInput = document.getElementById('postImageInput');
+    const postImagePreview = document.getElementById('postImagePreview');
+    const selectedImagePreview = document.getElementById('selectedImagePreview');
+    const removeImageBtn = document.getElementById('removeImageBtn');
+
     let currentCallback;
+
+    // Обработчик для кнопки "Выбрать изображение"
+    if (openImageModalBtn) {
+        openImageModalBtn.addEventListener('click', () => {
+            currentCallback = function(imageUrl) {
+                postImageInput.value = imageUrl;
+                postImagePreview.src = imageUrl;
+                selectedImagePreview.style.display = 'block'; // Показываем превью
+                removeImageBtn.style.display = 'block'; // Показываем кнопку "Удалить"
+                mediaModal.hide();
+            };
+            
+            loadMediaItems();
+            mediaModal.show();
+        });
+    }
+
+    // Обработчик для кнопки "Удалить миниатюру"
+    if (removeImageBtn) {
+        removeImageBtn.addEventListener('click', () => {
+            postImageInput.value = '';
+            postImagePreview.src = '';
+            selectedImagePreview.style.display = 'none'; // Скрываем превью
+            removeImageBtn.style.display = 'none'; // Скрываем кнопку "Удалить"
+        });
+    }
 
     // Функция для загрузки и отображения картинок из медиатеки
     async function loadMediaItems() {

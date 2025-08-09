@@ -10,6 +10,12 @@
     <?php
         if (!empty($route_path))
         {
+            switch ($route_path)
+            {
+                case 'edit_create':
+                    echo '<link rel="stylesheet" href="' . asset("admin/css/edit_create_mediateka.css") .'">'."\n";
+                    break;
+            }
             echo '<link rel="stylesheet" href="' . asset("admin/css/$route_path.css") .'">'."\n";
         }
     ?>

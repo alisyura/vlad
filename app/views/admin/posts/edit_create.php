@@ -183,14 +183,23 @@ $adminRoute = $data['adminRoute'] ?? 'admin';
                 <div class="card-header">Миниатюра поста</div>
                 <div class="card-body">
                     <div class="mb-3">
-                        <label for="thumbnail" class="form-label">Загрузить файл</label>
-                        <input class="form-control" type="file" id="thumbnail" name="thumbnail">
-                    </div>
-                    <?php if (!empty($post['thumbnail_url'])): // Заглушка, если есть URL миниатюры ?>
-                        <div class="mt-3">
-                            <img src="<?= htmlspecialchars($post['thumbnail_url']) ?>" class="img-fluid" alt="Миниатюра">
+                        <label for="postImageInput" class="form-label">Выбрать изображение</label>
+                        <div class="d-flex flex-column">
+                            <button type="button" class="btn btn-secondary mb-2" id="openImageModalBtn">
+                                Выбрать изображение
+                            </button>
+                            
+                            <button type="button" class="btn btn-outline-danger btn-sm" id="removeImageBtn" style="<?= empty($post['thumbnail_url']) ? 'display: none;' : '' ?>">
+                                Удалить миниатюру
+                            </button>
                         </div>
-                    <?php endif; ?>
+                        
+                        <input type="hidden" id="postImageInput" name="post_image_url" value="<?= htmlspecialchars($post['thumbnail_url'] ?? '') ?>">
+
+                        <div id="selectedImagePreview" class="mt-3" style="max-width: 200px; <?= !empty($post['thumbnail_url']) ? 'display: block;' : 'display: none;' ?>">
+                            <img id="postImagePreview" src="<?= htmlspecialchars($post['thumbnail_url'] ?? '') ?>" class="img-thumbnail w-100" alt="Миниатюра поста">
+                        </div>
+                    </div>
                 </div>
             </div>
 
