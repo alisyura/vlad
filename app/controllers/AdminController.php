@@ -248,117 +248,123 @@ class AdminController {
     }
 
     public function createPost() {
-        $this->checkIfUserLoggedIn();
+        try {
+            $this->checkIfUserLoggedIn();
 
-        $adminPostsModel = new AdminPostsModel();
-        $adminRoute = Config::getAdminCfg('AdminRoute');
-        $user = (new UserModel())->getUserByLogin($_SESSION['user_login']);
-        $user_id = $user['id'];
-        $user_name = $user['name'] ?? 'Администратор';
-
-        $data = [
-            'adminRoute' => $adminRoute,
-            'user_name' => $user_name,
-            'title' => 'Создать новый пост',
-            'active' => 'posts',
-            'post' => null, // Для новой статьи данных поста нет
-            'categories' => [],
-            'tags' => [],
-            'errors' => []
-        ];
-    
-        // Если это POST-запрос (отправка формы создания)
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            // Проверка CSRF токена
-            $token = $_POST['csrf_token'] ?? '';
-            if (!CSRF::validateToken($token)) {
-                $data['errors'][] = 'Ошибка CSRF-токена. Попробуйте ещё раз.';
-                CSRF::refreshToken();
-            } else {
-                // Валидация данных
-                $title = trim($_POST['title'] ?? '');
-                $content = $_POST['content'] ?? '';
-                $url = $_POST['url'] ?? '';
-                $status = $_POST['status'] ?? 'draft';
-                $meta_title = trim($_POST['meta_title'] ?? '');
-                $meta_description = trim($_POST['meta_description'] ?? '');
-                $meta_keywords = trim($_POST['meta_keywords'] ?? '');
-                $excerpt = trim($_POST['excerpt'] ?? '');
-                $selectedCategories = $_POST['categories'] ?? [];
-                $selectedTags = $_POST['tags'] ?? [];
-                $thumbnailFile = $_FILES['thumbnail'] ?? null;
+            $adminPostsModel = new AdminPostsModel();
+            $adminRoute = Config::getAdminCfg('AdminRoute');
             
-                if (empty($title)) {
-                    $data['errors'][] = 'Заголовок поста обязателен.';
-                }
+            $user_id = Auth::getUserId();
+            $user_name = Auth::getUserName();
 
-                // Генерация URL, если он пустой
-                if (empty($url)) {
-                    $url = transliterate($title);
-                }
+            $data = [
+                'adminRoute' => $adminRoute,
+                'articleType' => 'post',
+                'user_name' => $user_name,
+                'title' => 'Создать новый пост',
+                'active' => 'posts',
+                'post' => null,
+                'categories' => [],
+                'tags' => [],
+                'errors' => [],
+                'is_new_post' => true
+            ];
+        
+            if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+                $token = $_POST['csrf_token'] ?? '';
+                if (!CSRF::validateToken($token)) {
+                    $data['errors'][] = 'Ошибка CSRF-токена. Попробуйте ещё раз.';
+                    CSRF::refreshToken();
+                } else {
+                    $title = trim($_POST['title'] ?? '');
+                    $content = $_POST['content'] ?? '';
+                    $url = $_POST['url'] ?? '';
+                    $status = $_POST['status'] ?? 'draft';
+                    $meta_title = trim($_POST['meta_title'] ?? '');
+                    $meta_description = trim($_POST['meta_description'] ?? '');
+                    $meta_keywords = trim($_POST['meta_keywords'] ?? '');
+                    $excerpt = trim($_POST['excerpt'] ?? '');
+                    $selectedCategories = $_POST['categories'] ?? [];
 
-                // Если нет ошибок, сохраняем пост
-                if (empty($data['errors'])) {
-                    // Формируем данные для модели
-                    $postData = [
-                        'user_id' => $user_id,
-                        'article_type' => 'post', // Задаем тип статьи
-                        'status' => $status,
+                    // $tagsString = $_POST['tags'] ?? [];
+                    $selectedTags = $_POST['tags'] ?? [];
+                    $tagsString = is_array($selectedTags) ? implode(',', $selectedTags) : $selectedTags;
+
+                    $thumbnailUrl = trim($_POST['post_image_url'] ?? ''); 
+
+                    if (empty($title)) {
+                        $data['errors'][] = 'Заголовок поста обязателен.';
+                    }
+                    if (empty($url)) {
+                        $data['errors'][] = 'URL поста обязателен.';
+                    } else if (!$adminPostsModel->isUrlUnique($url)) {
+                         $data['errors'][] = 'Указанный URL уже занят.';
+                    }
+
+                    if (empty($data['errors'])) {
+                        $postData = [
+                            'user_id' => $user_id,
+                            'article_type' => 'post',
+                            'status' => $status,
+                            'title' => $title,
+                            'content' => $content,
+                            'url' => $url,
+                            'meta_title' => $meta_title,
+                            'meta_description' => $meta_description,
+                            'meta_keywords' => $meta_keywords,
+                            'excerpt' => $excerpt,
+                            'thumbnail_url' => $thumbnailUrl,
+                        ];
+
+                        $postId = $adminPostsModel->createPost($postData, $selectedCategories, $tagsString);
+                        
+                        if ($postId) {
+                            header("Location: /$adminRoute/posts");
+                            exit;
+                        } else {
+                            $data['errors'][] = 'Произошла ошибка при сохранении поста в базу данных.';
+                        }
+                    }
+                    
+                    $data['post'] = [
                         'title' => $title,
-                        'content' => $content,
                         'url' => $url,
+                        'content' => $content,
+                        'status' => $status,
                         'meta_title' => $meta_title,
                         'meta_description' => $meta_description,
                         'meta_keywords' => $meta_keywords,
-                        'excerpt' => $excerpt
+                        'excerpt' => $excerpt,
+                        'thumbnail_url' => $thumbnailUrl,
+                        'selected_categories' => $selectedCategories,
+                        'selected_tags' => $tagsString
                     ];
-
-                    $postId = $adminPostsModel->createPost($postData);
-                    
-                    if ($postId) {
-                        // Связываем пост с категориями
-                        if (!empty($selectedCategories)) {
-                            $adminPostsModel->linkPostToCategories($postId, $selectedCategories);
-                        }
-
-                        // Связываем пост с тегами
-                        if (!empty($selectedTags)) {
-                             $adminPostsModel->linkPostToTags($postId, $selectedTags);
-                        }
-
-                        // Логика загрузки миниатюры (пока заглушка, но готова для реализации)
-                        // if ($thumbnailFile && $thumbnailFile['error'] === UPLOAD_ERR_OK) {
-                        //     // Здесь будет логика сохранения файла и записи в таблицу `media`
-                        // }
-                        
-                        header("Location: /$adminRoute/posts");
-                        exit;
-                    } else {
-                        $data['errors'][] = 'Произошла ошибка при сохранении поста в базу данных.';
-                    }
                 }
-                
-                // Если были ошибки, заполняем данные для формы из POST
-                $data['post'] = [
-                    'title' => $title,
-                    'url' => $url,
-                    'content' => $content,
-                    'status' => $status,
-                    'meta_title' => $meta_title,
-                    'meta_description' => $meta_description,
-                    'meta_keywords' => $meta_keywords,
-                    'excerpt' => $excerpt,
-                    'selected_categories' => $selectedCategories,
-                    'selected_tags' => $selectedTags
-                ];
             }
+        } catch (Throwable $e) {
+            Logger::error("An unexpected error occurred: " . $e->getTraceAsString());
+            $data['errors'][] = 'Произошла непредвиденная ошибка. Пожалуйста, попробуйте снова или свяжитесь с администратором.';
+            
+            // Если ошибка произошла, мы все равно заполняем данные для формы
+            $data['post'] = [
+                'title' => $_POST['title'] ?? '',
+                'url' => $_POST['url'] ?? '',
+                'content' => $_POST['content'] ?? '',
+                'status' => $_POST['status'] ?? 'draft',
+                'meta_title' => $_POST['meta_title'] ?? '',
+                'meta_description' => $_POST['meta_description'] ?? '',
+                'meta_keywords' => $_POST['meta_keywords'] ?? '',
+                'excerpt' => $_POST['excerpt'] ?? '',
+                'thumbnail_url' => $_POST['post_image_url'] ?? '',
+                'selected_categories' => $_POST['categories'] ?? [],
+                'selected_tags' => $_POST['tags'] ?? ''
+            ];
         }
-    
-        // Получаем категории и теги для формы (при GET-запросе или при ошибке POST)
+
+        // Этот код выполняется всегда, независимо от того, был ли POST-запрос или произошла ошибка
         $data['categories'] = $adminPostsModel->getAllCategories();
         $data['tags'] = $adminPostsModel->getAllTags();
 
-        // Обновляем CSRF токен для формы
         $data['csrf_token'] = CSRF::getToken();
     
         $content = View::render('../app/views/admin/posts/edit_create.php', $data);

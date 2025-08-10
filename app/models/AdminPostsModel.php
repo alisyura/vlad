@@ -22,7 +22,7 @@ class AdminPostsModel {
                 ]
             );
         } catch (PDOException $e) {
-            Logger::error("Database connection error: " . $e->getMessage());
+            Logger::error("Database connection error: " . $e->getTraceAsString());
             die("Произошла ошибка при подключении к базе данных. Пожалуйста, попробуйте позже.");
         }
     }
@@ -41,7 +41,7 @@ class AdminPostsModel {
             $result = $stmt->fetch(PDO::FETCH_ASSOC);
             return (int) $result['total_posts'];
         } catch (PDOException $e) {
-            Logger::error("Error fetching total posts count: " . $e->getMessage());
+            Logger::error("Error fetching total posts count: " . $e->getTraceAsString());
             return 0;
         }
     }
@@ -168,7 +168,7 @@ class AdminPostsModel {
             return $posts;
 
         } catch (PDOException $e) {
-            Logger::error("Error fetching paginated posts in AdminPostsModel: " . $e->getMessage());
+            Logger::error("Error fetching paginated posts in AdminPostsModel: " . $e->getTraceAsString());
             return [];
         }
     }
@@ -194,7 +194,7 @@ class AdminPostsModel {
             return $post;
     
         } catch (PDOException $e) {
-            Logger::error("Error fetching post by ID: " . $e->getMessage());
+            Logger::error("Error fetching post by ID: " . $e->getTraceAsString());
             return null;
         }
     }
@@ -206,13 +206,13 @@ class AdminPostsModel {
      * @return array Список категорий.
      */
     public function getAllCategories(): array {
-        $sql = "SELECT id, name FROM categories ORDER BY name ASC";
+        $sql = "SELECT id, name FROM categories WHERE url <> 'tegi' ORDER BY name ASC";
         try {
             $stmt = $this->db->prepare($sql);
             $stmt->execute();
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
         } catch (PDOException $e) {
-            Logger::error("Error fetching all categories: " . $e->getMessage());
+            Logger::error("Error fetching all categories: " . $e->getTraceAsString());
             return [];
         }
     }
@@ -228,44 +228,100 @@ class AdminPostsModel {
             $stmt->execute();
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
         } catch (PDOException $e) {
-            Logger::error("Error fetching all tags: " . $e->getMessage());
+            Logger::error("Error fetching all tags: " . $e->getTraceAsString());
             return [];
         }
     }
     
+
     /**
-     * Вставляет новый пост в базу данных.
-     * @param array $data Данные поста.
+     * Вставляет новый пост и связывает его с категориями и тегами.
+     * @param array $postData Данные поста.
+     * @param array $categories Массив ID категорий.
+     * @param string $tagsString Строка тегов, разделённая запятыми.
      * @return int|false ID нового поста или false в случае ошибки.
      */
-    public function createPost(array $data) {
-        // Установка значений по умолчанию, если они не предоставлены
-        $data['article_type'] = $data['article_type'] ?? 'post';
-        $data['status'] = $data['status'] ?? 'draft';
-        $data['created_at'] = date('Y-m-d H:i:s');
-        $data['updated_at'] = date('Y-m-d H:i:s');
-        
-        $sql = "INSERT INTO posts (user_id, article_type, status, title, content, url, meta_keywords, meta_description, created_at, updated_at)
-                VALUES (:user_id, :article_type, :status, :title, :content, :url, :meta_keywords, :meta_description, :created_at, :updated_at)";
+    public function createPost(array $postData, array $categories = [], string $tagsString = '')
+    {
         try {
+            $this->db->beginTransaction();
+
+            // Получаем ID медиафайла по его URL
+            $thumbnailMediaId = null;
+            if (!empty($postData['thumbnail_url'])) {
+                $thumbnailMediaId = $this->getMediaIdByUrl($postData['thumbnail_url']);
+            }
+            
+            // Исправленный SQL-запрос с учетом правильных названий столбцов
+            $sql = "INSERT INTO posts (
+                        user_id, article_type, status, title, content, url, 
+                        excerpt, description, keywords, thumbnail_media_id, 
+                        created_at, updated_at)
+                    VALUES (
+                        :user_id, :article_type, :status, :title, :content, :url, 
+                        :excerpt, :description, :keywords, :thumbnail_media_id, 
+                        :created_at, :updated_at)";
             $stmt = $this->db->prepare($sql);
             $stmt->execute([
-                ':user_id' => $data['user_id'],
-                ':article_type' => $data['article_type'],
-                ':status' => $data['status'],
-                ':title' => $data['title'],
-                ':content' => $data['content'],
-                ':url' => $data['url'],
-                ':meta_keywords' => $data['meta_keywords'],
-                ':meta_description' => $data['meta_description'],
-                ':created_at' => $data['created_at'],
-                ':updated_at' => $data['updated_at']
+                ':user_id' => $postData['user_id'],
+                ':article_type' => $postData['article_type'],
+                ':status' => $postData['status'],
+                ':title' => $postData['title'],
+                ':content' => $postData['content'],
+                ':url' => $postData['url'],
+                ':excerpt' => $postData['excerpt'], // Исправлено на excerpt
+                ':description' => $postData['meta_description'],
+                ':keywords' => $postData['meta_keywords'],
+                ':thumbnail_media_id' => $thumbnailMediaId,
+                ':created_at' => date('Y-m-d H:i:s'),
+                ':updated_at' => date('Y-m-d H:i:s')
             ]);
-            return $this->db->lastInsertId();
+            $postId = $this->db->lastInsertId();
+
+            if ($postId && !empty($categories)) {
+                $this->linkPostToCategories($postId, $categories);
+            }
+
+            if ($postId && !empty($tagsString)) {
+                $this->linkPostToTags($postId, $tagsString);
+            }
+
+            $this->db->commit();
+            return $postId;
         } catch (PDOException $e) {
-            Logger::error("Error creating post: " . $e->getMessage());
+            $this->db->rollBack();
+            Logger::error("Error creating post: " . $e->getTraceAsString());
             return false;
         }
+    }
+    
+    /**
+     * Получает ID медиафайла по его URL (file_path).
+     * @param string $fileUrl URL файла.
+     * @return int|null ID файла или null, если не найден.
+     */
+    private function getMediaIdByUrl(string $fileUrl): ?int
+    {
+        if (empty($fileUrl)) {
+            return null;
+        }
+        $sql = "SELECT id FROM media WHERE file_path = :file_path LIMIT 1";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([':file_path' => $fileUrl]);
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $result ? (int) $result['id'] : null;
+    }
+    
+    /**
+     * Проверяет уникальность URL.
+     * @param string $url URL для проверки.
+     * @return bool True, если URL уникален, false в противном случае.
+     */
+    public function isUrlUnique(string $url): bool {
+        $sql = "SELECT COUNT(*) FROM posts WHERE url = :url";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([':url' => $url]);
+        return $stmt->fetchColumn() === 0;
     }
 
     /**
@@ -275,89 +331,50 @@ class AdminPostsModel {
      * @return bool Успех операции.
      */
     public function linkPostToCategories(int $postId, array $categoryIds): bool {
-        if (empty($categoryIds)) {
-            return true;
-        }
-        $sql = "INSERT IGNORE INTO post_category (post_id, category_id) VALUES ";
-        $values = [];
+        $sql = "INSERT IGNORE INTO post_category (post_id, category_id) VALUES (:post_id, :category_id)";
+        $stmt = $this->db->prepare($sql);
         foreach ($categoryIds as $categoryId) {
-            $values[] = "(:post_id, :category_id_" . $categoryId . ")";
+            $stmt->execute([':post_id' => $postId, ':category_id' => $categoryId]);
         }
-        $sql .= implode(', ', $values);
-        
-        try {
-            $stmt = $this->db->prepare($sql);
-            $stmt->bindParam(':post_id', $postId, PDO::PARAM_INT);
-            foreach ($categoryIds as $categoryId) {
-                $stmt->bindParam(':category_id_' . $categoryId, $categoryId, PDO::PARAM_INT);
-            }
-            return $stmt->execute();
-        } catch (PDOException $e) {
-            Logger::error("Error linking post to categories: " . $e->getMessage());
-            return false;
-        }
+        return true;
     }
 
     /**
      * Связывает пост с тегами. Если тег не существует, он создается.
      * @param int $postId ID поста.
-     * @param array $tagUrls Массив URL тегов.
+     * @param string $tagsString Строка тегов, разделённая запятыми.
      * @return bool Успех операции.
      */
-    public function linkPostToTags(int $postId, array $tagUrls): bool {
-        if (empty($tagUrls)) {
-            return true;
-        }
-
-        $tagIds = [];
-        $existingTags = [];
-        $newTags = [];
+    public function linkPostToTags(int $postId, string $tagsString): bool {
+        $tagsArray = array_map('trim', explode(',', $tagsString));
+        $tagsArray = array_filter($tagsArray);
         
-        // Получаем существующие теги по URL
-        $placeholders = implode(',', array_fill(0, count($tagUrls), '?'));
-        $sql = "SELECT id, url FROM tags WHERE url IN ({$placeholders})";
-        $stmt = $this->db->prepare($sql);
-        $stmt->execute($tagUrls);
-        foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $tag) {
-            $existingTags[$tag['url']] = $tag['id'];
-        }
-
-        foreach ($tagUrls as $tagUrl) {
-            if (isset($existingTags[$tagUrl])) {
-                $tagIds[] = $existingTags[$tagUrl];
-            } else {
-                // Если тега нет, создаем его
-                $newTagSql = "INSERT INTO tags (name, url) VALUES (?, ?)";
-                $newTagStmt = $this->db->prepare($newTagSql);
-                $tagName = str_replace('-', ' ', $tagUrl); // Простая логика для имени
-                $newTagStmt->execute([$tagName, $tagUrl]);
-                $tagIds[] = $this->db->lastInsertId();
-            }
-        }
-
-        if (empty($tagIds)) {
+        if (empty($tagsArray)) {
             return true;
         }
+
+        // Вставляем теги, которые еще не существуют
+        $sqlInsertTags = "INSERT IGNORE INTO tags (name, url) VALUES (:name, :url)";
+        $stmtInsertTags = $this->db->prepare($sqlInsertTags);
+        foreach ($tagsArray as $tagName) {
+            $tagUrl = transliterate($tagName); // Предполагаем, что у вас есть такая функция
+            $stmtInsertTags->execute([':name' => $tagName, ':url' => $tagUrl]);
+        }
+
+        // Получаем ID всех тегов
+        $placeholders = implode(',', array_fill(0, count($tagsArray), '?'));
+        $sqlSelectTags = "SELECT id FROM tags WHERE name IN ($placeholders)";
+        $stmtSelectTags = $this->db->prepare($sqlSelectTags);
+        $stmtSelectTags->execute($tagsArray);
+        $tagsIds = $stmtSelectTags->fetchAll(PDO::FETCH_COLUMN);
 
         // Связываем пост с тегами
-        $sql = "INSERT IGNORE INTO post_tag (post_id, tag_id) VALUES ";
-        $values = [];
-        foreach ($tagIds as $tagId) {
-            $values[] = "(:post_id, :tag_id_" . $tagId . ")";
+        $sqlLink = "INSERT IGNORE INTO post_tag (post_id, tag_id) VALUES (:post_id, :tag_id)";
+        $stmtLink = $this->db->prepare($sqlLink);
+        foreach ($tagsIds as $tagId) {
+            $stmtLink->execute([':post_id' => $postId, ':tag_id' => $tagId]);
         }
-        $sql .= implode(', ', $values);
-
-        try {
-            $stmt = $this->db->prepare($sql);
-            $stmt->bindParam(':post_id', $postId, PDO::PARAM_INT);
-            foreach ($tagIds as $tagId) {
-                $stmt->bindParam(':tag_id_' . $tagId, $tagId, PDO::PARAM_INT);
-            }
-            return $stmt->execute();
-        } catch (PDOException $e) {
-            Logger::error("Error linking post to tags: " . $e->getMessage());
-            return false;
-        }
+        return true;
     }
 
     public function searchTagsByName(string $query)
@@ -381,17 +398,5 @@ class AdminPostsModel {
         $stmt->bindValue(':query', '%' . $query . '%', PDO::PARAM_STR);
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
-    }
-
-    public function isUrlUnique($url)
-    {
-        $sql = "SELECT COUNT(*) FROM posts WHERE url = :url";
-        $params = [':url' => $url];
-
-        $stmt = $this->db->prepare($sql);
-        $stmt->execute($params);
-        $count = $stmt->fetchColumn();
-
-        return $count === 0;
     }
 }

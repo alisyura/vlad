@@ -11,10 +11,10 @@ $selectedCategories = $post['selected_categories'] ?? []; // Для формы �
 $selectedTags = $post['selected_tags'] ?? [];
 
 // Заголовок страницы
-$pageTitle = $post ? 'Редактировать пост: ' . htmlspecialchars($post['title']) : 'Создать новый пост';
+$pageTitle = !$is_new_post ? 'Редактировать пост: ' . htmlspecialchars($post['title']) : 'Создать новый пост';
 
 // URL для отправки формы (можно определить в контроллере и передать сюда)
-$formAction = $post ? '/' . htmlspecialchars($data['adminRoute']) . '/posts/edit/' . htmlspecialchars($post['id']) : '/' . htmlspecialchars($data['adminRoute']) . '/posts/create';
+$formAction = !$is_new_post ? '/' . htmlspecialchars($adminRoute) . '/posts/edit/' . htmlspecialchars($post['id']) : '/' . htmlspecialchars($adminRoute) . '/posts/create';
 
 // Убедимся, что $data['adminRoute'] доступен
 $adminRoute = $data['adminRoute'] ?? 'admin';
@@ -136,7 +136,7 @@ $adminRoute = $data['adminRoute'] ?? 'admin';
                         </div>
                     </div>
                     <button type="submit" class="btn btn-primary w-100">
-                        <?= $post ? 'Обновить пост' : 'Опубликовать пост' ?>
+                        <?= !$is_new_post ? 'Обновить пост' : 'Опубликовать пост' ?>
                     </button>
                 </div>
             </div>
@@ -172,6 +172,7 @@ $adminRoute = $data['adminRoute'] ?? 'admin';
                     <input type="hidden" id="selectedTagsData" value='<?= htmlspecialchars(json_encode($post['selected_tags'] ?? []), ENT_QUOTES, 'UTF-8') ?>'>
                     <input type="hidden" id="csrfToken" name="csrf_token" value="<?= htmlspecialchars($data['csrf_token']) ?>">
                     <input type="hidden" id="adminRoute" value="<?= htmlspecialchars($adminRoute) ?>">
+                    <input type="hidden" id="articleType" value="<?= htmlspecialchars($articleType) ?>">
                     <div id="tagSuggestions" class="list-group mb-3" style="position: relative;">
                     </div>
                     <div id="tagsList" class="d-flex flex-wrap gap-2">
