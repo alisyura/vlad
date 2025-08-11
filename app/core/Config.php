@@ -39,11 +39,14 @@ class Config
             'UseLogger' => true,
             'UploadDir' => 'uploads',
             'UploadedMaxFilesize' => 2*1024*1024, // 2 MB
-            'UploadedMaxHeight' => 6000,
-            'UploadedMaxWidth' => 8400,
+            'UploadedMaxHeight' => 600,
+            'UploadedMaxWidth' => 840,
+            'UploadedMinHeight' => 300,
+            'UploadedMinWidth' => 400,
             'CacheDir' => 'W:\\domains\\vlad.local\\cache\\pages/',
             'CacheLifetime' => 3600, // Время жизни кэша в секундах
-            'UseCache' => false
+            'UseCache' => false,
+            'APP_ENV' => 'dev' // dev/prod
         ];
 
         return $global[$propertyName];

@@ -70,13 +70,20 @@ function transliterate($string) {
     // Транслитерация
     $string = strtr($string, $converter);
     
-    // Очистка оставшихся символов
-    $string = preg_replace('/[^a-z0-9-_\s]/', '', mb_strtolower($string, 'UTF-8'));
+    // Приводим к нижнему регистру и оставляем только разрешённые символы
+    $string = preg_replace('/[^a-z0-9\s_-]/', '', mb_strtolower($string, 'UTF-8'));
     
-    // Замена пробелов на дефисы
+    // Заменяем пробелы на дефисы
     $string = str_replace(' ', '-', $string);
     
-    return $string;
+    // Убираем множественные дефисы
+    $string = preg_replace('/-+/', '-', $string);
+    
+    // Убираем дефисы в начале и конце
+    $string = trim($string, '-');
+    
+    // Если пусто — используем заглушку
+    return $string ?: 'image';
 }
 
 /**

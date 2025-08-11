@@ -7,6 +7,7 @@ class Logger
     private const LEVEL_INFO = 'INFO';
     private const LEVEL_WARNING = 'WARNING';
     private const LEVEL_ERROR = 'ERROR';
+    private const LEVEL_CRITICAL = 'CRITICAL';
 
     // Маппинг уровня лога к имени файла
     private const LOG_FILES = [
@@ -14,6 +15,7 @@ class Logger
         self::LEVEL_INFO => 'info.log',
         self::LEVEL_WARNING => 'warning.log',
         self::LEVEL_ERROR => 'error.log',
+        self::LEVEL_CRITICAL => 'critical.log',
     ];
 
     private static function log_message($level, $message, $context = [])
@@ -53,5 +55,10 @@ class Logger
     public static function error($message, $context = [])
     {
         self::log_message(self::LEVEL_ERROR, $message, $context);
+    }
+
+    public static function critical($message, $context = [])
+    {
+        self::log_message(self::LEVEL_CRITICAL, $message, $context);
     }
 }
