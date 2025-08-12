@@ -19,6 +19,11 @@ $formAction = !$is_new_post ? '/' . htmlspecialchars($adminRoute) . '/posts/edit
 // Убедимся, что $data['adminRoute'] доступен
 $adminRoute = $data['adminRoute'] ?? 'admin';
 ?>
+<input type="hidden" id="initialTagsData" value='<?= htmlspecialchars(json_encode($data['tags'] ?? []), ENT_QUOTES, 'UTF-8') ?>'>
+<input type="hidden" id="selectedTagsData" value='<?= htmlspecialchars(json_encode($post['selected_tags'] ?? []), ENT_QUOTES, 'UTF-8') ?>'>
+<input type="hidden" id="csrfToken" name="csrf_token" value="<?= htmlspecialchars($data['csrf_token']) ?>">
+<input type="hidden" id="adminRoute" value="<?= htmlspecialchars($adminRoute) ?>">
+<input type="hidden" id="articleType" value="<?= htmlspecialchars($articleType) ?>">
 
 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
     <h1 class="h2"><?= $pageTitle ?></h1>
@@ -168,11 +173,6 @@ $adminRoute = $data['adminRoute'] ?? 'admin';
                         <input type="text" class="form-control" id="tagsInput" name="tags" placeholder="Метки через запятую">
                         <div class="form-text">Вводите метки через запятую. Если метка не существует, она будет создана.</div>
                     </div>
-                    <input type="hidden" id="initialTagsData" value='<?= htmlspecialchars(json_encode($data['tags'] ?? []), ENT_QUOTES, 'UTF-8') ?>'>
-                    <input type="hidden" id="selectedTagsData" value='<?= htmlspecialchars(json_encode($post['selected_tags'] ?? []), ENT_QUOTES, 'UTF-8') ?>'>
-                    <input type="hidden" id="csrfToken" name="csrf_token" value="<?= htmlspecialchars($data['csrf_token']) ?>">
-                    <input type="hidden" id="adminRoute" value="<?= htmlspecialchars($adminRoute) ?>">
-                    <input type="hidden" id="articleType" value="<?= htmlspecialchars($articleType) ?>">
                     <div id="tagSuggestions" class="list-group mb-3" style="position: relative;">
                     </div>
                     <div id="tagsList" class="d-flex flex-wrap gap-2">

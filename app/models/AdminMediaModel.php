@@ -32,7 +32,10 @@ class AdminMediaModel {
      */
     public function getMediaList()
     {
-        $sql = "SELECT file_path AS url, alt_text AS alt FROM media ORDER BY updated_at DESC";
+        $sql = "SELECT file_path AS url, alt_text AS alt
+                FROM media 
+                WHERE status='published'
+                ORDER BY updated_at DESC";
         try {
             $stmt = $this->db->prepare($sql);
             $stmt->execute();

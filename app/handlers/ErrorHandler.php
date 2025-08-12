@@ -118,6 +118,6 @@ class ErrorHandler
      */
     private static function isDev()
     {
-        return Config::getGlobalCfg('APP_ENV') === 'dev';
+        return Config::isDev();
     }
 }

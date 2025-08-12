@@ -3,16 +3,8 @@
 // app/controllers/AdminMediaController.php
 
 
-class AdminMediaController extends AdminController
+class AdminMediaController
 {
-    public function lll()
-    {
-        header('Content-Type: application/json');
-        echo json_encode(['msg' => 'worked']);
-        exit;
-    }
-
-
     public function list()
     {
         // Проверяем, что это AJAX-запрос

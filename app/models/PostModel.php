@@ -81,20 +81,8 @@ class PostModel {
                 post_category AS pc ON pc.post_id = p.id
             INNER JOIN
                 categories AS c ON c.id = pc.category_id
-            LEFT JOIN (
-                -- Берём одну картинку (первую по id) для каждого поста
-                -- Брать главную картинку по флагу (is_main) → добавь AND is_main = 1
-                SELECT post_id, file_path
-                FROM media
-                WHERE id IN (
-                    SELECT MIN(id)
-                    FROM media
-                    WHERE file_type = 'image'
-                    GROUP BY post_id
-                )
-            ) AS m
-            ON
-                m.post_id = p.id
+            LEFT JOIN
+                media AS m ON m.id = p.thumbnail_media_id
             WHERE
                 p.status = 'published' AND
                 p.article_type = 'post'
@@ -225,17 +213,8 @@ class PostModel {
                 post_category AS pc ON pc.post_id = p.id
             INNER JOIN
                 categories AS c ON c.id = pc.category_id
-            LEFT JOIN (
-                -- Берём одну картинку (первую по id) для каждого поста
-                SELECT post_id, file_path
-                FROM media
-                WHERE id IN (
-                    SELECT MIN(id)
-                    FROM media
-                    WHERE file_type = 'image'
-                    GROUP BY post_id
-                )
-            ) AS m ON m.post_id = p.id
+            LEFT JOIN
+                media AS m ON m.id = p.thumbnail_media_id
             WHERE
                 p.status = 'published' AND
                 p.article_type = 'post' AND
@@ -295,17 +274,8 @@ class PostModel {
                 post_category AS pc ON pc.post_id = p.id
             INNER JOIN
                 categories AS c ON c.id = pc.category_id
-            LEFT JOIN (
-                -- Берём одну картинку (первую по id) для каждого поста
-                SELECT post_id, file_path
-                FROM media
-                WHERE id IN (
-                    SELECT MIN(id)
-                    FROM media
-                    WHERE file_type = 'image'
-                    GROUP BY post_id
-                )
-            ) AS m ON m.post_id = p.id
+            LEFT JOIN
+                media AS m ON m.id = p.thumbnail_media_id
             LEFT JOIN
                 users AS u ON u.id = p.user_id
             WHERE
@@ -325,6 +295,10 @@ class PostModel {
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
+    /**
+     * Сохраняем пост предложенный посетителем
+     * 
+     */
     public function savePost($data, $imagePath = null)
     {
         $sql = "

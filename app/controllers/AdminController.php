@@ -2,14 +2,6 @@
 // app/controllers/AdminController.php
 
 class AdminController {
-
-    public function lll()
-    {
-        header('Content-Type: application/json');
-        echo json_encode(['msg' => 'worked']);
-        exit;
-    }
-    
     private function checkIfUserLoggedIn()
     {
         if (!Auth::check()) {
@@ -278,7 +270,7 @@ class AdminController {
                 } else {
                     $title = trim($_POST['title'] ?? '');
                     $content = $_POST['content'] ?? '';
-                    $url = $_POST['url'] ?? '';
+                    $url = $this->sanitizeUrl($_POST['url'] ?? '');
                     $status = $_POST['status'] ?? 'draft';
                     $meta_title = trim($_POST['meta_title'] ?? '');
                     $meta_description = trim($_POST['meta_description'] ?? '');
@@ -495,5 +487,14 @@ class AdminController {
             echo json_encode(['error' => 'Ошибка при проверке URL']);
             exit;
         }
+    }
+
+    /**
+     * Вспомогательная функция для очистки имени файла
+     *  */ 
+    private function sanitizeUrl(string $url): string
+    {
+        // Транслитерация (реализуй свою или используй библиотеку)
+        return transliterate($url);
     }
 }

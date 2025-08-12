@@ -25,6 +25,38 @@ document.addEventListener('DOMContentLoaded', function() {
 
     if (postUrlInput) {
         postUrlInput.addEventListener('input', function() {
+            let value = this.value;
+
+            // Транслитерация русских букв
+            const translitMap = {
+                'а': 'a', 'б': 'b', 'в': 'v', 'г': 'g', 'д': 'd', 'е': 'e', 'ё': 'yo', 'ж': 'zh',
+                'з': 'z', 'и': 'i', 'й': 'j', 'к': 'k', 'л': 'l', 'м': 'm', 'н': 'n', 'о': 'o',
+                'п': 'p', 'р': 'r', 'с': 's', 'т': 't', 'у': 'u', 'ф': 'f', 'х': 'h', 'ц': 'c',
+                'ч': 'ch', 'ш': 'sh', 'щ': 'shch', 'ъ': '', 'ы': 'y', 'ь': '', 'э': 'e', 'ю': 'yu', 'я': 'ya',
+                'А': 'A', 'Б': 'B', 'В': 'V', 'Г': 'G', 'Д': 'D', 'Е': 'E', 'Ё': 'YO', 'Ж': 'ZH',
+                'З': 'Z', 'И': 'I', 'Й': 'J', 'К': 'K', 'Л': 'L', 'М': 'M', 'Н': 'N', 'О': 'O',
+                'П': 'P', 'Р': 'R', 'С': 'S', 'Т': 'T', 'У': 'U', 'Ф': 'F', 'Х': 'H', 'Ц': 'C',
+                'Ч': 'CH', 'Ш': 'SH', 'Щ': 'SHCH', 'Ъ': '', 'Ы': 'Y', 'Ь': '', 'Э': 'E', 'Ю': 'YU', 'Я': 'YA'
+            };
+
+            // Шаг 1: Заменяем русские символы
+            let newValue = value
+                .split('')
+                .map(char => translitMap[char] || char)
+                .join('');
+
+            // Шаг 2: Оставляем только разрешённые символы: a-z, 0-9, -, _, пробелы → в дефисы
+            newValue = newValue.replace(/[^a-zA-Z0-9_\-\s]/g, '-'); // спецсимволы → дефис
+            newValue = newValue.replace(/[\s]+/g, '-');              // пробелы → дефисы
+            newValue = newValue.replace(/-+/g, '-');                 // множественные дефисы → один
+            newValue = newValue.replace(/^-+|-+$/g, '');             // удаляем дефисы в начале и конце
+
+            // Шаг 3: Если значение изменилось — обновляем поле
+            if (newValue !== value) {
+                this.value = newValue;
+            }
+
+
             if (slugCheckTimeout) {
                 clearTimeout(slugCheckTimeout);
             }

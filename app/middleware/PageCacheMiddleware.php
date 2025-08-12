@@ -58,23 +58,32 @@ class PageCacheMiddleware implements MiddlewareInterface
         // Хешируем, чтобы получить безопасное имя файла
         return md5($uri);
     }
-    
-    public function saveCache($cacheFile) {
-         // Эта функция будет вызвана автоматически в конце скрипта
+
+    public function saveCache($cacheFile)
+    {
+        // Не сохраняем кэш, если была фатальная ошибка
+        $error = error_get_last();
+        if ($error && in_array($error['type'], [E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR])) {
+            ob_end_flush();
+            return;
+        }
+
+        // Эта функция будет вызвана автоматически в конце скрипта
          // благодаря register_shutdown_function
-         $content = ob_get_contents(); // Получаем весь сгенерированный HTML
-         ob_end_flush(); // Отправляем его в браузер как обычно
-         
-         if ($content !== false) {
-              // Сохраняем содержимое в файл кэша
-              // Убедитесь, что директория существует
-              $dir = dirname($cacheFile);
-              if (!is_dir($dir)) {
-                  mkdir($dir, 0755, true);
-              }
-              file_put_contents($cacheFile, $content);
-              // Опционально: логируем, что кэш был сохранен
-              // error_log("Page cache saved: " . $cacheFile);
-         }
+        $content = ob_get_contents(); // Получаем весь сгенерированный HTML
+        ob_end_flush(); // Отправляем его в браузер как обычно
+
+        if ($content !== false && trim($content) !== '') {
+            // Сохраняем содержимое в файл кэша
+            // Убедитесь, что директория существует
+            $dir = dirname($cacheFile);
+            if (!is_dir($dir)) {
+                mkdir($dir, 0755, true);
+            }
+            file_put_contents($cacheFile, $content);
+            header('X-Cache: MISS');
+            // Опционально: логируем, что кэш был сохранен
+            // Logger::info("Page cache saved: " . $cacheFile);
+        }
     }
 }

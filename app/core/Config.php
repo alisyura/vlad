@@ -45,8 +45,7 @@ class Config
             'UploadedMinWidth' => 400,
             'CacheDir' => 'W:\\domains\\vlad.local\\cache\\pages/',
             'CacheLifetime' => 3600, // Время жизни кэша в секундах
-            'UseCache' => false,
-            'APP_ENV' => 'dev' // dev/prod
+            'UseCache' => false
         ];
 
         return $global[$propertyName];
@@ -65,5 +64,10 @@ class Config
         ];
 
         return $global[$propertyName];
+    }
+
+    public static function isDev()
+    {
+        return true;
     }
 }
