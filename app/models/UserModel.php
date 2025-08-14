@@ -4,12 +4,7 @@ class UserModel {
     private $db;
 
     public function __construct() {
-        $dbHost = Config::getDbHost('DB_HOST');
-        $dbName = Config::getDbHost('DB_NAME');
-        $dbUser = Config::getDbHost('DB_USER');
-        $dbPass = Config::getDbHost('DB_PASS');
-
-        $this->db = new PDO('mysql:host='.$dbHost.';dbname='.$dbName, $dbUser, $dbPass);
+        $this->db = Database::getConnection();
     }
 
     public function getUserByLogin($login) {

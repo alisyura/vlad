@@ -8,12 +8,15 @@ class AjaxController
     {
         header('Content-Type: application/json');
 
-        $dbHost = Config::getDbHost('DB_HOST');
-        $dbName = Config::getDbHost('DB_NAME');
-        $dbUser = Config::getDbHost('DB_USER');
-        $dbPass = Config::getDbHost('DB_PASS');
+        $this->db = Database::getConnection();
+    }
 
-        $this->db = new PDO('mysql:host='.$dbHost.';dbname='.$dbName, $dbUser, $dbPass);
+    private function getVisitorIdForUUID($uuid)
+    {
+        $stmtVisitor = $this->db->prepare("SELECT id FROM visitors WHERE uuid = :uuid");
+        $stmtVisitor->execute([':uuid' => $uuid]);
+        $visitor = $stmtVisitor->fetch(PDO::FETCH_ASSOC);
+        return $visitor ? $visitor['id'] : null;
     }
 
     public function getPostVotes()
@@ -28,10 +31,11 @@ class AjaxController
 
             $uuid = getVisitorCookie();
 
-            $stmtVisitor = $this->db->prepare("SELECT id FROM visitors WHERE uuid = :uuid");
-            $stmtVisitor->execute([':uuid' => $uuid]);
-            $visitor = $stmtVisitor->fetch(PDO::FETCH_ASSOC);
-            $visitorId = $visitor ? $visitor['id'] : null;
+            // $stmtVisitor = $this->db->prepare("SELECT id FROM visitors WHERE uuid = :uuid");
+            // $stmtVisitor->execute([':uuid' => $uuid]);
+            // $visitor = $stmtVisitor->fetch(PDO::FETCH_ASSOC);
+            // $visitorId = $visitor ? $visitor['id'] : null;
+            $visitorId=$this->getVisitorIdForUUID($uuid);
 
             // Убираем дубликаты и пустые значения
             $postUrls = array_unique(array_filter($posts));
@@ -72,6 +76,7 @@ class AjaxController
             ]);
 
         } catch (Exception $e) {
+            Logger::error('getPostVotes. Ошибка получения голосов постов. '.$e->getTraceAsString());
             http_response_code(500);
             echo json_encode([
                 'success' => false,
@@ -97,11 +102,16 @@ class AjaxController
         return $this->db->lastInsertId();
     }
 
+    /**
+     * Голосование за пост
+     */
     public function reaction()
     {
         $postUrl = $_POST['postUrl'] ?? '';
         $voteType = $_POST['type'] ?? '';
         $uuid = getVisitorCookie();
+
+        Logger::debug("reaction. postUrl=".$postUrl.", voteType=".$voteType);
 
         try {
             $this->db->beginTransaction();
@@ -109,6 +119,7 @@ class AjaxController
             // Шаг 1: Получаем или создаём visitor_id
             $visitorId = $this->getOrCreateVisitorId($uuid);
 
+            Logger::debug("reaction. голосовал ли visitor=".$visitorId." за пост");
             // Шаг 2: Проверяем, уже голосовал этот visitor за этот пост
             $stmt = $this->db->prepare("
                 SELECT pv.id 
@@ -123,8 +134,10 @@ class AjaxController
                     ':visitor_id' => $visitorId
                 ]);
             $existingVote = $stmt->fetch(PDO::FETCH_ASSOC);
+            Logger::debug("reaction. existingVote=".$existingVote);
 
             if ($existingVote) {
+                Logger::debug("reaction. голосовал. выход");
                 $this->db->commit();
                 //return ['success' => false, 'message' => 'Вы уже голосовали за этот пост'];
                 echo json_encode([
@@ -134,11 +147,14 @@ class AjaxController
                 exit;
             }
 
-            // // Получаем post_id по его Url
+            Logger::debug("reaction. Получаем post_id по его Url=".$postUrl);
+
+            // Получаем post_id по его Url
             $stmt = $this->db->prepare("SELECT id FROM posts WHERE url = :post_url");
             $stmt->execute([':post_url' => $postUrl]);
             $post = $stmt->fetch(PDO::FETCH_ASSOC);
             if (!$post) {
+                Logger::debug("reaction. Пост не найден");
                 $this->db->rollBack();
                 //return ['success' => false, 'message' => 'Пост не найден'];
                 echo json_encode([
@@ -148,17 +164,23 @@ class AjaxController
                 exit;
             }
             $postId = $post['id'];
+            Logger::debug("reaction. post_id=".$postId);
 
             // Шаг 3: Добавляем новый голос
-            $stmt = $this->db->prepare("
-                INSERT INTO post_votes (post_id, visitor_id, vote_type, created_at, updated_at)
-                SELECT :post_id, :visitor_id, :vote_type, NOW(), NOW()
-                FROM dual
-                WHERE NOT EXISTS (
-                    SELECT 1 FROM post_votes 
-                    WHERE post_id = :post_id AND visitor_id = :visitor_id
-                )
-             ");
+            Logger::debug("reaction. Добавляем новый голос. ".
+                ':post_id='. $postId.':visitor_id='.$visitorId.':vote_type='.$voteType);
+            // $stmt = $this->db->prepare("
+            //     INSERT INTO post_votes (post_id, visitor_id, vote_type, created_at, updated_at)
+            //     SELECT :post_id, :visitor_id, :vote_type, NOW(), NOW()
+            //     FROM dual
+            //     WHERE NOT EXISTS (
+            //         SELECT 1 FROM post_votes 
+            //         WHERE post_id = :post_id AND visitor_id = :visitor_id
+            //     )
+            //  ");
+            $stmt = $this->db->prepare('INSERT IGNORE INTO post_votes 
+                        (post_id, visitor_id, vote_type, created_at, updated_at)
+                    VALUES (:post_id, :visitor_id, :vote_type, NOW(), NOW())');
             $stmt->execute(
                 [
                     ':post_id' => $postId,
@@ -167,26 +189,30 @@ class AjaxController
                 ]);
 
             // Шаг 4: Возвращаем обновлённые счетчики
+            Logger::debug("reaction. Возвращаем обновлённые счетчики. ".':post_id='.$postId);
             $stmt = $this->db->prepare("
                 SELECT likes_count, dislikes_count FROM posts WHERE id = :post_id
             ");
             $stmt->execute([':post_id' => $postId]);
             $counts = $stmt->fetch(PDO::FETCH_ASSOC);
 
+            Logger::debug("reaction. commit");
             $this->db->commit();
 
-            echo json_encode([
+            $res = json_encode([
                 'success' => true,
                 'likes' => $counts['likes_count'],
                 'dislikes' => $counts['dislikes_count']
             ]);
+            Logger::debug("reaction. res=".$res);
+            echo $res;
         }
         catch (Exception $e) {
             if ($this->db->inTransaction()) {
                 $this->db->rollBack();
             }
-            //throw $e;
-            echo json_encode([
+            
+            $res=json_encode([
                 'success' => false,
                 'postUrl' => $postUrl,
                 'type' => $voteType,
@@ -194,6 +220,8 @@ class AjaxController
                 'visitorId' => $visitorId,
                 'message' => $e->getMessage()
             ]);
+            Logger::error("reaction. Ошибка при голосовании. res=".$res.', '.$e->getTraceAsString());
+            echo $res;
         }
     }
 
@@ -328,8 +356,8 @@ class AjaxController
             //     echo __DIR__ . '/../app/core/Logger.php';
             //     require_once __DIR__ . '/../core/Logger.php';
             // }
-            // Logger:error("Ошибка при добавлении пользовательского материала",
-            //     [$e->getMessage()]);
+            Logger::error("Ошибка при добавлении пользовательского материала",
+                 [$e->getTraceAsString()]);
 
             echo json_encode([
                     'success' => false,

@@ -8,12 +8,7 @@ class SitemapController {
     public function __construct() {
         header('Content-Type: application/xml; charset=utf-8');
 
-        $dbHost = Config::getDbHost('DB_HOST');
-        $dbName = Config::getDbHost('DB_NAME');
-        $dbUser = Config::getDbHost('DB_USER');
-        $dbPass = Config::getDbHost('DB_PASS');
-
-        $this->db = new PDO('mysql:host='.$dbHost.';dbname='.$dbName, $dbUser, $dbPass);
+        $this->db = Database::getConnection();
 
         $this->uri = sprintf("%s://%s", $_SERVER['REQUEST_SCHEME'], $_SERVER['HTTP_HOST']);
         $this->max_urls = Config::getPostsCfg('max_urls_in_sitemap');

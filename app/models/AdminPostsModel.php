@@ -5,26 +5,7 @@ class AdminPostsModel {
     private $db;
 
     public function __construct() {
-        $dbHost = Config::getDbHost('DB_HOST');
-        $dbName = Config::getDbHost('DB_NAME');
-        $dbUser = Config::getDbHost('DB_USER');
-        $dbPass = Config::getDbHost('DB_PASS');
-
-        try {
-            $this->db = new PDO(
-                'mysql:host=' . $dbHost . ';dbname=' . $dbName . ';charset=utf8mb4',
-                $dbUser,
-                $dbPass,
-                [
-                    PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-                    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-                    PDO::ATTR_EMULATE_PREPARES => false,
-                ]
-            );
-        } catch (PDOException $e) {
-            Logger::error("Database connection error: " . $e->getTraceAsString());
-            die("Произошла ошибка при подключении к базе данных. Пожалуйста, попробуйте позже.");
-        }
+        $this->db = Database::getConnection();
     }
 
     /**

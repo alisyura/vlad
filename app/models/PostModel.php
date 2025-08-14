@@ -5,12 +5,7 @@ class PostModel {
     
     public function __construct() {
         // Инициализация подключения к БД
-        $dbHost = Config::getDbHost('DB_HOST');
-        $dbName = Config::getDbHost('DB_NAME');
-        $dbUser = Config::getDbHost('DB_USER');
-        $dbPass = Config::getDbHost('DB_PASS');
-
-        $this->db = new PDO('mysql:host='.$dbHost.';dbname='.$dbName, $dbUser, $dbPass);
+        $this->db = Database::getConnection();
     }
     
     public function countAllPosts() {
@@ -297,7 +292,7 @@ class PostModel {
 
     /**
      * Сохраняем пост предложенный посетителем
-     * 
+     * @deprecated Этот метод больше не используется
      */
     public function savePost($data, $imagePath = null)
     {
@@ -306,7 +301,7 @@ class PostModel {
                 posts (content, user_id, title, created_at, updated_at, status, article_type)
             VALUES
                 (?, ?, ?, NOW(), NOW(), 'pending', 'post');";
-        $stmt = $this->pdo->prepare($sql);
+        $stmt = $this->db->prepare($sql);
         $stmt->execute([
             //$data['email'],
             $data['text'],
@@ -314,9 +309,12 @@ class PostModel {
             $imagePath ?? ''
         ]);
 
-        return $this->pdo->lastInsertId();
+        return $this->db->lastInsertId();
     }
 
+    /**
+     * @deprecated Этот метод больше не используется
+     */
     private function getAdminUserId()
     {
         $stmt = $this->db->query("SELECT u.id

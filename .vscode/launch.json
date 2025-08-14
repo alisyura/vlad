@@ -15,6 +15,8 @@
                 // "/path/on/server/to/your/document/root": "${workspaceFolder}"
                 // Пример для OSPanel:
                 // "C:/OSPanel/domains/mysite.loc": "${workspaceFolder}"
+				//"C:\\OSPanel\\domains\\имя_проекта": "${workspaceFolder}"
+				"C:/Users/kriya/Сайт/soft/OSPanel/domains/vlad.local": "${workspaceFolder}"
             }
         }
         // Можете удалить остальные конфигурации, если они вам не нужны для других сценариев.

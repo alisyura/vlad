@@ -4,12 +4,7 @@ class DashboardModel {
     private $db;
 
     public function __construct() {
-        $dbHost = Config::getDbHost('DB_HOST');
-        $dbName = Config::getDbHost('DB_NAME');
-        $dbUser = Config::getDbHost('DB_USER');
-        $dbPass = Config::getDbHost('DB_PASS');
-
-        $this->db = new PDO('mysql:host='.$dbHost.';dbname='.$dbName, $dbUser, $dbPass);
+        $this->db = Database::getConnection();
     }
 
     public function getRecentActivities()
@@ -83,7 +78,7 @@ class DashboardModel {
             return $activities;
 
         } catch (PDOException $e) {
-            Logger::error("Database error in DashboardModel::getRecentActivities: " . $e->getMessage());
+            Logger::error("Database error in DashboardModel::getRecentActivities: " . $e->getTraceAsString());
             return [];
         }
     }
@@ -96,7 +91,7 @@ class DashboardModel {
             $stmt->execute();
             return $stmt->fetchColumn();
         } catch (PDOException $e) {
-            Logger::error("Database error in DashboardModel::getPostCount: " . $e->getMessage());
+            Logger::error("Database error in DashboardModel::getPostCount: " . $e->getTraceAsString());
             return 0;
         }
     }
@@ -109,7 +104,7 @@ class DashboardModel {
             $stmt->execute();
             return $stmt->fetchColumn();
         } catch (PDOException $e) {
-            Logger::error("Database error in DashboardModel::getPagesCount: " . $e->getMessage());
+            Logger::error("Database error in DashboardModel::getPagesCount: " . $e->getTraceAsString());
             return 0;
         }
     }
@@ -121,7 +116,7 @@ class DashboardModel {
             $stmt->execute();
             return $stmt->fetchColumn();
         } catch (PDOException $e) {
-            Logger::error("Database error in DashboardModel::getUsersCount: " . $e->getMessage());
+            Logger::error("Database error in DashboardModel::getUsersCount: " . $e->getTraceAsString());
             return 0;
         }
     }
