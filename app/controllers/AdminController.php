@@ -191,11 +191,12 @@ class AdminController {
             unset($post);
 
             $adminRoute = Config::getAdminCfg('AdminRoute');
+            // Используется в admin_layout
             $user_name = Auth::getUserName();
 
             // Генерируем массив ссылок для умной пагинации
             // Базовый URL для админки
-            $basePageUrl = '/' . htmlspecialchars($adminRoute) . "/${articleType}s";
+            $basePageUrl = '/' . htmlspecialchars($adminRoute) . "/{$articleType}s";
             $paginationLinks = generateSmartPaginationLinks($currentPage, $totalPages, $basePageUrl);
 
             $data = [
@@ -214,12 +215,13 @@ class AdminController {
                 'current_sort_order' => $sortOrder
             ];
             
+            // Используется в admin_layout
             $content = View::render('../app/views/admin/posts/list.php', $data);
             $route_path = 'posts-list';
             require '../app/views/admin/admin_layout.php';
 
         } catch (PDOException $e) {
-            Logger::error("Database error in listPosts: " . $e->getMessage());
+            Logger::error("Database error in listPosts: " . $e->getTraceAsString());
             $data = [
                 'adminRoute' => Config::getAdminCfg('AdminRoute'),
                 'title' => 'Ошибка',
@@ -228,7 +230,7 @@ class AdminController {
             $content = View::render('../app/views/admin/error_view.php', $data);
             require '../app/views/admin/admin_layout.php';
         } catch (Exception $e) {
-            Logger::error("Error in listPosts: " . $e->getMessage());
+            Logger::error("Error in listPosts: " . $e->getTraceAsString());
             $data = [
                 'adminRoute' => Config::getAdminCfg('AdminRoute'),
                 'title' => 'Ошибка',
@@ -364,38 +366,116 @@ class AdminController {
         require '../app/views/admin/admin_layout.php';
     }
     
-    public function editPost($postId) {
+    public function editPost($postId)
+    {
         $this->checkIfUserLoggedIn();
-    
         $adminPostsModel = new AdminPostsModel();
-        $post = $adminPostsModel->getPostById($postId); // Вам нужно будет создать этот метод в модели
-    
-        // Если пост не найден, перенаправляем или выводим ошибку
-        if (!$post) {
-            header("Location: /{$adminRoute}/posts"); // или на страницу 404
-            exit;
-        }
-    
         $adminRoute = Config::getAdminCfg('AdminRoute');
-        $user_name = (new UserModel())->getUserByLogin($_SESSION['user_login'])['name'] ?? 'Администратор';
-    
+        $is_new_post = false;
+        $user_name = Auth::getUserName();
+
         $data = [
             'adminRoute' => $adminRoute,
+            'articleType' => 'post',
             'user_name' => $user_name,
             'title' => 'Редактировать пост',
             'active' => 'posts',
-            'post' => $post // Передаем данные поста для заполнения формы
+            'post' => null,
+            'categories' => [],
+            'tags' => [],
+            'errors' => [],
+            'is_new_post' => $is_new_post
         ];
-    
+
         // Если это POST-запрос (отправка формы редактирования)
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            // Здесь будет логика обновления поста в БД
-            // Получите данные из $_POST, валидируйте, обновите
-            // Пример:
-            // (new AdminPostsModel())->updatePost($postId, $_POST);
-            // $data['message'] = 'Пост успешно обновлен!';
+            $token = $_POST['csrf_token'] ?? '';
+            if (!CSRF::validateToken($token)) {
+                $data['errors'][] = 'Ошибка CSRF-токена. Попробуйте ещё раз.';
+                CSRF::refreshToken();
+            } else {
+                $title = trim($_POST['title'] ?? '');
+                $content = $_POST['content'] ?? '';
+                $url = $this->sanitizeUrl($_POST['url'] ?? '');
+                $status = $_POST['status'] ?? 'draft';
+                $meta_title = trim($_POST['meta_title'] ?? '');
+                $meta_description = trim($_POST['meta_description'] ?? '');
+                $meta_keywords = trim($_POST['meta_keywords'] ?? '');
+                $excerpt = trim($_POST['excerpt'] ?? '');
+                $selectedCategories = $_POST['categories'] ?? [];
+                $selectedTags = $_POST['tags'] ?? [];
+                $tagsString = is_array($selectedTags) ? implode(',', $selectedTags) : $selectedTags;
+                $thumbnailUrl = trim($_POST['post_image_url'] ?? '');
+
+                if (empty($title)) {
+                    $data['errors'][] = 'Заголовок поста обязателен.';
+                }
+                if (empty($url)) {
+                    $data['errors'][] = 'URL поста обязателен.';
+                } else {
+                    // Дополнительная проверка уникальности URL при редактировании
+                    $existingPost = $adminPostsModel->getPostByUrl($url);
+                    if ($existingPost && $existingPost['id'] != $postId) {
+                        $data['errors'][] = 'Указанный URL уже занят.';
+                    }
+                }
+
+                if (empty($data['errors'])) {
+                    $postData = [
+                        'status' => $status,
+                        'title' => $title,
+                        'content' => $content,
+                        'url' => $url,
+                        'excerpt' => $excerpt,
+                        'meta_description' => $meta_description,
+                        'meta_keywords' => $meta_keywords,
+                        'thumbnail_url' => $thumbnailUrl,
+                    ];
+
+                    if ($adminPostsModel->updatePost($postId, $postData, $selectedCategories, $tagsString)) {
+                        $_SESSION['message'] = 'Пост успешно обновлен!';
+                        header("Location: /{$adminRoute}/posts");
+                        exit;
+                    } else {
+                        $data['errors'][] = 'Произошла ошибка при обновлении поста в базу данных.';
+                    }
+                }
+
+                // Заполняем данные формы из POST-запроса, если есть ошибки
+                $data['post'] = [
+                    'id' => $postId,
+                    'title' => $title,
+                    'url' => $url,
+                    'content' => $content,
+                    'status' => $status,
+                    'meta_title' => $meta_title,
+                    'meta_description' => $meta_description,
+                    'meta_keywords' => $meta_keywords,
+                    'excerpt' => $excerpt,
+                    'thumbnail_url' => $thumbnailUrl,
+                    'selected_categories' => $selectedCategories,
+                    'selected_tags' => $selectedTags
+                ];
+            }
         }
-    
+        
+        // Этот блок выполняется для GET-запросов или при ошибке POST-запроса
+        if (empty($data['post'])) {
+            $data['post'] = $adminPostsModel->getPostById($postId);
+            if (!$data['post']) {
+                header("Location: /{$adminRoute}/posts");
+                exit;
+            }
+        }
+        
+        // Получаем все категории и теги, чтобы заполнить списки в форме
+        $data['categories'] = $adminPostsModel->getAllCategories();
+        $data['tags'] = $adminPostsModel->getAllTags();
+        $data['csrf_token'] = CSRF::getToken();
+
+        // Устанавливаем заголовок
+        $data['title'] = 'Редактировать пост: ' . htmlspecialchars($data['post']['title'] ?? '');
+
         $content = View::render('../app/views/admin/posts/edit_create.php', $data);
         $route_path = 'edit_create';
         require '../app/views/admin/admin_layout.php';
@@ -496,5 +576,85 @@ class AdminController {
     {
         // Транслитерация (реализуй свою или используй библиотеку)
         return transliterate($url);
+    }
+
+    /**
+     * Удаляет пост по ID (через AJAX).
+     * Ожидает POST-запрос с JSON: { post_id: 123, csrf_token: "..." }
+     */
+    public function deletePost()
+    {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            http_response_code(405);
+            echo json_encode(['success' => false, 'message' => 'Метод не разрешён.']);
+            return;
+        }
+
+        // Проверяем, что это AJAX
+        if (empty($_SERVER['HTTP_X_REQUESTED_WITH']) || strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) !== 'xmlhttprequest') {
+            http_response_code(403);
+            echo json_encode(['success' => false, 'message' => 'Доступ запрещён.']);
+            return;
+        }
+
+        // Считываем JSON
+        $input = json_decode(file_get_contents('php://input'), true);
+        $postId = $input['post_id'] ?? null;
+        $csrfToken = $input['csrf_token'] ?? '';
+
+        // Валидация CSRF
+        if (!CSRF::validateToken($csrfToken)) {
+            http_response_code(403);
+            echo json_encode(['success' => false, 'message' => 'Неверный CSRF-токен.']);
+            return;
+        }
+
+        // Проверка авторизации
+        $this->checkIfUserLoggedIn();
+
+        // Проверка ID
+        if (!is_numeric($postId)) {
+            http_response_code(400);
+            echo json_encode(['success' => false, 'message' => 'Неверный ID поста.']);
+            return;
+        }
+
+        try {
+            $adminPostsModel = new AdminPostsModel();
+            $post = $adminPostsModel->getPostById((int)$postId);
+
+            if (!$post) {
+                http_response_code(404);
+                echo json_encode(['success' => false, 'message' => 'Пост не найден.']);
+                return;
+            }
+
+            // Помечаем пост как удалённый (или удаляем полностью — как у вас реализовано)
+            // Допустим, у вас есть метод deletePost, который помечает статус как 'deleted'
+            // Или удаляет связи и сам пост.
+
+            // Пример: если вы просто помечаете как удалённый
+            // $sql = "UPDATE posts SET status = 'deleted', updated_at = :updated_at WHERE id = :id";
+            // $stmt = $this->db->prepare($sql);
+            // $stmt->execute([
+            //     ':id' => $postId,
+            //     ':updated_at' => date('Y-m-d H:i:s')
+            // ]);
+            $admPostsModel = new AdminPostsModel();
+            $admPostsModel->setPostAsDeleted($postId);
+
+            // Или, если нужно полностью удалить пост и связи:
+            // $adminPostsModel->deletePostWithRelations($postId); // реализуйте при необходимости
+
+            http_response_code(200);
+            echo json_encode([
+                'success' => true,
+                'message' => 'Пост успешно удалён.'
+            ]);
+        } catch (Exception $e) {
+            Logger::error("Ошибка при удалении поста $postId: " . $e->getTraceAsString());
+            http_response_code(500);
+            echo json_encode(['success' => false, 'message' => 'Ошибка сервера.']);
+        }
     }
 }

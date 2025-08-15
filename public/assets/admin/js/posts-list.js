@@ -83,4 +83,66 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
     });
+
+    // --- Модальное окно подтверждения удаления ---
+    let currentPostId = null;
+    const confirmDeleteModal = document.getElementById('confirmDeleteModal');
+    const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+    const deletePostLinks = document.querySelectorAll('.delete-post-link');
+
+    deletePostLinks.forEach(link => {
+        link.addEventListener('click', function (e) {
+            e.preventDefault();
+            currentPostId = this.getAttribute('data-post-id');
+            const postTitle = this.getAttribute('data-post-title');
+
+            // Обновляем заголовок модального окна
+            const modalTitle = document.getElementById('confirmDeleteModalLabel');
+            modalTitle.textContent = `Удалить пост: ${postTitle}`;
+
+            // Показываем модальное окно
+            const modal = new bootstrap.Modal(confirmDeleteModal);
+            modal.show();
+        });
+    });
+
+    // Обработка подтверждения удаления
+    confirmDeleteBtn.addEventListener('click', async function () {
+        if (!currentPostId) return;
+
+        const csrfToken = document.querySelector('meta[name="csrf_token"]')?.content;
+        if (!csrfToken) {
+            alert('Ошибка: CSRF-токен не найден.');
+            return;
+        }
+
+        try {
+            const response = await fetch(`/${adminRoute}/posts/delete`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify({
+                    post_id: currentPostId,
+                    csrf_token: csrfToken
+                })
+            });
+
+            const result = await response.json();
+
+            const modal = bootstrap.Modal.getInstance(confirmDeleteModal);
+            modal.hide();
+
+            if (result.success) {
+                // Успешно удалён — перезагружаем страницу
+                location.reload();
+            } else {
+                alert('Ошибка: ' + (result.message || 'Не удалось удалить пост.'));
+            }
+        } catch (error) {
+            console.error('Ошибка при удалении поста:', error);
+            alert('Произошла ошибка при удалении поста.');
+        }
+    });
 });

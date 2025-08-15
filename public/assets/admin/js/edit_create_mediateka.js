@@ -1,7 +1,4 @@
 document.addEventListener('DOMContentLoaded', function() {
-    const adminRoute = document.getElementById('adminRoute').value;
-    const csrfToken = document.getElementById('csrfToken').value;
-
     //2. Медиатека
     // Определяем переменные для работы с медиатекой
     const mediaModal = new bootstrap.Modal(document.getElementById('mediaModal'));
@@ -53,7 +50,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const url = `/${adminRoute}/media/list`;
 
         try {
-            console.log('loadMediaItems fetch');
+            //console.log('loadMediaItems fetch');
             const response = await fetch(url, {
                 method: 'GET',
                 headers: {
@@ -61,23 +58,35 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             });
 
-            console.log('loadMediaItems !response.ok');
-            // Проверяем, что ответ успешен
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-
             console.log('loadMediaItems await response.text');
             // Получаем текст ответа, чтобы избежать ошибки парсинга JSON
             const responseText = await response.text();
 
-            console.log('loadMediaItems JSON.parse(responseText)');
-            // Теперь попробуем распарсить JSON. Если здесь опять ошибка,
-            // значит, ответ действительно не JSON.
-            const items = JSON.parse(responseText);
+            console.log('loadMediaItems Пытаемся распарсить как JSON responseText='+responseText);
+            // Пытаемся распарсить как JSON
+            let data;
+            try {
+                data = JSON.parse(responseText);
+            } catch (e) {
+                // Если не JSON — вероятно, это HTML или чистый текст (например, PHP ошибка)
+                throw new Error(`Сервер вернул ошибку: ${response.status} ${response.statusText}`);
+            }
+
+            console.log('loadMediaItems !response.ok');
+            // Теперь проверяем: если статус не ok, но пришёл JSON — возможно, это наш структурированный ответ об ошибке
+            if (!response.ok) {
+                console.log(`loadMediaItems data.success=${data.success}, data.message=${data.message}, response.status=${response.status}`);
+                // Если сервер прислал { success: false, message: "..." }
+                if (!data.success && data.message) {
+                    throw new Error(data.message);
+                } else {
+                    // Или хотя бы используем что-то из данных
+                    throw new Error(data.message || `HTTP error! status: ${response.status}`);
+                }
+            }
 
             mediaGallery.innerHTML = '';
-            items.forEach(item => {
+            data.forEach(item => {
                 const itemElement = document.createElement('div');
                 itemElement.className = 'col media-item';
                 itemElement.innerHTML = `
@@ -107,6 +116,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         } catch (error) {
             console.error('Ошибка при загрузке медиатеки:', error);
+            alert('Ошибка при загрузке медиатеки');
         }
     }
 
@@ -130,6 +140,11 @@ document.addEventListener('DOMContentLoaded', function() {
         const altText = altTextInput.value;
 
         if (file && altText) {
+            const csrfToken = document.querySelector('meta[name="csrf_token"]')?.content;
+            if (!csrfToken) {
+                alert('Ошибка: CSRF-токен не найден.');
+                return;
+            }
             const url = `/${adminRoute}/media/upload`;
             
             const formData = new FormData();
@@ -147,14 +162,24 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                 });
 
+                const responseText = await response.text();
+
+                console.log('mediaUploadForm Пытаемся распарсить как JSON responseText='+responseText);
+                // Пытаемся распарсить как JSON
+                let errorData;
+                try {
+                    errorData = JSON.parse(responseText);
+                } catch (e) {
+                    // Если не JSON — вероятно, это HTML или чистый текст (например, PHP ошибка)
+                    throw new Error(`Сервер вернул ошибку: ${response.status} ${response.statusText}`);
+                }
+
                 if (response.ok) {
-                    await response.json();
                     await loadMediaItems();
                     // Очищаем форму после успешной загрузки
                     mediaUploadForm.reset();
                 } else {
-                    const errorData = await response.json();
-                    alert('Ошибка загрузки: ' + errorData.error);
+                    alert('Ошибка загрузки: ' + errorData.message);
                 }
             } catch (error) {
                 console.error('Ошибка при загрузке файла:', error);

@@ -94,8 +94,14 @@
                                     <div>Создано: <?= htmlspecialchars($post['formatted_created_at']) ?></div>
                                 </div>
                                 <div class="post-actions mt-2">
+                                    <!-- Для мобильных -->
                                     <a href="/<?= htmlspecialchars($adminRoute ?? 'admin') ?>/posts/edit/<?= htmlspecialchars($post['id']) ?>" class="btn btn-sm btn-outline-primary mb-1 me-1">Редактировать</a>
-                                    <a href="/<?= htmlspecialchars($adminRoute ?? 'admin') ?>/posts/delete/<?= htmlspecialchars($post['id']) ?>" class="btn btn-sm btn-outline-danger mb-1 me-1" onclick="return confirm('Вы уверены?');">Удалить</a>
+                                    <a href="#" 
+                                        class="btn btn-sm btn-outline-danger mb-1 me-1 delete-post-link" 
+                                        data-post-id="<?= htmlspecialchars($post['id']) ?>"
+                                        data-post-title="<?= htmlspecialchars($post['title']) ?>">
+                                        Удалить
+                                    </a>
                                     <?php if (!empty($post['url'])): ?>
                                         <a href="/<?= htmlspecialchars($post['url']) ?>.html" target="_blank" class="btn btn-sm btn-outline-info text-secondary mb-1">Посмотреть на сайте</a>
                                     <?php endif; ?>
@@ -103,8 +109,14 @@
                             </div>
 
                             <div class="post-actions mt-1 d-none d-md-block">
+                                <!-- Для десктопа -->
                                 <a href="/<?= htmlspecialchars($adminRoute ?? 'admin') ?>/posts/edit/<?= htmlspecialchars($post['id']) ?>" class="text-primary me-2">Редактировать</a>
-                                <a href="/<?= htmlspecialchars($adminRoute ?? 'admin') ?>/posts/delete/<?= htmlspecialchars($post['id']) ?>" class="text-danger" onclick="return confirm('Вы уверены, что хотите удалить этот пост?');">Удалить</a>
+                                <a href="#" 
+                                    class="btn btn-sm text-danger mb-1 me-1 delete-post-link" 
+                                    data-post-id="<?= htmlspecialchars($post['id']) ?>"
+                                    data-post-title="<?= htmlspecialchars($post['title']) ?>">
+                                    Удалить
+                                </a>
                                 <?php if (!empty($post['url'])): ?>
                                     <a href="/<?= htmlspecialchars($post['url']) ?>.html" target="_blank" class="text-info">Посмотреть на сайте</a>
                                 <?php endif; ?>
@@ -130,6 +142,24 @@
             <?php endif; ?>
         </tbody>
     </table>
+</div>
+<!-- Модальное окно подтверждения удаления -->
+<div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-labelledby="confirmDeleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="confirmDeleteModalLabel">Подтвердите удаление</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Вы действительно хотите удалить этот пост? Это действие нельзя отменить.
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Нет, отмена</button>
+                <button type="button" class="btn btn-danger" id="confirmDeleteBtn">Да, удалить</button>
+            </div>
+        </div>
+    </div>
 </div>
 
 <?php 

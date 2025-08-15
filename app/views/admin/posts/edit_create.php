@@ -21,8 +21,6 @@ $adminRoute = $data['adminRoute'] ?? 'admin';
 ?>
 <input type="hidden" id="initialTagsData" value='<?= htmlspecialchars(json_encode($data['tags'] ?? []), ENT_QUOTES, 'UTF-8') ?>'>
 <input type="hidden" id="selectedTagsData" value='<?= htmlspecialchars(json_encode($post['selected_tags'] ?? []), ENT_QUOTES, 'UTF-8') ?>'>
-<input type="hidden" id="csrfToken" name="csrf_token" value="<?= htmlspecialchars($data['csrf_token']) ?>">
-<input type="hidden" id="adminRoute" value="<?= htmlspecialchars($adminRoute) ?>">
 <input type="hidden" id="articleType" value="<?= htmlspecialchars($articleType) ?>">
 
 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">

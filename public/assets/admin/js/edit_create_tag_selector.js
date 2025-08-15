@@ -4,9 +4,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const tagsList = document.getElementById('tagsList');
     const tagSuggestions = document.getElementById('tagSuggestions');
 
-    const adminRoute = document.getElementById('adminRoute').value;
-    const csrfToken = document.getElementById('csrfToken').value;
-
     const initialTagsDataEl = document.getElementById('initialTagsData');
     const selectedTagsDataEl = document.getElementById('selectedTagsData');
 
@@ -80,6 +77,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
             debounceTimeout = setTimeout(async () => {
                 try {
+                    const csrfToken = document.querySelector('meta[name="csrf_token"]')?.content;
+                    if (!csrfToken) {
+                        alert('Ошибка: CSRF-токен не найден.');
+                        return;
+                    }
+
                     const url = `/${adminRoute}/tags/search`;
 
                     const response = await fetch(url, {

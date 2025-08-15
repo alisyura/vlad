@@ -159,6 +159,10 @@ $router->addRoute("/$adminRoute/posts/check-url", function() {
     (new AdminController())->checkUrl();
 }, ['AdminAuthMiddleware']);
 
+$router->addRoute("/$adminRoute/posts/delete", function() {
+    (new AdminController())->deletePost();
+}, ['AdminAuthMiddleware']);
+
 $router->addRoute("/$adminRoute/tags/search", function() {
     (new AdminController())->searchTags();
 }, ['AdminAuthMiddleware']);

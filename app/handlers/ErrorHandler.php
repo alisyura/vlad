@@ -81,7 +81,7 @@ class ErrorHandler
         if ($isAjax) {
             header('Content-Type: application/json');
 
-            $response = ['success' => false, 'error' => $userMessage];
+            $response = ['success' => false, 'message' => $userMessage];
 
             // Только в dev — показываем детали
             if (self::isDev()) {

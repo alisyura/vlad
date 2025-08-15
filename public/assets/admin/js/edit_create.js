@@ -78,8 +78,11 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        const adminRoute = document.getElementById('adminRoute').value;
-        const csrfToken = document.querySelector('input[name="csrf_token"]').value;
+        const csrfToken = document.querySelector('meta[name="csrf_token"]')?.content;
+        if (!csrfToken) {
+            alert('Ошибка: CSRF-токен не найден.');
+            return;
+        }
 
         try {
             const response = await fetch(`/${adminRoute}/posts/check-url`, {

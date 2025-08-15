@@ -19,6 +19,7 @@
             echo '<link rel="stylesheet" href="' . asset("admin/css/$route_path.css") .'">'."\n";
         }
     ?>
+    <meta name="csrf_token" content="<?= htmlspecialchars(CSRF::getToken()) ?>">
 </head>
 <body>
     <!-- Навигационная панель -->
@@ -101,6 +102,9 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const adminRoute = '<?= htmlspecialchars(Config::getAdminCfg('AdminRoute')) ?>';
+    </script>
     <?php
         if (!empty($route_path))
         {
