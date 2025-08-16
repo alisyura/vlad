@@ -6,6 +6,7 @@ require_once __DIR__ . '/../app/core/Helpers.php';
 require_once __DIR__ . '/../app/core/Logger.php';
 require_once __DIR__ . '/../app/core/Config.php';
 require_once __DIR__ . '/../app/Handlers/ErrorHandler.php';
+require_once __DIR__ . '/../app/core/CheckVisitor.php';
 
 // --- Обработка ошибок ---
 // Регистрируем все обработчики ошибок
@@ -51,6 +52,7 @@ spl_autoload_register(function ($class) {
 
     throw new Exception("Class {$class} not found.");
 });
+
 
 // --- Роутинг ---
 $request = $_SERVER['REQUEST_URI'];

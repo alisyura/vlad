@@ -15,7 +15,9 @@ class AdminPostsModel {
      * @return int Общее количество постов.
      */
     public function getTotalPostsCount(string $article_type) {
-        $sql = "SELECT COUNT(id) AS total_posts FROM posts WHERE article_type = :article_type AND status <> 'deleted'";
+        $sql = "SELECT COUNT(id) AS total_posts 
+                FROM posts 
+                WHERE article_type = :article_type AND status <> 'deleted'";
         try {
             $stmt = $this->db->prepare($sql);
             $stmt->execute([':article_type' => $article_type]);
@@ -480,7 +482,7 @@ class AdminPostsModel {
      */
     public function linkPostToTags(int $postId, string $tagsString): bool
     {
-        Logger::debug("linkPostToTags. $postId, $tagsString");
+        Logger::debug("linkPostToTags. postId=$postId, tagsString=$tagsString");
 
         $tagsArray = array_map('trim', explode(',', $tagsString));
         $tagsArray = array_filter($tagsArray);
@@ -488,9 +490,11 @@ class AdminPostsModel {
             return true;
         }
 
+        Logger::debug("linkPostToTags. tagsArray ".print_r($tagsArray, true));
+
         // Нормализуем имена: убираем дубли, приводим к нижнему регистру для сравнения
         $uniqueTags = array_unique(array_map('mb_strtolower', $tagsArray));
-        Logger::debug("uniqueTags. $uniqueTags");
+        Logger::debug("linkPostToTags. uniqueTags. ".print_r($uniqueTags, true));
         $tagIds = [];
 
         $sqlInsert = "INSERT IGNORE INTO tags (name, url) VALUES (:name, :url)";
@@ -500,6 +504,8 @@ class AdminPostsModel {
         $stmtSelect = $this->db->prepare($sqlSelect);
 
         foreach ($uniqueTags as $tagName) {
+            Logger::debug("linkPostToTags. process tagName=".$tagName);
+
             // Пробуем найти существующий тег по имени (с учётом регистра)
             $stmtSelect->execute([':name' => mb_strtolower($tagName)]);
             $result = $stmtSelect->fetch(PDO::FETCH_ASSOC);
@@ -507,6 +513,7 @@ class AdminPostsModel {
             if ($result) {
                 // Тег уже есть
                 $tagId = (int)$result['id'];
+                Logger::debug("linkPostToTags. tagName=$tagName уже существует. Id=$tagId ");
             } else {
                 // Создаём новый тег
                 $tagUrl = transliterate($tagName);
