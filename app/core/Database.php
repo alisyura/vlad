@@ -10,10 +10,10 @@ class Database {
     public static function getConnection(): PDO {
         if (self::$pdo === null) {
             // Получаем настройки из Config
-            $host = Config::getDbHost('DB_HOST');
-            $name = Config::getDbHost('DB_NAME');
-            $user = Config::getDbHost('DB_USER');
-            $pass = Config::getDbHost('DB_PASS');
+            $host = Config::get('db.DB_HOST');
+            $name = Config::get('db.DB_NAME');
+            $user = Config::get('db.DB_USER');
+            $pass = Config::get('db.DB_PASS');
 
             $dsn = "mysql:host=$host;dbname=$name;charset=utf8mb4";
 

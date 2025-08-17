@@ -125,7 +125,7 @@ function DateYYYYmmdd($value): string
 
 function create_excerpt($content)
 {
-    $max_length = Config::getPostsCfg('exerpt_len');
+    $max_length = Config::get('posts.exerpt_len');
     if (empty($content) || mb_strlen($content) <= $max_length) {
         return $content;
     }

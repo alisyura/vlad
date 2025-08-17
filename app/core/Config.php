@@ -1,6 +1,5 @@
 <?php
-
-class Config_new
+class Config
 {
     private static $config = [
         'db' => [
@@ -11,20 +10,26 @@ class Config_new
         ],
         'posts' => [
             'exerpt_len' => 200,
-            'posts_per_page' => 8,
+            'posts_per_page' => 3,
             'max_urls_in_sitemap' => 50000
         ],
         'global' => [
             'SITE_NAME' => 'Мой блог',
             'SITE_KEYWORDS' => 'Ключевые слова...',
-            'SITE_DESCRIPTION' => 'Описание...',
-            'UseLogger' => true,
+            'SITE_DESCRIPTION' => 'Описание...'
+        ],
+        'logger' => [
+            'UseLogger' => true
+        ],
+        'upload' => [
             'UploadDir' => 'uploads',
             'UploadedMaxFilesize' => 2 * 1024 * 1024,
             'UploadedMaxHeight' => 600,
             'UploadedMaxWidth' => 840,
             'UploadedMinHeight' => 300,
-            'UploadedMinWidth' => 400,
+            'UploadedMinWidth' => 400
+        ],
+        'cache' => [
             'CacheDir' => 'W:\\domains\\vlad.local\\cache\\pages/',
             'CacheLifetime' => 3600,
             'UseCache' => false
@@ -39,95 +44,29 @@ class Config_new
         ]
     ];
 
-    public static function get($key, $default = null)
+    /**
+     * Получает значение из конфигурации по ключу.
+     *
+     * Поддерживает вложенные ключи в формате 'section.property'.
+     * Если ключ не найден, возвращает значение по умолчанию.
+     *
+     * @param string $key Ключ конфигурации, например 'posts.exerpt_len'.
+     * @param mixed $default Значение, которое будет возвращено, если ключ не найден.
+     * @return mixed Значение конфигурации или значение по умолчанию.
+     */
+    public static function get(string $key, $default = null)
     {
-        // Поддержка формата: 'admin.AdminRoute'
-        $parts = explode('.', $key);
-        $section = $parts[0];
-        $property = $parts[1] ?? null;
-
-        if (!isset(self::$config[$section])) {
-            return $default;
+        // Проверяем, содержит ли ключ точку для доступа к вложенным элементам.
+        if (strpos($key, '.') === false) {
+            return self::$config[$key] ?? $default;
         }
 
-        if ($property === null) {
-            return self::$config[$section];
-        }
+        // Разбиваем ключ на секцию и свойство.
+        [$section, $property] = explode('.', $key, 2);
 
+        // Возвращаем значение, используя оператор объединения с null.
+        // Если секция или свойство не существуют, возвращается значение по умолчанию.
         return self::$config[$section][$property] ?? $default;
-    }
-
-    public static function isDev(): bool
-    {
-        return true; // или можно из конфига: self::get('app.env') === 'dev'
-    }
-}
-
-
-class Config
-{
-    private function __construct()
-    {}
-
-    public static function getDbHost($propertyName)
-    {
-        $db = [
-            // Настройки БД
-            'DB_HOST'=>'localhost',
-            'DB_NAME'=>'vlad',
-            'DB_USER'=>'vlad',
-            'DB_PASS'=>'vlad'
-        ];
-
-        return $db[$propertyName];
-    }
-
-    public static function getPostsCfg($propertyName)
-    {
-        $posts = [
-            'exerpt_len' => 200,
-            'posts_per_page' => 8,
-            'max_urls_in_sitemap' => 50000
-        ];
-
-        return $posts[$propertyName];
-    }
-
-    public static function getGlobalCfg($propertyName)
-    {
-        $global = [
-            // Настройки сайта
-            'SITE_NAME'=>'Мой блог',
-            'SITE_KEYWORDS'=>'Ключевые слова. мета тег, meta, метаданные, keywords, description',
-            'SITE_DESCRIPTION'=>'Описание. Описание содержимого на данной странице',
-            'UseLogger' => true,
-            'UploadDir' => 'uploads',
-            'UploadedMaxFilesize' => 2*1024*1024, // 2 MB
-            'UploadedMaxHeight' => 600,
-            'UploadedMaxWidth' => 840,
-            'UploadedMinHeight' => 300,
-            'UploadedMinWidth' => 400,
-            'CacheDir' => 'W:\\domains\\vlad.local\\cache\\pages/',
-            'CacheLifetime' => 3600, // Время жизни кэша в секундах
-            'UseCache' => false
-        ];
-
-        return $global[$propertyName];
-    }
-
-    public static function getAdminCfg($propertyName)
-    {
-        $global = [
-            // Настройки сайта
-            'AdminEmail'=>'admin@admin.ru',
-            'AdminRoute'=>'adm',
-            'posts_per_page' => 3,
-            'EnableCreateCategory' => false, // включает/выключает возможность создавать категории
-            'EnableEditCategory' => false, // включает/выключает возможность изменять категории
-            'AdminRoleName' => 'Administrator'
-        ];
-
-        return $global[$propertyName];
     }
 
     public static function isDev()

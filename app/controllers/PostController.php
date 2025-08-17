@@ -1,8 +1,17 @@
 <?php
 
 class PostController {
+    /**
+     * Экземпляр модели
+     */
     private $model;
+    /**
+     * Адрес сайта
+     */
     private $uri;
+    /**
+     * Url с которого пришел запрос
+     */
     private $requestUrl;
 
     public function __construct() {
@@ -40,14 +49,15 @@ class PostController {
         if (isset($post['image'])) {
             $render_params['post_image'] = sprintf("%s%s", $this->uri, $post['image']);
         }
-        //print_r($render_params);
+        //используется в layout.php
         $content = View::render('../app/views/posts/show.php', $render_params);
 
+        //используется в layout.php
         $structuredData = [
             'page_type' => 'post',
-            'site_name' => Config::getGlobalCfg('SITE_NAME'),
-            'keywords' => Config::getGlobalCfg('SITE_KEYWORDS'),
-            'description' => Config::getGlobalCfg('SITE_DESCRIPTION'),
+            'site_name' => Config::get('global.SITE_NAME'),
+            'keywords' => Config::get('global.SITE_KEYWORDS'),
+            'description' => Config::get('global.SITE_DESCRIPTION'),
             'url' => $URL,
             'image' => sprintf("%s%s", $this->uri, $post['image'])
         ];
@@ -61,9 +71,10 @@ class PostController {
     public function showKontakty() {
         $URL = rtrim(sprintf("%s/%s", $this->uri, 'page/kontakty'), '/').'.html';
     
+        //используется в layout.php
         $content = View::render('../app/views/pages/kontakty.php', [
             //'post' => $page,
-            'full_url' => $URL,
+            'full_url' => $this->requestUrl,
             'url_id' => 'kontakty'
             //'tags_baseUrl' => sprintf("%s/tag/", $this->uri),
             //'post_image' => sprintf("%s%s", $this->uri, $page['image']),
@@ -71,12 +82,13 @@ class PostController {
             //'is_post' => false
         ]);
 
+        //используется в layout.php
         $structuredData = [
             'page_type' => 'kontakty',
-            'site_name' => Config::getGlobalCfg('SITE_NAME'),
-            'keywords' => Config::getGlobalCfg('SITE_KEYWORDS'),
-            'description' => Config::getGlobalCfg('SITE_DESCRIPTION'),
-            'url' => $URL
+            'site_name' => Config::get('global.SITE_NAME'),
+            'keywords' => Config::get('global.SITE_KEYWORDS'),
+            'description' => Config::get('global.SITE_DESCRIPTION'),
+            'url' => $this->requestUrl
             //'image' => sprintf("%s%s", $this->uri, $page['image'])
         ];
         
@@ -132,23 +144,23 @@ class PostController {
             }
         }
 
-        $URL = rtrim(sprintf("%s/%s", $this->uri, $page['url']), '/').'.html';
-    
+        //используется в layout.php
         $content = View::render('../app/views/pages/sitemap.php', [
             'data' => $result,
-            'full_url' => $URL,
+            'full_url' => $this->requestUrl,
             'tags_baseUrl' => sprintf("%s/tag/", $this->uri),
             //'post_image' => sprintf("%s%s", $this->uri, $page['image']),
             //'tags' => $tags,
             'is_post' => false
         ]);
 
+        //используется в layout.php
         $structuredData = [
             'page_type' => 'sitemap',
-            'site_name' => Config::getGlobalCfg('SITE_NAME'),
-            'keywords' => Config::getGlobalCfg('SITE_KEYWORDS'),
-            'description' => Config::getGlobalCfg('SITE_DESCRIPTION'),
-            'url' => $URL
+            'site_name' => Config::get('global.SITE_NAME'),
+            'keywords' => Config::get('global.SITE_KEYWORDS'),
+            'description' => Config::get('global.SITE_DESCRIPTION'),
+            'url' => $this->requestUrl
             //'image' => sprintf("%s%s", $this->uri, $page['image'])
         ];
         
@@ -159,23 +171,23 @@ class PostController {
     * Страница Тэги
     */
     public function showTagFilter() {
-        $URL = rtrim(sprintf("%s/%s", $this->uri, $page['url']), '/').'.html';
-    
+        //используется в layout.php
         $content = View::render('../app/views/posts/tegi.php', [
             'show_caption' => true,
-            'full_url' => $URL,
+            'full_url' => $this->requestUrl,
             'tags_baseUrl' => sprintf("%s/tag/", $this->uri),
             //'post_image' => sprintf("%s%s", $this->uri, $page['image']),
             //'tags' => $tags,
             'is_post' => false
         ]);
 
+        //используется в layout.php
         $structuredData = [
             'page_type' => 'tegi',
-            'site_name' => Config::getGlobalCfg('SITE_NAME'),
-            'keywords' => Config::getGlobalCfg('SITE_KEYWORDS'),
-            'description' => Config::getGlobalCfg('SITE_DESCRIPTION'),
-            'url' => $URL
+            'site_name' => Config::get('global.SITE_NAME'),
+            'keywords' => Config::get('global.SITE_KEYWORDS'),
+            'description' => Config::get('global.SITE_DESCRIPTION'),
+            'url' => $this->requestUrl
             //'image' => sprintf("%s%s", $this->uri, $page['image'])
         ];
         
@@ -199,6 +211,7 @@ class PostController {
 
         $URL = rtrim(sprintf("%s/%s", $this->uri, $page['url']), '/').'.html';
     
+        //используется в layout.php
         $content = View::render('../app/views/posts/show.php', [
             'post' => $page,
             'full_url' => $URL,
@@ -208,11 +221,12 @@ class PostController {
             'is_post' => false
         ]);
 
+        //используется в layout.php
         $structuredData = [
             'page_type' => 'post',
-            'site_name' => Config::getGlobalCfg('SITE_NAME'),
-            'keywords' => Config::getGlobalCfg('SITE_KEYWORDS'),
-            'description' => Config::getGlobalCfg('SITE_DESCRIPTION'),
+            'site_name' => Config::get('global.SITE_NAME'),
+            'keywords' => Config::get('global.SITE_KEYWORDS'),
+            'description' => Config::get('global.SITE_DESCRIPTION'),
             'url' => $URL
             //'image' => sprintf("%s%s", $this->uri, $page['image'])
         ];
@@ -224,19 +238,19 @@ class PostController {
     * Главная страница (список постов)
     */
     public function index($page = 1) {
-        $posts_per_page = Config::getPostsCfg('posts_per_page');
+        $posts_per_page = Config::get('posts.posts_per_page');
         $total_posts = $this->model->countAllPosts(); // из предыдущих улучшений
         $total_pages = ceil($total_posts / $posts_per_page);
         $page = max(1, min((int)$page, $total_pages));
 
-        $posts = $this->model->getAllPosts($page);
+        $posts = $this->model->getAllPosts($posts_per_page, $page);
 
         // для генерации ссылки перехода на след/пред страницу < или >
         // для главной страницы передаем пустую строку, чтобы не создалась ссылка
         // с двумя слэшами //p ...
         $base_page_url = "";
         // Генерируем ссылки для умной пагинации
-        $pagination_links = generateSmartPaginationLinks($page, $total_pages, $base_url);
+        $pagination_links = generateSmartPaginationLinks($page, $total_pages, $base_page_url);
 
         $URL = rtrim(sprintf("%s", $this->uri), '/');
 
@@ -255,11 +269,12 @@ class PostController {
             'base_page_url' => $base_page_url
         ]);
 
+        // используется в layout.php
         $structuredData = [
             'page_type' => 'home',
-            'site_name' => Config::getGlobalCfg('SITE_NAME'),
-            'keywords' => Config::getGlobalCfg('SITE_KEYWORDS'),
-            'description' => Config::getGlobalCfg('SITE_DESCRIPTION'),
+            'site_name' => Config::get('global.SITE_NAME'),
+            'keywords' => Config::get('global.SITE_KEYWORDS'),
+            'description' => Config::get('global.SITE_DESCRIPTION'),
             'url' => $URL,
             'image' => sprintf("%s/assets/pic/logo.png", $URL),
             'posts' => $posts
@@ -272,19 +287,20 @@ class PostController {
     * Список постов раздела меню
     */
     public function showSection($cat_url, $show_link_next, $page = 1) {
-        $posts_per_page = Config::getPostsCfg('posts_per_page');
+        $posts_per_page = Config::get('posts.posts_per_page');
         $total_posts = $this->model->countAllPostsByCategory($cat_url); // из предыдущих улучшений
         $total_pages = ceil($total_posts / $posts_per_page);
         $page = max(1, min((int)$page, $total_pages));
-        $posts = $this->model->getAllPostsByCategory($cat_url, $show_link_next, $page);
+        $posts = $this->model->getAllPostsByCategory($cat_url, $show_link_next, $posts_per_page, $page);
 
         $base_page_url = "/cat/{$cat_url}"; // для генерации ссылки перехода на след/пред страницу < или >
         // Генерируем ссылки для умной пагинации
-        $pagination_links = generateSmartPaginationLinks($page, $total_pages, $base_url);
+        $pagination_links = generateSmartPaginationLinks($page, $total_pages);
 
         //print_r($posts);
         $URL = rtrim(sprintf("%s", $this->uri), '/');
 
+        // используется в layout.php
         $content = View::render('../app/views/posts/index.php', [
             'posts' => $posts,
             'show_caption' => true,
@@ -302,11 +318,12 @@ class PostController {
             'base_page_url' => $base_page_url
         ]);
 
+        // используется в layout.php
         $structuredData = [
             'page_type' => 'home',
-            'site_name' => Config::getGlobalCfg('SITE_NAME'),
-            'keywords' => Config::getGlobalCfg('SITE_KEYWORDS'),
-            'description' => Config::getGlobalCfg('SITE_DESCRIPTION'),
+            'site_name' => Config::get('global.SITE_NAME'),
+            'keywords' => Config::get('global.SITE_KEYWORDS'),
+            'description' => Config::get('global.SITE_DESCRIPTION'),
             'url' => $URL,
             'image' => sprintf("%s/assets/pic/logo.png", $URL),
             'posts' => $posts
@@ -319,27 +336,28 @@ class PostController {
     * Список постов по тэгу
     */
     public function showTag($tag_url, $page = 1) {
-        $posts_per_page = Config::getPostsCfg('posts_per_page');
+        $posts_per_page = Config::get('posts.posts_per_page');
         $total_posts = $this->model->countAllPostsByTag($tag_url); // из предыдущих улучшений
         $total_pages = ceil($total_posts / $posts_per_page);
         $page = max(1, min((int)$page, $total_pages));
-        $posts = $this->model->getAllPostsByTag($tag_url, $page);
+        $posts = $this->model->getAllPostsByTag($tag_url, $posts_per_page, $page);
 
         $base_page_url = "/tag/{$tag_url}"; // для генерации ссылки перехода на след/пред страницу < или >
         // Генерируем ссылки для умной пагинации
-        $pagination_links = generateSmartPaginationLinks($page, $total_pages, $base_url);
+        $pagination_links = generateSmartPaginationLinks($page, $total_pages);
 
         //print_r($posts);
         $URL = rtrim(sprintf("%s", $this->uri), '/');
         $caption = 'Тэг: ' . (!empty($posts) ? ($posts[0]['tag_name'] ?? '') : '');
 
+        // используется в layout.php
         $content = View::render('../app/views/posts/index.php', [
             'posts' => $posts,
             'show_caption' => true,
             'caption' => $caption,
             'caption_desc' => null,
             'url' => $URL,
-            'show_read_next' => $show_link_next,
+            'show_read_next' => false,
             'pagination' => [
                 'current_page' => $page,
                 'total_pages' => $total_pages,
@@ -350,11 +368,12 @@ class PostController {
             'base_page_url' => $base_page_url
         ]);
 
+        // используется в layout.php
         $structuredData = [
             'page_type' => 'home',
-            'site_name' => "$caption | " . Config::getGlobalCfg('SITE_NAME'),
-            'keywords' => Config::getGlobalCfg('SITE_KEYWORDS'),
-            'description' => Config::getGlobalCfg('SITE_DESCRIPTION'),
+            'site_name' => "$caption | " . Config::get('global.SITE_NAME'),
+            'keywords' => Config::get('global.SITE_KEYWORDS'),
+            'description' => Config::get('global.SITE_DESCRIPTION'),
             'url' => $this->requestUrl,
             'image' => sprintf("%s/assets/pic/logo.png", $URL),
             'posts' => $posts

@@ -16,7 +16,7 @@ class Auth {
 
             // Сохраняем дополнительные данные для защиты от угона сессии
             $_SESSION['user_id'] = $user['id']; // Использовать ID более надёжно, чем логин
-            $_SESSION['admin'] = (bool)($user['role_name'] === Config::getAdminCfg('AdminRoleName')); // Приводим к булевому типу
+            $_SESSION['admin'] = (bool)($user['role_name'] === Config::get('admin.AdminRoleName')); // Приводим к булевому типу
             $_SESSION['user_login'] = (string)$user['login']; // Приводим к строковому типу
             $_SESSION['user_ip'] = $_SERVER['REMOTE_ADDR'];
             $_SESSION['user_agent'] = $_SERVER['HTTP_USER_AGENT'];

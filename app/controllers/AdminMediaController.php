@@ -77,7 +77,7 @@ class AdminMediaController
         $imageMimeType = image_type_to_mime_type($imageType);
 
         // 7. Проверка размера файла
-        $maxFileSize = (int) Config::getGlobalCfg('UploadedMaxFilesize'); // в байтах
+        $maxFileSize = (int) Config::get('upload.UploadedMaxFilesize'); // в байтах
         if ($file['size'] > $maxFileSize) {
             http_response_code(400);
             echo json_encode(['success' => false, 'error' => 'Размер файла превышает допустимый лимит.']);
@@ -94,8 +94,8 @@ class AdminMediaController
         [$imageWidth, $imageHeight] = $size;
 
         // 9. Минимальные размеры
-        $minWidth = (int) Config::getGlobalCfg('UploadedMinWidth');
-        $minHeight = (int) Config::getGlobalCfg('UploadedMinHeight');
+        $minWidth = (int) Config::get('upload.UploadedMinWidth');
+        $minHeight = (int) Config::get('upload.UploadedMinHeight');
         if ($imageWidth < $minWidth || $imageHeight < $minHeight) {
             http_response_code(400);
             echo json_encode([
@@ -106,8 +106,8 @@ class AdminMediaController
         }
 
         // 10. Максимальные размеры и ресайз
-        $maxWidth = (int) Config::getGlobalCfg('UploadedMaxWidth');
-        $maxHeight = (int) Config::getGlobalCfg('UploadedMaxHeight');
+        $maxWidth = (int) Config::get('upload.UploadedMaxWidth');
+        $maxHeight = (int) Config::get('upload.UploadedMaxHeight');
         $resizeNeeded = ($imageWidth > $maxWidth || $imageHeight > $maxHeight);
         $fileToSave = $file['tmp_name']; // по умолчанию — оригинал
         $tempFile = null;
@@ -187,7 +187,7 @@ class AdminMediaController
         };
 
         // 12. Путь сохранения
-        $baseUploadDir = $_SERVER['DOCUMENT_ROOT'] . '/assets/' . trim(Config::getGlobalCfg('UploadDir'), '/') . '/';
+        $baseUploadDir = $_SERVER['DOCUMENT_ROOT'] . '/assets/' . trim(Config::get('upload.UploadDir'), '/') . '/';
         $yearDir = date('Y');
         $monthDir = date('m');
         $targetDir = $baseUploadDir . $yearDir . DIRECTORY_SEPARATOR . $monthDir . DIRECTORY_SEPARATOR;
@@ -249,7 +249,7 @@ class AdminMediaController
             if (file_exists($targetFile)) {
                 unlink($targetFile);
             }
-            Logger::error("Ошибка при сохранении в БД: " . $e->getMessage());
+            Logger::error("Ошибка при сохранении в БД: " . $e->getTraceAsString());
             http_response_code(500);
             echo json_encode(['success' => false, 'error' => 'Ошибка при сохранении данных.']);
             exit;

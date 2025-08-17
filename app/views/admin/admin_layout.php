@@ -103,7 +103,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        const adminRoute = '<?= htmlspecialchars(Config::getAdminCfg('AdminRoute')) ?>';
+        const adminRoute = '<?= htmlspecialchars(Config::get('admin.AdminRoute')) ?>';
     </script>
     <?php
         if (!empty($route_path))

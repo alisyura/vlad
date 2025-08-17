@@ -280,7 +280,7 @@ class AjaxController
                     return;
                 }
 
-                if ($file['size'] > Config::getGlobalCfg('UploadedMaxFilesize')) { // 2 MB
+                if ($file['size'] > Config::get('upload.UploadedMaxFilesize')) { // 2 MB
                     echo json_encode([
                         'success' => false,
                         'message' => 'Размер файла превышает 2 Мб'
@@ -289,7 +289,7 @@ class AjaxController
                 }
 
                 // === Путь по дате ===
-                $uploadBaseDir = $_SERVER['DOCUMENT_ROOT'] . '/assets/' . Config::getGlobalCfg('UploadDir'). '/';
+                $uploadBaseDir = $_SERVER['DOCUMENT_ROOT'] . '/assets/' . Config::get('upload.UploadDir'). '/';
                 $year = date('Y');
                 $month = sprintf("%02d", (int)date('m'));
                 $day = sprintf("%02d", (int)date('d'));
@@ -433,7 +433,7 @@ class AjaxController
         }
 
          // === Настройки отправки ===
-        $to = Config::getAdminCfg('AdminEmail');
+        $to = Config::get('admin.AdminEmail');
         $subject = "Сообщение с сайта от пользователя: " . htmlspecialchars($msg_title);
         $from = "From: $msg_email\r\n";
         $from .= "Reply-To: $msg_email\r\n";

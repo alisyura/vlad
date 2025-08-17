@@ -11,7 +11,7 @@ class SitemapController {
         $this->db = Database::getConnection();
 
         $this->uri = sprintf("%s://%s", $_SERVER['REQUEST_SCHEME'], $_SERVER['HTTP_HOST']);
-        $this->max_urls = Config::getPostsCfg('max_urls_in_sitemap');
+        $this->max_urls = Config::get('posts.max_urls_in_sitemap');
     }
 
     public function generateSitemapIndexXml()

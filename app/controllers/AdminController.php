@@ -5,7 +5,7 @@ class AdminController {
     private function checkIfUserLoggedIn()
     {
         if (!Auth::check()) {
-            $adminRoute = Config::getAdminCfg('AdminRoute');
+            $adminRoute = Config::get('admin.AdminRoute');
             header("Location: /$adminRoute/login");
             exit;
         }
@@ -26,7 +26,7 @@ class AdminController {
             if (Auth::login($_POST['login'], $_POST['password'])) {
                  // После успешного логина обновляем токен (хорошая практика)
                 CSRF::refreshToken();
-                $adminRoute = Config::getAdminCfg('AdminRoute');
+                $adminRoute = Config::get('admin.AdminRoute');
                 header("Location: /$adminRoute/dashboard");
                 exit;
             }
@@ -35,7 +35,7 @@ class AdminController {
         }
         elseif (($_SERVER['REQUEST_METHOD'] === 'GET') && (Auth::check())) {
             CSRF::refreshToken();
-            $adminRoute = Config::getAdminCfg('AdminRoute');
+            $adminRoute = Config::get('admin.AdminRoute');
             header("Location: /$adminRoute/dashboard");
             exit;
         }
@@ -53,7 +53,7 @@ class AdminController {
 
         $dm = new DashboardModel();
 
-        $adminRoute = Config::getAdminCfg('AdminRoute');
+        $adminRoute = Config::get('admin.AdminRoute');
         $user = (new UserModel())->getUserByLogin($_SESSION['user_login']);
         $user_name = $user['name'];
 
@@ -78,7 +78,7 @@ class AdminController {
         Auth::logout();
         // После логаута тоже стоит обновить токен или очистить его
         // CSRF::refreshToken(); // Можно добавить
-        $adminRoute = Config::getAdminCfg('AdminRoute');
+        $adminRoute = Config::get('admin.AdminRoute');
         header("Location: /$adminRoute/login");
     }
 
@@ -128,7 +128,7 @@ class AdminController {
             // --- Конец обработки параметров сортировки ---
 
             // Определяем параметры пагинации
-            $postsPerPage = Config::getAdminCfg('posts_per_page'); // Количество постов на страницу
+            $postsPerPage = Config::get('admin.posts_per_page'); // Количество постов на страницу
             $currentPage = max(1, (int)$currentPage); // Убеждаемся, что страница не меньше 1
             $offset = ($currentPage - 1) * $postsPerPage; // Вычисляем смещение
 
@@ -190,7 +190,7 @@ class AdminController {
             }
             unset($post);
 
-            $adminRoute = Config::getAdminCfg('AdminRoute');
+            $adminRoute = Config::get('admin.AdminRoute');
             // Используется в admin_layout
             $user_name = Auth::getUserName();
 
@@ -223,7 +223,7 @@ class AdminController {
         } catch (PDOException $e) {
             Logger::error("Database error in listPosts: " . $e->getTraceAsString());
             $data = [
-                'adminRoute' => Config::getAdminCfg('AdminRoute'),
+                'adminRoute' => Config::get('admin.AdminRoute'),
                 'title' => 'Ошибка',
                 'error_message' => 'Не удалось загрузить посты. Пожалуйста, попробуйте позже.'
             ];
@@ -232,7 +232,7 @@ class AdminController {
         } catch (Exception $e) {
             Logger::error("Error in listPosts: " . $e->getTraceAsString());
             $data = [
-                'adminRoute' => Config::getAdminCfg('AdminRoute'),
+                'adminRoute' => Config::get('admin.AdminRoute'),
                 'title' => 'Ошибка',
                 'error_message' => 'Произошла непредвиденная ошибка.'
             ];
@@ -246,7 +246,7 @@ class AdminController {
             $this->checkIfUserLoggedIn();
 
             $adminPostsModel = new AdminPostsModel();
-            $adminRoute = Config::getAdminCfg('AdminRoute');
+            $adminRoute = Config::get('admin.AdminRoute');
             
             $user_id = Auth::getUserId();
             $user_name = Auth::getUserName();
@@ -370,7 +370,7 @@ class AdminController {
     {
         $this->checkIfUserLoggedIn();
         $adminPostsModel = new AdminPostsModel();
-        $adminRoute = Config::getAdminCfg('AdminRoute');
+        $adminRoute = Config::get('admin.AdminRoute');
         $is_new_post = false;
         $user_name = Auth::getUserName();
 

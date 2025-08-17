@@ -9,9 +9,9 @@ class PageCacheMiddleware implements MiddlewareInterface
 
     public function __construct()
     {
-        $this->cacheDir = Config::getGlobalCfg('CacheDir');
-        $this->cacheLifetime = Config::getGlobalCfg('CacheLifetime');
-        $this->useCache = Config::getGlobalCfg('UseCache');
+        $this->cacheDir = Config::get('cache.CacheDir');
+        $this->cacheLifetime = Config::get('cache.CacheLifetime');
+        $this->useCache = Config::get('cache.UseCache');
     }
 
     public function handle(): bool

@@ -11,7 +11,7 @@ class AdminAuthMiddleware implements MiddlewareInterface
     public function handle(): bool
     {
         if (!\Auth::check()) {
-            $adminRoute = Config::getAdminCfg('AdminRoute');
+            $adminRoute = Config::get('admin.AdminRoute');
 
             // Определяем, является ли запрос AJAX по явному заголовку
             $isAjax = isset($_SERVER['HTTP_X_REQUESTED_WITH']) 

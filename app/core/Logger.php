@@ -20,7 +20,7 @@ class Logger
 
     private static function log_message($level, $message, $context = [])
     {
-        if (!Config::getGlobalCfg('UseLogger')) {
+        if (!Config::get('logger.UseLogger')) {
             return;
         }
 

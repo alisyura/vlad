@@ -52,10 +52,7 @@ class PostModel {
         return (int)$row['total'];
     }
 
-    public function getAllPosts($page = 1) {
-        //берем немного больше, чтобы учесть длинные слова.
-        $posts_per_page = Config::getPostsCfg('posts_per_page');
-
+    public function getAllPosts($posts_per_page, $page = 1) {
         // Вычисляем offset
         $offset = ($page - 1) * $posts_per_page;
 
@@ -180,22 +177,26 @@ class PostModel {
         return $row;
     }
 
-    public function getAllPostsByCategory($cat_url, $show_link_next, $page = 1) {
-        $posts_per_page = Config::getPostsCfg('posts_per_page');
+    /**
+     * Извлекает список опубликованных постов для указанной категории с поддержкой пагинации.
+     *
+     * @param string $cat_url URL-адрес категории.
+     * @param bool $show_link_next Определяет, возвращать полный контент или отрывок.
+     * @param int $posts_per_page Количество постов на страницу.
+     * @param int $page Номер страницы (по умолчанию 1).
+     * @return array Массив ассоциативных массивов с данными о постах.
+     */
+    public function getAllPostsByCategory(string $cat_url, bool $show_link_next,
+        int $posts_per_page, int $page = 1): array
+    {
+        $excerpt_len = Config::get('posts.exerpt_len') + 50;
         $offset = ($page - 1) * $posts_per_page;
-    
-        if ($show_link_next) {
-            $exerpt_len = Config::getPostsCfg('exerpt_len') + 50;
-            $content = "SUBSTRING(p.content, 1, $exerpt_len) AS content";
-        } else {
-            $content = "p.content AS content";
-        }
-    
+
         $sql = "
-            SELECT 
+            SELECT
                 p.url AS url,
                 p.title AS title,
-                $content,
+                IF(:show_excerpt, SUBSTRING(p.content, 1, :excerpt_len), p.content) AS content,
                 p.updated_at AS updated_at,
                 c.url AS category_url,
                 c.name AS category_name,
@@ -217,33 +218,39 @@ class PostModel {
             ORDER BY
                 p.updated_at DESC
             LIMIT :limit OFFSET :offset";
-    
+
         Logger::debug(debugPDO($sql, [
             ':cat_url' => $cat_url,
             ':limit' => $posts_per_page,
-            ':offset' => $offset
+            ':offset' => $offset,
+            ':show_excerpt' => (int) $show_link_next,
+            ':excerpt_len' => $excerpt_len
         ]));
-    
+
         $stmt = $this->db->prepare($sql);
-        $stmt->bindValue(':cat_url', $cat_url, PDO::PARAM_STR);
-        $stmt->bindValue(':limit', $posts_per_page, PDO::PARAM_INT);
-        $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
-        $stmt->execute();
-    
+        $stmt->execute([
+            ':cat_url' => $cat_url,
+            ':limit' => $posts_per_page,
+            ':offset' => $offset,
+            ':show_excerpt' => $show_link_next,
+            ':excerpt_len' => $excerpt_len
+        ]);
+
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public function getAllPostsByTag($tag_url, $page = 1) {
-        // проверяем, существует ли такй тэг
-        $stmt = $this->db->prepare("SELECT COUNT(*) FROM tags WHERE url = :tag_url");
-        $stmt->execute([':tag_url' => $tag_url]);
-        if ((int)$stmt->fetchColumn() === 0) {
-            return []; // такого тэга нет
-        }
-
-        $posts_per_page = Config::getPostsCfg('posts_per_page');
+    /**
+     * Извлекает список опубликованных постов для указанного тега с поддержкой пагинации.
+     *
+     * @param string $tag_url URL-адрес тега.
+     * @param int $posts_per_page Количество постов на страницу.
+     * @param int $page Номер страницы (по умолчанию 1).
+     * @return array Массив ассоциативных массивов с данными о постах.
+     */
+    public function getAllPostsByTag(string $tag_url, int $posts_per_page, int $page = 1): array
+    {
         $offset = ($page - 1) * $posts_per_page;
-    
+
         $sql = "
             SELECT 
                 p.url AS url,
@@ -280,13 +287,16 @@ class PostModel {
             ORDER BY
                 p.updated_at DESC
             LIMIT :limit OFFSET :offset";
-    
+
         $stmt = $this->db->prepare($sql);
-        $stmt->bindValue(':tag_url', $tag_url, PDO::PARAM_STR);
-        $stmt->bindValue(':limit', $posts_per_page, PDO::PARAM_INT);
-        $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
-        $stmt->execute();
-    
+        
+        // Передаем все параметры одним массивом в метод execute()
+        $stmt->execute([
+            ':tag_url' => $tag_url,
+            ':limit' => $posts_per_page,
+            ':offset' => $offset
+        ]);
+
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 

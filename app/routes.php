@@ -123,7 +123,7 @@ $router->addRoute('/sitemap-(posts|pages)-(\d+)\.xml', function ($type, $page) {
 });
 
 
-$adminRoute = Config::getAdminCfg('AdminRoute');
+$adminRoute = Config::get('admin.AdminRoute');
 // Админ
 $router->addRoute("/$adminRoute/login", function() {
     (new AdminController())->login();
