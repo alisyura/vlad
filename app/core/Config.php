@@ -19,7 +19,11 @@ class Config
             'SITE_DESCRIPTION' => 'Описание...'
         ],
         'logger' => [
-            'UseLogger' => true
+            'UseDebugLogger' => true,
+            'UseInfoLogger' => true,
+            'UseWarningLogger' => true,
+            'UseErrorLogger' => true,
+            'UseCriticalLogger' => true,
         ],
         'upload' => [
             'UploadDir' => 'uploads',
