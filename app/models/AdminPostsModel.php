@@ -482,70 +482,98 @@ class AdminPostsModel {
      */
     public function linkPostToTags(int $postId, string $tagsString): bool
     {
-        Logger::debug("linkPostToTags. postId=$postId, tagsString=$tagsString");
+        Logger::debug("linkPostToTags. Начало. postId=$postId, tagsString=$tagsString");
 
+        // 1. Очистка и нормализация тегов
         $tagsArray = array_map('trim', explode(',', $tagsString));
         $tagsArray = array_filter($tagsArray);
         if (empty($tagsArray)) {
+            Logger::debug("linkPostToTags. Теги отсутствуют. Конец.");
             return true;
         }
 
-        Logger::debug("linkPostToTags. tagsArray ".print_r($tagsArray, true));
+        Logger::debug("linkPostToTags. tagsString: " . print_r($tagsString, true));
 
-        // Нормализуем имена: убираем дубли, приводим к нижнему регистру для сравнения
-        $uniqueTags = array_unique(array_map('mb_strtolower', $tagsArray));
-        Logger::debug("linkPostToTags. uniqueTags. ".print_r($uniqueTags, true));
-        $tagIds = [];
+        // Создаём уникальную карту: URL => оригинальное имя тега
+        $tagUrlToNameMap = [];
+        foreach ($tagsArray as $tagName) {
+            $tagUrl = transliterate(mb_strtolower($tagName));
+            // Если такой URL уже есть, пропускаем, чтобы сохранить первое вхождение.
+            if (!isset($tagUrlToNameMap[$tagUrl])) {
+                $tagUrlToNameMap[$tagUrl] = $tagName;
+            }
+        }
+        
+        $tagsUrlsToProcess = array_keys($tagUrlToNameMap);
+        $placeholders = implode(',', array_fill(0, count($tagsUrlsToProcess), '?'));
+        
+        Logger::debug("linkPostToTags. URL тегов для обработки: " . print_r($tagsUrlsToProcess, true));
 
-        $sqlInsert = "INSERT IGNORE INTO tags (name, url) VALUES (:name, :url)";
-        $stmtInsert = $this->db->prepare($sqlInsert);
-
-        $sqlSelect = "SELECT id FROM tags WHERE LOWER(name) = :name LIMIT 1";
+        // 2. Поиск существующих тегов в БД
+        $sqlSelect = "SELECT url, name FROM tags WHERE url IN ($placeholders)";
         $stmtSelect = $this->db->prepare($sqlSelect);
+        $stmtSelect->execute(array_values($tagsUrlsToProcess));
+        $existingTags = $stmtSelect->fetchAll(PDO::FETCH_KEY_PAIR);
 
-        foreach ($uniqueTags as $tagName) {
-            Logger::debug("linkPostToTags. process tagName=".$tagName);
+        Logger::debug("linkPostToTags. Существующие теги из БД (URL => имя): " . print_r($existingTags, true));
 
-            // Пробуем найти существующий тег по имени (с учётом регистра)
-            $stmtSelect->execute([':name' => mb_strtolower($tagName)]);
-            $result = $stmtSelect->fetch(PDO::FETCH_ASSOC);
+        $existingTagUrls = array_keys($existingTags);
+        // Выбираем только новые тэги (урлы)
+        $newTagUrls = array_diff(array_values($tagsUrlsToProcess), $existingTagUrls);
+        
+        Logger::debug("linkPostToTags. URL новых тегов для вставки: " . print_r($newTagUrls, true));
 
-            if ($result) {
-                // Тег уже есть
-                $tagId = (int)$result['id'];
-                Logger::debug("linkPostToTags. tagName=$tagName уже существует. Id=$tagId ");
-            } else {
-                // Создаём новый тег
-                $tagUrl = transliterate($tagName);
-                // Убедимся, что URL уникален
-                $existingByUrl = $this->db->prepare("SELECT id FROM tags WHERE url = :url LIMIT 1");
-                $existingByUrl->execute([':url' => $tagUrl]);
-                if ($existingByUrl->fetch()) {
-                    // Если URL занят другим тегом — пропускаем или генерируем новый
-                    continue; // или $tagUrl .= '-2' и т.д.
-                }
-                $stmtInsert->execute([
-                    ':name' => $tagName,
-                    ':url' => $tagUrl
-                ]);
-                $tagId = (int)$this->db->lastInsertId();
+        // 3. Массовая вставка новых тегов
+        if (!empty($newTagUrls)) {
+            $values = [];
+            $params = [];
+            foreach ($newTagUrls as $url) {
+                $name = $tagUrlToNameMap[$url];
+                $values[] = "(?, ?)";
+                $params[] = $name;
+                $params[] = $url;
             }
+            
+            $sqlInsert = "INSERT IGNORE INTO tags (name, url) VALUES " . implode(',', $values);
+            $stmtInsert = $this->db->prepare($sqlInsert);
+            $stmtInsert->execute($params);
+            
+            $rowsInserted = $stmtInsert->rowCount();
+            Logger::debug("linkPostToTags. Вставлено новых тегов: $rowsInserted");
+        }
+        
+        // 4. Поиск ID всех тегов (включая только что созданные)
+        $allTagIds = [];
+        if (!empty($tagsUrlsToProcess)) {
+            $sqlSelectAll = "SELECT id FROM tags WHERE url IN ($placeholders)";
+            $stmtSelectAll = $this->db->prepare($sqlSelectAll);
+            $stmtSelectAll->execute($tagsUrlsToProcess);
+            $allTagIds = $stmtSelectAll->fetchAll(PDO::FETCH_COLUMN);
 
-            if ($tagId) {
-                $tagIds[] = $tagId;
-            }
+            Logger::debug("linkPostToTags. ID всех тегов: " . print_r($allTagIds, true));
         }
 
-        // Связываем пост с найденными/созданными тегами
-        $sqlLink = "INSERT IGNORE INTO post_tag (post_id, tag_id) VALUES (:post_id, :tag_id)";
-        $stmtLink = $this->db->prepare($sqlLink);
-        foreach ($tagIds as $tagId) {
-            $stmtLink->execute([':post_id' => $postId, ':tag_id' => $tagId]);
+        // 5. Массовая вставка связей между постом и тегами
+        if (!empty($allTagIds)) {
+            $values = [];
+            $params = [];
+            foreach ($allTagIds as $tagId) {
+                $values[] = "(?, ?)";
+                $params[] = $postId;
+                $params[] = $tagId;
+            }
+
+            $sqlLink = "INSERT IGNORE INTO post_tag (post_id, tag_id) VALUES " . implode(',', $values);
+            $stmtLink = $this->db->prepare($sqlLink);
+            $stmtLink->execute($params);
+            
+            $rowsInserted = $stmtLink->rowCount();
+            Logger::debug("linkPostToTags. Привязано тегов к посту $postId: $rowsInserted");
         }
 
+        Logger::debug("linkPostToTags. Конец. Выполнено");
 
         return true;
-
     }
 
     public function searchTagsByName(string $query)
