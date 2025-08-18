@@ -16,7 +16,7 @@ document.addEventListener('DOMContentLoaded', function() {
             tagSpan.className = 'badge bg-secondary d-flex align-items-center me-2 mb-2';
             tagSpan.innerHTML = `
                 ${tagName}
-                <input type="hidden" name="tags[]" value="${tagUrl}">
+                <input type="hidden" name="tags[]" value="${tagName}">
                 <button type="button" class="btn-close btn-close-white ms-2" aria-label="Remove tag"></button>
             `;
 
