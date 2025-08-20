@@ -1,7 +1,17 @@
 <IfModule mod_rewrite.c>
     RewriteEngine On
-    RewriteCond %{REQUEST_FILENAME} !-f
-    RewriteCond %{REQUEST_FILENAME} !-d
-	RewriteRule ^assets/.+\.(jpg|jpeg|png|gif|webp|svg|ico|mp4)$ - [L]
+    
+    # Если запрашиваемый путь существует как файл на диске,
+    # прекратить обработку правил и отдать файл напрямую.
+    RewriteCond %{REQUEST_FILENAME} -f
+    RewriteRule ^ - [L]
+
+    # Если запрашиваемый путь существует как директория на диске,
+    # прекратить обработку правил.
+    RewriteCond %{REQUEST_FILENAME} -d
+    RewriteRule ^ - [L]
+    
+    # Если ни файл, ни директория не найдены, 
+    # перенаправлять запрос на index.php
     RewriteRule ^(.*)$ index.php [QSA,L]
 </IfModule>
