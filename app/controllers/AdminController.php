@@ -241,20 +241,27 @@ class AdminController {
         }
     }
 
-    public function createPost() {
+    /**
+     * Открывает страницу создания нового поста
+     */
+    public function createPostGet() {
+        $adminRoute = Config::get('admin.AdminRoute');
+
         try {
+            Logger::debug('createPostGet. begin');
             $this->checkIfUserLoggedIn();
 
             $adminPostsModel = new AdminPostsModel();
-            $adminRoute = Config::get('admin.AdminRoute');
             
-            $user_id = Auth::getUserId();
-            $user_name = Auth::getUserName();
+            // $user_id = Auth::getUserId();
+            // $user_name = Auth::getUserName();
+
+            Logger::debug("createPostGet. adminRoute $adminRoute");
 
             $data = [
                 'adminRoute' => $adminRoute,
                 'articleType' => 'post',
-                'user_name' => $user_name,
+                // 'user_name' => $user_name,
                 'title' => 'Создать новый пост',
                 'active' => 'posts',
                 'post' => null,
@@ -263,107 +270,139 @@ class AdminController {
                 'errors' => [],
                 'is_new_post' => true
             ];
+
+            Logger::debug("createPostGet. data", $data);
         
-            if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-                $token = $_POST['csrf_token'] ?? '';
-                if (!CSRF::validateToken($token)) {
-                    $data['errors'][] = 'Ошибка CSRF-токена. Попробуйте ещё раз.';
-                    CSRF::refreshToken();
-                } else {
-                    $title = trim($_POST['title'] ?? '');
-                    $content = $_POST['content'] ?? '';
-                    $url = $this->sanitizeUrl($_POST['url'] ?? '');
-                    $status = $_POST['status'] ?? 'draft';
-                    $meta_title = trim($_POST['meta_title'] ?? '');
-                    $meta_description = trim($_POST['meta_description'] ?? '');
-                    $meta_keywords = trim($_POST['meta_keywords'] ?? '');
-                    $excerpt = trim($_POST['excerpt'] ?? '');
-                    $selectedCategories = $_POST['categories'] ?? [];
-
-                    // $tagsString = $_POST['tags'] ?? [];
-                    $selectedTags = $_POST['tags'] ?? [];
-                    $tagsString = is_array($selectedTags) ? implode(',', $selectedTags) : $selectedTags;
-
-                    $thumbnailUrl = trim($_POST['post_image_url'] ?? ''); 
-
-                    if (empty($title)) {
-                        $data['errors'][] = 'Заголовок поста обязателен.';
-                    }
-                    if (empty($url)) {
-                        $data['errors'][] = 'URL поста обязателен.';
-                    } else if (!$adminPostsModel->isUrlUnique($url)) {
-                         $data['errors'][] = 'Указанный URL уже занят.';
-                    }
-
-                    if (empty($data['errors'])) {
-                        $postData = [
-                            'user_id' => $user_id,
-                            'article_type' => 'post',
-                            'status' => $status,
-                            'title' => $title,
-                            'content' => $content,
-                            'url' => $url,
-                            'meta_title' => $meta_title,
-                            'meta_description' => $meta_description,
-                            'meta_keywords' => $meta_keywords,
-                            'excerpt' => $excerpt,
-                            'thumbnail_url' => $thumbnailUrl,
-                        ];
-
-                        $postId = $adminPostsModel->createPost($postData, $selectedCategories, $tagsString);
-                        
-                        if ($postId) {
-                            header("Location: /$adminRoute/posts");
-                            exit;
-                        } else {
-                            $data['errors'][] = 'Произошла ошибка при сохранении поста в базу данных.';
-                        }
-                    }
-                    
-                    $data['post'] = [
-                        'title' => $title,
-                        'url' => $url,
-                        'content' => $content,
-                        'status' => $status,
-                        'meta_title' => $meta_title,
-                        'meta_description' => $meta_description,
-                        'meta_keywords' => $meta_keywords,
-                        'excerpt' => $excerpt,
-                        'thumbnail_url' => $thumbnailUrl,
-                        'selected_categories' => $selectedCategories,
-                        'selected_tags' => $tagsString
-                    ];
-                }
-            }
-        } catch (Throwable $e) {
-            Logger::error("An unexpected error occurred: " . $e->getTraceAsString());
-            $data['errors'][] = 'Произошла непредвиденная ошибка. Пожалуйста, попробуйте снова или свяжитесь с администратором.';
+            $data['categories'] = $adminPostsModel->getAllCategories();
+            $data['tags'] = $adminPostsModel->getAllTags();
+        
+            $content = View::render('../app/views/admin/posts/edit_create.php', $data);
+            $route_path = 'edit_create';
+            require '../app/views/admin/admin_layout.php';
             
-            // Если ошибка произошла, мы все равно заполняем данные для формы
-            $data['post'] = [
-                'title' => $_POST['title'] ?? '',
-                'url' => $_POST['url'] ?? '',
-                'content' => $_POST['content'] ?? '',
-                'status' => $_POST['status'] ?? 'draft',
-                'meta_title' => $_POST['meta_title'] ?? '',
-                'meta_description' => $_POST['meta_description'] ?? '',
-                'meta_keywords' => $_POST['meta_keywords'] ?? '',
-                'excerpt' => $_POST['excerpt'] ?? '',
-                'thumbnail_url' => $_POST['post_image_url'] ?? '',
-                'selected_categories' => $_POST['categories'] ?? [],
-                'selected_tags' => $_POST['tags'] ?? ''
+        } catch (Throwable $e) {
+            Logger::error("createPostGet. An unexpected error occurred: " . $e->getTraceAsString());
+
+            $data = [
+                'adminRoute' => $adminRoute,
+                'title' => 'Ошибка',
+                'error_message' => 'Не удалось загрузить посты. Пожалуйста, попробуйте позже.'
             ];
+            $user_name = Auth::getUserName();
+            $content = View::render('../app/views/admin/error_view.php', $data);
+            require '../app/views/admin/admin_layout.php';
         }
 
-        // Этот код выполняется всегда, независимо от того, был ли POST-запрос или произошла ошибка
-        $data['categories'] = $adminPostsModel->getAllCategories();
-        $data['tags'] = $adminPostsModel->getAllTags();
+        
+    }
 
-        $data['csrf_token'] = CSRF::getToken();
-    
-        $content = View::render('../app/views/admin/posts/edit_create.php', $data);
-        $route_path = 'edit_create';
-        require '../app/views/admin/admin_layout.php';
+    /**
+     * Создает новый пост вызовом ajax
+     */
+    public function createPostPost() {
+        header('Content-Type: application/json');
+
+
+        Logger::debug("createPostPost. Начало");
+
+        $this->checkIfUserLoggedIn();
+
+        // вызов должен прийти методом пост. должен быть установлен HTTP_X_REQUESTED_WITH
+        // и он должен быть равен XMLHttpRequest
+        Logger::debug("createPostPost. REQUEST_METHOD = {$_SERVER['REQUEST_METHOD']}");
+        $http_requested_with = $_SERVER['HTTP_X_REQUESTED_WITH'] ?? '';
+        Logger::debug("createPostPost. HTTP_X_REQUESTED_WITH = {$http_requested_with}");
+
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST' 
+            || empty($http_requested_with)
+            || strtoupper($http_requested_with) !== strtoupper('XMLHttpRequest')) {
+            
+            echo json_encode(['success' => false, 'message' => 'Неверный REQUEST_METHOD или HTTP_X_REQUESTED_WITH.']);
+            http_response_code(403);
+            exit;
+        }
+
+        $token = $_POST['csrf_token'] ?? '';
+        Logger::debug("createPostPost. post token = $token");
+        
+        if (!CSRF::validateToken($token)) {
+            http_response_code(403);
+            echo json_encode(['success' => false, 'message' => 'Неверный CSRF-токен.']);
+            exit;
+        } 
+
+        Logger::debug("createPostPost. post token is valid");
+        
+            
+        $adminPostsModel = new AdminPostsModel();
+        
+        $title = trim($_POST['title'] ?? '');
+        $content = $_POST['content'] ?? '';
+        $url = $this->sanitizeUrl($_POST['url'] ?? '');
+        $status = $_POST['status'] ?? 'draft';
+        $meta_title = trim($_POST['meta_title'] ?? '');
+        $meta_description = trim($_POST['meta_description'] ?? '');
+        $meta_keywords = trim($_POST['meta_keywords'] ?? '');
+        $excerpt = trim($_POST['excerpt'] ?? '');
+        $selectedCategories = $_POST['categories'] ?? [];
+
+        $selectedTags = $_POST['tags'] ?? [];
+        $tagsString = is_array($selectedTags) ? implode(',', $selectedTags) : $selectedTags;
+
+        $thumbnailUrl = trim($_POST['post_image_url'] ?? ''); 
+
+        if (empty($title)) {
+            Logger::debug("createPostPost. title empty");
+            $data['errors'][] = 'Заголовок поста обязателен.';
+        }
+        if (empty($url)) {
+            Logger::debug("createPostPost. url empty");
+            $data['errors'][] = 'URL поста обязателен.';
+        } else if (!$adminPostsModel->isUrlUnique($url)) {
+            Logger::debug("createPostPost. url exists");
+            $data['errors'][] = 'Указанный URL уже занят.';
+        }
+
+        if (!empty($data['errors'])) {
+            Logger::debug("createPostPost. ошибки заполнены. выход");
+            http_response_code(500);
+            echo json_encode(['success' => false, 
+                'message' => 'Неверно заполнены поля.',
+                'errors' => $data['errors']]);
+            exit;
+        }
+
+            
+        $user_id = Auth::getUserId();
+        $postData = [
+            'user_id' => $user_id,
+            'article_type' => 'post',
+            'status' => $status,
+            'title' => $title,
+            'content' => $content,
+            'url' => $url,
+            'meta_title' => $meta_title,
+            'meta_description' => $meta_description,
+            'meta_keywords' => $meta_keywords,
+            'excerpt' => $excerpt,
+            'thumbnail_url' => $thumbnailUrl,
+        ];
+
+        $postId = $adminPostsModel->createPost($postData, $selectedCategories, $tagsString);
+        
+        if ($postId) {
+            $adminRoute = Config::get('admin.AdminRoute');
+            echo json_encode(['success' => true, 
+                'redirect' => "/$adminRoute/posts",
+                'message' => 'Пост успешно создан.']);
+            // header("Location: /$adminRoute/posts");
+            // exit;
+        } else {
+            http_response_code(500);
+            echo json_encode(['success' => false, 
+                'message' => 'Произошла ошибка при создании поста.']);
+        }
+
     }
     
     public function editPost($postId)

@@ -119,6 +119,7 @@
             echo '<script src="' . asset("admin/js/$route_path.js") . '" defer></script>'."\n";
         }
     ?>
+    <script src="<?= asset('js/common.js') ?>" defer></script>
     <!-- Мобильное меню скрипт -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {

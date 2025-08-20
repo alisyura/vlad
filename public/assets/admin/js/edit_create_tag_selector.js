@@ -44,88 +44,88 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     tagsInput.addEventListener('keydown', function(event) {
-            if (event.key === 'Enter') {
-                event.preventDefault();
-                const tagValue = this.value.trim();
+        if (event.key === 'Enter') {
+            event.preventDefault();
+            const tagValue = this.value.trim();
+            
+            if (tagValue) {
+                // Разделяем строку на отдельные теги по запятой
+                const tags = tagValue.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0);
                 
-                if (tagValue) {
-                    // Разделяем строку на отдельные теги по запятой
-                    const tags = tagValue.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0);
-                    
-                    tags.forEach(tagName => {
-                        const tagUrl = tagName.toLowerCase()
-                                            .replace(/[^a-zа-яё0-9- ]/g, '')
-                                            .replace(/ /g, '-');
-                        addTag(tagUrl, tagName);
-                    });
+                tags.forEach(tagName => {
+                    const tagUrl = tagName.toLowerCase()
+                                        .replace(/[^a-zа-яё0-9- ]/g, '')
+                                        .replace(/ /g, '-');
+                    addTag(tagUrl, tagName);
+                });
+            }
+            
+            this.value = '';
+            tagSuggestions.innerHTML = '';
+        }
+    });
+    
+    let debounceTimeout;
+    tagsInput.addEventListener('input', function() {
+        clearTimeout(debounceTimeout);
+        const query = this.value.trim();
+
+        if (query.length < 3) {
+            tagSuggestions.innerHTML = '';
+            return;
+        }
+
+        debounceTimeout = setTimeout(async () => {
+            try {
+                const csrfToken = document.querySelector('meta[name="csrf_token"]')?.content;
+                if (!csrfToken) {
+                    alert('Ошибка: CSRF-токен не найден.');
+                    return;
+                }
+
+                const url = `/${adminRoute}/tags/search`;
+
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRF-Token': csrfToken
+                    },
+                    body: JSON.stringify({ q: query })
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
                 }
                 
-                this.value = '';
+                const tags = await response.json();
+                
                 tagSuggestions.innerHTML = '';
-            }
-        });
-        
-        let debounceTimeout;
-        tagsInput.addEventListener('input', function() {
-            clearTimeout(debounceTimeout);
-            const query = this.value.trim();
-
-            if (query.length < 3) {
-                tagSuggestions.innerHTML = '';
-                return;
-            }
-
-            debounceTimeout = setTimeout(async () => {
-                try {
-                    const csrfToken = document.querySelector('meta[name="csrf_token"]')?.content;
-                    if (!csrfToken) {
-                        alert('Ошибка: CSRF-токен не найден.');
-                        return;
-                    }
-
-                    const url = `/${adminRoute}/tags/search`;
-
-                    const response = await fetch(url, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-Requested-With': 'XMLHttpRequest',
-                            'X-CSRF-Token': csrfToken
-                        },
-                        body: JSON.stringify({ q: query })
-                    });
-                    
-                    if (!response.ok) {
-                        throw new Error(`HTTP error! status: ${response.status}`);
-                    }
-                    
-                    const tags = await response.json();
-                    
-                    tagSuggestions.innerHTML = '';
-                    if (tags.length > 0) {
-                        tags.forEach(tag => {
-                            const suggestionItem = document.createElement('a');
-                            suggestionItem.href = '#';
-                            suggestionItem.className = 'list-group-item list-group-item-action';
-                            suggestionItem.textContent = tag.name;
-                            suggestionItem.addEventListener('click', (e) => {
-                                e.preventDefault();
-                                addTag(tag.url, tag.name);
-                                tagsInput.value = '';
-                                tagSuggestions.innerHTML = '';
-                            });
-                            tagSuggestions.appendChild(suggestionItem);
+                if (tags.length > 0) {
+                    tags.forEach(tag => {
+                        const suggestionItem = document.createElement('a');
+                        suggestionItem.href = '#';
+                        suggestionItem.className = 'list-group-item list-group-item-action';
+                        suggestionItem.textContent = tag.name;
+                        suggestionItem.addEventListener('click', (e) => {
+                            e.preventDefault();
+                            addTag(tag.url, tag.name);
+                            tagsInput.value = '';
+                            tagSuggestions.innerHTML = '';
                         });
-                    }
-                } catch (error) {
-                    console.error('Ошибка при поиске меток:', error);
+                        tagSuggestions.appendChild(suggestionItem);
+                    });
                 }
-            }, 300);
-        });
-        
-        document.addEventListener('click', (e) => {
-            if (!tagsInput.contains(e.target) && !tagSuggestions.contains(e.target)) {
-                tagSuggestions.innerHTML = '';
+            } catch (error) {
+                console.error('Ошибка при поиске меток:', error);
             }
-        });
+        }, 300);
+    });
+    
+    document.addEventListener('click', (e) => {
+        if (!tagsInput.contains(e.target) && !tagSuggestions.contains(e.target)) {
+            tagSuggestions.innerHTML = '';
+        }
+    });    
 });

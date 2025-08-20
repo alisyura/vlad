@@ -25,6 +25,11 @@ document.addEventListener("DOMContentLoaded", function () {
     const cookieBanner = document.getElementById('cookie-consent');
     const acceptBtn = document.getElementById('accept-cookies');
 
+    // Проверяем, существуют ли оба элемента. Если хотя бы одного нет, выходим из функции.
+    if (!cookieBanner || !acceptBtn) {
+        return; 
+    }
+    
     // Проверяем, есть ли согласие
     if (!localStorage.getItem('cookiesAccepted')) {
         cookieBanner.classList.add('show');

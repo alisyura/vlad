@@ -147,7 +147,12 @@ $router->addRoute("/$adminRoute/pages(?:/p(\d+))?", function($page = 1) {
 
 // Маршрут для создания нового поста
 $router->addRoute("/$adminRoute/posts/create", function() {
-    (new AdminController())->createPost();
+    (new AdminController())->createPostGet();
+}, ['AdminAuthMiddleware']);
+
+// Вызов api создания нового поста из формы создания нового поста по кнопке "опубликовать"
+$router->addRoute("/$adminRoute/api/posts/create", function() {
+    (new AdminController())->createPostPost();
 }, ['AdminAuthMiddleware']);
 
 // Маршрут для редактирования существующего поста

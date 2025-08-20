@@ -474,113 +474,13 @@ class AdminPostsModel {
         return true;
     }
 
-  /**
- * Связывает пост с тегами. Если тег не существует, он создается.
- * @param int $postId ID поста.
- * @param string $tagsString Строка тегов, разделённая запятыми.
- * @return bool Успех операции.
- */
-public function linkPostToTags(int $postId, string $tagsString): bool
-{
-    Logger::debug("linkPostToTags. Начало. postId=$postId, tagsString=$tagsString");
-
-    // 1. Очистка и нормализация тегов
-    $tagsArray = array_map('trim', explode(',', $tagsString));
-    $tagsArray = array_filter($tagsArray);
-    if (empty($tagsArray)) {
-        Logger::debug("linkPostToTags. Теги отсутствуют. Конец.");
-        return true;
-    }
-    
-    // Создаём уникальную карту: имя тега в нижнем регистре => оригинальное имя
-    $tagNameToOriginalMap = [];
-    foreach ($tagsArray as $originalTagName) {
-        $lowerCaseTagName = mb_strtolower($originalTagName);
-        if (!isset($tagNameToOriginalMap[$lowerCaseTagName])) {
-            $tagNameToOriginalMap[$lowerCaseTagName] = $originalTagName;
-        }
-    }
-    
-    $tagsNamesToProcess = array_keys($tagNameToOriginalMap);
-    $placeholders = implode(',', array_fill(0, count($tagsNamesToProcess), '?'));
-    
-    Logger::debug("linkPostToTags. Теги для обработки: " . print_r($tagsNamesToProcess, true));
-
-    // 2. Поиск существующих тегов в БД по имени
-    $sqlSelect = "SELECT LOWER(name) AS name_lower, id FROM tags WHERE name IN ($placeholders)";
-    $stmtSelect = $this->db->prepare($sqlSelect);
-    $stmtSelect->execute(array_values($tagsNamesToProcess));
-    $existingTags = $stmtSelect->fetchAll(PDO::FETCH_KEY_PAIR); // Получаем массив [name_lower => ID]
-    
-    Logger::debug("linkPostToTags. Существующие теги из БД (имя => ID): " . print_r($existingTags, true));
-    
-    // 3. Определяем, какие теги нужно создать
-    $newTagNames = [];
-    foreach ($tagsNamesToProcess as $tagName) {
-        if (!array_key_exists($tagName, $existingTags)) {
-            $newTagNames[] = $tagName;
-        }
-    }
-    
-    Logger::debug("linkPostToTags. Новые теги для вставки: " . print_r($newTagNames, true));
-
-    // 4. Массовая вставка новых тегов
-    if (!empty($newTagNames)) {
-        $values = [];
-        $params = [];
-        foreach ($newTagNames as $name) {
-            $originalName = $tagNameToOriginalMap[$name];
-            $url = transliterate($originalName);
-            $values[] = "(?, ?)";
-            $params[] = $originalName;
-            $params[] = $url;
-        }
-        
-        $sqlInsert = "INSERT IGNORE INTO tags (name, url) VALUES " . implode(',', $values);
-        $stmtInsert = $this->db->prepare($sqlInsert);
-        $stmtInsert->execute($params);
-        
-        $rowsInserted = $stmtInsert->rowCount();
-        Logger::debug("linkPostToTags. Вставлено новых тегов: $rowsInserted");
-    }
-    
-    // 5. Поиск ID всех тегов (включая только что созданные)
-    $allTagIds = [];
-    if (!empty($tagsNamesToProcess)) {
-        $sqlSelectAll = "SELECT id FROM tags WHERE name IN ($placeholders)";
-        $stmtSelectAll = $this->db->prepare($sqlSelectAll);
-        $stmtSelectAll->execute($tagsNamesToProcess);
-        $allTagIds = $stmtSelectAll->fetchAll(PDO::FETCH_COLUMN);
-        Logger::debug("linkPostToTags. ID всех тегов: " . print_r($allTagIds, true));
-    }
-    
-    // 6. Массовая вставка связей между постом и тегами
-    if (!empty($allTagIds)) {
-        $values = [];
-        $params = [];
-        foreach ($allTagIds as $tagId) {
-            $values[] = "(?, ?)";
-            $params[] = $postId;
-            $params[] = $tagId;
-        }
-        $sqlLink = "INSERT IGNORE INTO post_tag (post_id, tag_id) VALUES " . implode(',', $values);
-        $stmtLink = $this->db->prepare($sqlLink);
-        $stmtLink->execute($params);
-        $rowsInserted = $stmtLink->rowCount();
-        Logger::debug("linkPostToTags. Привязано тегов к посту $postId: $rowsInserted");
-    }
-
-    Logger::debug("linkPostToTags. Конец. Выполнено");
-
-    return true;
-}
     /**
      * Связывает пост с тегами. Если тег не существует, он создается.
      * @param int $postId ID поста.
      * @param string $tagsString Строка тегов, разделённая запятыми.
      * @return bool Успех операции.
      */
-    public function linkPostToTags_(int $postId, string $tagsString): bool
+    public function linkPostToTags(int $postId, string $tagsString): bool
     {
         Logger::debug("linkPostToTags. Начало. postId=$postId, tagsString=$tagsString");
 
@@ -596,7 +496,6 @@ public function linkPostToTags(int $postId, string $tagsString): bool
         $tagNameToOriginalMap = [];
         foreach ($tagsArray as $originalTagName) {
             $lowerCaseTagName = mb_strtolower($originalTagName);
-            // Если такого имени ещё нет, добавляем его
             if (!isset($tagNameToOriginalMap[$lowerCaseTagName])) {
                 $tagNameToOriginalMap[$lowerCaseTagName] = $originalTagName;
             }
@@ -605,25 +504,21 @@ public function linkPostToTags(int $postId, string $tagsString): bool
         $tagsNamesToProcess = array_keys($tagNameToOriginalMap);
         $placeholders = implode(',', array_fill(0, count($tagsNamesToProcess), '?'));
         
-        Logger::debug("linkPostToTags. Теги для обработки: " . print_r($tagsNamesToProcess, true));
+        Logger::debug("linkPostToTags. Теги для обработки: " . 
+            print_r($tagsNamesToProcess, true));
 
         // 2. Поиск существующих тегов в БД по имени
-        $sqlSelect = "SELECT name, id FROM tags WHERE name IN ($placeholders)";
+        $sqlSelect = "SELECT LOWER(name) AS name_lower, id 
+                        FROM tags 
+                        WHERE name IN ($placeholders)";
         $stmtSelect = $this->db->prepare($sqlSelect);
-        $stmtSelect->execute($tagsNamesToProcess);
-        $existingTags = $stmtSelect->fetchAll(PDO::FETCH_KEY_PAIR); // Получаем массив [name => id]
-
-        // Приводим все ключи к нижнему регистру для корректного сравнения
-        $existingTags = array_change_key_case($existingTags, CASE_LOWER);
-
-        Logger::debug("linkPostToTags. Существующие теги из БД (ID => имя): " . print_r($existingTags, true));
-
-        // Приводим имена существующих тегов к нижнему регистру для корректного сравнения
-        // $existingTagNames = array_map('mb_strtolower', array_keys($existingTags));
-        // Logger::debug("linkPostToTags. Существующие теги из БД (имя => ID): " . print_r($existingTagNames, true));
-        // Определяем, какие теги нужно создать
-        // $newTagNames = array_diff($tagsNamesToProcess, $existingTagNames);
-        // Определяем, какие теги нужно создать
+        $stmtSelect->execute(array_values($tagsNamesToProcess));
+        $existingTags = $stmtSelect->fetchAll(PDO::FETCH_KEY_PAIR); // Получаем массив [name_lower => ID]
+        
+        Logger::debug("linkPostToTags. Существующие теги из БД (имя => ID): " . 
+            print_r($existingTags, true));
+        
+        // 3. Определяем, какие теги нужно создать
         $newTagNames = [];
         foreach ($tagsNamesToProcess as $tagName) {
             if (!array_key_exists($tagName, $existingTags)) {
@@ -631,9 +526,10 @@ public function linkPostToTags(int $postId, string $tagsString): bool
             }
         }
         
-        Logger::debug("linkPostToTags. Новые теги для вставки: " . print_r($newTagNames, true));
+        Logger::debug("linkPostToTags. Новые теги для вставки: " . 
+            print_r($newTagNames, true));
 
-        // 3. Массовая вставка новых тегов
+        // 4. Массовая вставка новых тегов
         if (!empty($newTagNames)) {
             $values = [];
             $params = [];
@@ -645,7 +541,8 @@ public function linkPostToTags(int $postId, string $tagsString): bool
                 $params[] = $url;
             }
             
-            $sqlInsert = "INSERT IGNORE INTO tags (name, url) VALUES " . implode(',', $values);
+            $sqlInsert = "INSERT IGNORE INTO tags (name, url) 
+                            VALUES " . implode(',', $values);
             $stmtInsert = $this->db->prepare($sqlInsert);
             $stmtInsert->execute($params);
             
@@ -653,18 +550,17 @@ public function linkPostToTags(int $postId, string $tagsString): bool
             Logger::debug("linkPostToTags. Вставлено новых тегов: $rowsInserted");
         }
         
-        // 4. Поиск ID всех тегов (включая только что созданные)
+        // 5. Поиск ID всех тегов (включая только что созданные)
         $allTagIds = [];
         if (!empty($tagsNamesToProcess)) {
             $sqlSelectAll = "SELECT id FROM tags WHERE name IN ($placeholders)";
             $stmtSelectAll = $this->db->prepare($sqlSelectAll);
             $stmtSelectAll->execute($tagsNamesToProcess);
             $allTagIds = $stmtSelectAll->fetchAll(PDO::FETCH_COLUMN);
-
             Logger::debug("linkPostToTags. ID всех тегов: " . print_r($allTagIds, true));
         }
-
-        // 5. Массовая вставка связей между постом и тегами
+        
+        // 6. Массовая вставка связей между постом и тегами
         if (!empty($allTagIds)) {
             $values = [];
             $params = [];
@@ -673,11 +569,10 @@ public function linkPostToTags(int $postId, string $tagsString): bool
                 $params[] = $postId;
                 $params[] = $tagId;
             }
-
-            $sqlLink = "INSERT IGNORE INTO post_tag (post_id, tag_id) VALUES " . implode(',', $values);
+            $sqlLink = "INSERT IGNORE INTO post_tag (post_id, tag_id) 
+                        VALUES " . implode(',', $values);
             $stmtLink = $this->db->prepare($sqlLink);
             $stmtLink->execute($params);
-            
             $rowsInserted = $stmtLink->rowCount();
             Logger::debug("linkPostToTags. Привязано тегов к посту $postId: $rowsInserted");
         }
@@ -686,7 +581,7 @@ public function linkPostToTags(int $postId, string $tagsString): bool
 
         return true;
     }
-
+    
 
     public function searchTagsByName(string $query)
     {

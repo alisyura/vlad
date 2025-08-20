@@ -10,14 +10,15 @@ $tags = $data['tags'] ?? [];
 $selectedCategories = $post['selected_categories'] ?? []; // Для формы создания, если были ошибки
 $selectedTags = $post['selected_tags'] ?? [];
 
+// Убедимся, что $data['adminRoute'] доступен
+$adminRoute = $data['adminRoute'] ?? 'admin';
+
 // Заголовок страницы
 $pageTitle = !$is_new_post ? 'Редактировать пост: ' . htmlspecialchars($post['title']) : 'Создать новый пост';
 
 // URL для отправки формы (можно определить в контроллере и передать сюда)
-$formAction = !$is_new_post ? '/' . htmlspecialchars($adminRoute) . '/posts/edit/' . htmlspecialchars($post['id']) : '/' . htmlspecialchars($adminRoute) . '/posts/create';
+$formAction = '/' . htmlspecialchars($adminRoute) . (!$is_new_post ? '/api/posts/edit/' . htmlspecialchars($post['id']) : '/api/posts/create');
 
-// Убедимся, что $data['adminRoute'] доступен
-$adminRoute = $data['adminRoute'] ?? 'admin';
 ?>
 <input type="hidden" id="initialTagsData" value='<?= htmlspecialchars(json_encode($data['tags'] ?? []), ENT_QUOTES, 'UTF-8') ?>'>
 <input type="hidden" id="selectedTagsData" value='<?= htmlspecialchars(json_encode($post['selected_tags'] ?? []), ENT_QUOTES, 'UTF-8') ?>'>
@@ -52,7 +53,6 @@ $adminRoute = $data['adminRoute'] ?? 'admin';
 <?php endif; ?>
 
 <form action="<?= $formAction ?>" method="POST" enctype="multipart/form-data">
-    <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($data['csrf_token']) ?>">
     <div class="row">
         <div class="col-md-9">
             <div class="mb-3">
@@ -138,7 +138,7 @@ $adminRoute = $data['adminRoute'] ?? 'admin';
                             </label>
                         </div>
                     </div>
-                    <button type="submit" class="btn btn-primary w-100">
+                    <button type="button" class="btn btn-primary w-100">
                         <?= !$is_new_post ? 'Обновить пост' : 'Опубликовать пост' ?>
                     </button>
                 </div>
