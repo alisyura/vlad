@@ -44,7 +44,10 @@ class Config
             'posts_per_page' => 3,
             'EnableCreateCategory' => false,
             'EnableEditCategory' => false,
-            'AdminRoleName' => 'Administrator'
+            'AdminRoleName' => 'Administrator',
+            // урлы страниц, которые не будут показаны в списке страниц в админке
+            'PagesToExclude' => ['sitemap', ''],
+            'PostsToExclude' => []
         ]
     ];
 

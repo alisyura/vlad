@@ -180,10 +180,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     throw new Error(`Сервер вернул ошибку: ${response.status} ${response.statusText}`);
                 }
 
-                // console.log('loadMediaItems !response.ok');
                 // Теперь проверяем: если статус не ok, но пришёл JSON — возможно, это наш структурированный ответ об ошибке
                 if (!response.ok) {
-                    // console.log(`loadMediaItems data.success=${data.success}, data.message=${data.message}, response.status=${response.status}`);
                     // Если сервер прислал { success: false, message: "..." }
                     if (!data.success && data.message) {
                         if (Array.isArray(data.errors) && data.errors.length > 0)

@@ -108,6 +108,7 @@ class AdminController {
     private function processArticlesList($currentPage = 1, $articleType = 'post') {
         $this->checkIfUserLoggedIn();
 
+        $adminRoute = Config::get('admin.AdminRoute');
         try {
             $admPostsModel = new AdminPostsModel();
 
@@ -190,10 +191,8 @@ class AdminController {
             }
             unset($post);
 
-            $adminRoute = Config::get('admin.AdminRoute');
-            // Используется в admin_layout
-            $user_name = Auth::getUserName();
-
+            
+            
             // Генерируем массив ссылок для умной пагинации
             // Базовый URL для админки
             $basePageUrl = '/' . htmlspecialchars($adminRoute) . "/{$articleType}s";
@@ -202,9 +201,10 @@ class AdminController {
             $data = [
                 'adminRoute' => $adminRoute,
                // 'user_name' => $user_name,
-                'title' => 'Список постов',
-                'active' => 'posts',
+                'title' => 'Список ' . ($articleType === 'post' ? 'постов' : 'страниц'),
+                //'active' => 'posts', // веорятно лишнее
                 'posts' => $posts,
+                'articleType' => $articleType,
                 'pagination' => [ // Передаем данные для пагинации в представление
                     'current_page' => $currentPage,
                     'total_pages' => $totalPages
@@ -216,6 +216,7 @@ class AdminController {
             ];
             
             // Используется в admin_layout
+            $user_name = Auth::getUserName();
             $content = View::render('../app/views/admin/posts/list.php', $data);
             $route_path = 'posts-list';
             require '../app/views/admin/admin_layout.php';
@@ -223,16 +224,16 @@ class AdminController {
         } catch (PDOException $e) {
             Logger::error("Database error in listPosts: " . $e->getTraceAsString());
             $data = [
-                'adminRoute' => Config::get('admin.AdminRoute'),
+                'adminRoute' => $adminRoute,
                 'title' => 'Ошибка',
-                'error_message' => 'Не удалось загрузить посты. Пожалуйста, попробуйте позже.'
+                'error_message' => 'Не удалось загрузить данные. Пожалуйста, попробуйте позже.'
             ];
             $content = View::render('../app/views/admin/error_view.php', $data);
             require '../app/views/admin/admin_layout.php';
         } catch (Exception $e) {
             Logger::error("Error in listPosts: " . $e->getTraceAsString());
             $data = [
-                'adminRoute' => Config::get('admin.AdminRoute'),
+                'adminRoute' => $adminRoute,
                 'title' => 'Ошибка',
                 'error_message' => 'Произошла непредвиденная ошибка.'
             ];
@@ -241,14 +242,19 @@ class AdminController {
         }
     }
 
+    public function createPostGet() {
+        $this->showCreateArticleForm('post');
+    }
     /**
      * Открывает страницу создания нового поста
      */
-    public function createPostGet() {
+    private function showCreateArticleForm(string $articleType) {
         $adminRoute = Config::get('admin.AdminRoute');
 
+        $logHeader = ($articleType === 'post') ? 'createPostGet' : 'createPageGet';
+
         try {
-            Logger::debug('createPostGet. begin');
+            Logger::debug("$logHeader. begin");
             $this->checkIfUserLoggedIn();
 
             $adminPostsModel = new AdminPostsModel();
@@ -256,11 +262,11 @@ class AdminController {
             // $user_id = Auth::getUserId();
             // $user_name = Auth::getUserName();
 
-            Logger::debug("createPostGet. adminRoute $adminRoute");
+            Logger::debug("$logHeader. adminRoute $adminRoute");
 
             $data = [
                 'adminRoute' => $adminRoute,
-                'articleType' => 'post',
+                'articleType' => $articleType,
                 // 'user_name' => $user_name,
                 'title' => 'Создать новый пост',
                 'active' => 'posts',
@@ -271,7 +277,7 @@ class AdminController {
                 'is_new_post' => true
             ];
 
-            Logger::debug("createPostGet. data", $data);
+            Logger::debug("$logHeader. data", $data);
         
             $data['categories'] = $adminPostsModel->getAllCategories();
             $data['tags'] = $adminPostsModel->getAllTags();
@@ -281,7 +287,7 @@ class AdminController {
             require '../app/views/admin/admin_layout.php';
             
         } catch (Throwable $e) {
-            Logger::error("createPostGet. An unexpected error occurred: " . $e->getTraceAsString());
+            Logger::error("$logHeader. An unexpected error occurred: " . $e->getTraceAsString());
 
             $data = [
                 'adminRoute' => $adminRoute,

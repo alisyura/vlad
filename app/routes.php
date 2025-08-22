@@ -1,32 +1,32 @@
 <?php
 
 // Не обрабатываем. Отдаём файл напрямую (если существует)
-$router->addRoute('^/assets/.*\.(jpg|jpeg|png|gif|css|js|webp|svg|ico|mp4)$', function() {
-    $filePath = $_SERVER['DOCUMENT_ROOT'] . $_SERVER['REQUEST_URI'];
+// $router->addRoute('^/assets/.*\.(jpg|jpeg|png|gif|css|js|webp|svg|ico|mp4)$', function() {
+//     $filePath = $_SERVER['DOCUMENT_ROOT'] . $_SERVER['REQUEST_URI'];
     
-    if (file_exists($filePath)) {
-        $mimeTypes = [
-            'jpg'  => 'image/jpeg',
-            'jpeg' => 'image/jpeg',
-            'png'  => 'image/png',
-            'gif'  => 'image/gif',
-            'css'  => 'text/css',
-            'js'   => 'application/javascript',
-            'webp' => 'image/webp',
-            'svg'  => 'image/svg+xml',
-            'ico'  => 'image/x-icon',
-            'mp4'  => 'video/mp4'
-        ];
+//     if (file_exists($filePath)) {
+//         $mimeTypes = [
+//             'jpg'  => 'image/jpeg',
+//             'jpeg' => 'image/jpeg',
+//             'png'  => 'image/png',
+//             'gif'  => 'image/gif',
+//             'css'  => 'text/css',
+//             'js'   => 'application/javascript',
+//             'webp' => 'image/webp',
+//             'svg'  => 'image/svg+xml',
+//             'ico'  => 'image/x-icon',
+//             'mp4'  => 'video/mp4'
+//         ];
         
-        $ext = strtolower(pathinfo($filePath, PATHINFO_EXTENSION));
-        header('Content-Type: ' . ($mimeTypes[$ext] ?? 'application/octet-stream'));
-        readfile($filePath);
-        exit;
-    }
+//         $ext = strtolower(pathinfo($filePath, PATHINFO_EXTENSION));
+//         header('Content-Type: ' . ($mimeTypes[$ext] ?? 'application/octet-stream'));
+//         readfile($filePath);
+//         exit;
+//     }
     
-    header("HTTP/1.0 404 Not Found");
-    exit;
-});
+//     header("HTTP/1.0 404 Not Found");
+//     exit;
+// });
 
 // Главная страница. Или пустая, или номером страницы /p/2
 $router->addRoute('/(p(\d+))?', function($fullMatch = null, $page = 1) {
@@ -123,8 +123,10 @@ $router->addRoute('/sitemap-(posts|pages)-(\d+)\.xml', function ($type, $page) {
 });
 
 
+
+// Админка
 $adminRoute = Config::get('admin.AdminRoute');
-// Админ
+
 $router->addRoute("/$adminRoute/login", function() {
     (new AdminController())->login();
 });
@@ -137,6 +139,7 @@ $router->addRoute("/$adminRoute/logout", function() {
     (new AdminController())->logout();
 }, ['AdminAuthMiddleware']);
 
+// Список постов/страниц с пагинацией
 $router->addRoute("/$adminRoute/posts(?:/p(\d+))?", function($page = 1) {
     (new AdminController())->postsList($page); // Передаем номер страницы в контроллер
 }, ['AdminAuthMiddleware']);
@@ -145,7 +148,8 @@ $router->addRoute("/$adminRoute/pages(?:/p(\d+))?", function($page = 1) {
     (new AdminController())->pagesList($page); // Передаем номер страницы в контроллер
 }, ['AdminAuthMiddleware']);
 
-// Маршрут для создания нового поста
+
+// Создание нового поста
 $router->addRoute("/$adminRoute/posts/create", function() {
     (new AdminController())->createPostGet();
 }, ['AdminAuthMiddleware']);
@@ -155,22 +159,42 @@ $router->addRoute("/$adminRoute/api/posts/create", function() {
     (new AdminController())->createPostPost();
 }, ['AdminAuthMiddleware']);
 
-// Маршрут для редактирования существующего поста
+// Редактирование существующего поста
 $router->addRoute("/$adminRoute/posts/edit/(\d+)", function($postId) {
     (new AdminController())->editPost($postId);
-}, ['AdminAuthMiddleware']);
-
-$router->addRoute("/$adminRoute/posts/check-url", function() {
-    (new AdminController())->checkUrl();
 }, ['AdminAuthMiddleware']);
 
 $router->addRoute("/$adminRoute/posts/delete", function() {
     (new AdminController())->deletePost();
 }, ['AdminAuthMiddleware']);
 
+
+// Создание новой страницы
+$router->addRoute("/$adminRoute/pages/create", function() {
+    (new AdminController())->createPageGet();
+}, ['AdminAuthMiddleware']);
+
+// Вызов api создания новой страницы из формы создания новой страницы по кнопке "опубликовать"
+$router->addRoute("/$adminRoute/api/posts/create", function() {
+    (new AdminController())->createPagePost();
+}, ['AdminAuthMiddleware']);
+
+// Редактирование существующей страницы
+$router->addRoute("/$adminRoute/posts/edit/(\d+)", function($pageId) {
+    (new AdminController())->editPage($pageId);
+}, ['AdminAuthMiddleware']);
+
+
+
+$router->addRoute("/$adminRoute/posts/check-url", function() {
+    (new AdminController())->checkUrl();
+}, ['AdminAuthMiddleware']);
+
 $router->addRoute("/$adminRoute/tags/search", function() {
     (new AdminController())->searchTags();
 }, ['AdminAuthMiddleware']);
+
+
 
 // Маршруты для работы с медиа изображениями
 $router->addRoute("/$adminRoute/media/list", function() {

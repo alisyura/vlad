@@ -15,17 +15,55 @@ class AdminPostsModel {
      * @return int Общее количество постов.
      */
     public function getTotalPostsCount(string $article_type) {
+        // Определяем массив исключений в зависимости от типа статьи
+        $configKey = null;
+        if ($article_type === 'page') {
+            $configKey = 'admin.PagesToExclude';
+        } elseif ($article_type === 'post') {
+            $configKey = 'admin.PostsToExclude';
+        }
+
+        $excludeUrls = [];
+        $excludeCondition = '';
+
+        // Если ключ конфигурации определён
+        if ($configKey) {
+            $rawExcludeUrls = \Config::get($configKey);
+            $excludeUrls = array_filter($rawExcludeUrls, 'strlen');
+
+            // Проверяем, что массив не пустой после фильтрации
+            if (!empty($excludeUrls)) {
+                $placeholders = [];
+                foreach ($excludeUrls as $index => $url) {
+                    $placeholders[] = ":url{$index}";
+                }
+                $excludeCondition = " AND url NOT IN (" . implode(', ', $placeholders) . ")";
+            }
+        }
+
         $sql = "SELECT COUNT(id) AS total_posts 
                 FROM posts 
-                WHERE article_type = :article_type AND status <> 'deleted'";
+                WHERE article_type = :article_type AND status <> 'deleted' {$excludeCondition}";
+
         try {
             $stmt = $this->db->prepare($sql);
-            $stmt->execute([':article_type' => $article_type]);
+            $stmt->bindParam(':article_type', $article_type, PDO::PARAM_STR);
+            
+            // Связываем параметры URL, если они есть
+            if (!empty($excludeUrls)) {
+                foreach ($excludeUrls as $index => $url) {
+                    $stmt->bindParam(":url{$index}", $excludeUrls[$index], PDO::PARAM_STR);
+                }
+            }
+            
+            $stmt->execute();
             $result = $stmt->fetch(PDO::FETCH_ASSOC);
+            
             return (int) $result['total_posts'];
+            
         } catch (PDOException $e) {
             Logger::error("Error fetching total posts count: " . $e->getTraceAsString());
-            return 0;
+            return 0; // Возвращаем 0, так как подсчет не удался
         }
     }
 
@@ -66,6 +104,30 @@ class AdminPostsModel {
             $sortOrder = 'DESC'; // По умолчанию DESC
         }
 
+        // вставляем параметры для исключения постов/страниц из выборки
+        // Определяем массив исключений в зависимости от типа статьи
+        $configKey = null;
+        if ($article_type === 'page') {
+            $configKey = 'admin.PagesToExclude';
+        } elseif ($article_type === 'post') {
+            $configKey = 'admin.PostsToExclude';
+        }
+
+        // Если ключ конфигурации определён
+        if ($configKey) {
+            $rawExcludeUrls = \Config::get($configKey);
+            $excludeUrls = array_filter($rawExcludeUrls, 'strlen');
+
+            // Проверяем, что массив не пустой после фильтрации
+            if (!empty($excludeUrls)) {
+                $placeholders = [];
+                foreach ($excludeUrls as $index => $url) {
+                    $placeholders[] = ":url{$index}";
+                }
+                $excludeCondition = " AND p.url NOT IN (" . implode(', ', $placeholders) . ")";
+            }
+        }
+        
         $sql = "SELECT
                      p.id,
                      p.title,
@@ -93,6 +155,7 @@ class AdminPostsModel {
                  WHERE
                      article_type = :article_type
                      AND status <> 'deleted'
+                     {$excludeCondition}
                  GROUP BY
                      p.id
                  ORDER BY
@@ -100,10 +163,21 @@ class AdminPostsModel {
                  LIMIT :limit OFFSET :offset";
 
         try {
+
+            Logger::debug("getPosts. $article_type, $limit, $offset,
+                             $sortBy, $sortOrder. $sql");
             $stmt = $this->db->prepare($sql);
             $stmt->bindParam(':article_type', $article_type, PDO::PARAM_STR);
             $stmt->bindParam(':limit', $limit, PDO::PARAM_INT);
             $stmt->bindParam(':offset', $offset, PDO::PARAM_INT);
+
+            // Связываем параметры URL, если они есть, для исключения постов/страниц
+            if (!empty($excludeUrls)) {
+                foreach ($excludeUrls as $index => $url) {
+                    $stmt->bindParam(":url{$index}", $excludeUrls[$index], PDO::PARAM_STR);
+                }
+            }
+            
             $stmt->execute();
             $rawPosts = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
@@ -153,7 +227,7 @@ class AdminPostsModel {
 
         } catch (PDOException $e) {
             Logger::error("Error fetching paginated posts in AdminPostsModel: " . $e->getTraceAsString());
-            return [];
+            throw $e;
         }
     }
 
