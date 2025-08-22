@@ -135,6 +135,7 @@ class AdminPostsModel {
                      p.status,
                      p.created_at,
                      p.updated_at,
+                     p.article_type,
                      u.name AS author_name,
                      GROUP_CONCAT(DISTINCT c.name ORDER BY c.name SEPARATOR ', ') AS category_names_concat,
                      GROUP_CONCAT(DISTINCT t.name ORDER BY t.name SEPARATOR ', ') AS tag_names_concat,

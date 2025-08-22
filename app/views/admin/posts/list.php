@@ -110,15 +110,15 @@
 
                             <div class="post-actions mt-1 d-none d-md-block">
                                 <!-- Для десктопа -->
-                                <a href="/<?= htmlspecialchars($adminRoute ?? 'admin') ?>/posts/edit/<?= htmlspecialchars($post['id']) ?>" class="text-primary me-2">Редактировать</a>
+                                <a href="/<?= htmlspecialchars($adminRoute ?? 'admin') ?>/<?= htmlspecialchars($articleType) ?>s/edit/<?= htmlspecialchars($post['id']) ?>" class="text-primary me-2">Редактировать</a>
                                 <a href="#" 
                                     class="btn btn-sm text-danger mb-1 me-1 delete-post-link" 
                                     data-post-id="<?= htmlspecialchars($post['id']) ?>"
                                     data-post-title="<?= htmlspecialchars($post['title']) ?>">
                                     Удалить
                                 </a>
-                                <?php if (!empty($post['url'])): ?>
-                                    <a href="/<?= htmlspecialchars($post['url']) ?>.html" target="_blank" class="text-info">Посмотреть на сайте</a>
+                                <?php if (!empty($post['full_url'])): ?>
+                                    <a href="/<?= htmlspecialchars($post['full_url']) ?>.html" target="_blank" class="text-info">Посмотреть на сайте</a>
                                 <?php endif; ?>
                             </div>
                         </td>

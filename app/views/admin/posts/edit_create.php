@@ -14,7 +14,7 @@ $selectedTags = $post['selected_tags'] ?? [];
 $adminRoute = $data['adminRoute'] ?? 'admin';
 
 // Заголовок страницы
-$pageTitle = !$is_new_post ? 'Редактировать пост: ' . htmlspecialchars($post['title']) : 'Создать новый пост';
+// $pageTitle = !$is_new_post ? 'Редактировать пост: ' . htmlspecialchars($post['title']) : 'Создать новый пост';
 
 // URL для отправки формы (можно определить в контроллере и передать сюда)
 $formAction = '/' . htmlspecialchars($adminRoute) . (!$is_new_post ? '/api/posts/edit/' . htmlspecialchars($post['id']) : '/api/posts/create');

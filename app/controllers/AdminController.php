@@ -151,6 +151,13 @@ class AdminController {
                 $post['formatted_created_at'] = date('d.m.Y', strtotime($post['created_at']));
                 $post['formatted_updated_at'] = date('d.m.Y', strtotime($post['updated_at']));
 
+                // Добавляем новый ключ с полным URL
+                if ($post['article_type'] === 'page') {
+                    $post['full_url'] = 'page/' . $post['url'];
+                } else {
+                    $post['full_url'] = $post['url'];
+                }
+                
                 // Собираем категории в строку HTML-ссылок
                 $category_names = [];
                 if (!empty($post['categories'])) {
@@ -245,6 +252,11 @@ class AdminController {
     public function createPostGet() {
         $this->showCreateArticleForm('post');
     }
+
+    public function createPageGet() {
+        $this->showCreateArticleForm('page');
+    }
+
     /**
      * Открывает страницу создания нового поста
      */
@@ -264,12 +276,14 @@ class AdminController {
 
             Logger::debug("$logHeader. adminRoute $adminRoute");
 
+            $pageTitle = ($articleType==='post') ? 'Создать новый пост' : 'Создать новую страницу';
             $data = [
                 'adminRoute' => $adminRoute,
                 'articleType' => $articleType,
                 // 'user_name' => $user_name,
-                'title' => 'Создать новый пост',
-                'active' => 'posts',
+                'title' => '', //тк создаем новый пост
+                // 'active' => 'posts',
+                'pageTitle' => $pageTitle,
                 'post' => null,
                 'categories' => [],
                 'tags' => [],
