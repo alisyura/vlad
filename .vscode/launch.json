@@ -2,26 +2,22 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Listen for Xdebug (OSPanel)",
+            "name": "Listen for Xdebug",
             "type": "php",
             "request": "launch",
-            "port": 9003, // Убедитесь, что этот порт соответствует xdebug.client_port в вашем php.ini OSPanel
+            "port": 9003,
             "pathMappings": {
-                // Это важно, если пути к файлам в VS Code отличаются от того, как их видит веб-сервер OSPanel.
-                // Например, если ваш проект лежит в C:\OSPanel\domains\myproject\public_html,
-                // а в VS Code вы открываете его как C:\Users\YourUser\Documents\myproject.
-                // В большинстве случаев для OSPanel (если проект открыт из папки domains) это не нужно,
-                // но если возникают проблемы, раскомментируйте и настройте.
-                // "/path/on/server/to/your/document/root": "${workspaceFolder}"
-                // Пример для OSPanel:
-                // "C:/OSPanel/domains/mysite.loc": "${workspaceFolder}"
-				//"C:\\OSPanel\\domains\\имя_проекта": "${workspaceFolder}"
-				"C:/Users/kriya/Сайт/soft/OSPanel/domains/vlad.local": "${workspaceFolder}"
-            }
+                "C:/Users/kriya/Projects/web/vlad.local": "${workspaceFolder}"
+            },
+            "log": false
+        },
+        {
+            "name": "Launch currently open script",
+            "type": "php",
+            "request": "launch",
+            "program": "${file}",
+            "cwd": "${fileDirname}",
+            "port": 9003
         }
-        // Можете удалить остальные конфигурации, если они вам не нужны для других сценариев.
-        // Если вы планируете запускать скрипты напрямую из VS Code, то Launch currently open script
-        // может быть полезен, но убедитесь, что его порт также 9003 и нет runtimeArgs для Xdebug,
-        // так как он должен использовать глобальные настройки Xdebug из php.ini.
     ]
 }

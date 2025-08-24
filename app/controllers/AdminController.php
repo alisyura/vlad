@@ -249,16 +249,24 @@ class AdminController {
         }
     }
 
+    /**
+     * Точка входа в создание нового поста из маршрутизатора
+     */
     public function createPostGet() {
         $this->showCreateArticleForm('post');
     }
 
+    /**
+     * Точка входа в создание новой страницы из маршрутизатора
+     */
     public function createPageGet() {
         $this->showCreateArticleForm('page');
     }
 
     /**
-     * Открывает страницу создания нового поста
+     * Открывает страницу создания нового поста/страницы
+     * 
+     * @param string $articleType Тип статьи (post/page)
      */
     private function showCreateArticleForm(string $articleType) {
         $adminRoute = Config::get('admin.AdminRoute');
@@ -277,6 +285,9 @@ class AdminController {
             Logger::debug("$logHeader. adminRoute $adminRoute");
 
             $pageTitle = ($articleType==='post') ? 'Создать новый пост' : 'Создать новую страницу';
+            $returnToListUrl = "/{$adminRoute}/{$articleType}s";
+            $returnToListTitle = ($articleType==='post') ? 'К списку постов' : 'К списку страниц';
+            $formAction = "/{$adminRoute}/api/{$articleType}s/create";
             $data = [
                 'adminRoute' => $adminRoute,
                 'articleType' => $articleType,
@@ -288,13 +299,17 @@ class AdminController {
                 'categories' => [],
                 'tags' => [],
                 'errors' => [],
-                'is_new_post' => true
+                'is_new_post' => true,
+                'categories' => $adminPostsModel->getAllCategories(),
+                'tags' => $adminPostsModel->getAllTags(),
+                'returnToListUrl' => [
+                    'url' => $returnToListUrl,
+                    'title' => $returnToListTitle
+                ],
+                'formAction' => $formAction
             ];
 
             Logger::debug("$logHeader. data", $data);
-        
-            $data['categories'] = $adminPostsModel->getAllCategories();
-            $data['tags'] = $adminPostsModel->getAllTags();
         
             $content = View::render('../app/views/admin/posts/edit_create.php', $data);
             $route_path = 'edit_create';
@@ -317,9 +332,23 @@ class AdminController {
     }
 
     /**
-     * Создает новый пост вызовом ajax
+     * Точка входа на создание нового поста (AJAX POST запрос)
      */
     public function createPostPost() {
+        $this->createArticle('post');
+    }
+
+    /**
+     * Точка входа на создание новой страницы (AJAX POST запрос)
+     */
+    public function createPagePost() {
+        $this->createArticle('page');
+    }
+
+    /**
+     * Создает запись с типом из articleType
+     */
+    private function createArticle($articleType) {
         header('Content-Type: application/json');
 
 
@@ -396,7 +425,7 @@ class AdminController {
         $user_id = Auth::getUserId();
         $postData = [
             'user_id' => $user_id,
-            'article_type' => 'post',
+            'article_type' => $articleType,
             'status' => $status,
             'title' => $title,
             'content' => $content,
@@ -412,11 +441,10 @@ class AdminController {
         
         if ($postId) {
             $adminRoute = Config::get('admin.AdminRoute');
+            $msgText = ($articleType == 'post' ? 'Пост успешно создан' : 'Страница успешно создана');
             echo json_encode(['success' => true, 
-                'redirect' => "/$adminRoute/posts",
-                'message' => 'Пост успешно создан.']);
-            // header("Location: /$adminRoute/posts");
-            // exit;
+                'redirect' => "/$adminRoute/{$articleType}s",
+                'message' => $msgText]);
         } else {
             http_response_code(500);
             echo json_encode(['success' => false, 

@@ -102,7 +102,7 @@
                                         data-post-title="<?= htmlspecialchars($post['title']) ?>">
                                         Удалить
                                     </a>
-                                    <?php if (!empty($post['url'])): ?>
+                                    <?php if (!empty($post['url']) && strtolower($post['status']) === 'published'): ?>
                                         <a href="/<?= htmlspecialchars($post['url']) ?>.html" target="_blank" class="btn btn-sm btn-outline-info text-secondary mb-1">Посмотреть на сайте</a>
                                     <?php endif; ?>
                                 </div>
@@ -117,7 +117,7 @@
                                     data-post-title="<?= htmlspecialchars($post['title']) ?>">
                                     Удалить
                                 </a>
-                                <?php if (!empty($post['full_url'])): ?>
+                                <?php if (!empty($post['full_url']) && strtolower($post['status']) === 'published'): ?>
                                     <a href="/<?= htmlspecialchars($post['full_url']) ?>.html" target="_blank" class="text-info">Посмотреть на сайте</a>
                                 <?php endif; ?>
                             </div>

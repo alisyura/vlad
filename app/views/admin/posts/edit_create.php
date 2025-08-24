@@ -4,9 +4,9 @@
 // иначе он будет пустым (null), и поля будут пустыми.
 
 // Проверяем, есть ли данные поста (для редактирования)
-$post = $data['post'] ?? null;
-$categories = $data['categories'] ?? [];
-$tags = $data['tags'] ?? [];
+// $post = $data['post'] ?? null;
+// $categories = $data['categories'] ?? [];
+// $tags = $data['tags'] ?? [];
 $selectedCategories = $post['selected_categories'] ?? []; // Для формы создания, если были ошибки
 $selectedTags = $post['selected_tags'] ?? [];
 
@@ -17,7 +17,7 @@ $adminRoute = $data['adminRoute'] ?? 'admin';
 // $pageTitle = !$is_new_post ? 'Редактировать пост: ' . htmlspecialchars($post['title']) : 'Создать новый пост';
 
 // URL для отправки формы (можно определить в контроллере и передать сюда)
-$formAction = '/' . htmlspecialchars($adminRoute) . (!$is_new_post ? '/api/posts/edit/' . htmlspecialchars($post['id']) : '/api/posts/create');
+// $formAction = '/' . htmlspecialchars($adminRoute) . (!$is_new_post ? '/api/posts/edit/' . htmlspecialchars($post['id']) : '/api/posts/create');
 
 ?>
 <input type="hidden" id="initialTagsData" value='<?= htmlspecialchars(json_encode($data['tags'] ?? []), ENT_QUOTES, 'UTF-8') ?>'>
@@ -33,12 +33,12 @@ $formAction = '/' . htmlspecialchars($adminRoute) . (!$is_new_post ? '/api/posts
                     Посмотреть на сайте
                 </a>
             <?php endif; ?>
-            <a href="/<?= htmlspecialchars($adminRoute) ?>/posts" class="btn btn-sm btn-outline-secondary">
-                К списку постов
+            <a href="<?= htmlspecialchars($returnToListUrl['url']) ?>" class="btn btn-sm btn-outline-secondary">
+                <?= htmlspecialchars($returnToListUrl['title']) ?>
             </a>
         <?php else: ?>
-            <a href="/<?= htmlspecialchars($adminRoute) ?>/posts" class="btn btn-sm btn-outline-secondary">
-                К списку постов
+            <a href="<?= htmlspecialchars($returnToListUrl['url']) ?>" class="btn btn-sm btn-outline-secondary">
+                <?= htmlspecialchars($returnToListUrl['title']) ?>
             </a>
         <?php endif; ?>
     </div>

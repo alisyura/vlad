@@ -175,12 +175,12 @@ $router->addRoute("/$adminRoute/pages/create", function() {
 }, ['AdminAuthMiddleware']);
 
 // Вызов api создания новой страницы из формы создания новой страницы по кнопке "опубликовать"
-$router->addRoute("/$adminRoute/api/posts/create", function() {
+$router->addRoute("/$adminRoute/api/pages/create", function() {
     (new AdminController())->createPagePost();
 }, ['AdminAuthMiddleware']);
 
 // Редактирование существующей страницы
-$router->addRoute("/$adminRoute/posts/edit/(\d+)", function($pageId) {
+$router->addRoute("/$adminRoute/pages/edit/(\d+)", function($pageId) {
     (new AdminController())->editPage($pageId);
 }, ['AdminAuthMiddleware']);
 
