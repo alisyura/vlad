@@ -235,7 +235,7 @@ class AdminController {
                 'title' => 'Ошибка',
                 'error_message' => 'Не удалось загрузить данные. Пожалуйста, попробуйте позже.'
             ];
-            $content = View::render('../app/views/admin/error_view.php', $data);
+            $content = View::render('../app/views/admin/errors/error_view.php', $data);
             require '../app/views/admin/admin_layout.php';
         } catch (Exception $e) {
             Logger::error("Error in listPosts: " . $e->getTraceAsString());
@@ -244,7 +244,7 @@ class AdminController {
                 'title' => 'Ошибка',
                 'error_message' => 'Произошла непредвиденная ошибка.'
             ];
-            $content = View::render('../app/views/admin/error_view.php', $data);
+            $content = View::render('../app/views/admin/errors/error_view.php', $data);
             require '../app/views/admin/admin_layout.php';
         }
     }
@@ -287,7 +287,7 @@ class AdminController {
             $pageTitle = ($articleType==='post') ? 'Создать новый пост' : 'Создать новую страницу';
             $returnToListUrl = "/{$adminRoute}/{$articleType}s";
             $returnToListTitle = ($articleType==='post') ? 'К списку постов' : 'К списку страниц';
-            $formAction = "/{$adminRoute}/api/{$articleType}s/create";
+            $formAction = "/{$adminRoute}/{$articleType}s/api/create";
             $data = [
                 'adminRoute' => $adminRoute,
                 'articleType' => $articleType,
@@ -298,7 +298,7 @@ class AdminController {
                 'post' => null,
                 'categories' => [],
                 'tags' => [],
-                'errors' => [],
+                // 'errors' => [],
                 'is_new_post' => true,
                 'categories' => $adminPostsModel->getAllCategories(),
                 'tags' => $adminPostsModel->getAllTags(),
@@ -324,7 +324,7 @@ class AdminController {
                 'error_message' => 'Не удалось загрузить посты. Пожалуйста, попробуйте позже.'
             ];
             $user_name = Auth::getUserName();
-            $content = View::render('../app/views/admin/error_view.php', $data);
+            $content = View::render('../app/views/admin/errors/error_view.php', $data);
             require '../app/views/admin/admin_layout.php';
         }
 
@@ -453,28 +453,134 @@ class AdminController {
 
     }
     
-    public function editPost($postId)
+    /**
+     * Точка входа в изменение поста из маршрутизатора
+     */
+    public function editPostGet($postId)
     {
-        $this->checkIfUserLoggedIn();
-        $adminPostsModel = new AdminPostsModel();
+        $this->showEditArticleForm($postId, 'post');
+    }
+
+    /**
+     * Точка входа в изменение страницы из маршрутизатора
+     */
+    public function editPageGet($postId)
+    {
+        $this->showEditArticleForm($postId, 'page');
+    }
+
+    /**
+     * Открывает страницу изменения поста/страницы
+     *
+     * @param int $postId Id статьи
+     * @param string $articleType Тип статьи (post/page)
+     */
+    private function showEditArticleForm($postId, $articleType)
+    {
         $adminRoute = Config::get('admin.AdminRoute');
-        $is_new_post = false;
         $user_name = Auth::getUserName();
+        $logHeader = ($articleType === 'post') ? 'editPostGet' : 'editPageGet';
+        try
+        {
+            $this->checkIfUserLoggedIn();
+            $adminPostsModel = new AdminPostsModel();
 
-        $data = [
-            'adminRoute' => $adminRoute,
-            'articleType' => 'post',
-            'user_name' => $user_name,
-            'title' => 'Редактировать пост',
-            'active' => 'posts',
-            'post' => null,
-            'categories' => [],
-            'tags' => [],
-            'errors' => [],
-            'is_new_post' => $is_new_post
-        ];
+            $config = [
+                'post' => [
+                    'listTitle' => 'К списку постов',
+                    'formAction' => "/{$adminRoute}/posts/api/edit",
+                    'pageTitle' => 'Редактирование поста: ',
+                    'listUrl' => "/{$adminRoute}/posts",
+                ],
+                'page' => [
+                    'listTitle' => 'К списку страниц',
+                    'formAction' => "/{$adminRoute}/pages/api/edit",
+                    'pageTitle' => 'Редактирование страницы: ',
+                    'listUrl' => "/{$adminRoute}/pages",
+                ]
+            ];
 
-        // Если это POST-запрос (отправка формы редактирования)
+            $returnToListTitle = $config[$articleType]['listTitle'];
+            $formAction = $config[$articleType]['formAction'];
+            $pageTitle = $config[$articleType]['pageTitle'];
+            $returnToListUrl = $config[$articleType]['listUrl'];
+    
+            $postData = $adminPostsModel->getPostById($postId, $articleType);
+            if ($postData === null) {
+                // Если пост не найден, рендерим специальный view и выходим
+                $data = [
+                    'adminRoute' => $adminRoute,
+                    'error_message' => 'Запись не найдена.'
+                ];
+                $content = View::render('../app/views/admin/errors/not_found_view.php', $data);
+                require '../app/views/admin/admin_layout.php';
+                return; // Ранний выход
+            }
+            $data = [
+                'adminRoute' => $adminRoute,
+                'articleType' => $articleType,
+                'user_name' => $user_name,
+                'pageTitle' => $pageTitle,
+                // 'active' => 'posts',
+                'post' => $postData,
+                'categories' => $adminPostsModel->getAllCategories(),
+                'tags' => $adminPostsModel->getAllTags(),
+                // 'errors' => [],
+                // 'is_new_post' => $is_new_post
+                'formAction' => $formAction,
+                'returnToListUrl' => [
+                        'url' => $returnToListUrl,
+                        'title' => $returnToListTitle
+                ],
+                'styles' => [
+                    'edit_create.css',
+                    'edit_create_mediateka.css'
+                ],
+            ];
+
+            // Устанавливаем заголовок
+            $data['pageTitle'] .= htmlspecialchars($data['post']['title'] ?? '');
+
+            $content = View::render('../app/views/admin/posts/edit_create.php', $data);
+            $route_path = 'edit_create';
+            require '../app/views/admin/admin_layout.php';
+            // View::renderWithAdminLayout('../app/views/admin/posts/edit_create.php', $data);
+        }
+        catch(Throwable $e)
+        {
+            Logger::error("$logHeader. An unexpected error occurred: " . $e->getTraceAsString());
+
+            $data = [
+                'adminRoute' => $adminRoute,
+                'title' => 'Ошибка',
+                'error_message' => 'Не удалось загрузить данные. Пожалуйста, попробуйте позже.'
+            ];
+
+            $content = View::render('../app/views/admin/errors/error_view.php', $data);
+            require '../app/views/admin/admin_layout.php';
+        }
+    }
+
+    /**
+     * Точка входа на редактирование нового поста (AJAX PUT запрос)
+     */
+    public function editPostPut() {
+        $this->editArticle('post');
+    }
+
+    /**
+     * Точка входа на редактирование новой страницы (AJAX PUT запрос)
+     */
+    public function editPagePut() {
+        $this->editArticle('page');
+    }
+
+    /**
+     * Изменяет запись с типом из articleType
+     */
+    private function editArticle($articleType)
+    {
+ // Если это POST-запрос (отправка формы редактирования)
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $token = $_POST['csrf_token'] ?? '';
             if (!CSRF::validateToken($token)) {
@@ -545,29 +651,7 @@ class AdminController {
                 ];
             }
         }
-        
-        // Этот блок выполняется для GET-запросов или при ошибке POST-запроса
-        if (empty($data['post'])) {
-            $data['post'] = $adminPostsModel->getPostById($postId);
-            if (!$data['post']) {
-                header("Location: /{$adminRoute}/posts");
-                exit;
-            }
-        }
-        
-        // Получаем все категории и теги, чтобы заполнить списки в форме
-        $data['categories'] = $adminPostsModel->getAllCategories();
-        $data['tags'] = $adminPostsModel->getAllTags();
-        $data['csrf_token'] = CSRF::getToken();
-
-        // Устанавливаем заголовок
-        $data['title'] = 'Редактировать пост: ' . htmlspecialchars($data['post']['title'] ?? '');
-
-        $content = View::render('../app/views/admin/posts/edit_create.php', $data);
-        $route_path = 'edit_create';
-        require '../app/views/admin/admin_layout.php';
     }
-
 
     /**
      * Поиск меток по названию для автодополнения (POST-запрос).

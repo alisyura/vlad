@@ -155,15 +155,21 @@ $router->addRoute("/$adminRoute/posts/create", function() {
 }, ['AdminAuthMiddleware']);
 
 // Вызов api создания нового поста из формы создания нового поста по кнопке "опубликовать"
-$router->addRoute("/$adminRoute/api/posts/create", function() {
+$router->addRoute("/$adminRoute/posts/api/create", function() {
     (new AdminController())->createPostPost();
 }, ['AdminAuthMiddleware']);
 
 // Редактирование существующего поста
 $router->addRoute("/$adminRoute/posts/edit/(\d+)", function($postId) {
-    (new AdminController())->editPost($postId);
+    (new AdminController())->editPostGet($postId);
 }, ['AdminAuthMiddleware']);
 
+// Вызов api изменения поста из формы изменения поста по кнопке "обновить"
+$router->addRoute("/$adminRoute/posts/api/edit", function() {
+    (new AdminController())->editPostPut();
+}, ['AdminAuthMiddleware']);
+
+// Мягкое удаление поста/страницы. Простановка статуса "удален"
 $router->addRoute("/$adminRoute/posts/delete", function() {
     (new AdminController())->deletePost();
 }, ['AdminAuthMiddleware']);
@@ -175,14 +181,20 @@ $router->addRoute("/$adminRoute/pages/create", function() {
 }, ['AdminAuthMiddleware']);
 
 // Вызов api создания новой страницы из формы создания новой страницы по кнопке "опубликовать"
-$router->addRoute("/$adminRoute/api/pages/create", function() {
+$router->addRoute("/$adminRoute/pages/api/create", function() {
     (new AdminController())->createPagePost();
 }, ['AdminAuthMiddleware']);
 
 // Редактирование существующей страницы
 $router->addRoute("/$adminRoute/pages/edit/(\d+)", function($pageId) {
-    (new AdminController())->editPage($pageId);
+    (new AdminController())->editPageGet($pageId);
 }, ['AdminAuthMiddleware']);
+
+// Вызов api изменения страницы из формы изменения стараницы по кнопке "обновить"
+$router->addRoute("/$adminRoute/pages/api/edit", function() {
+    (new AdminController())->editPagePut();
+}, ['AdminAuthMiddleware']);
+
 
 
 

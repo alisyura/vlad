@@ -279,9 +279,10 @@ class AdminPostsModel {
     /**
      * Получает пост по ID с категориями и тегами.
      * @param int $id ID поста.
+     * @param string $articleType Тип поста (post/page).
      * @return array|null Данные поста или null, если пост не найден.
      */
-    public function getPostById(int $id): ?array
+    public function getPostById(int $id, string $articleType): ?array
     {
         $sql = "SELECT 
                     p.*, 
@@ -298,21 +299,25 @@ class AdminPostsModel {
                 LEFT JOIN post_tag pt ON p.id = pt.post_id
                 LEFT JOIN tags t ON pt.tag_id = t.id
                 LEFT JOIN media m ON p.thumbnail_media_id = m.id
-                WHERE p.id = :id AND p.article_type = 'post'
+                WHERE p.id = :id AND p.article_type = :article_type
                 GROUP BY p.id";
 
         try {
             $stmt = $this->db->prepare($sql);
             $stmt->bindParam(':id', $id, PDO::PARAM_INT);
+            $stmt->bindParam(':article_type', $articleType, PDO::PARAM_STR);
             $stmt->execute();
             $post = $stmt->fetch(PDO::FETCH_ASSOC);
 
-            if ($post) {
-                $post['selected_categories'] = !empty($post['category_ids']) ? explode(',', $post['category_ids']) : [];
-                $post['selected_tags'] = !empty($post['tag_names']) ? explode(';;', $post['tag_names']) : [];
-                // Убираем промежуточные поля
-                unset($post['category_ids'], $post['category_names'], $post['tag_ids'], $post['tag_names']);
+            if (!$post) {
+                return null; // Возвращаем null, если запись не найдена
             }
+
+            $post['selected_categories'] = !empty($post['category_ids']) ? explode(',', $post['category_ids']) : [];
+            $post['selected_tags'] = !empty($post['tag_names']) ? explode(';;', $post['tag_names']) : [];
+            
+            unset($post['category_ids'], $post['category_names'], $post['tag_ids'], $post['tag_names']);
+            
             return $post;
         } catch (PDOException $e) {
             Logger::error("Error fetching post by ID with categories and tags: " . $e->getMessage());

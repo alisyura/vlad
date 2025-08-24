@@ -28,7 +28,7 @@ $adminRoute = $data['adminRoute'] ?? 'admin';
     <h1 class="h2"><?= $pageTitle ?></h1>
     <div class="btn-toolbar mb-2 mb-md-0">
         <?php if ($post): // Если это режим редактирования, показываем кнопку "Посмотреть на сайте" ?>
-            <?php if (!empty($post['url'])): ?>
+            <?php if (!empty($post['url']) && strtolower($post['status']) === 'published'): ?>
                 <a href="/<?= htmlspecialchars($post['url']) ?>.html" target="_blank" class="btn btn-sm btn-outline-info me-2">
                     Посмотреть на сайте
                 </a>
