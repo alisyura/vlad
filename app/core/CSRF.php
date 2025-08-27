@@ -36,7 +36,7 @@ class CSRF {
         // echo "$token token<br>";
         // echo ($_SESSION[self::$sessionKey] ?? 'NOT SET')." sess <br>";
 
-        if (empty($token) || empty($_SESSION[self::$sessionKey])) {
+        if (empty($token) || !is_string($token) || strlen($token) < 32 || empty($_SESSION[self::$sessionKey])) {
             return false;
         }
 

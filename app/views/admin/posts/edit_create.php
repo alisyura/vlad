@@ -64,6 +64,7 @@ $adminRoute = $data['adminRoute'] ?? 'admin';
             <div class="mb-3">
                 <label for="postUrl" class="form-label">URL (слаг)</label>
                 <input type="text" class="form-control" id="postUrl" name="url" 
+                       <?= !$is_new_post ? 'readonly' : '' ?>
                        value="<?= htmlspecialchars($post['url'] ?? '') ?>">
                 <div class="form-text">Оставьте пустым для автоматической генерации из заголовка.</div>
             </div>
@@ -139,7 +140,7 @@ $adminRoute = $data['adminRoute'] ?? 'admin';
                         </div>
                     </div>
                     <button type="button" class="btn btn-primary w-100">
-                        <?= !$is_new_post ? 'Обновить пост' : 'Опубликовать пост' ?>
+                        <?= htmlspecialchars($publishButtonTitle) ?>
                     </button>
                 </div>
             </div>
@@ -168,7 +169,7 @@ $adminRoute = $data['adminRoute'] ?? 'admin';
                 <div class="card-body">
                     <div class="mb-3">
                         <label for="tagsInput" class="form-label">Добавить метки</label>
-                        <input type="text" class="form-control" id="tagsInput" name="tags" placeholder="Метки через запятую">
+                        <input type="text" class="form-control" id="tagsInput" name="tags_input" placeholder="Метки через запятую">
                         <div class="form-text">Вводите метки через запятую. Если метка не существует, она будет создана.</div>
                     </div>
                     <div id="tagSuggestions" class="list-group mb-3" style="position: relative;">

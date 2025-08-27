@@ -5,9 +5,19 @@ class AdminController {
     private function checkIfUserLoggedIn()
     {
         if (!Auth::check()) {
-            $adminRoute = Config::get('admin.AdminRoute');
-            header("Location: /$adminRoute/login");
-            exit;
+            // Проверяем, является ли запрос AJAX
+            if (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest') {
+                // Если это AJAX, возвращаем JSON-ошибку 401
+                header('Content-Type: application/json');
+                http_response_code(401);
+                echo json_encode(['success' => false, 'message' => 'Доступ запрещен']);
+                exit;
+            } else {
+                // Если это обычный запрос, делаем редирект
+                $adminRoute = Config::get('admin.AdminRoute');
+                header("Location: /$adminRoute/login");
+                exit;
+            }
         }
     }
 
@@ -72,6 +82,7 @@ class AdminController {
 
         // Здесь загружаем данные для админ-панели
         require '../app/views/admin/admin_layout.php';
+        // View::renderAdmin('../app/views/admin/dashboard.php', $data);
     }
 
     public function logout() {
@@ -219,14 +230,21 @@ class AdminController {
                 'pagination_links' => $paginationLinks,
                 'base_page_url' => $basePageUrl,
                 'current_sort_by' => $sortBy,
-                'current_sort_order' => $sortOrder
+                'current_sort_order' => $sortOrder,
+                'styles' => [
+                    'posts_list.css'
+                ],
+                'jss' => [
+                    'posts_list.js'                    
+                ]
             ];
             
             // Используется в admin_layout
             $user_name = Auth::getUserName();
-            $content = View::render('../app/views/admin/posts/list.php', $data);
-            $route_path = 'posts-list';
-            require '../app/views/admin/admin_layout.php';
+            // $content = View::render('../app/views/admin/posts/list.php', $data);
+            // $route_path = 'posts-list';
+            // require '../app/views/admin/admin_layout.php';
+            View::renderAdmin('../app/views/admin/posts/list.php', $data);
 
         } catch (PDOException $e) {
             Logger::error("Database error in listPosts: " . $e->getTraceAsString());
@@ -235,17 +253,19 @@ class AdminController {
                 'title' => 'Ошибка',
                 'error_message' => 'Не удалось загрузить данные. Пожалуйста, попробуйте позже.'
             ];
-            $content = View::render('../app/views/admin/errors/error_view.php', $data);
-            require '../app/views/admin/admin_layout.php';
-        } catch (Exception $e) {
+            // $content = View::render('../app/views/admin/errors/error_view.php', $data);
+            // require '../app/views/admin/admin_layout.php';
+            View::renderAdmin('../app/views/admin/errors/error_view.php', $data);
+        } catch (Throwable $e) {
             Logger::error("Error in listPosts: " . $e->getTraceAsString());
             $data = [
                 'adminRoute' => $adminRoute,
                 'title' => 'Ошибка',
                 'error_message' => 'Произошла непредвиденная ошибка.'
             ];
-            $content = View::render('../app/views/admin/errors/error_view.php', $data);
-            require '../app/views/admin/admin_layout.php';
+            // $content = View::render('../app/views/admin/errors/error_view.php', $data);
+            // require '../app/views/admin/admin_layout.php';
+            View::renderAdmin('../app/views/admin/errors/error_view.php', $data);
         }
     }
 
@@ -288,6 +308,7 @@ class AdminController {
             $returnToListUrl = "/{$adminRoute}/{$articleType}s";
             $returnToListTitle = ($articleType==='post') ? 'К списку постов' : 'К списку страниц';
             $formAction = "/{$adminRoute}/{$articleType}s/api/create";
+            $publishButtonTitle = 'Опубликовать ' . ($articleType == 'post' ? 'пост' : 'страницу');
             $data = [
                 'adminRoute' => $adminRoute,
                 'articleType' => $articleType,
@@ -295,6 +316,7 @@ class AdminController {
                 'title' => '', //тк создаем новый пост
                 // 'active' => 'posts',
                 'pageTitle' => $pageTitle,
+                'publishButtonTitle' => $publishButtonTitle,
                 'post' => null,
                 'categories' => [],
                 'tags' => [],
@@ -306,14 +328,25 @@ class AdminController {
                     'url' => $returnToListUrl,
                     'title' => $returnToListTitle
                 ],
-                'formAction' => $formAction
+                'formAction' => $formAction,
+                'styles' => [
+                    'edit_create.css',
+                    'edit_create_mediateka.css'
+                ],
+                'jss' => [
+                    'absolute' => 'tinymce/tinymce.min.js',
+                    'edit_create_tag_selector.js',
+                    'edit_create_mediateka.js',
+                    'edit_create.js'
+                ]
             ];
 
             Logger::debug("$logHeader. data", $data);
         
-            $content = View::render('../app/views/admin/posts/edit_create.php', $data);
-            $route_path = 'edit_create';
-            require '../app/views/admin/admin_layout.php';
+            // $route_path = 'edit_create';
+            // $content = View::render('../app/views/admin/posts/edit_create.php', $data);
+            // require '../app/views/admin/admin_layout.php';
+            View::renderAdmin('../app/views/admin/posts/edit_create.php', $data);
             
         } catch (Throwable $e) {
             Logger::error("$logHeader. An unexpected error occurred: " . $e->getTraceAsString());
@@ -324,8 +357,9 @@ class AdminController {
                 'error_message' => 'Не удалось загрузить посты. Пожалуйста, попробуйте позже.'
             ];
             $user_name = Auth::getUserName();
-            $content = View::render('../app/views/admin/errors/error_view.php', $data);
-            require '../app/views/admin/admin_layout.php';
+            // $content = View::render('../app/views/admin/errors/error_view.php', $data);
+            // require '../app/views/admin/admin_layout.php';
+            View::renderAdmin('../app/views/admin/errors/error_view.php', $data);
         }
 
         
@@ -347,6 +381,7 @@ class AdminController {
 
     /**
      * Создает запись с типом из articleType
+     * Вызывается по AJAX POST
      */
     private function createArticle($articleType) {
         header('Content-Type: application/json');
@@ -371,10 +406,10 @@ class AdminController {
             exit;
         }
 
-        $token = $_POST['csrf_token'] ?? '';
-        Logger::debug("createPostPost. post token = $token");
+        $csrf_token = $_SERVER['HTTP_X_CSRF_TOKEN'] ?? '';
+        Logger::debug("createPostPost. post token = $csrf_token");
         
-        if (!CSRF::validateToken($token)) {
+        if (!CSRF::validateToken($csrf_token)) {
             http_response_code(403);
             echo json_encode(['success' => false, 'message' => 'Неверный CSRF-токен.']);
             exit;
@@ -382,23 +417,27 @@ class AdminController {
 
         Logger::debug("createPostPost. post token is valid");
         
+        $json_data = file_get_contents('php://input');
+        // Декодируем JSON-строку в ассоциативный массив PHP
+        $post_data = json_decode($json_data, true);
+
             
         $adminPostsModel = new AdminPostsModel();
         
-        $title = trim($_POST['title'] ?? '');
-        $content = $_POST['content'] ?? '';
-        $url = $this->sanitizeUrl($_POST['url'] ?? '');
-        $status = $_POST['status'] ?? 'draft';
-        $meta_title = trim($_POST['meta_title'] ?? '');
-        $meta_description = trim($_POST['meta_description'] ?? '');
-        $meta_keywords = trim($_POST['meta_keywords'] ?? '');
-        $excerpt = trim($_POST['excerpt'] ?? '');
-        $selectedCategories = $_POST['categories'] ?? [];
+        $title = trim($post_data['title'] ?? '');
+        $content = $post_data['content'] ?? '';
+        $url = $this->sanitizeUrl($post_data['url'] ?? '');
+        $status = $post_data['status'] ?? 'draft';
+        $meta_title = trim($post_data['meta_title'] ?? '');
+        $meta_description = trim($post_data['meta_description'] ?? '');
+        $meta_keywords = trim($post_data['meta_keywords'] ?? '');
+        $excerpt = trim($post_data['excerpt'] ?? '');
+        $selectedCategories = $post_data['categories'] ?? [];
 
-        $selectedTags = $_POST['tags'] ?? [];
+        $selectedTags = $post_data['tags'] ?? [];
         $tagsString = is_array($selectedTags) ? implode(',', $selectedTags) : $selectedTags;
 
-        $thumbnailUrl = trim($_POST['post_image_url'] ?? ''); 
+        $thumbnailUrl = trim($post_data['post_image_url'] ?? ''); 
 
         if (empty($title)) {
             Logger::debug("createPostPost. title empty");
@@ -504,6 +543,7 @@ class AdminController {
             $formAction = $config[$articleType]['formAction'];
             $pageTitle = $config[$articleType]['pageTitle'];
             $returnToListUrl = $config[$articleType]['listUrl'];
+            $publishButtonTitle = 'Обновить ' . ($articleType == 'post' ? 'пост' : 'страницу');
     
             $postData = $adminPostsModel->getPostById($postId, $articleType);
             if ($postData === null) {
@@ -512,8 +552,9 @@ class AdminController {
                     'adminRoute' => $adminRoute,
                     'error_message' => 'Запись не найдена.'
                 ];
-                $content = View::render('../app/views/admin/errors/not_found_view.php', $data);
-                require '../app/views/admin/admin_layout.php';
+                // $content = View::render('../app/views/admin/errors/not_found_view.php', $data);
+                // require '../app/views/admin/admin_layout.php';
+                View::renderAdmin('../app/views/admin/errors/not_found_view.php', $data);
                 return; // Ранний выход
             }
             $data = [
@@ -521,12 +562,13 @@ class AdminController {
                 'articleType' => $articleType,
                 'user_name' => $user_name,
                 'pageTitle' => $pageTitle,
+                'publishButtonTitle' => $publishButtonTitle,
                 // 'active' => 'posts',
                 'post' => $postData,
                 'categories' => $adminPostsModel->getAllCategories(),
                 'tags' => $adminPostsModel->getAllTags(),
                 // 'errors' => [],
-                // 'is_new_post' => $is_new_post
+                'is_new_post' => false,
                 'formAction' => $formAction,
                 'returnToListUrl' => [
                         'url' => $returnToListUrl,
@@ -536,15 +578,21 @@ class AdminController {
                     'edit_create.css',
                     'edit_create_mediateka.css'
                 ],
+                'jss' => [
+                    'absolute' => 'tinymce/tinymce.min.js',
+                    'edit_create_tag_selector.js',
+                    'edit_create_mediateka.js',
+                    'edit_create.js'                    
+                ]
             ];
 
             // Устанавливаем заголовок
             $data['pageTitle'] .= htmlspecialchars($data['post']['title'] ?? '');
 
-            $content = View::render('../app/views/admin/posts/edit_create.php', $data);
-            $route_path = 'edit_create';
-            require '../app/views/admin/admin_layout.php';
-            // View::renderWithAdminLayout('../app/views/admin/posts/edit_create.php', $data);
+            // $content = View::render('../app/views/admin/posts/edit_create.php', $data);
+            // $route_path = 'edit_create';
+            // require '../app/views/admin/admin_layout.php';
+            View::renderAdmin('../app/views/admin/posts/edit_create.php', $data);
         }
         catch(Throwable $e)
         {
@@ -556,8 +604,9 @@ class AdminController {
                 'error_message' => 'Не удалось загрузить данные. Пожалуйста, попробуйте позже.'
             ];
 
-            $content = View::render('../app/views/admin/errors/error_view.php', $data);
-            require '../app/views/admin/admin_layout.php';
+            // $content = View::render('../app/views/admin/errors/error_view.php', $data);
+            // require '../app/views/admin/admin_layout.php';
+            View::renderAdmin('../app/views/admin/errors/error_view.php', $data);
         }
     }
 
@@ -577,80 +626,113 @@ class AdminController {
 
     /**
      * Изменяет запись с типом из articleType
+     * Вызов по AJAX PUT
      */
     private function editArticle($articleType)
     {
- // Если это POST-запрос (отправка формы редактирования)
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $token = $_POST['csrf_token'] ?? '';
-            if (!CSRF::validateToken($token)) {
-                $data['errors'][] = 'Ошибка CSRF-токена. Попробуйте ещё раз.';
-                CSRF::refreshToken();
-            } else {
-                $title = trim($_POST['title'] ?? '');
-                $content = $_POST['content'] ?? '';
-                $url = $this->sanitizeUrl($_POST['url'] ?? '');
-                $status = $_POST['status'] ?? 'draft';
-                $meta_title = trim($_POST['meta_title'] ?? '');
-                $meta_description = trim($_POST['meta_description'] ?? '');
-                $meta_keywords = trim($_POST['meta_keywords'] ?? '');
-                $excerpt = trim($_POST['excerpt'] ?? '');
-                $selectedCategories = $_POST['categories'] ?? [];
-                $selectedTags = $_POST['tags'] ?? [];
-                $tagsString = is_array($selectedTags) ? implode(',', $selectedTags) : $selectedTags;
-                $thumbnailUrl = trim($_POST['post_image_url'] ?? '');
+        header('Content-Type: application/json');
 
-                if (empty($title)) {
-                    $data['errors'][] = 'Заголовок поста обязателен.';
-                }
-                if (empty($url)) {
-                    $data['errors'][] = 'URL поста обязателен.';
-                } else {
-                    // Дополнительная проверка уникальности URL при редактировании
-                    $existingPost = $adminPostsModel->getPostByUrl($url);
-                    if ($existingPost && $existingPost['id'] != $postId) {
-                        $data['errors'][] = 'Указанный URL уже занят.';
-                    }
-                }
 
-                if (empty($data['errors'])) {
-                    $postData = [
-                        'status' => $status,
-                        'title' => $title,
-                        'content' => $content,
-                        'url' => $url,
-                        'excerpt' => $excerpt,
-                        'meta_description' => $meta_description,
-                        'meta_keywords' => $meta_keywords,
-                        'thumbnail_url' => $thumbnailUrl,
-                    ];
+        Logger::debug("editArticle. Начало");
 
-                    if ($adminPostsModel->updatePost($postId, $postData, $selectedCategories, $tagsString)) {
-                        $_SESSION['message'] = 'Пост успешно обновлен!';
-                        header("Location: /{$adminRoute}/posts");
-                        exit;
-                    } else {
-                        $data['errors'][] = 'Произошла ошибка при обновлении поста в базу данных.';
-                    }
-                }
+        $this->checkIfUserLoggedIn();
 
-                // Заполняем данные формы из POST-запроса, если есть ошибки
-                $data['post'] = [
-                    'id' => $postId,
-                    'title' => $title,
-                    'url' => $url,
-                    'content' => $content,
-                    'status' => $status,
-                    'meta_title' => $meta_title,
-                    'meta_description' => $meta_description,
-                    'meta_keywords' => $meta_keywords,
-                    'excerpt' => $excerpt,
-                    'thumbnail_url' => $thumbnailUrl,
-                    'selected_categories' => $selectedCategories,
-                    'selected_tags' => $selectedTags
-                ];
-            }
+        // вызов должен прийти методом PUT. должен быть установлен HTTP_X_REQUESTED_WITH
+        // и он должен быть равен XMLHttpRequest
+        Logger::debug("editArticle. REQUEST_METHOD = {$_SERVER['REQUEST_METHOD']}");
+        $http_requested_with = $_SERVER['HTTP_X_REQUESTED_WITH'] ?? '';
+        Logger::debug("editArticle. HTTP_X_REQUESTED_WITH = {$http_requested_with}");
+
+        if ($_SERVER['REQUEST_METHOD'] !== 'PUT' 
+            || empty($http_requested_with)
+            || strtoupper($http_requested_with) !== strtoupper('XMLHttpRequest')) {
+            
+            echo json_encode(['success' => false, 'message' => 'Неверный REQUEST_METHOD или HTTP_X_REQUESTED_WITH.']);
+            http_response_code(403);
+            exit;
         }
+
+        
+
+        $csrf_token = $_SERVER['HTTP_X_CSRF_TOKEN'] ?? '';
+        Logger::debug("editArticle. post token = $csrf_token");
+        
+        if (!CSRF::validateToken($csrf_token)) {
+            http_response_code(403);
+            echo json_encode(['success' => false, 'message' => 'Неверный CSRF-токен.']);
+            exit;
+        } 
+
+        Logger::debug("editArticle. post token is valid");
+
+        $json_data = file_get_contents('php://input');
+        $decodedData = json_decode($json_data, true);
+
+        $adminPostsModel = new AdminPostsModel();
+
+        $postId = filter_var($decodedData['id'] ?? null, FILTER_VALIDATE_INT);
+        $title = trim($decodedData['title'] ?? '');
+        $content = $decodedData['content'] ?? '';
+        $status = $decodedData['status'] ?? 'draft';
+        $meta_title = trim($decodedData['meta_title'] ?? '');
+        $meta_description = trim($decodedData['meta_description'] ?? '');
+        $meta_keywords = trim($decodedData['meta_keywords'] ?? '');
+        $excerpt = trim($decodedData['excerpt'] ?? '');
+        $selectedCategories = $decodedData['categories'] ?? [];
+
+        $selectedTags = $decodedData['tags'] ?? [];
+        $tagsString = is_array($selectedTags) ? implode(',', $selectedTags) : $selectedTags;
+
+        $thumbnailUrl = trim($decodedData['post_image_url'] ?? '');
+
+        if (!$adminPostsModel->postExists($postId))
+        {
+            Logger::debug("editArticle. post does not exists. postId={$postId}");
+            $data['errors'][] = 'Пост не найден.';
+        }
+        if (empty($title)) {
+            Logger::debug("editArticle. title empty");
+            $data['errors'][] = 'Заголовок поста обязателен.';
+        }
+
+        if (!empty($data['errors'])) {
+            Logger::debug("editArticle. ошибки заполнены. выход");
+            http_response_code(500);
+            echo json_encode(['success' => false, 
+                'message' => 'Неверно заполнены поля.',
+                'errors' => $data['errors']]);
+            exit;
+        }
+
+
+        $user_id = Auth::getUserId();
+        $postData = [
+            'user_id' => $user_id,
+            'article_type' => $articleType,
+            'status' => $status,
+            'title' => $title,
+            'content' => $content,
+            'meta_title' => $meta_title,
+            'meta_description' => $meta_description,
+            'meta_keywords' => $meta_keywords,
+            'excerpt' => $excerpt,
+            'thumbnail_url' => $thumbnailUrl,
+        ];
+
+        $updateResult = $adminPostsModel->updatePost($postId, $postData, $selectedCategories, $tagsString);
+        
+        if ($updateResult) {
+            $adminRoute = Config::get('admin.AdminRoute');
+            $msgText = ($articleType == 'post' ? 'Пост успешно обновлен' : 'Страница успешно обновлена');
+            echo json_encode(['success' => true, 
+                'redirect' => "/$adminRoute/{$articleType}s/edit/{$postId}",
+                'message' => $msgText]);
+        } else {
+            http_response_code(500);
+            echo json_encode(['success' => false, 
+                'message' => 'Произошла ошибка при создании поста.']);
+        }
+
     }
 
     /**
@@ -750,12 +832,12 @@ class AdminController {
     }
 
     /**
-     * Удаляет пост по ID (через AJAX).
-     * Ожидает POST-запрос с JSON: { post_id: 123, csrf_token: "..." }
+     * Выполняет мягкое удаление поста по ID (через AJAX).
+     * Ожидает PATCH-запрос с JSON: { post_id: 123, csrf_token: "..." }
      */
     public function deletePost()
     {
-        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+        if ($_SERVER['REQUEST_METHOD'] !== 'PATCH') {
             http_response_code(405);
             echo json_encode(['success' => false, 'message' => 'Метод не разрешён.']);
             return;

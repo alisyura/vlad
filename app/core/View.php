@@ -25,14 +25,21 @@ class View
      * @param string $layoutPath Путь к файлу макета.
      * @return void
      */
-    public static function renderWithAdminLayout(string $contentView, 
-        array $data = [], string $layoutPath = '../app/views/admin/admin_layout.php'): void
+    private static function renderBaseLayout(string $contentView, 
+        array $data = [], string $layoutPath): void
     {
-        // Рендерим основное содержимое
         $content = self::render($contentView, $data);
-
-        // Рендерим макет, который будет включать содержимое
         extract($data);
         require $layoutPath;
+    }
+
+    public static function renderAdmin(string $contentView, array $data = []): void
+    {
+        self::renderBaseLayout($contentView, $data, '../app/views/admin/admin_layout.php');
+    }
+
+    public static function renderPublic(string $contentView, array $data = []): void
+    {
+        self::renderBaseLayout($contentView, $data, '../app/views/public/main_layout.php');
     }
 }

@@ -14,6 +14,9 @@ class Auth {
         if ($user && password_verify($password, $user['password'])) {
             session_regenerate_id(true);
 
+            // Обновляем CSRF-токен после входа
+            CSRF::refreshToken(); // или generateToken() — чтобы старый стал недействителен
+
             // Сохраняем дополнительные данные для защиты от угона сессии
             $_SESSION['user_id'] = $user['id']; // Использовать ID более надёжно, чем логин
             $_SESSION['admin'] = (bool)($user['role_name'] === Config::get('admin.AdminRoleName')); // Приводим к булевому типу
@@ -56,6 +59,18 @@ class Auth {
     }
 
     public static function logout() {
+        // Очищаем все данные сессии
+        $_SESSION = [];
+        // Удаляем куку сессии в браузере
+        if (ini_get("session.use_cookies")) {
+            $params = session_get_cookie_params();
+            // Важно: передаём те же параметры (path, domain, secure, httponly),
+            // с которыми кука была создана, иначе браузер её не удалит
+            setcookie(session_name(), '', time() - 42000,
+                $params["path"], $params["domain"],
+                $params["secure"], $params["httponly"]
+            );
+        }
         session_destroy();
     }
 

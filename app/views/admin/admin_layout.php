@@ -19,6 +19,12 @@
             echo '<link rel="stylesheet" href="' . asset("admin/css/$route_path.css") .'">'."\n";
         }
     ?>
+    <!-- 5555555 -->
+    <?php if (!empty($styles) && is_array($styles)): ?>
+        <?php foreach ($styles as $style): ?>
+            <link rel="stylesheet" href="<?= asset("admin/css/{$style}") ?>">
+        <?php endforeach; ?>
+    <?php endif; ?>
     <meta name="csrf_token" content="<?= htmlspecialchars(CSRF::getToken()) ?>">
 </head>
 <body>
@@ -119,6 +125,16 @@
             echo '<script src="' . asset("admin/js/$route_path.js") . '" defer></script>'."\n";
         }
     ?>
+    <!-- 7777777 -->
+    <?php if (!empty($jss) && is_array($jss)): ?>
+        <?php foreach ($jss as $key => $js_file): ?>
+            <?php if (strtolower($key) !== 'absolute'): ?>
+                <script src="<?= asset("admin/js/$js_file") ?>" defer></script>
+            <?php else: ?>
+                <script src="<?= asset("$js_file") ?>" defer></script>
+            <?php endif ?>
+        <?php endforeach; ?>
+    <?php endif; ?>
     <script src="<?= asset('js/common.js') ?>" defer></script>
     <!-- Мобильное меню скрипт -->
     <script>

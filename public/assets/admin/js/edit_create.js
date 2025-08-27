@@ -6,9 +6,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const postForm = document.querySelector('form');
     const postContentTextarea = document.getElementById('postContent');
 
-    // const adminRoute = document.querySelector('meta[name="admin_route"]')?.content || 'admin';
-    
-    // ИЗМЕНЕНИЕ ЗДЕСЬ: Теперь CSRF-токен берётся только из meta-тега.
+    // CSRF-токен берётся только из meta-тега.
     const csrfToken = document.querySelector('meta[name="csrf_token"]')?.content;
 
     let slugTimeout = null;
@@ -98,7 +96,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (savePostBtn && postForm) {
         savePostBtn.addEventListener('click', async function(e) {
             e.preventDefault();
-
+            
             // *** НАЧАЛО: Клиентская валидация обязательных полей ***
             let hasErrors = false;
             let errors = [];
@@ -155,19 +153,33 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
 
-            const formData = new FormData(postForm);
-            formData.append('csrf_token', csrfToken); 
+            const dataObject = parseFormData(new FormData(postForm));
+            // Добавляем CSRF-токен в объект
+            dataObject.csrf_token = csrfToken;
             
             savePostBtn.disabled = true;
 
+            const postIdAndType = getContentIdAndTypeFromUrl(window.location.pathname,
+                `${adminRoute}`);
+            if (postIdAndType !== null)
+            {
+                method = 'PUT';
+                dataObject.id = postIdAndType.id;
+            }
+            else
+            {
+                method = 'POST';
+            }
+
             try {
                 const response = await fetch(postForm.action, {
-                    method: 'POST',
+                    method: method,
                     headers: {
+                        'Content-Type': 'application/json',
                         'X-Requested-With': 'XMLHttpRequest',
                         'X-CSRF-TOKEN': csrfToken
                     },
-                    body: formData
+                    body: JSON.stringify(dataObject)
                 });
 
                 const responseText = await response.text();
@@ -183,6 +195,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Теперь проверяем: если статус не ok, но пришёл JSON — возможно, это наш структурированный ответ об ошибке
                 if (!response.ok) {
                     // Если сервер прислал { success: false, message: "..." }
+                    if (response.status === 401)
+                    {
+                        // Пользователь не авторизован, перенаправляем на страницу логина
+                        window.location.href = `/${adminRoute}/login`;
+                    }
                     if (!data.success && data.message) {
                         if (Array.isArray(data.errors) && data.errors.length > 0)
                         {
@@ -317,3 +334,76 @@ document.addEventListener('DOMContentLoaded', function() {
         return text.split('').map(char => translitMap[char] || char).join('');
     }
 });
+
+/**
+ * Извлекает ID и тип контента из URL редактирования.
+ * @param {string} url - Полный URL, например '/adm/posts/edit/358' или '/adm/pages/edit/123'
+ * @param {string} adminRoute - Префикс админ-маршрута, например 'adm'
+ * @returns {{type: string, id: number}|null} Возвращает объект с типом и ID, или null если не найдено.
+ */
+function getContentIdAndTypeFromUrl(url, adminRoute) {
+    const adminPath = `/${adminRoute}/`;
+    const parts = url.split(adminPath);
+
+    // Убеждаемся, что мы находимся в админке
+    if (parts.length < 2) {
+        return null;
+    }
+
+    const pathAfterAdmin = parts[1];
+    const pathSegments = pathAfterAdmin.split('/');
+
+    // Проверяем, что у нас есть как минимум 3 сегмента (posts/edit/ID)
+    if (pathSegments.length < 3) {
+        return null;
+    }
+
+    const contentType = pathSegments[0]; // 'posts' или 'pages'
+    const action = pathSegments[1];      // 'edit'
+    const idString = pathSegments[2];    // '358'
+
+    // Проверяем, что это URL для редактирования
+    if ((contentType === 'posts' || contentType === 'pages') && action === 'edit') {
+        const id = parseInt(idString, 10);
+        if (!isNaN(id)) {
+            // Возвращаем объект с типом контента и ID
+            return {
+                type: contentType === 'posts' ? 'post' : 'page',
+                id: id
+            };
+        }
+    }
+    
+    return null;
+}
+
+/**
+ * Преобразует объект FormData в простой JavaScript-объект, 
+ * корректно обрабатывая поля-массивы (с суффиксом '[]').
+ * * @param {FormData} formData Объект FormData, собранный из HTML-формы.
+ * @returns {Object} Возвращает JavaScript-объект с данными формы.
+ */
+function parseFormData(formData)
+{
+    const dataObject = {};
+    // Перебираем все пары ключ/значение из FormData
+    for (const [key, value] of formData.entries()) {
+        // Если ключ заканчивается на "[]" (как у тегов или категорий)
+        if (key.endsWith('[]')) {
+            const cleanKey = key.slice(0, -2); // Убираем '[]'
+            
+            // Если для этого ключа ещё нет массива, создаём его
+            if (!dataObject[cleanKey]) {
+                dataObject[cleanKey] = [];
+            }
+            
+            // Добавляем значение в массив
+            dataObject[cleanKey].push(value);
+        } else {
+            // Для остальных полей просто присваиваем значение
+            dataObject[key] = value;
+        }
+    }
+
+    return dataObject;
+}

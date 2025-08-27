@@ -236,6 +236,7 @@ class AdminPostsModel {
      * Получает пост по ID с категориями и тегами.
      * @param string $url URL поста.
      * @return array|null Данные поста или null, если пост не найден.
+     * @deprecated
      */
     public function getPostByUrl(int $url): ?array
     {
@@ -285,7 +286,16 @@ class AdminPostsModel {
     public function getPostById(int $id, string $articleType): ?array
     {
         $sql = "SELECT 
-                    p.*, 
+                    p.id,
+                    p.url,
+                    p.title,
+                    p.content,
+                    p.excerpt,
+                    p.meta_title,
+                    p.meta_keywords,
+                    p.meta_description,
+                    p.status,
+                    p.article_type,
                     u.name AS author_name,
                     GROUP_CONCAT(DISTINCT c.id ORDER BY c.name SEPARATOR ',') AS category_ids,
                     GROUP_CONCAT(DISTINCT c.name ORDER BY c.name SEPARATOR ';;') AS category_names,
@@ -348,10 +358,10 @@ class AdminPostsModel {
                         status = :status,
                         title = :title,
                         content = :content,
-                        url = :url,
                         excerpt = :excerpt,
-                        description = :meta_description,
-                        keywords = :meta_keywords,
+                        meta_title = :meta_title,
+                        meta_description = :meta_description,
+                        meta_keywords = :meta_keywords,
                         thumbnail_media_id = :thumbnail_media_id,
                         updated_at = :updated_at
                     WHERE id = :id";
@@ -362,8 +372,8 @@ class AdminPostsModel {
                 ':status' => $postData['status'],
                 ':title' => $postData['title'],
                 ':content' => $postData['content'],
-                ':url' => $postData['url'],
                 ':excerpt' => $postData['excerpt'],
+                ':meta_title' => $postData['meta_title'],
                 ':meta_description' => $postData['meta_description'],
                 ':meta_keywords' => $postData['meta_keywords'],
                 ':thumbnail_media_id' => $thumbnailMediaId,
@@ -410,7 +420,7 @@ class AdminPostsModel {
             return true;
         } catch (PDOException $e) {
             Logger::error("Error deleting post links for post ID $postId: " . $e->getMessage());
-            return false;
+            throw $e;
         }
     }
     
@@ -470,12 +480,12 @@ class AdminPostsModel {
             // Исправленный SQL-запрос с учетом правильных названий столбцов
             $sql = "INSERT INTO posts (
                         user_id, article_type, status, title, content, url, 
-                        excerpt, description, keywords, thumbnail_media_id, 
-                        created_at, updated_at)
+                        excerpt, meta_title, meta_description, meta_keywords, 
+                        thumbnail_media_id, created_at, updated_at)
                     VALUES (
                         :user_id, :article_type, :status, :title, :content, :url, 
-                        :excerpt, :description, :keywords, :thumbnail_media_id, 
-                        :created_at, :updated_at)";
+                        :excerpt, :meta_title, :meta_description, :meta_keywords, 
+                        :thumbnail_media_id, :created_at, :updated_at)";
             $stmt = $this->db->prepare($sql);
             $stmt->execute([
                 ':user_id' => $postData['user_id'],
@@ -485,8 +495,9 @@ class AdminPostsModel {
                 ':content' => $postData['content'],
                 ':url' => $postData['url'],
                 ':excerpt' => $postData['excerpt'], // Исправлено на excerpt
-                ':description' => $postData['meta_description'],
-                ':keywords' => $postData['meta_keywords'],
+                ':meta_title' => $postData['meta_title'],
+                ':meta_description' => $postData['meta_description'],
+                ':meta_keywords' => $postData['meta_keywords'],
                 ':thumbnail_media_id' => $thumbnailMediaId,
                 ':created_at' => date('Y-m-d H:i:s'),
                 ':updated_at' => date('Y-m-d H:i:s')
@@ -537,6 +548,42 @@ class AdminPostsModel {
         $stmt = $this->db->prepare($sql);
         $stmt->execute([':url' => $url]);
         return $stmt->fetchColumn() === 0;
+    }
+
+    /**
+     * Проверяет существование поста по URL, ID или по обоим.
+     *
+     * @param int|null $postId ID поста.
+     * @param string|null $url URL поста.
+     * @return bool True, если пост существует, false в противном случае.
+     */
+    public function postExists(?int $postId = null, ?string $url = null): bool
+    {
+        // Если ни URL, ни ID не переданы, пост не может существовать.
+        if (is_null($url) && is_null($postId)) {
+            return false;
+        }
+
+        $sql = "SELECT COUNT(*) FROM posts WHERE 1";
+        $params = [];
+
+        // Добавляем условие для URL, если оно передано.
+        if (!is_null($url)) {
+            $sql .= " AND url = :url";
+            $params[':url'] = $url;
+        }
+
+        // Добавляем условие для ID, если оно передано.
+        if (!is_null($postId)) {
+            $sql .= " AND id = :id";
+            $params[':id'] = $postId;
+        }
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute($params);
+
+        // Возвращаем true, если количество записей > 0
+        return $stmt->fetchColumn() > 0;
     }
 
     /**

@@ -7,7 +7,8 @@
     <title itemprop="headline"><?= htmlspecialchars($structuredData['site_name']) ?></title>
     <meta itemprop="keywords" name="keywords" content="<?= htmlspecialchars($structuredData['keywords']) ?>">
     <meta itemprop="description" name="description" content="<?= htmlspecialchars($structuredData['description']) ?>">
-
+    <meta name="csrf-token" content="<?= CSRF::getToken() ?>">
+    
     <?= generateStructuredData($structuredData); ?>
 
     <link rel="stylesheet" href="/assets/css/common.css">
