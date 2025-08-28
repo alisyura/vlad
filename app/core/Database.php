@@ -1,7 +1,7 @@
 <?php
 // app/core/Database.php
 
-class Database {
+final class Database {
     private static $pdo = null;
 
     /**

@@ -16,7 +16,8 @@ class Config
         'global' => [
             'SITE_NAME' => 'Мой блог',
             'SITE_KEYWORDS' => 'Ключевые слова...',
-            'SITE_DESCRIPTION' => 'Описание...'
+            'SITE_DESCRIPTION' => 'Описание...',
+            'ViewsRootPath' => 'C:\\Users\\kriya\\Projects\\web\\vlad.local\\app\\views'
         ],
         'logger' => [
             'UseDebugLogger' => true,
@@ -34,7 +35,7 @@ class Config
             'UploadedMinWidth' => 400
         ],
         'cache' => [
-            'CacheDir' => 'W:\\domains\\vlad.local\\cache\\pages/',
+            'CacheDir' => 'C:\\Users\\kriya\\Projects\\web\\vlad.local\\cache\\pages/',
             'CacheLifetime' => 3600,
             'UseCache' => false
         ],

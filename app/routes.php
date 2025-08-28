@@ -126,17 +126,23 @@ $router->addRoute('/sitemap-(posts|pages)-(\d+)\.xml', function ($type, $page) {
 
 // Админка
 $adminRoute = Config::get('admin.AdminRoute');
+$viewsRootPath = Config::get('global.ViewsRootPath');
+$viewAdmin = new ViewAdmin(
+    $viewsRootPath,
+    'admin/login.php',
+    'admin/admin_layout.php'
+);
 
-$router->addRoute("/$adminRoute/login", function() {
-    (new AdminController())->login();
+$router->addRoute("/$adminRoute/login", function() use ($viewAdmin) {
+    (new AdminLoginController($viewAdmin))->login();
 });
 
-$router->addRoute("/$adminRoute/dashboard", function() {
-    (new AdminController())->dashboard();
+$router->addRoute("/$adminRoute/dashboard", function() use ($viewAdmin) {
+    (new AdminDashboardController($viewAdmin))->dashboard();
 }, ['AdminAuthMiddleware']);
 
-$router->addRoute("/$adminRoute/logout", function() {
-    (new AdminController())->logout();
+$router->addRoute("/$adminRoute/logout", function() use ($viewAdmin) {
+    (new AdminLoginController($viewAdmin))->logout();
 }, ['AdminAuthMiddleware']);
 
 // Список постов/страниц с пагинацией

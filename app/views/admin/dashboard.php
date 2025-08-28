@@ -4,7 +4,7 @@
             <div class="card-body">
                 <h5 class="card-title">Посты</h5>
                 <p class="card-text display-4"><?= $posts_count ?? 0 ?></p>
-                <a href="/<?= $admin_route ?>/posts" class="btn btn-primary w-100">Управление</a>
+                <a href="/<?= $adminRoute ?>/posts" class="btn btn-primary w-100">Управление</a>
             </div>
         </div>
     </div>
@@ -14,7 +14,7 @@
             <div class="card-body">
                 <h5 class="card-title">Страницы</h5>
                 <p class="card-text display-4"><?= $pages_count ?? 0 ?></p>
-                <a href="/<?= $admin_route ?>/pages" class="btn btn-primary w-100">Управление</a>
+                <a href="/<?= $adminRoute ?>/pages" class="btn btn-primary w-100">Управление</a>
             </div>
         </div>
     </div>
@@ -24,7 +24,7 @@
             <div class="card-body">
                 <h5 class="card-title">Пользователи</h5>
                 <p class="card-text display-4"><?= $users_count ?? 1 ?></p>
-                <a href="/<?= $admin_route ?>/users" class="btn btn-primary w-100">Управление</a>
+                <a href="/<?= $adminRoute ?>/users" class="btn btn-primary w-100">Управление</a>
             </div>
         </div>
     </div>

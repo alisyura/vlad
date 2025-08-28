@@ -28,6 +28,7 @@ spl_autoload_register(function ($class) {
         'Middleware'  => __DIR__ . '/../app/middleware/',
         'Interface'   => __DIR__ . '/../app/interfaces/',
         'Exception'   => __DIR__ . '/../app/exceptions/',
+        'Trait'       => __DIR__ . '/../app/traits/'
     ];
 
     foreach ($smartPaths as $keyword => $path) {
