@@ -1,5 +1,13 @@
 <?php
 // 1. Начинаем сессию
+session_set_cookie_params([
+    'lifetime' => 0,
+    'path' => '/',
+    'domain' => '',
+    'secure' => strtolower($_SERVER['REQUEST_SCHEME']) === 'https',
+    'httponly' => true,    // недоступна из JS
+    'samesite' => 'Strict' // или 'Lax'
+]);
 session_start();
 
 require_once __DIR__ . '/../app/core/Helpers.php';

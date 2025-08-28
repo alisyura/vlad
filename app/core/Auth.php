@@ -85,4 +85,10 @@ class Auth {
     public static function getUserName() {
         return $_SESSION['user_name'] ?? null;
     }
+
+    public static function isAdmin() {
+        return isset($_SESSION['admin']) && 
+                is_bool($_SESSION['admin']) && 
+                $_SESSION['admin'] === true;
+    }
 }

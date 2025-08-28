@@ -223,6 +223,7 @@ class AdminController {
                 //'active' => 'posts', // веорятно лишнее
                 'posts' => $posts,
                 'articleType' => $articleType,
+                'allowDelete' => Auth::isAdmin(),
                 'pagination' => [ // Передаем данные для пагинации в представление
                     'current_page' => $currentPage,
                     'total_pages' => $totalPages
@@ -837,6 +838,9 @@ class AdminController {
      */
     public function deletePost()
     {
+        // Проверка авторизации
+        $this->checkIfUserLoggedIn();
+
         if ($_SERVER['REQUEST_METHOD'] !== 'PATCH') {
             http_response_code(405);
             echo json_encode(['success' => false, 'message' => 'Метод не разрешён.']);
@@ -850,10 +854,7 @@ class AdminController {
             return;
         }
 
-        // Считываем JSON
-        $input = json_decode(file_get_contents('php://input'), true);
-        $postId = $input['post_id'] ?? null;
-        $csrfToken = $input['csrf_token'] ?? '';
+        $csrfToken = $_SERVER['HTTP_X_CSRF_TOKEN'] ?? '';
 
         // Валидация CSRF
         if (!CSRF::validateToken($csrfToken)) {
@@ -862,8 +863,9 @@ class AdminController {
             return;
         }
 
-        // Проверка авторизации
-        $this->checkIfUserLoggedIn();
+        // Считываем JSON
+        $input = json_decode(file_get_contents('php://input'), true);
+        $postId = filter_var($input['post_id'] ?? null, FILTER_VALIDATE_INT);
 
         // Проверка ID
         if (!is_numeric($postId)) {
@@ -874,7 +876,7 @@ class AdminController {
 
         try {
             $adminPostsModel = new AdminPostsModel();
-            $post = $adminPostsModel->getPostById((int)$postId);
+            $post = $adminPostsModel->postExists((int)$postId);
 
             if (!$post) {
                 http_response_code(404);
@@ -882,22 +884,9 @@ class AdminController {
                 return;
             }
 
-            // Помечаем пост как удалённый (или удаляем полностью — как у вас реализовано)
-            // Допустим, у вас есть метод deletePost, который помечает статус как 'deleted'
-            // Или удаляет связи и сам пост.
-
-            // Пример: если вы просто помечаете как удалённый
-            // $sql = "UPDATE posts SET status = 'deleted', updated_at = :updated_at WHERE id = :id";
-            // $stmt = $this->db->prepare($sql);
-            // $stmt->execute([
-            //     ':id' => $postId,
-            //     ':updated_at' => date('Y-m-d H:i:s')
-            // ]);
+            // Помечаем пост как удалённый
             $admPostsModel = new AdminPostsModel();
             $admPostsModel->setPostAsDeleted($postId);
-
-            // Или, если нужно полностью удалить пост и связи:
-            // $adminPostsModel->deletePostWithRelations($postId); // реализуйте при необходимости
 
             http_response_code(200);
             echo json_encode([

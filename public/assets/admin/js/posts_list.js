@@ -118,14 +118,14 @@ document.addEventListener('DOMContentLoaded', function () {
 
         try {
             const response = await fetch(`/${adminRoute}/posts/delete`, {
-                method: 'POST',
+                method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest'
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRF-TOKEN': csrfToken
                 },
                 body: JSON.stringify({
-                    post_id: currentPostId,
-                    csrf_token: csrfToken
+                    post_id: currentPostId
                 })
             });
 
@@ -133,6 +133,16 @@ document.addEventListener('DOMContentLoaded', function () {
 
             const modal = bootstrap.Modal.getInstance(confirmDeleteModal);
             modal.hide();
+
+            if (!response.ok) {
+                if (response.status === 401)
+                {
+                    // Пользователь не авторизован, перенаправляем на страницу логина
+                    window.location.href = `/${adminRoute}/login`;
+                }
+                
+                throw new Error(result.message);
+            }
 
             if (result.success) {
                 // Успешно удалён — перезагружаем страницу

@@ -96,12 +96,14 @@
                                 <div class="post-actions mt-2">
                                     <!-- Для мобильных -->
                                     <a href="/<?= htmlspecialchars($adminRoute ?? 'admin') ?>/posts/edit/<?= htmlspecialchars($post['id']) ?>" class="btn btn-sm btn-outline-primary mb-1 me-1">Редактировать</a>
-                                    <a href="#" 
-                                        class="btn btn-sm btn-outline-danger mb-1 me-1 delete-post-link" 
-                                        data-post-id="<?= htmlspecialchars($post['id']) ?>"
-                                        data-post-title="<?= htmlspecialchars($post['title']) ?>">
-                                        Удалить
-                                    </a>
+                                    <?php if ($allowDelete): ?>
+                                        <a href="#" 
+                                            class="btn btn-sm btn-outline-danger mb-1 me-1 delete-post-link" 
+                                            data-post-id="<?= htmlspecialchars($post['id']) ?>"
+                                            data-post-title="<?= htmlspecialchars($post['title']) ?>">
+                                            Удалить
+                                        </a>
+                                    <?php endif ?>
                                     <?php if (!empty($post['url']) && strtolower($post['status']) === 'published'): ?>
                                         <a href="/<?= htmlspecialchars($post['url']) ?>.html" target="_blank" class="btn btn-sm btn-outline-info text-secondary mb-1">Посмотреть на сайте</a>
                                     <?php endif; ?>
@@ -111,12 +113,14 @@
                             <div class="post-actions mt-1 d-none d-md-block">
                                 <!-- Для десктопа -->
                                 <a href="/<?= htmlspecialchars($adminRoute ?? 'admin') ?>/<?= htmlspecialchars($articleType) ?>s/edit/<?= htmlspecialchars($post['id']) ?>" class="text-primary me-2">Редактировать</a>
-                                <a href="#" 
-                                    class="btn btn-sm text-danger mb-1 me-1 delete-post-link" 
-                                    data-post-id="<?= htmlspecialchars($post['id']) ?>"
-                                    data-post-title="<?= htmlspecialchars($post['title']) ?>">
-                                    Удалить
-                                </a>
+                                <?php if ($allowDelete): ?>
+                                    <a href="#" 
+                                        class="btn btn-sm text-danger mb-1 me-1 delete-post-link" 
+                                        data-post-id="<?= htmlspecialchars($post['id']) ?>"
+                                        data-post-title="<?= htmlspecialchars($post['title']) ?>">
+                                        Удалить
+                                    </a>
+                                <?php endif ?>
                                 <?php if (!empty($post['full_url']) && strtolower($post['status']) === 'published'): ?>
                                     <a href="/<?= htmlspecialchars($post['full_url']) ?>.html" target="_blank" class="text-info">Посмотреть на сайте</a>
                                 <?php endif; ?>
@@ -171,7 +175,7 @@ if (strtolower($current_sort_by) === "created_at")
 }
 else
 {
-    $sort_string ="?sort=${current_sort_by}&order=${current_sort_order}";
+    $sort_string ="?sort={$current_sort_by}&order={$current_sort_order}";
 }
 ?>
 
