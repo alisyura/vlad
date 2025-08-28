@@ -41,7 +41,7 @@ class Config
         'admin' => [
             'AdminEmail' => 'admin@admin.ru',
             'AdminRoute' => 'adm',
-            'posts_per_page' => 3,
+            'posts_per_page' => 10,
             'EnableCreateCategory' => false,
             'EnableEditCategory' => false,
             'AdminRoleName' => 'Administrator',

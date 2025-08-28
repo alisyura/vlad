@@ -124,12 +124,18 @@ class AdminController {
             $admPostsModel = new AdminPostsModel();
 
             // --- Получение и валидация параметров сортировки ---
-            $sortBy = $_GET['sort'] ?? 'created_at';
+            $sortBy = $_GET['sort'] ?? 'updated_at';
             $sortOrder = $_GET['order'] ?? 'DESC';
 
-            $allowedSorts = ['id', 'title', 'author', 'categories', 'tags', 'status', 'created_at', 'updated_at'];
+            $allowedSorts = ['id', 
+                'title', 
+                'author', 
+                'categories', 
+                'tags', 
+                'status', 
+                'updated_at'];
             if (!in_array($sortBy, $allowedSorts)) {
-                $sortBy = 'created_at';
+                $sortBy = 'updated_at';
             }
 
             $allowedOrders = ['ASC', 'DESC'];

@@ -79,7 +79,7 @@ class AdminPostsModel {
      * @return array Список постов, каждый из которых содержит массив категорий и массив тегов.
      */
     public function getPosts(string $article_type, int $limit, int $offset,
-                             string $sortBy = 'created_at', string $sortOrder = 'DESC') {
+                             string $sortBy = 'updated_at', string $sortOrder = 'DESC') {
         // Допустимые поля для сортировки и их соответствие в базе данных
         $allowedSortColumns = [
             'id' => 'p.id',
@@ -88,12 +88,12 @@ class AdminPostsModel {
             'categories' => 'category_names_concat', // Сортируем по конкатенированному списку категорий
             'tags' => 'tag_names_concat', // Сортируем по конкатенированному списку тегов
             'status' => 'p.status',
-            'created_at' => 'p.created_at',
+            // 'created_at' => 'p.created_at',
             'updated_at' => 'p.updated_at'
         ];
 
         // Проверяем, что $sortBy является допустимой колонкой
-        $orderByColumn = $allowedSortColumns['created_at']; // По умолчанию
+        $orderByColumn = $allowedSortColumns['updated_at']; // По умолчанию
         if (array_key_exists($sortBy, $allowedSortColumns)) {
             $orderByColumn = $allowedSortColumns[$sortBy];
         }
