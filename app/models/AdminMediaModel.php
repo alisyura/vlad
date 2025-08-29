@@ -1,13 +1,7 @@
 <?php
 // app/models/AdminMediaModel.php
 
-class AdminMediaModel {
-    private $db;
-
-    public function __construct() {
-        $this->db = Database::getConnection();
-    }
-
+class AdminMediaModel extends BaseModel {
     /**
      * Запрос к базе данных для получения всех изображений
      */
@@ -53,4 +47,20 @@ class AdminMediaModel {
         //$this->db->commit(); // Сохраняем всё
     }
     
+    /**
+     * Получает ID медиафайла по его URL (file_path).
+     * @param string $fileUrl URL файла.
+     * @return int|null ID файла или null, если не найден.
+     */
+    public function getMediaIdByUrl(string $fileUrl): ?int
+    {
+        if (empty($fileUrl)) {
+            return null;
+        }
+        $sql = "SELECT id FROM media WHERE file_path = :file_path LIMIT 1";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([':file_path' => $fileUrl]);
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $result ? (int) $result['id'] : null;
+    }
 }

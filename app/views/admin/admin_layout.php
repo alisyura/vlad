@@ -73,15 +73,15 @@
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link <?= ($active ?? '') === 'settings' ? 'active' : '' ?>" 
-                               href="/<?= $adminRoute ?>/pics">
-                                Картинки
+                            <a class="nav-link <?= ($active ?? '') === 'tags' ? 'active' : '' ?>" 
+                               href="/<?= $adminRoute ?>/tags">
+                                Тэги
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link <?= ($active ?? '') === 'settings' ? 'active' : '' ?>" 
-                               href="/<?= $adminRoute ?>/tags">
-                                Тэги
+                            <a class="nav-link <?= ($active ?? '') === 'pics' ? 'active' : '' ?>" 
+                               href="/<?= $adminRoute ?>/pics">
+                                Картинки
                             </a>
                         </li>
                         <li class="nav-item">

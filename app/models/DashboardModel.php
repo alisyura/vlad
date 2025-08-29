@@ -1,12 +1,6 @@
 <?php
-
-class DashboardModel {
-    private $db;
-
-    public function __construct() {
-        $this->db = Database::getConnection();
-    }
-
+// app/models/DashboardModel.php
+class DashboardModel extends BaseModel {
     public function getRecentActivities()
     {
         try {

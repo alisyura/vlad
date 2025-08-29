@@ -1,12 +1,6 @@
 <?php
 
-class UserModel {
-    private $db;
-
-    public function __construct() {
-        $this->db = Database::getConnection();
-    }
-
+class UserModel extends BaseModel {
     public function getUserByLogin($login) {
         $stmt = $this->db->prepare("
         SELECT

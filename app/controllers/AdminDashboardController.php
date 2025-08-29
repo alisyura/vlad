@@ -2,20 +2,9 @@
 
 // app/controllers/AdminDashboardController.php
 
-class AdminDashboardController
+class AdminDashboardController extends BaseController
 {
-    use CheckIfUserLoggedInTrait;
-
-    private $viewAdmin;
-
-    public function __construct(ViewAdmin $viewAdmin)
-    {
-        $this->viewAdmin = $viewAdmin;
-    }
-
     public function dashboard() {
-        $this->checkIfUserLoggedIn();
-
         $dm = new DashboardModel();
 
         $adminRoute = Config::get('admin.AdminRoute');
@@ -24,6 +13,7 @@ class AdminDashboardController
         // Получаем данные для dashboard
         $data = [
             'adminRoute' => $adminRoute,
+            'user_name' => $user_name,
             'title' => 'Dashboard',
             'active' => 'dashboard', // для подсветки в меню
             'posts_count' => $dm->getPostsCount(),

@@ -1,15 +1,8 @@
 <?php
 // app/controllers/AdminLoginController.php
 
-class AdminLoginController
+class AdminLoginController extends BaseController
 {
-    private $viewAdmin;
-
-    public function __construct(ViewAdmin $viewAdmin)
-    {
-        $this->viewAdmin = $viewAdmin;
-    }
-
     public function login() {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // --- Проверка и обработка POST ---

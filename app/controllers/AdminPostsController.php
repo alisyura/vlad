@@ -1,29 +1,8 @@
 <?php
-// app/controllers/AdminController.php
+// app/controllers/AdminPostsController .php
 
-class AdminController {
-    private function checkIfUserLoggedIn()
-    {
-        if (!Auth::check()) {
-            // Проверяем, является ли запрос AJAX
-            if (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest') {
-                // Если это AJAX, возвращаем JSON-ошибку 401
-                header('Content-Type: application/json');
-                http_response_code(401);
-                echo json_encode(['success' => false, 'message' => 'Доступ запрещен']);
-                exit;
-            } else {
-                // Если это обычный запрос, делаем редирект
-                $adminRoute = Config::get('admin.AdminRoute');
-                header("Location: /$adminRoute/login");
-                exit;
-            }
-        }
-    }
-
-
-    
-
+class AdminPostsController extends BaseController
+{
     /**
      * Отображает список постов в админ-панели с пагинацией.
      * @param int $currentPage Номер текущей страницы (из URL, по умолчанию 1).
@@ -48,12 +27,9 @@ class AdminController {
      * @param string $articleType Тип статьи. post или page
      */
     private function processArticlesList($currentPage = 1, $articleType = 'post') {
-        $this->checkIfUserLoggedIn();
-
         $adminRoute = Config::get('admin.AdminRoute');
+        $userName = Auth::getUserName();
         try {
-            $admPostsModel = new AdminPostsModel();
-
             // --- Получение и валидация параметров сортировки ---
             $sortBy = $_GET['sort'] ?? 'updated_at';
             $sortOrder = $_GET['order'] ?? 'DESC';
@@ -81,8 +57,9 @@ class AdminController {
             $currentPage = max(1, (int)$currentPage); // Убеждаемся, что страница не меньше 1
             $offset = ($currentPage - 1) * $postsPerPage; // Вычисляем смещение
 
+            $postsListModel = new PostsListModel();
             // Получаем общее количество постов
-            $totalPosts = $admPostsModel->getTotalPostsCount($articleType);
+            $totalPosts = $postsListModel->getTotalPostsCount($articleType);
             // Вычисляем общее количество страниц
             $totalPages = ceil($totalPosts / $postsPerPage);
             
@@ -91,7 +68,7 @@ class AdminController {
             $offset = ($currentPage - 1) * $postsPerPage;
 
             // Получаем посты для текущей страницы
-            $posts = $admPostsModel->getPosts($articleType, $postsPerPage, $offset,
+            $posts = $postsListModel->getPostsList($articleType, $postsPerPage, $offset,
                 $sortBy, $sortOrder);
             
             // Обрабатываем каждый пост для форматирования и подготовки к выводу
@@ -146,7 +123,7 @@ class AdminController {
             }
             unset($post);
 
-            
+
             
             // Генерируем массив ссылок для умной пагинации
             // Базовый URL для админки
@@ -155,7 +132,7 @@ class AdminController {
 
             $data = [
                 'adminRoute' => $adminRoute,
-               // 'user_name' => $user_name,
+                'user_name' => $userName,
                 'title' => 'Список ' . ($articleType === 'post' ? 'постов' : 'страниц'),
                 'active' => "{$articleType}s", // для подсветки в левом меню
                 'posts' => $posts,
@@ -177,33 +154,26 @@ class AdminController {
                 ]
             ];
             
-            // Используется в admin_layout
-            $user_name = Auth::getUserName();
-            // $content = View::render('../app/views/admin/posts/list.php', $data);
-            // $route_path = 'posts-list';
-            // require '../app/views/admin/admin_layout.php';
-            View::renderAdmin('../app/views/admin/posts/list.php', $data);
+            $this->viewAdmin->renderAdmin('admin/posts/list.php', $data);
 
         } catch (PDOException $e) {
             Logger::error("Database error in listPosts: " . $e->getTraceAsString());
             $data = [
                 'adminRoute' => $adminRoute,
+                'user_name' => $userName,
                 'title' => 'Ошибка',
                 'error_message' => 'Не удалось загрузить данные. Пожалуйста, попробуйте позже.'
             ];
-            // $content = View::render('../app/views/admin/errors/error_view.php', $data);
-            // require '../app/views/admin/admin_layout.php';
-            View::renderAdmin('../app/views/admin/errors/error_view.php', $data);
+            $this->viewAdmin->renderAdmin('admin/errors/error_view.php', $data);
         } catch (Throwable $e) {
             Logger::error("Error in listPosts: " . $e->getTraceAsString());
             $data = [
                 'adminRoute' => $adminRoute,
+                'user_name' => $userName,
                 'title' => 'Ошибка',
                 'error_message' => 'Произошла непредвиденная ошибка.'
             ];
-            // $content = View::render('../app/views/admin/errors/error_view.php', $data);
-            // require '../app/views/admin/admin_layout.php';
-            View::renderAdmin('../app/views/admin/errors/error_view.php', $data);
+            $this->viewAdmin->renderAdmin('admin/errors/error_view.php', $data);
         }
     }
 
@@ -233,12 +203,8 @@ class AdminController {
 
         try {
             Logger::debug("$logHeader. begin");
-            $this->checkIfUserLoggedIn();
 
-            $adminPostsModel = new AdminPostsModel();
-            
-            // $user_id = Auth::getUserId();
-            // $user_name = Auth::getUserName();
+            $adminPostsModel = new AdditionalModel();
 
             Logger::debug("$logHeader. adminRoute $adminRoute");
 
@@ -250,7 +216,7 @@ class AdminController {
             $data = [
                 'adminRoute' => $adminRoute,
                 'articleType' => $articleType,
-                // 'user_name' => $user_name,
+                'user_name' => Auth::getUserName(),
                 'title' => '', //тк создаем новый пост
                 'active' => "{$articleType}s", // для подсветки в левом меню
                 'pageTitle' => $pageTitle,
@@ -281,23 +247,18 @@ class AdminController {
 
             Logger::debug("$logHeader. data", $data);
         
-            // $route_path = 'edit_create';
-            // $content = View::render('../app/views/admin/posts/edit_create.php', $data);
-            // require '../app/views/admin/admin_layout.php';
-            View::renderAdmin('../app/views/admin/posts/edit_create.php', $data);
+            $this->viewAdmin->renderAdmin('admin/posts/edit_create.php', $data);
             
         } catch (Throwable $e) {
             Logger::error("$logHeader. An unexpected error occurred: " . $e->getTraceAsString());
 
             $data = [
                 'adminRoute' => $adminRoute,
+                'user_name' => Auth::getUserName(),
                 'title' => 'Ошибка',
                 'error_message' => 'Не удалось загрузить посты. Пожалуйста, попробуйте позже.'
             ];
-            $user_name = Auth::getUserName();
-            // $content = View::render('../app/views/admin/errors/error_view.php', $data);
-            // require '../app/views/admin/admin_layout.php';
-            View::renderAdmin('../app/views/admin/errors/error_view.php', $data);
+            $this->viewAdmin->renderAdmin('admin/errors/error_view.php', $data);
         }
 
         
@@ -326,34 +287,6 @@ class AdminController {
 
 
         Logger::debug("createPostPost. Начало");
-
-        $this->checkIfUserLoggedIn();
-
-        // вызов должен прийти методом пост. должен быть установлен HTTP_X_REQUESTED_WITH
-        // и он должен быть равен XMLHttpRequest
-        Logger::debug("createPostPost. REQUEST_METHOD = {$_SERVER['REQUEST_METHOD']}");
-        $http_requested_with = $_SERVER['HTTP_X_REQUESTED_WITH'] ?? '';
-        Logger::debug("createPostPost. HTTP_X_REQUESTED_WITH = {$http_requested_with}");
-
-        if ($_SERVER['REQUEST_METHOD'] !== 'POST' 
-            || empty($http_requested_with)
-            || strtoupper($http_requested_with) !== strtoupper('XMLHttpRequest')) {
-            
-            echo json_encode(['success' => false, 'message' => 'Неверный REQUEST_METHOD или HTTP_X_REQUESTED_WITH.']);
-            http_response_code(403);
-            exit;
-        }
-
-        $csrf_token = $_SERVER['HTTP_X_CSRF_TOKEN'] ?? '';
-        Logger::debug("createPostPost. post token = $csrf_token");
-        
-        if (!CSRF::validateToken($csrf_token)) {
-            http_response_code(403);
-            echo json_encode(['success' => false, 'message' => 'Неверный CSRF-токен.']);
-            exit;
-        } 
-
-        Logger::debug("createPostPost. post token is valid");
         
         $json_data = file_get_contents('php://input');
         // Декодируем JSON-строку в ассоциативный массив PHP
@@ -364,7 +297,7 @@ class AdminController {
         
         $title = trim($post_data['title'] ?? '');
         $content = $post_data['content'] ?? '';
-        $url = $this->sanitizeUrl($post_data['url'] ?? '');
+        $url = transliterate($post_data['url'] ?? '');
         $status = $post_data['status'] ?? 'draft';
         $meta_title = trim($post_data['meta_title'] ?? '');
         $meta_description = trim($post_data['meta_description'] ?? '');
@@ -384,7 +317,7 @@ class AdminController {
         if (empty($url)) {
             Logger::debug("createPostPost. url empty");
             $data['errors'][] = 'URL поста обязателен.';
-        } else if (!$adminPostsModel->isUrlUnique($url)) {
+        } else if ($adminPostsModel->postExists(null, $url)) {
             Logger::debug("createPostPost. url exists");
             $data['errors'][] = 'Указанный URL уже занят.';
         }
@@ -429,7 +362,7 @@ class AdminController {
         }
 
     }
-    
+
     /**
      * Точка входа в изменение поста из маршрутизатора
      */
@@ -459,9 +392,6 @@ class AdminController {
         $logHeader = ($articleType === 'post') ? 'editPostGet' : 'editPageGet';
         try
         {
-            $this->checkIfUserLoggedIn();
-            $adminPostsModel = new AdminPostsModel();
-
             $config = [
                 'post' => [
                     'listTitle' => 'К списку постов',
@@ -483,18 +413,19 @@ class AdminController {
             $returnToListUrl = $config[$articleType]['listUrl'];
             $publishButtonTitle = 'Обновить ' . ($articleType == 'post' ? 'пост' : 'страницу');
     
-            $postData = $adminPostsModel->getPostById($postId, $articleType);
+            $postData = (new AdminPostsModel())->getPostById($postId, $articleType);
             if ($postData === null) {
                 // Если пост не найден, рендерим специальный view и выходим
                 $data = [
                     'adminRoute' => $adminRoute,
+                    'user_name' => $user_name,
                     'error_message' => 'Запись не найдена.'
                 ];
-                // $content = View::render('../app/views/admin/errors/not_found_view.php', $data);
-                // require '../app/views/admin/admin_layout.php';
-                View::renderAdmin('../app/views/admin/errors/not_found_view.php', $data);
+                
+                $this->viewAdmin->renderAdmin('admin/errors/not_found_view.php', $data);
                 return; // Ранний выход
             }
+            $addModel = new AdditionalModel();
             $data = [
                 'adminRoute' => $adminRoute,
                 'articleType' => $articleType,
@@ -503,8 +434,8 @@ class AdminController {
                 'publishButtonTitle' => $publishButtonTitle,
                 'active' => "{$articleType}s", // для подсветки в левом меню
                 'post' => $postData,
-                'categories' => $adminPostsModel->getAllCategories(),
-                'tags' => $adminPostsModel->getAllTags(),
+                'categories' => $addModel->getAllCategories(),
+                'tags' => $addModel->getAllTags(),
                 // 'errors' => [],
                 'is_new_post' => false,
                 'formAction' => $formAction,
@@ -527,10 +458,7 @@ class AdminController {
             // Устанавливаем заголовок
             $data['pageTitle'] .= htmlspecialchars($data['post']['title'] ?? '');
 
-            // $content = View::render('../app/views/admin/posts/edit_create.php', $data);
-            // $route_path = 'edit_create';
-            // require '../app/views/admin/admin_layout.php';
-            View::renderAdmin('../app/views/admin/posts/edit_create.php', $data);
+            $this->viewAdmin->renderAdmin('admin/posts/edit_create.php', $data);
         }
         catch(Throwable $e)
         {
@@ -538,13 +466,12 @@ class AdminController {
 
             $data = [
                 'adminRoute' => $adminRoute,
+                'user_name' => $user_name,
                 'title' => 'Ошибка',
                 'error_message' => 'Не удалось загрузить данные. Пожалуйста, попробуйте позже.'
             ];
 
-            // $content = View::render('../app/views/admin/errors/error_view.php', $data);
-            // require '../app/views/admin/admin_layout.php';
-            View::renderAdmin('../app/views/admin/errors/error_view.php', $data);
+            $this->viewAdmin->renderAdmin('admin/errors/error_view.php', $data);
         }
     }
 
@@ -573,40 +500,9 @@ class AdminController {
 
         Logger::debug("editArticle. Начало");
 
-        $this->checkIfUserLoggedIn();
-
-        // вызов должен прийти методом PUT. должен быть установлен HTTP_X_REQUESTED_WITH
-        // и он должен быть равен XMLHttpRequest
-        Logger::debug("editArticle. REQUEST_METHOD = {$_SERVER['REQUEST_METHOD']}");
-        $http_requested_with = $_SERVER['HTTP_X_REQUESTED_WITH'] ?? '';
-        Logger::debug("editArticle. HTTP_X_REQUESTED_WITH = {$http_requested_with}");
-
-        if ($_SERVER['REQUEST_METHOD'] !== 'PUT' 
-            || empty($http_requested_with)
-            || strtoupper($http_requested_with) !== strtoupper('XMLHttpRequest')) {
-            
-            echo json_encode(['success' => false, 'message' => 'Неверный REQUEST_METHOD или HTTP_X_REQUESTED_WITH.']);
-            http_response_code(403);
-            exit;
-        }
-
-        
-
-        $csrf_token = $_SERVER['HTTP_X_CSRF_TOKEN'] ?? '';
-        Logger::debug("editArticle. post token = $csrf_token");
-        
-        if (!CSRF::validateToken($csrf_token)) {
-            http_response_code(403);
-            echo json_encode(['success' => false, 'message' => 'Неверный CSRF-токен.']);
-            exit;
-        } 
-
-        Logger::debug("editArticle. post token is valid");
 
         $json_data = file_get_contents('php://input');
         $decodedData = json_decode($json_data, true);
-
-        $adminPostsModel = new AdminPostsModel();
 
         $postId = filter_var($decodedData['id'] ?? null, FILTER_VALIDATE_INT);
         $title = trim($decodedData['title'] ?? '');
@@ -623,6 +519,7 @@ class AdminController {
 
         $thumbnailUrl = trim($decodedData['post_image_url'] ?? '');
 
+        $adminPostsModel = new AdminPostsModel();
         if (!$adminPostsModel->postExists($postId))
         {
             Logger::debug("editArticle. post does not exists. postId={$postId}");
@@ -674,132 +571,11 @@ class AdminController {
     }
 
     /**
-     * Поиск меток по названию для автодополнения (POST-запрос).
-     */
-    public function searchTags()
-    {
-        $this->checkIfUserLoggedIn();
-
-        // Получаем токен из заголовка AJAX-запроса
-        $csrfTokenFromHeader = $_SERVER['HTTP_X_CSRF_TOKEN'] ?? '';
-        
-        // Используем ваш существующий метод для валидации токена
-        if (!CSRF::validateToken($csrfTokenFromHeader)) {
-            http_response_code(403); // Forbidden
-            echo json_encode(['error' => 'Invalid CSRF token']);
-            return;
-        }
-        
-        // Считываем JSON из тела запроса
-        $input = file_get_contents('php://input');
-        $data = json_decode($input, true);
-        
-        $query = $data['q'] ?? '';
-        
-        if (mb_strlen($query) < 2) {
-            header('Content-Type: application/json');
-            echo json_encode([]);
-            return;
-        }
-
-        try {
-            $adminPostsModel = new AdminPostsModel();
-            $tags = $adminPostsModel->searchTagsByName($query);
-            
-            header('Content-Type: application/json');
-            echo json_encode($tags);
-        } catch (Exception $e) {
-            header('Content-Type: application/json');
-            echo json_encode([]);
-            Logger::error('Ошибка при поиске меток: ' . $e->getMessage());
-        }
-    }
-
-    public function checkUrl()
-    {
-        try
-        {
-            header('Content-Type: application/json');
-
-            // 1. Проверяем, что это AJAX-запрос
-            if (empty($_SERVER['HTTP_X_REQUESTED_WITH']) || strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) !== 'xmlhttprequest') {
-                http_response_code(403);
-                echo json_encode(['error' => 'Доступ запрещён.']);
-                exit;
-            }
-
-            // 2. Получаем данные из тела POST-запроса
-            $input = json_decode(file_get_contents('php://input'), true);
-            $url = $input['url'] ?? '';
-            $csrfToken = $input['csrf_token'] ?? '';
-
-            // 3. Проверяем CSRF-токен (предполагаем, что у вас есть функция для этого)
-            if (!CSRF::validateToken($csrfToken)) {
-                http_response_code(403);
-                echo json_encode(['error' => 'Неверный CSRF-токен.']);
-                exit;
-            }
-
-            if (empty($url)) {
-                echo json_encode(['is_unique' => false]);
-                return;
-            }
-
-            $postModel = new AdminPostsModel();
-            // В данном случае мы не передаём ID, так как пост создаётся
-            $isUnique = $postModel->isUrlUnique($url); 
-
-            echo json_encode(['is_unique' => $isUnique]);
-        }
-        catch(Exception $e)
-        {
-            Logger::error("Ошибка при проверке URL $url" . $e->getMessage());
-            http_response_code(403);
-            echo json_encode(['error' => 'Ошибка при проверке URL']);
-            exit;
-        }
-    }
-
-    /**
-     * Вспомогательная функция для очистки имени файла
-     *  */ 
-    private function sanitizeUrl(string $url): string
-    {
-        // Транслитерация (реализуй свою или используй библиотеку)
-        return transliterate($url);
-    }
-
-    /**
      * Выполняет мягкое удаление поста по ID (через AJAX).
      * Ожидает PATCH-запрос с JSON: { post_id: 123, csrf_token: "..." }
      */
     public function deletePost()
     {
-        // Проверка авторизации
-        $this->checkIfUserLoggedIn();
-
-        if ($_SERVER['REQUEST_METHOD'] !== 'PATCH') {
-            http_response_code(405);
-            echo json_encode(['success' => false, 'message' => 'Метод не разрешён.']);
-            return;
-        }
-
-        // Проверяем, что это AJAX
-        if (empty($_SERVER['HTTP_X_REQUESTED_WITH']) || strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) !== 'xmlhttprequest') {
-            http_response_code(403);
-            echo json_encode(['success' => false, 'message' => 'Доступ запрещён.']);
-            return;
-        }
-
-        $csrfToken = $_SERVER['HTTP_X_CSRF_TOKEN'] ?? '';
-
-        // Валидация CSRF
-        if (!CSRF::validateToken($csrfToken)) {
-            http_response_code(403);
-            echo json_encode(['success' => false, 'message' => 'Неверный CSRF-токен.']);
-            return;
-        }
-
         // Считываем JSON
         $input = json_decode(file_get_contents('php://input'), true);
         $postId = filter_var($input['post_id'] ?? null, FILTER_VALIDATE_INT);

@@ -3,11 +3,12 @@
 class Router {
     private $routes = [];
     
-    public function addRoute($pattern, $handler, $middlewares = []) {
+    public function addRoute($pattern, $handler, $middlewares = [], array $options = []) {
         $this->routes[] = [
             'pattern' => $pattern,
             'handler' => $handler,
-            'middlewares' => $middlewares // Добавляем поддержку списка middleware
+            'middlewares' => $middlewares, // Добавляем поддержку списка middleware
+            'method'     => $options['method'] ?? 'GET', // По умолчанию GET, если не указано
         ];
     }
     
@@ -19,6 +20,13 @@ class Router {
             $middlewares = $route['middlewares']; // Получаем список middleware для этого маршрута
 
             if (preg_match("#^$pattern$#", $uri, $matches)) {
+                $requestMethod = strtoupper($_SERVER['REQUEST_METHOD']);
+                // Проверяем, соответствует ли метод запроса ожидаемому
+                if ($requestMethod !== $route['method']) {
+                    http_response_code(405); // Method Not Allowed
+                    exit;
+                }
+
                 array_shift($matches);
 
                 // Выполняем middleware ДО основного обработчика
