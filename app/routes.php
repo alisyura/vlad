@@ -1,33 +1,5 @@
 <?php
 
-// Не обрабатываем. Отдаём файл напрямую (если существует)
-// $router->addRoute('^/assets/.*\.(jpg|jpeg|png|gif|css|js|webp|svg|ico|mp4)$', function() {
-//     $filePath = $_SERVER['DOCUMENT_ROOT'] . $_SERVER['REQUEST_URI'];
-    
-//     if (file_exists($filePath)) {
-//         $mimeTypes = [
-//             'jpg'  => 'image/jpeg',
-//             'jpeg' => 'image/jpeg',
-//             'png'  => 'image/png',
-//             'gif'  => 'image/gif',
-//             'css'  => 'text/css',
-//             'js'   => 'application/javascript',
-//             'webp' => 'image/webp',
-//             'svg'  => 'image/svg+xml',
-//             'ico'  => 'image/x-icon',
-//             'mp4'  => 'video/mp4'
-//         ];
-        
-//         $ext = strtolower(pathinfo($filePath, PATHINFO_EXTENSION));
-//         header('Content-Type: ' . ($mimeTypes[$ext] ?? 'application/octet-stream'));
-//         readfile($filePath);
-//         exit;
-//     }
-    
-//     header("HTTP/1.0 404 Not Found");
-//     exit;
-// });
-
 // Главная страница. Или пустая, или номером страницы /p/2
 $router->addRoute('/(p(\d+))?', function($fullMatch = null, $page = 1) {
     $controller = new PostController();
@@ -135,7 +107,7 @@ $viewAdmin = new ViewAdmin(
 
 $router->addRoute("/$adminRoute/login", function() use ($viewAdmin) {
     (new AdminLoginController($viewAdmin))->login();
-});
+}, [], ['method' => 'GET, POST']);
 
 $router->addRoute("/$adminRoute/dashboard", function() use ($viewAdmin) {
     (new AdminDashboardController($viewAdmin))->dashboard();
@@ -217,10 +189,10 @@ $router->addRoute("/$adminRoute/tags/search", function() use ($viewAdmin) {
 
 
 // Маршруты для работы с медиа изображениями
-$router->addRoute("/$adminRoute/media/list", function() {
-    (new AdminMediaController())->list();
-}, ['AdminAuthMiddleware']);
+$router->addRoute("/$adminRoute/media/list", function() use ($viewAdmin) {
+    (new AdminMediaController($viewAdmin))->list();
+}, ['AdminAuthMiddleware', 'AjaxMiddleware']);
 
-$router->addRoute("/$adminRoute/media/upload", function() {
-    (new AdminMediaController())->upload();
-}, ['AdminAuthMiddleware']);
+$router->addRoute("/$adminRoute/media/upload", function() use ($viewAdmin) {
+    (new AdminMediaController($viewAdmin))->upload();
+}, ['AdminAuthMiddleware', 'AjaxMiddleware', 'CsrfMiddleware'], ['method' => 'POST']);

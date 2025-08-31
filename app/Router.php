@@ -21,10 +21,22 @@ class Router {
 
             if (preg_match("#^$pattern$#", $uri, $matches)) {
                 $requestMethod = strtoupper($_SERVER['REQUEST_METHOD']);
-                // Проверяем, соответствует ли метод запроса ожидаемому
-                if ($requestMethod !== $route['method']) {
-                    http_response_code(405); // Method Not Allowed
+                if ($requestMethod === 'OPTIONS') {
+                    http_response_code(204); // No Content - успешный ответ без тела
                     exit;
+                }
+                // Проверяем, соответствует ли метод запроса ожидаемому
+                if ($route['method'] !== 'ANY')
+                {
+                    // Разбиваем строку и фильтруем пустые значения
+                    $allowedMethods = array_filter(array_map('trim', explode(',', $route['method'])));                    
+                    // Преобразуем все в верхний регистр
+                    $allowedMethods = array_map('strtoupper', $allowedMethods);
+                        
+                    if (!in_array($requestMethod, $allowedMethods)) {
+                        http_response_code(405); // Method Not Allowed
+                        exit;
+                    }
                 }
 
                 array_shift($matches);

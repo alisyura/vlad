@@ -40,7 +40,7 @@ class AdminMediaModel extends BaseModel {
                 ':file_path' => $fileUrl,
                 ':mime_type' => $imageType,
                 ':file_size' => $fileSize,
-                'alt_text' => $altText 
+                ':alt_text' =>  $altText 
             ]);
         
 
