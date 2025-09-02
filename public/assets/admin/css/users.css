@@ -1,0 +1,9 @@
+.mt-10px {
+    margin-top: 10px;
+}
+
+@media (min-width: 768px) {
+    .row {
+        flex-direction: row-reverse;
+    }
+}

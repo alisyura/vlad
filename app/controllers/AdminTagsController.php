@@ -8,18 +8,6 @@ class AdminTagsController extends BaseController
      */
     public function searchTags()
     {
-        // $this->checkIfUserLoggedIn();
-
-        // // Получаем токен из заголовка AJAX-запроса
-        // $csrfTokenFromHeader = $_SERVER['HTTP_X_CSRF_TOKEN'] ?? '';
-        
-        // // Используем ваш существующий метод для валидации токена
-        // if (!CSRF::validateToken($csrfTokenFromHeader)) {
-        //     http_response_code(403); // Forbidden
-        //     echo json_encode(['error' => 'Invalid CSRF token']);
-        //     return;
-        // }
-        
         // Считываем JSON из тела запроса
         $input = file_get_contents('php://input');
         $data = json_decode($input, true);

@@ -196,3 +196,9 @@ $router->addRoute("/$adminRoute/media/list", function() use ($viewAdmin) {
 $router->addRoute("/$adminRoute/media/upload", function() use ($viewAdmin) {
     (new AdminMediaController($viewAdmin))->upload();
 }, ['AdminAuthMiddleware', 'AjaxMiddleware', 'CsrfMiddleware'], ['method' => 'POST']);
+
+
+// Управление пользователями
+$router->addRoute("/$adminRoute/users", function() use ($viewAdmin) {
+    (new AdminUsersController($viewAdmin))->list();
+}, ['AdminAuthMiddleware']);

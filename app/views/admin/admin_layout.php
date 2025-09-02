@@ -7,19 +7,6 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link rel="stylesheet" href="<?= asset('admin/css/admin.css') ?>">
-    <?php
-        if (!empty($route_path))
-        {
-            switch ($route_path)
-            {
-                case 'edit_create':
-                    echo '<link rel="stylesheet" href="' . asset("admin/css/edit_create_mediateka.css") .'">'."\n";
-                    break;
-            }
-            echo '<link rel="stylesheet" href="' . asset("admin/css/$route_path.css") .'">'."\n";
-        }
-    ?>
-    <!-- 5555555 -->
     <?php if (!empty($styles) && is_array($styles)): ?>
         <?php foreach ($styles as $style): ?>
             <link rel="stylesheet" href="<?= asset("admin/css/{$style}") ?>">
@@ -79,6 +66,12 @@
                             </a>
                         </li>
                         <li class="nav-item">
+                            <a class="nav-link <?= ($active ?? '') === 'users' ? 'active' : '' ?>" 
+                               href="/<?= $adminRoute ?>/users">
+                                Пользователи
+                            </a>
+                        </li>
+                        <!-- <li class="nav-item">
                             <a class="nav-link <?= ($active ?? '') === 'pics' ? 'active' : '' ?>" 
                                href="/<?= $adminRoute ?>/pics">
                                 Картинки
@@ -89,7 +82,7 @@
                                href="/<?= $adminRoute ?>/settings">
                                 Настройки
                             </a>
-                        </li>
+                        </li> -->
                     </ul>
                 </div>
             </nav>
@@ -111,21 +104,6 @@
     <script>
         const adminRoute = '<?= htmlspecialchars(Config::get('admin.AdminRoute')) ?>';
     </script>
-    <?php
-        if (!empty($route_path))
-        {
-            switch ($route_path)
-            {
-                case 'edit_create':
-                    echo '<script src="' . asset("tinymce/tinymce.min.js") . '" defer></script>'."\n";
-                    echo '<script src="' . asset("admin/js/edit_create_tag_selector.js") . '" defer></script>'."\n";
-                    echo '<script src="' . asset("admin/js/edit_create_mediateka.js") . '" defer></script>'."\n";
-                    break;
-            }
-            echo '<script src="' . asset("admin/js/$route_path.js") . '" defer></script>'."\n";
-        }
-    ?>
-    <!-- 7777777 -->
     <?php if (!empty($jss) && is_array($jss)): ?>
         <?php foreach ($jss as $key => $js_file): ?>
             <?php if (strtolower($key) !== 'absolute'): ?>
