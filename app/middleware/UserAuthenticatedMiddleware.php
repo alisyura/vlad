@@ -1,8 +1,8 @@
 <?php
 
-// app/middleware/AdminAuthMiddleware.php
+// app/middleware/UserAuthenticatedMiddleware.php
 
-class AdminAuthMiddleware implements MiddlewareInterface
+class UserAuthenticatedMiddleware implements MiddlewareInterface
 {
     /**
      * Проверяет авторизацию администратора.

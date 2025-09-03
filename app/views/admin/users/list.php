@@ -2,6 +2,7 @@
 // Предполагаемые переменные, переданные из контроллера:
 // $users: Массив объектов пользователей или ассоциативных массивов из базы данных.
 // $roles: Массив объектов ролей или ассоциативных массивов из базы данных.
+// isUserAdmin: Является ли пользователь админом
 ?>
 
 <div class="container-fluid">
@@ -14,13 +15,15 @@
                     <tr>
                         <th>Имя</th>
                         <th>Статус</th>
-                        <th>Действия</th>
+                        <?php if ($isUserAdmin): ?>
+                            <th>Действия</th>
+                        <?php endif ?>
                     </tr>
                 </thead>
                 <tbody>
                     <?php if (empty($users)): ?>
                         <tr>
-                            <td colspan="3">Пользователи не найдены.</td>
+                            <td colspan="<?= $isUserAdmin ? 3 : 2 ?>">Пользователи не найдены.</td>
                         </tr>
                     <?php else: ?>
                         <?php foreach ($users as $user): ?>
@@ -33,25 +36,28 @@
                                         <span class="badge bg-secondary">Заблокирован</span>
                                     <?php endif; ?>
                                 </td>
-                                <td>
-                                    <a href="/<?= $adminRoute ?>/users/edit/<?= htmlspecialchars($user['id']) ?>">Редактировать</a> |
-                                    <?php if ($user['built_in'] !== 0): ?>
-                                        <?php if ($user['active']): ?>
-                                            <a href="#" class="action-link" data-action="block" data-id="<?= htmlspecialchars($user['id']) ?>">Заблокировать</a>
-                                        <?php else: ?>
-                                            <a href="#" class="action-link" data-action="unblock" data-id="<?= htmlspecialchars($user['id']) ?>">Разблокировать</a>
-                                        <?php endif; ?>
-                                        |
-                                        <a href="#" class="action-link" data-action="delete" data-id="<?= htmlspecialchars($user['id']) ?>">Удалить</a>
-                                    <?php endif ?>
-                                </td>
+                                <?php if ($isUserAdmin): ?>
+                                    <td>
+                                        [ <a href="/<?= $adminRoute ?>/users/edit/<?= htmlspecialchars($user['id']) ?>">Редактировать</a> ]
+                                        <?php if ($user['built_in'] === 0): ?>
+                                            <?php if ($user['active']): ?>
+                                                [ <a href="#" class="action-link" data-action="block" data-id="<?= htmlspecialchars($user['id']) ?>">Заблокировать</a> ]
+                                            <?php else: ?>
+                                                [ <a href="#" class="action-link" data-action="unblock" data-id="<?= htmlspecialchars($user['id']) ?>">Разблокировать</a> ]
+                                            <?php endif; ?>
+                                            
+                                            [ <a href="#" class="action-link" data-action="delete" data-id="<?= htmlspecialchars($user['id']) ?>">Удалить</a> ]
+                                        <?php endif ?>
+                                    </td>
+                                <?php endif ?>
                             </tr>
                         <?php endforeach; ?>
                     <?php endif; ?>
                 </tbody>
             </table>
         </div>
-
+        
+        <?php if ($isUserAdmin): ?>
         <div class="col-md-4">
             <h2>Создать нового пользователя</h2>
             <form id="create-user-form">
@@ -88,6 +94,7 @@
                 <button type="button" class="btn btn-primary mt-10px">Создать пользователя</button>
             </form>
         </div>
+        <?php endif ?>
     </div>
 </div>
 

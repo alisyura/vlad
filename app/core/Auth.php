@@ -3,13 +3,18 @@
 class Auth {
     private function __construct(){}
 
-    // Метод для входа в систему, теперь с защитой от перебора паролей
+    /**
+     * Метод для входа в систему, теперь с защитой от перебора паролей
+     * @param string $login
+     * @param string $password
+     * @return bool
+     */
     public static function login($login, $password) {
         // Здесь нужно добавить проверку на количество попыток входа
         // Например, с помощью Redis, Memcached или отдельной таблицы в базе данных.
         // Если попыток слишком много, возвращаем false.
 
-        $user = (new UserModel())->getUserByLogin($login);
+        $user = (new UserModel())->getUserByLogin($login, true);
         
         if ($user && password_verify($password, $user['password'])) {
             session_regenerate_id(true);
@@ -18,8 +23,8 @@ class Auth {
             CSRF::refreshToken(); // или generateToken() — чтобы старый стал недействителен
 
             // Сохраняем дополнительные данные для защиты от угона сессии
-            $_SESSION['user_id'] = $user['id']; // Использовать ID более надёжно, чем логин
-            $_SESSION['admin'] = (bool)($user['role_name'] === Config::get('admin.AdminRoleName')); // Приводим к булевому типу
+            $_SESSION['user_id'] = (int)$user['id']; // Приводим к целому числу
+            $_SESSION['is_admin'] = (bool)($user['role_name'] === Config::get('admin.AdminRoleName')); // Приводим к булевому типу
             $_SESSION['user_login'] = (string)$user['login']; // Приводим к строковому типу
             $_SESSION['user_ip'] = $_SERVER['REMOTE_ADDR'];
             $_SESSION['user_agent'] = $_SERVER['HTTP_USER_AGENT'];
@@ -35,20 +40,21 @@ class Auth {
     }
 
     /**
-     * Проверяет, залогинен ли админ, и валидна ли сессия.
+     * Проверяет, залогинен ли пользователь, и валидна ли его сессия.
+     * Не проверяет права администратора.
+     * @return bool
      */
     public static function check() {
         // Проверка наличия, типа и содержимого всех необходимых данных в сессии
         if (
-            isset($_SESSION['admin']) && is_bool($_SESSION['admin']) && $_SESSION['admin'] === true &&
             isset($_SESSION['user_id']) && is_int($_SESSION['user_id']) && $_SESSION['user_id'] > 0 &&
             isset($_SESSION['user_login']) && is_string($_SESSION['user_login']) && !empty($_SESSION['user_login']) &&
             isset($_SESSION['user_name']) && is_string($_SESSION['user_name']) && !empty($_SESSION['user_name'])
         ) {
             // Проверка IP-адреса и User-Agent для защиты от угона сессии
             if (
-                $_SESSION['user_ip'] === $_SERVER['REMOTE_ADDR'] &&
-                $_SESSION['user_agent'] === $_SERVER['HTTP_USER_AGENT']
+                isset($_SESSION['user_ip']) && $_SESSION['user_ip'] === $_SERVER['REMOTE_ADDR'] &&
+                isset($_SESSION['user_agent']) && $_SESSION['user_agent'] === $_SERVER['HTTP_USER_AGENT']
             ) {
                 return true;
             }
@@ -56,6 +62,16 @@ class Auth {
         
         // Если какая-то из проверок не прошла, возвращаем false
         return false;
+    }
+
+    /**
+     * Проверяет, является ли залогиненный пользователь администратором.
+     * @return bool
+     */
+    public static function isUserAdmin() {
+        return self::check() && // Сначала убеждаемся, что пользователь залогинен
+               isset($_SESSION['is_admin']) && 
+               $_SESSION['is_admin'] === true;
     }
 
     public static function logout() {
@@ -84,11 +100,5 @@ class Auth {
 
     public static function getUserName() {
         return $_SESSION['user_name'] ?? null;
-    }
-
-    public static function isAdmin() {
-        return isset($_SESSION['admin']) && 
-                is_bool($_SESSION['admin']) && 
-                $_SESSION['admin'] === true;
     }
 }

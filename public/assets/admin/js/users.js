@@ -7,6 +7,7 @@ class UserDashboard {
         this.modalTitle = document.getElementById('actionModalLabel');
         this.modalBody = document.getElementById('actionModalBody');
         this.confirmActionButton = document.getElementById('confirmActionButton');
+        this.loginInput = document.getElementById('login');
 
         // Переменные для хранения данных действия
         this.userIdToActOn = null;
@@ -28,11 +29,17 @@ class UserDashboard {
         if (this.confirmActionButton) {
             this.confirmActionButton.addEventListener('click', this.handleModalConfirm.bind(this));
         }
+
+        if (this.loginInput) {
+            this.loginInput.addEventListener('input', this.handleLoginInput.bind(this));
+        }
     }
 
-    // Обработка отправки формы
+    // Создание нового пользователя. Обработка отправки формы
     async handleFormSubmit(e) {
         e.preventDefault();
+
+        this.loginInput.value = this.transliterate(this.loginInput.value);
 
         const formData = new FormData(this.createUserForm);
         const data = Object.fromEntries(formData.entries());
@@ -61,6 +68,21 @@ class UserDashboard {
 
             const result = await response.json();
 
+            if (!response.ok) {
+                if (response.status === 401)
+                {
+                    // Пользователь не авторизован, перенаправляем на страницу логина
+                    window.location.href = `/${adminRoute}/login`;
+                }
+                if (!result.success && result.message) {
+                    alert('Ошибка выполнения операции:\n' + result.message);
+                } else {
+                    throw new Error(data.message);
+                }
+
+                return;
+            }
+
             if (result.success) {
                 alert('Пользователь успешно создан!');
                 this.createUserForm.reset();
@@ -72,6 +94,31 @@ class UserDashboard {
             console.error('Ошибка:', error);
             alert('Произошла ошибка при создании пользователя.');
         }
+    }
+
+    // НОВОЕ: Обрабатываем ввод в поле логина
+    handleLoginInput() {
+        this.loginInput.value = this.transliterate(this.loginInput.value);
+    }
+    
+    // Метод для транслитерации
+    transliterate(text) {
+        const translitMap = {
+            'а': 'a', 'б': 'b', 'в': 'v', 'г': 'g', 'д': 'd', 'е': 'e', 'ё': 'e', 'ж': 'zh', 'з': 'z',
+            'и': 'i', 'й': 'y', 'к': 'k', 'л': 'l', 'м': 'm', 'н': 'n', 'о': 'o', 'п': 'p', 'р': 'r',
+            'с': 's', 'т': 't', 'у': 'u', 'ф': 'f', 'х': 'h', 'ц': 'c', 'ч': 'ch', 'ш': 'sh', 'щ': 'sch',
+            'ъ': '', 'ы': 'y', 'ь': '', 'э': 'e', 'ю': 'yu', 'я': 'ya'
+        };
+
+        // Заменяем русские буквы, приводим к нижнему регистру и заменяем пробелы на дефисы
+        return text
+            .toLowerCase()
+            .split('')
+            .map(char => translitMap[char] || char)
+            .join('')
+            .replace(/\s/g, '-') // Заменяем пробелы на дефисы
+            .replace(/[^a-z0-9-]/g, '') // Удаляем все, кроме букв, цифр и дефисов
+            .replace(/--+/g, '-'); // Убираем повторяющиеся дефисы
     }
 
     // Обработка клика по ссылкам действий
@@ -141,6 +188,7 @@ class UserDashboard {
                 return;
         }
 
+        
         try {
             const response = await fetch(`/${adminRoute}/users/api/${this.actionToPerform}/${this.userIdToActOn}`, {
                 method: method,
@@ -153,8 +201,22 @@ class UserDashboard {
 
             const result = await response.json();
 
+            if (!response.ok) {
+                if (response.status === 401)
+                {
+                    // Пользователь не авторизован, перенаправляем на страницу логина
+                    window.location.href = `/${adminRoute}/login`;
+                }
+                if (!result.success && result.message) {
+                    alert('Ошибка выполнения операции:\n' + result.message);
+                } else {
+                    throw new Error(data.message);
+                }
+                return;
+            }
+
             if (result.success) {
-                alert('Действие выполнено успешно!');
+                //alert('Действие выполнено успешно!');
                 window.location.reload(); 
             } else {
                 alert('Ошибка: ' + result.message);

@@ -137,7 +137,7 @@ class AdminPostsController extends BaseController
                 'active' => "{$articleType}s", // для подсветки в левом меню
                 'posts' => $posts,
                 'articleType' => $articleType,
-                'allowDelete' => Auth::isAdmin(),
+                'allowDelete' => Auth::isUserAdmin(),
                 'pagination' => [ // Передаем данные для пагинации в представление
                     'current_page' => $currentPage,
                     'total_pages' => $totalPages
