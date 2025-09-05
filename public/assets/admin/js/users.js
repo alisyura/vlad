@@ -2,12 +2,30 @@ class UserDashboard {
     constructor() {
         // Получаем ссылки на DOM-элементы
         this.createUserForm = document.getElementById('create-user-form');
+        this.editUserForm = document.getElementById('edit-user-form'); 
         this.actionLinksContainer = document.querySelector('.table tbody');
-        this.actionModal = new bootstrap.Modal(document.getElementById('actionModal'));
-        this.modalTitle = document.getElementById('actionModalLabel');
-        this.modalBody = document.getElementById('actionModalBody');
-        this.confirmActionButton = document.getElementById('confirmActionButton');
+        const actionModalElement = document.getElementById('actionModal');
+        if (actionModalElement) {
+            this.actionModal = new bootstrap.Modal(actionModalElement);
+            this.modalTitle = document.getElementById('actionModalLabel');
+            this.modalBody = document.getElementById('actionModalBody');
+            this.confirmActionButton = document.getElementById('confirmActionButton');
+        } else {
+            // Если элемент не найден, присваиваем null, чтобы не было ошибки
+            this.actionModal = null;
+            this.modalTitle = null;
+            this.modalBody = null;
+            this.confirmActionButton = null;
+        }
+
         this.loginInput = document.getElementById('login');
+
+        this.editUserIdInput = document.getElementById('user_id');
+        this.editNameInput = document.getElementById('name');
+        this.editLoginInput = document.getElementById('login');
+        this.editRoleSelect = document.getElementById('role');
+        this.editPasswordInput = document.getElementById('password');
+        this.editConfirmPasswordInput = document.getElementById('confirm_password');
 
         // Переменные для хранения данных действия
         this.userIdToActOn = null;
@@ -18,25 +36,34 @@ class UserDashboard {
     }
 
     initEventListeners() {
+        // Обработчик для создания пользователя
         if (this.createUserForm) {
-            this.createUserForm.querySelector('button[type="button"]').addEventListener('click', this.handleFormSubmit.bind(this));
+            this.createUserForm.querySelector('button[type="button"]').addEventListener('click', this.handleCreateFormSubmit.bind(this));
         }
 
+        // Обработчик для редактирования пользователя
+        if (this.editUserForm) {
+            this.editUserForm.querySelector('button[type="button"]').addEventListener('click', this.handleEditFormSubmit.bind(this));
+        }
+
+        // Обработчик кликов по таблице (для 'edit', 'block', 'unblock', 'delete')
         if (this.actionLinksContainer) {
             this.actionLinksContainer.addEventListener('click', this.handleActionClick.bind(this));
         }
         
+        // Обработчик подтверждения в модальном окне
         if (this.confirmActionButton) {
             this.confirmActionButton.addEventListener('click', this.handleModalConfirm.bind(this));
         }
 
+        // Обработчик ввода в поле логина для формы создания
         if (this.loginInput) {
             this.loginInput.addEventListener('input', this.handleLoginInput.bind(this));
         }
     }
 
     // Создание нового пользователя. Обработка отправки формы
-    async handleFormSubmit(e) {
+    async handleCreateFormSubmit(e) {
         e.preventDefault();
 
         this.loginInput.value = this.transliterate(this.loginInput.value);
@@ -96,6 +123,62 @@ class UserDashboard {
         }
     }
 
+
+    // НОВОЕ: Обработчик отправки формы редактирования
+    async handleEditFormSubmit(e) {
+        e.preventDefault();
+    
+        const formData = new FormData(this.editUserForm);
+        const data = Object.fromEntries(formData.entries());
+    
+        // Проверяем совпадение паролей, если они были введены
+        if (data.password || data.confirm_password) {
+            if (data.password !== data.confirm_password) {
+                alert('Пароли не совпадают!');
+                return;
+            }
+        }
+    
+        const csrfToken = document.querySelector('meta[name="csrf_token"]')?.content;
+        if (!csrfToken) {
+            alert('Ошибка: CSRF-токен не найден.');
+            return;
+        }
+    
+        try {
+            const response = await fetch(`/${adminRoute}/users/api/edit/${data.user_id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRF-TOKEN': csrfToken
+                },
+                body: JSON.stringify(data)
+            });
+    
+            const result = await response.json();
+    
+            if (!response.ok) {
+                if (response.status === 401) {
+                    window.location.href = `/${adminRoute}/login`;
+                }
+                alert('Ошибка выполнения операции:\n' + (result.message || 'Неизвестная ошибка.'));
+                return;
+            }
+    
+            if (result.success) {
+                alert('Пользователь успешно обновлен!');
+                window.location.href = `/${adminRoute}/users`;
+            } else {
+                alert('Ошибка: ' + result.message);
+            }
+    
+        } catch (error) {
+            console.error('Ошибка:', error);
+            alert('Произошла ошибка при обновлении пользователя.');
+        }
+    }
+
     // НОВОЕ: Обрабатываем ввод в поле логина
     handleLoginInput() {
         this.loginInput.value = this.transliterate(this.loginInput.value);
@@ -130,6 +213,11 @@ class UserDashboard {
         
         this.userIdToActOn = link.dataset.id;
         this.actionToPerform = link.dataset.action;
+
+        if (!this.actionModal)
+        {
+            return;
+        }
 
         let title = '';
         let bodyText = '';

@@ -183,7 +183,7 @@ $router->addRoute("/$adminRoute/posts/check-url", function() use ($viewAdmin) {
 }, ['UserAuthenticatedMiddleware', 'AjaxMiddleware', 'CsrfMiddleware'], ['method' => 'POST']);
 
 $router->addRoute("/$adminRoute/tags/search", function() use ($viewAdmin) {
-    (new AdminTagsController($viewAdmin))->searchTags();
+    (new AdminTagsApiController($viewAdmin))->searchTags();
 }, ['UserAuthenticatedMiddleware', 'AjaxMiddleware', 'CsrfMiddleware'], ['method' => 'POST']);
 
 
@@ -198,15 +198,70 @@ $router->addRoute("/$adminRoute/media/upload", function() use ($viewAdmin) {
 }, ['UserAuthenticatedMiddleware', 'AjaxMiddleware', 'CsrfMiddleware'], ['method' => 'POST']);
 
 
-// Управление пользователями
-$router->addRoute("/$adminRoute/users", function() use ($viewAdmin) {
+
+
+// Управление тэгами
+$router->addRoute("/$adminRoute/tags", function() use ($viewAdmin) {
     (new AdminUsersController($viewAdmin))->list();
-}, ['UserAuthenticatedMiddleware']);
+}, ['AdminAuthenticatedMiddleware']);
+
+// Открыть форму редактирование тэга
+$router->addRoute("/$adminRoute/users/tags/(\d+)", function($userId) use ($viewAdmin) {
+    (new AdminUsersController($viewAdmin))->edit($userId);
+}, ['AdminAuthenticatedMiddleware']);
+
+
+// Операции над тэгами
 
 // Создание нового пользователя
 $router->addRoute("/$adminRoute/users/api/create", function() use ($viewAdmin) {
     (new AdminUsersApiController($viewAdmin))->create();
 }, ['AdminAuthenticatedMiddleware', 'AjaxMiddleware', 'CsrfMiddleware'], ['method' => 'POST']);
+
+// Редактирование пользователя
+$router->addRoute("/$adminRoute/users/api/edit/(\d+)", function($userId) use ($viewAdmin) {
+    (new AdminUsersApiController($viewAdmin))->edit($userId);
+}, ['AdminAuthenticatedMiddleware', 'AjaxMiddleware', 'CsrfMiddleware'], ['method' => 'PUT']);
+
+// Блокирование пользователя
+$router->addRoute("/$adminRoute/users/api/block/(\d+)", function($userId) use ($viewAdmin) {
+    (new AdminUsersApiController($viewAdmin))->block($userId);
+}, ['AdminAuthenticatedMiddleware', 'AjaxMiddleware', 'CsrfMiddleware'], ['method' => 'PATCH']);
+
+// Разблокирование пользователя
+$router->addRoute("/$adminRoute/users/api/unblock/(\d+)", function($userId) use ($viewAdmin) {
+    (new AdminUsersApiController($viewAdmin))->unblock($userId);
+}, ['AdminAuthenticatedMiddleware', 'AjaxMiddleware', 'CsrfMiddleware'], ['method' => 'PATCH']);
+
+// Удаление пользователя
+$router->addRoute("/$adminRoute/users/api/delete/(\d+)", function($userId) use ($viewAdmin) {
+    (new AdminUsersApiController($viewAdmin))->delete($userId);
+}, ['AdminAuthenticatedMiddleware', 'AjaxMiddleware', 'CsrfMiddleware'], ['method' => 'DELETE']);
+
+
+
+
+// Открыть форму списка пользователей
+$router->addRoute("/$adminRoute/users", function() use ($viewAdmin) {
+    (new AdminUsersController($viewAdmin))->list();
+}, ['AdminAuthenticatedMiddleware']);
+
+// Открыть форму редактирование пользователя
+$router->addRoute("/$adminRoute/users/edit/(\d+)", function($userId) use ($viewAdmin) {
+    (new AdminUsersController($viewAdmin))->edit($userId);
+}, ['AdminAuthenticatedMiddleware']);
+
+// Операции над пользователями
+
+// Создание нового пользователя
+$router->addRoute("/$adminRoute/users/api/create", function() use ($viewAdmin) {
+    (new AdminUsersApiController($viewAdmin))->create();
+}, ['AdminAuthenticatedMiddleware', 'AjaxMiddleware', 'CsrfMiddleware'], ['method' => 'POST']);
+
+// Редактирование пользователя
+$router->addRoute("/$adminRoute/users/api/edit/(\d+)", function($userId) use ($viewAdmin) {
+    (new AdminUsersApiController($viewAdmin))->edit($userId);
+}, ['AdminAuthenticatedMiddleware', 'AjaxMiddleware', 'CsrfMiddleware'], ['method' => 'PUT']);
 
 // Блокирование пользователя
 $router->addRoute("/$adminRoute/users/api/block/(\d+)", function($userId) use ($viewAdmin) {

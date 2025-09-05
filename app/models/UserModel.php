@@ -2,23 +2,47 @@
 
 class UserModel extends BaseModel {
     /**
-     * Возвращает пользователя по его логину.
-     * @param string $login Логин пользователя
-     * @param bool $onlyActive Флаг, указывающий, нужно ли искать только активных пользователей
-     * @return array|false
+     * Получает данные пользователя по ID или логину.
+     *
+     * @param int|null $id       ID пользователя.
+     * @param string|null $login Логин пользователя.
+     * @param bool $onlyActive   Флаг, указывающий, нужно ли искать только среди активных пользователей.
+     *
+     * @return array|false Ассоциативный массив с данными пользователя или false, если пользователь не найден.
      */
-    public function getUserByLogin(string $login, bool $onlyActive = false): array|false {
+    public function getUser(?int $id = null, ?string $login = null, bool $onlyActive = false): array|false
+    {
+        // Проверяем, что хотя бы один из параметров передан
+        if ($id === null && $login === null) {
+            return false;
+        }
+
         $sql = "
             SELECT
                 u.id AS id,
                 u.name AS name,
                 u.login AS login,
+                u.email AS email,
                 u.password AS password,
-                r.name AS role_name
+                u.active AS active,
+                u.built_in AS built_in,
+                r.name AS role_name,
+                r.id AS role_id
             FROM users u
-            INNER JOIN roles r ON r.id=u.role_id
-            WHERE
-                login = :login";
+            INNER JOIN roles r ON r.id = u.role_id
+            WHERE 1=1"; // Начальное условие для удобства
+
+        $params = [];
+
+        if ($id !== null) {
+            $sql .= " AND u.id = :id";
+            $params[':id'] = $id;
+        }
+
+        if ($login !== null) {
+            $sql .= " AND u.login = :login";
+            $params[':login'] = $login;
+        }
 
         // Если только активные пользователи
         if ($onlyActive) {
@@ -28,7 +52,8 @@ class UserModel extends BaseModel {
         $sql .= " LIMIT 1";
 
         $stmt = $this->db->prepare($sql);
-        $stmt->execute([':login' => $login]);
+        $stmt->execute($params);
+
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
@@ -55,22 +80,6 @@ class UserModel extends BaseModel {
                 u.built_in AS built_in
             FROM users u");
         $stmt->execute();
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
-    }
-
-    /**
-     * Возвращает данные одного пользователя по ID
-     */
-    public function getUserById(int $id) {
-        $stmt = $this->db->prepare("
-            SELECT
-                u.id AS id,
-                u.name AS name,
-                u.active AS active,
-                u.built_in AS built_in
-            FROM users u
-            WHERE u.id = :id");
-        $stmt->execute([':id' => $id]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
@@ -185,5 +194,25 @@ class UserModel extends BaseModel {
         $stmt = $this->db->prepare("SELECT COUNT(*) FROM roles WHERE id = :id");
         $stmt->execute([':id' => $roleId]);
         return $stmt->fetchColumn() > 0;
+    }
+
+    // Метод для обновления пользователя
+    public function updateUser(int $id, array $data): bool
+    {
+        $sql = "UPDATE users SET ";
+        $params = [];
+        $setClauses = [];
+        
+        foreach ($data as $key => $value) {
+            $setClauses[] = "$key = :$key";
+            $params[":$key"] = $value;
+        }
+        
+        $sql .= implode(', ', $setClauses);
+        $sql .= ", updated_at = NOW() WHERE id = :id";
+        $params[':id'] = $id;
+
+        $stmt = $this->db->prepare($sql);
+        return $stmt->execute($params);
     }
 }

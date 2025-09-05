@@ -5,7 +5,7 @@
             <div class="alert alert-danger d-flex align-items-center" role="alert">
                 <i class="bi bi-exclamation-triangle-fill me-3" style="font-size: 1.5rem;"></i>
                 <div>
-                    <h4 class="alert-heading mb-1">Произошла ошибка</h4>
+                    <h4 class="alert-heading mb-1"><?= htmlspecialchars($title) ?></h4>
                     <p class="mb-0"><?= htmlspecialchars($error_message) ?></p>
                 </div>
             </div>

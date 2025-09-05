@@ -65,12 +65,14 @@
                                 Тэги
                             </a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link <?= ($active ?? '') === 'users' ? 'active' : '' ?>" 
-                               href="/<?= $adminRoute ?>/users">
-                                Пользователи
-                            </a>
-                        </li>
+                        <?php if (Auth::isUserAdmin()): ?>
+                            <li class="nav-item">
+                                <a class="nav-link <?= ($active ?? '') === 'users' ? 'active' : '' ?>" 
+                                href="/<?= $adminRoute ?>/users">
+                                    Пользователи
+                                </a>
+                            </li>
+                        <?php endif ?>
                         <!-- <li class="nav-item">
                             <a class="nav-link <?= ($active ?? '') === 'pics' ? 'active' : '' ?>" 
                                href="/<?= $adminRoute ?>/pics">

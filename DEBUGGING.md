@@ -1,5 +1,3 @@
-Отлично! Вот подробное содержание для `DEBUGGING.md`:
-
 # Debugging Guide
 
 ## 🐛 Отладка PHP с Xdebug в VS Code
@@ -67,7 +65,7 @@ http://localhost/project/index.php?XDEBUG_SESSION=VSCODE
 document.cookie = "XDEBUG_SESSION=VSCODE; path=/";
 ```
 
-### 3. Через расширение браузера
+### 3. Через расширение браузера (сейчас уже не нужно)
 Установите одно из расширений:
 - **Xdebug Helper** (Firefox/Chrome)
 - **Xdebug-launcher** (Chrome)
@@ -163,14 +161,6 @@ export XDEBUG_CONFIG="idekey=VSCODE"
 export PHP_IDE_CONFIG="serverName=localhost"
 ```
 
-### Docker-специфичные настройки:
-Если используете Docker, добавьте в `docker-compose.yml`:
-```yaml
-environment:
-  - XDEBUG_CONFIG=client_host=host.docker.internal idekey=VSCODE
-  - PHP_IDE_CONFIG=serverName=Docker
-```
-
 ## 📞 Поддержка
 
 Если возникли проблемы:
@@ -183,8 +173,7 @@ environment:
 
 - [Официальная документация Xdebug](https://xdebug.org/docs/)
 - [Расширение PHP Debug для VS Code](https://marketplace.visualstudio.com/items?itemName=xdebug.php-debug)
-- [Настройка Xdebug с Docker](https://gist.github.com/grzegorzk/4d01b4920ba4c4ed5b27f7430f3a1h2c)
 
 ---
 
-**Примечание:** Этот файл автоматически обновляется при изменении конфигурации отладки. Все разработчики проекта должны ознакомиться с данным руководством.
+**Примечание:** Этот файл автоматически обновляется при изменении конфигурации отладки.

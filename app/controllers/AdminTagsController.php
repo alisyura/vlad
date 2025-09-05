@@ -3,33 +3,30 @@
 
 class AdminTagsController extends BaseController
 {
-    /**
-     * Поиск меток по названию для автодополнения (POST-запрос).
-     */
-    public function searchTags()
-    {
-        // Считываем JSON из тела запроса
-        $input = file_get_contents('php://input');
-        $data = json_decode($input, true);
-        
-        $query = $data['q'] ?? '';
-        
-        if (mb_strlen($query) < 2) {
-            header('Content-Type: application/json');
-            echo json_encode([]);
-            return;
-        }
+    private TagsModel $tagsModel;
 
+    public function __construct(ViewAdmin $view)
+    {
+        parent::__construct($view);
+        $this->tagsModel = new TagsModel();
+    }
+
+    public function list()
+    {
         try {
-            $tagsModel = new TagsModel();
-            $tags = $tagsModel->searchTagsByName($query);
+            $data = $this->userService->getUsersAndRolesData();
+
+            // Добавляем данные для шаблона
+            $data['adminRoute'] = $this->getAdminRoute();
+            $data['user_name'] = Auth::getUserName();
+            $data['active'] = "tags"; // подсветка вкладки левого меню
+            $data['styles'] = ['users.css'];
+            $data['jss'] = ['users.js'];
             
-            header('Content-Type: application/json');
-            echo json_encode($tags);
-        } catch (Exception $e) {
-            header('Content-Type: application/json');
-            echo json_encode([]);
-            Logger::error('Ошибка при поиске меток: ' . $e->getMessage());
+            $this->viewAdmin->renderAdmin('admin/users/list.php', $data);
+        } catch(Throwable $e) {
+            Logger::error("Error in users list: " . $e->getTraceAsString());
+            $this->showAdminError('Ошибка', 'Произошла непредвиденная ошибка.');
         }
     }
 }

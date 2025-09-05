@@ -14,7 +14,7 @@ class Auth {
         // Например, с помощью Redis, Memcached или отдельной таблицы в базе данных.
         // Если попыток слишком много, возвращаем false.
 
-        $user = (new UserModel())->getUserByLogin($login, true);
+        $user = (new UserModel())->getUser(login: $login, onlyActive: true);
         
         if ($user && password_verify($password, $user['password'])) {
             session_regenerate_id(true);
