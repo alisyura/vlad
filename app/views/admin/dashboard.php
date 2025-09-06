@@ -42,8 +42,8 @@
                         <div class="list-group-item">
                             <div class="d-flex justify-content-between">
                                 <strong><?= htmlspecialchars($activity['action']) ?></strong>
-                                <small class="text-muted"><?= $activity['user'] ?></small>&nbsp;
-                                <small class="text-muted"><?= $activity['date'] ?></small>
+                                <!-- <small class="text-muted"><?= $activity['user'] ?></small>&nbsp; -->
+                                <small class="text-muted"><?= htmlspecialchars($activity['date']) ?></small>
                             </div>
                         </div>
                     <?php endforeach; ?>

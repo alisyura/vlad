@@ -5,55 +5,103 @@ class DashboardModel extends BaseModel {
     {
         try {
             $sql = "
-                (
-                    SELECT 
-                        'Создан пост' AS action,
-                        p.title AS target,
-                        u.name AS user,
-                        p.created_at AS date
-                    FROM posts p
-                    JOIN users u ON p.user_id = u.id
-                    WHERE p.article_type = 'post'
-                )
-                UNION ALL
-                (
-                    SELECT 
-                        'Обновлён пост' AS action,
-                        p.title AS target,
-                        u.name AS user,
-                        p.updated_at AS date
-                    FROM posts p
-                    JOIN users u ON p.user_id = u.id
-                    WHERE p.article_type = 'post' 
-                    AND p.updated_at IS NOT NULL 
+            (
+                SELECT
+                    'Создан пост' AS action,
+                    p.title COLLATE utf8mb4_unicode_ci AS target,
+                    u.name AS user,
+                    p.created_at AS date
+                FROM posts p
+                JOIN users u ON p.user_id = u.id
+                WHERE p.article_type = 'post' 
+                    AND p.created_at >= DATE_SUB(NOW(), INTERVAL 1 MONTH)
+            )
+            UNION ALL
+            (
+                SELECT
+                    'Обновлён пост' AS action,
+                    p.title COLLATE utf8mb4_unicode_ci AS target,
+                    u.name AS user,
+                    p.updated_at AS date
+                FROM posts p
+                JOIN users u ON p.user_id = u.id
+                WHERE p.article_type = 'post'
+                    AND p.updated_at IS NOT NULL
                     AND p.updated_at != p.created_at
-                )
-                UNION ALL
-                (
-                    SELECT 
-                        'Создана страница' AS action,
-                        p.title AS target,
-                        u.name AS user,
-                        p.created_at AS date
-                    FROM posts p
-                    JOIN users u ON p.user_id = u.id
-                    WHERE p.article_type = 'page'
-                )
-                UNION ALL
-                (
-                    SELECT 
-                        'Обновлена страница' AS action,
-                        p.title AS target,
-                        u.name AS user,
-                        p.updated_at AS date
-                    FROM posts p
-                    JOIN users u ON p.user_id = u.id
-                    WHERE p.article_type = 'page'
-                    AND p.updated_at IS NOT NULL 
+                    AND p.updated_at >= DATE_SUB(NOW(), INTERVAL 1 MONTH)
+            )
+            UNION ALL
+            (
+                SELECT
+                    'Создана страница' AS action,
+                    p.title COLLATE utf8mb4_unicode_ci AS target,
+                    u.name AS user,
+                    p.created_at AS date
+                FROM posts p
+                JOIN users u ON p.user_id = u.id
+                WHERE p.article_type = 'page' 
+                    AND p.created_at >= DATE_SUB(NOW(), INTERVAL 1 MONTH)
+            )
+            UNION ALL
+            (
+                SELECT
+                    'Обновлена страница' AS action,
+                    p.title COLLATE utf8mb4_unicode_ci AS target,
+                    u.name AS user,
+                    p.updated_at AS date
+                FROM posts p
+                JOIN users u ON p.user_id = u.id
+                WHERE p.article_type = 'page'
+                    AND p.updated_at IS NOT NULL
                     AND p.updated_at != p.created_at
-                )
-                ORDER BY date DESC
-                LIMIT 10
+                    AND p.updated_at >= DATE_SUB(NOW(), INTERVAL 1 MONTH)
+            )
+            UNION ALL
+            (
+                SELECT
+                    'Создан пользователь' AS action,
+                    u.name COLLATE utf8mb4_unicode_ci AS target,
+                    u.name AS user,
+                    u.created_at AS date
+                FROM users u
+                WHERE u.created_at >= DATE_SUB(NOW(), INTERVAL 1 MONTH)
+            )
+            UNION ALL
+            (
+                SELECT
+                    'Обновлён пользователь' AS action,
+                    u.name COLLATE utf8mb4_unicode_ci AS target,
+                    u.name AS user,
+                    u.updated_at AS date
+                FROM users u
+                WHERE u.updated_at IS NOT NULL
+                    AND u.updated_at != u.created_at
+                    AND u.updated_at >= DATE_SUB(NOW(), INTERVAL 1 MONTH)
+            )
+            UNION ALL
+            (
+                SELECT
+                    'Создан тэг' AS action,
+                    t.name COLLATE utf8mb4_unicode_ci AS target,
+                    '' AS user,
+                    t.created_at AS date
+                FROM tags t
+                WHERE t.created_at >= DATE_SUB(NOW(), INTERVAL 1 MONTH)
+            )
+            UNION ALL
+            (
+                SELECT
+                    'Обновлён тэг' AS action,
+                    t.name COLLATE utf8mb4_unicode_ci AS target,
+                    '' AS user,
+                    t.updated_at AS date
+                FROM tags t
+                WHERE t.updated_at IS NOT NULL
+                    AND t.updated_at != t.created_at
+                    AND t.updated_at >= DATE_SUB(NOW(), INTERVAL 1 MONTH)
+            )
+            ORDER BY date DESC
+            LIMIT 10;
             ";
 
             $stmt = $this->db->prepare($sql);

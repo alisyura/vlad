@@ -1,0 +1,11 @@
+{
+    "autoload": {
+        "files": [
+            "app/core/Helpers.php",
+            "app/core/CheckVisitor.php"
+        ],
+        "classmap": [
+            "app/"
+        ]
+    }
+}

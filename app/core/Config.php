@@ -42,13 +42,14 @@ class Config
         'admin' => [
             'AdminEmail' => 'admin@admin.ru',
             'AdminRoute' => 'adm',
-            'posts_per_page' => 10,
+            'PostsPerPage' => 10,
             'EnableCreateCategory' => false,
             'EnableEditCategory' => false,
             'AdminRoleName' => 'Administrator',
             // урлы страниц, которые не будут показаны в списке страниц в админке
             'PagesToExclude' => ['sitemap', ''],
-            'PostsToExclude' => []
+            'PostsToExclude' => [],
+            'TagsPerPage' => 10,
         ]
     ];
 

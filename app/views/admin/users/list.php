@@ -66,7 +66,7 @@
                     <input type="text" class="form-control" id="name" name="name" required>
                 </div>
                 <div class="form-group">
-                    <label for="login">Логин:</label>
+                    <label for="login">Логин (изменить будет нельзя):</label>
                     <input type="text" class="form-control" id="login" name="login" required>
                 </div>
                 <div class="form-group">

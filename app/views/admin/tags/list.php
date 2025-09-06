@@ -1,8 +1,6 @@
 <?php 
 // Предполагаемые переменные, переданные из контроллера:
-// $users: Массив объектов пользователей или ассоциативных массивов из базы данных.
-// $roles: Массив объектов ролей или ассоциативных массивов из базы данных.
-// isUserAdmin: Является ли пользователь админом
+// $tags: Массив объектов пользователей или ассоциативных массивов из базы данных.
 ?>
 
 <div class="container-fluid">
@@ -13,88 +11,78 @@
             <table class="table table-striped">
                 <thead>
                     <tr>
-                        <th>Имя</th>
-                        <th>Статус</th>
-                        <?php if ($isUserAdmin): ?>
-                            <th>Действия</th>
-                        <?php endif ?>
+                        <th>Название</th>
+                        <th>Кол-во постов</th>
+                        <th>Действия</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <?php if (empty($users)): ?>
+                    <?php if (empty($tags)): ?>
                         <tr>
-                            <td colspan="<?= $isUserAdmin ? 3 : 2 ?>">Тэги не найдены.</td>
+                            <td colspan="3">Тэги не найдены.</td>
                         </tr>
                     <?php else: ?>
-                        <?php foreach ($users as $user): ?>
+                        <?php foreach ($tags as $tag): ?>
                             <tr>
-                                <td><?= htmlspecialchars($user['name']) ?></td>
+                                <td><?= htmlspecialchars($tag['name']) ?></td>
+                                <td><?= htmlspecialchars($tag['post_count']) ?></td>
                                 <td>
-                                    <?php if ($user['active']): ?>
-                                        <span class="badge bg-success">Активен</span>
-                                    <?php else: ?>
-                                        <span class="badge bg-secondary">Заблокирован</span>
-                                    <?php endif; ?>
+                                    [ <a href="/<?= $adminRoute ?>/tags/edit/<?= htmlspecialchars($tag['id']) ?>">Редактировать</a> ]
+                                    [ <a href="#" class="action-link" data-action="delete" data-id="<?= htmlspecialchars($tag['id']) ?>">Удалить</a> ]
                                 </td>
-                                <?php if ($isUserAdmin): ?>
-                                    <td>
-                                        [ <a href="/<?= $adminRoute ?>/users/edit/<?= htmlspecialchars($user['id']) ?>">Редактировать</a> ]
-                                        <?php if ($user['built_in'] === 0): ?>
-                                            <?php if ($user['active']): ?>
-                                                [ <a href="#" class="action-link" data-action="block" data-id="<?= htmlspecialchars($user['id']) ?>">Заблокировать</a> ]
-                                            <?php else: ?>
-                                                [ <a href="#" class="action-link" data-action="unblock" data-id="<?= htmlspecialchars($user['id']) ?>">Разблокировать</a> ]
-                                            <?php endif; ?>
-                                            
-                                            [ <a href="#" class="action-link" data-action="delete" data-id="<?= htmlspecialchars($user['id']) ?>">Удалить</a> ]
-                                        <?php endif ?>
-                                    </td>
-                                <?php endif ?>
                             </tr>
                         <?php endforeach; ?>
                     <?php endif; ?>
                 </tbody>
             </table>
+
+            <!-- Блок пагинации -->
+            <?php if (!empty($pagination_links)) : ?>
+                <nav aria-label="Posts pagination" class="mt-4">
+                    <ul class="pagination justify-content-center">
+                        <!-- Кнопка "Предыдущая" -->
+                        <li class="page-item <?= ($pagination['current_page'] <= 1) ? 'disabled' : '' ?>">
+                            <a class="page-link" href="<?= htmlspecialchars($base_page_url . '/p' . ($pagination['current_page'] - 1)) . $sort_string ?>">&laquo;</a>
+                        </li>
+                    
+                        <!-- Ссылки на страницы -->
+                        <?php foreach ($pagination_links as $num => $link): ?>
+                            <?php if ($num === '...left' || $num === '...right'): ?>
+                                <li class="page-item disabled">
+                                    <span class="page-link">…</span>
+                                </li>
+                            <?php else: ?>
+                                <li class="page-item<?= $num == $pagination['current_page'] ? ' active' : '' ?>">
+                                    <a class="page-link" href="<?= htmlspecialchars($link) . $sort_string?>">
+                                        <?= $num ?>
+                                    </a>
+                                </li>
+                            <?php endif; ?>
+                        <?php endforeach; ?>
+                    
+                        <!-- Кнопка "Следующая" -->
+                        <li class="page-item <?= ($pagination['current_page'] >= $pagination['total_pages']) ? 'disabled' : '' ?>">
+                            <a class="page-link" href="<?= htmlspecialchars($base_page_url . '/p' . ($pagination['current_page'] + 1)) . $sort_string ?>">&raquo;</a>
+                        </li>
+                    </ul>
+                </nav>
+            <?php endif; ?>
         </div>
         
-        <?php if ($isUserAdmin): ?>
         <div class="col-md-4">
-            <h2>Создать нового пользователя</h2>
-            <form id="create-user-form">
+            <h2>Создать новый тэг</h2>
+            <form id="create-tag-form">
                 <div class="form-group">
-                    <label for="name">Имя:</label>
+                    <label for="name">Название:</label>
                     <input type="text" class="form-control" id="name" name="name" required>
                 </div>
                 <div class="form-group">
-                    <label for="login">Логин:</label>
-                    <input type="text" class="form-control" id="login" name="login" required>
+                    <label for="login">УРЛ (изменить будет нельзя):</label>
+                    <input type="text" class="form-control" id="url" name="url" required>
                 </div>
-                <div class="form-group">
-                    <label for="email">Email:</label>
-                    <input type="email" class="form-control" id="email" name="email" required>
-                </div>
-                <div class="form-group">
-                    <label for="password">Пароль:</label>
-                    <input type="password" class="form-control" id="password" name="password" required>
-                </div>
-                <div class="form-group">
-                    <label for="confirm_password">Подтверждение пароля:</label>
-                    <input type="password" class="form-control" id="confirm_password" name="confirm_password" required>
-                </div>
-                <div class="form-group">
-                    <label for="role">Роль:</label>
-                    <select class="form-control" id="role" name="role_id" required>
-                        <?php foreach ($roles as $role): ?>
-                            <option value="<?= htmlspecialchars($role['id']) ?>">
-                                <?= htmlspecialchars($role['description']) ?> (<?= htmlspecialchars($role['name']) ?>)
-                            </option>
-                        <?php endforeach; ?>
-                    </select>
-                </div>
-                <button type="button" class="btn btn-primary mt-10px">Создать пользователя</button>
+                <button type="button" class="btn btn-primary mt-10px">Создать тэг</button>
             </form>
         </div>
-        <?php endif ?>
     </div>
 </div>
 

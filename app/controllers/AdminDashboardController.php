@@ -7,12 +7,11 @@ class AdminDashboardController extends BaseController
     public function dashboard() {
         $dm = new DashboardModel();
 
-        $adminRoute = Config::get('admin.AdminRoute');
         $user_name = Auth::getUserName();
 
         // Получаем данные для dashboard
         $data = [
-            'adminRoute' => $adminRoute,
+            'adminRoute' => $this->getAdminRoute(),
             'user_name' => $user_name,
             'title' => 'Dashboard',
             'active' => 'dashboard', // для подсветки в меню

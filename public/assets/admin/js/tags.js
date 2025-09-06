@@ -1,8 +1,8 @@
-class UserDashboard {
+class TagsDashboard {
     constructor() {
         // Получаем ссылки на DOM-элементы
-        this.createUserForm = document.getElementById('create-user-form');
-        this.editUserForm = document.getElementById('edit-user-form'); 
+        this.createTagForm = document.getElementById('create-tag-form');
+        this.editTagForm = document.getElementById('edit-tag-form'); 
         this.actionLinksContainer = document.querySelector('.table tbody');
         const actionModalElement = document.getElementById('actionModal');
         if (actionModalElement) {
@@ -18,17 +18,17 @@ class UserDashboard {
             this.confirmActionButton = null;
         }
 
-        this.loginInput = document.getElementById('login');
+        this.urlInput = document.getElementById('url');
 
-        this.editUserIdInput = document.getElementById('user_id');
+        // this.editUserIdInput = document.getElementById('tag_id');
         this.editNameInput = document.getElementById('name');
-        // this.editLoginInput = document.getElementById('login');
-        this.editRoleSelect = document.getElementById('role');
-        this.editPasswordInput = document.getElementById('password');
-        this.editConfirmPasswordInput = document.getElementById('confirm_password');
+        this.editUrlInput = document.getElementById('url');
+        // this.editRoleSelect = document.getElementById('role');
+        // this.editPasswordInput = document.getElementById('password');
+        // this.editConfirmPasswordInput = document.getElementById('confirm_password');
 
         // Переменные для хранения данных действия
-        this.userIdToActOn = null;
+        this.tagIdToActOn = null;
         this.actionToPerform = null;
 
         // Инициализируем обработчики событий
@@ -36,14 +36,14 @@ class UserDashboard {
     }
 
     initEventListeners() {
-        // Обработчик для создания пользователя
-        if (this.createUserForm) {
-            this.createUserForm.querySelector('button[type="button"]').addEventListener('click', this.handleCreateFormSubmit.bind(this));
+        // Обработчик для создания тэга
+        if (this.createTagForm) {
+            this.createTagForm.querySelector('button[type="button"]').addEventListener('click', this.handleCreateTagSubmit.bind(this));
         }
 
-        // Обработчик для редактирования пользователя
-        if (this.editUserForm) {
-            this.editUserForm.querySelector('button[type="button"]').addEventListener('click', this.handleEditFormSubmit.bind(this));
+        // Обработчик для редактирования тэга
+        if (this.editTagForm) {
+            this.editTagForm.querySelector('button[type="button"]').addEventListener('click', this.handleEditTagSubmit.bind(this));
         }
 
         // Обработчик кликов по таблице (для 'edit', 'block', 'unblock', 'delete')
@@ -57,23 +57,25 @@ class UserDashboard {
         }
 
         // Обработчик ввода в поле логина для формы создания
-        if (this.loginInput) {
-            this.loginInput.addEventListener('input', this.handleLoginInput.bind(this));
+        if (this.urlInput) {
+            this.urlInput.addEventListener('input', this.handleUrlInput.bind(this));
         }
     }
 
     // Создание нового пользователя. Обработка отправки формы
-    async handleCreateFormSubmit(e) {
+    async handleCreateTagSubmit(e) {
         e.preventDefault();
 
-        this.loginInput.value = this.transliterate(this.loginInput.value);
+        this.urlInput.value = this.transliterate(this.urlInput.value);
 
-        const formData = new FormData(this.createUserForm);
+        const formData = new FormData(this.createTagForm);
         const data = Object.fromEntries(formData.entries());
 
-        if (data.password !== data.confirm_password) {
-            alert('Пароли не совпадают!');
-            return;
+        // Проверяем, что поля 'name' и 'url' не пустые
+        if (!data.name || !data.url) {
+            // Если одно из полей пустое, выводим сообщение об ошибке
+            alert('Пожалуйста, заполните все поля.');
+            return; // Останавливаем выполнение дальнейшего кода
         }
 
         const csrfToken = document.querySelector('meta[name="csrf_token"]')?.content;
@@ -83,7 +85,7 @@ class UserDashboard {
         }
 
         try {
-            const response = await fetch(`/${adminRoute}/users/api/create`, {
+            const response = await fetch(`/${adminRoute}/tags/api/create`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -111,8 +113,8 @@ class UserDashboard {
             }
 
             if (result.success) {
-                alert('Пользователь успешно создан!');
-                this.createUserForm.reset();
+                alert('Тэг успешно создан!');
+                this.createTagForm.reset();
                 window.location.reload(); 
             } else {
                 alert('Ошибка: ' + result.message);
@@ -125,18 +127,17 @@ class UserDashboard {
 
 
     // НОВОЕ: Обработчик отправки формы редактирования
-    async handleEditFormSubmit(e) {
+    async handleEditTagSubmit(e) {
         e.preventDefault();
     
-        const formData = new FormData(this.editUserForm);
+        const formData = new FormData(this.editTagForm);
         const data = Object.fromEntries(formData.entries());
     
-        // Проверяем совпадение паролей, если они были введены
-        if (data.password || data.confirm_password) {
-            if (data.password !== data.confirm_password) {
-                alert('Пароли не совпадают!');
-                return;
-            }
+        // Проверяем, что поля 'name' не пустое
+        if (!data.name) {
+            // Если одно из полей пустое, выводим сообщение об ошибке
+            alert('Пожалуйста, заполните все поля.');
+            return; // Останавливаем выполнение дальнейшего кода
         }
     
         const csrfToken = document.querySelector('meta[name="csrf_token"]')?.content;
@@ -146,7 +147,7 @@ class UserDashboard {
         }
     
         try {
-            const response = await fetch(`/${adminRoute}/users/api/edit/${data.user_id}`, {
+            const response = await fetch(`/${adminRoute}/tags/api/edit/${data.tag_id}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -167,8 +168,8 @@ class UserDashboard {
             }
     
             if (result.success) {
-                alert('Пользователь успешно обновлен!');
-                window.location.href = `/${adminRoute}/users`;
+                alert('Тэг успешно обновлен!');
+                window.location.href = `/${adminRoute}/tags`;
             } else {
                 alert('Ошибка: ' + result.message);
             }
@@ -179,9 +180,9 @@ class UserDashboard {
         }
     }
 
-    // НОВОЕ: Обрабатываем ввод в поле логина
-    handleLoginInput() {
-        this.loginInput.value = this.transliterate(this.loginInput.value);
+    // НОВОЕ: Обрабатываем ввод в поле Урла
+    handleUrlInput() {
+        this.urlInput.value = this.transliterate(this.urlInput.value);
     }
     
     // Метод для транслитерации
@@ -211,7 +212,7 @@ class UserDashboard {
 
         e.preventDefault();
         
-        this.userIdToActOn = link.dataset.id;
+        this.tagIdToActOn = link.dataset.id;
         this.actionToPerform = link.dataset.action;
 
         if (!this.actionModal)
@@ -224,21 +225,9 @@ class UserDashboard {
         let confirmBtnText = '';
 
         switch (this.actionToPerform) {
-            case 'block':
-                title = 'Подтвердить блокировку';
-                bodyText = 'Вы уверены, что хотите заблокировать этого пользователя?';
-                confirmBtnText = 'Заблокировать';
-                this.confirmActionButton.className = 'btn btn-danger';
-                break;
-            case 'unblock':
-                title = 'Подтвердить разблокировку';
-                bodyText = 'Вы уверены, что хотите разблокировать этого пользователя?';
-                confirmBtnText = 'Разблокировать';
-                this.confirmActionButton.className = 'btn btn-success';
-                break;
             case 'delete':
                 title = 'Подтвердить удаление';
-                bodyText = 'Вы уверены, что хотите удалить этого пользователя? Это действие необратимо.';
+                bodyText = 'Вы уверены, что хотите удалить тэг? Это действие необратимо.';
                 confirmBtnText = 'Удалить';
                 this.confirmActionButton.className = 'btn btn-danger';
                 break;
@@ -265,10 +254,6 @@ class UserDashboard {
 
         let method = '';
         switch (this.actionToPerform) {
-            case 'block':
-            case 'unblock':
-                method = 'PATCH';
-                break;
             case 'delete':
                 method = 'DELETE';
                 break;
@@ -278,7 +263,7 @@ class UserDashboard {
 
         
         try {
-            const response = await fetch(`/${adminRoute}/users/api/${this.actionToPerform}/${this.userIdToActOn}`, {
+            const response = await fetch(`/${adminRoute}/tags/api/${this.actionToPerform}/${this.tagIdToActOn}`, {
                 method: method,
                 headers: {
                     'Content-Type': 'application/json',
@@ -314,7 +299,7 @@ class UserDashboard {
             console.error('Ошибка:', error);
             alert('Произошла ошибка при выполнении действия.');
         } finally {
-            this.userIdToActOn = null;
+            this.tagIdToActOn = null;
             this.actionToPerform = null;
         }
     }
@@ -322,5 +307,5 @@ class UserDashboard {
 
 // Создаём и запускаем экземпляр класса при загрузке страницы
 document.addEventListener('DOMContentLoaded', () => {
-    new UserDashboard();
+    new TagsDashboard();
 });

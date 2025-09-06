@@ -27,7 +27,7 @@ class AdminPostsController extends BaseController
      * @param string $articleType Тип статьи. post или page
      */
     private function processArticlesList($currentPage = 1, $articleType = 'post') {
-        $adminRoute = Config::get('admin.AdminRoute');
+        $adminRoute = $this->getAdminRoute();
         $userName = Auth::getUserName();
         try {
             // --- Получение и валидация параметров сортировки ---
@@ -53,7 +53,7 @@ class AdminPostsController extends BaseController
             // --- Конец обработки параметров сортировки ---
 
             // Определяем параметры пагинации
-            $postsPerPage = Config::get('admin.posts_per_page'); // Количество постов на страницу
+            $postsPerPage = Config::get('admin.PostsPerPage'); // Количество постов на страницу
             $currentPage = max(1, (int)$currentPage); // Убеждаемся, что страница не меньше 1
             $offset = ($currentPage - 1) * $postsPerPage; // Вычисляем смещение
 
