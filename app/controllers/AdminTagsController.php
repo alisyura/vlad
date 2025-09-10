@@ -17,13 +17,15 @@ class AdminTagsController extends BaseController
             // Определяем параметры пагинации
             $tagsPerPage = Config::get('admin.TagsPerPage'); // Количество постов на страницу
 
+            // Базовый URL для админки
+            $basePageUrl=$this->getBasePageUrl();
+
             $ps = new PaginationService();
             $paginParams = $ps->calculatePaginationParams($tagsPerPage, $currentPage,
-                $this->tagsModel->getTotalTagsCount(), $this->getAdminRoute(), 'tags');
+                $this->tagsModel->getTotalTagsCount(), $basePageUrl);
             
             ['totalPages' => $totalPages, 
                 'offset' => $offset, 
-                'basePageUrl' => $basePageUrl, 
                 'paginationLinks' => $paginationLinks] = $paginParams;
 
             // Получаем посты для текущей страницы

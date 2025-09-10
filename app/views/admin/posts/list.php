@@ -1,10 +1,18 @@
 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
     <h1 class="h2"><?= htmlspecialchars($title) ?></h1>
     <div class="btn-toolbar mb-2 mb-md-0">
+        <?php if (!$isTrash): ?>
         <a href="/<?= htmlspecialchars($adminRoute ?? 'admin') ?>/<?= htmlspecialchars($articleType) ?>s/create" class="btn btn-sm btn-outline-secondary">
             Добавить
         </a>
+        <?php else: ?>
+        <?php endif ?>
     </div>
+</div>
+
+<div>
+    <label for="thrashbox">Показать удаленные</label>
+    <input type="checkbox" id="thrashbox" name="thrashbox">
 </div>
 
 <div class="table-responsive">

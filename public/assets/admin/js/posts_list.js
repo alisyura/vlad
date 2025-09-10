@@ -1,114 +1,227 @@
-// public/admin/js/posts-list-interactions.js
+// public/admin/js/posts_list.js
 
-document.addEventListener('DOMContentLoaded', function () {
-    // --- Логика для чекбокса "Выбрать все" ---
-    const selectAllDesktop = document.getElementById('select-all-desktop');
-    const postCheckboxes = document.querySelectorAll('input[name="post_ids[]"]');
+/**
+ * Класс для управления логикой выбора всех постов.
+ */
+class PostSelection {
+    constructor() {
+        this.selectAllDesktop = document.getElementById('select-all-desktop');
+        this.postCheckboxes = document.querySelectorAll('input[name="post_ids[]"]');
+        this.thrashCheckbox = document.getElementById('thrashbox');
+        this.setupEventListeners();
+        this.initThrashCheckboxState();
+        this.updateSelectAll(); // Инициализация состояния при загрузке страницы
+    }
 
-    function updateSelectAll() {
-        if (selectAllDesktop) {
-            selectAllDesktop.checked = postCheckboxes.length > 0 && Array.from(postCheckboxes).every(cb => cb.checked);
+    /**
+     * Инициализирует состояние чекбокса "Показать удаленные" на основе URL.
+     */
+    initThrashCheckboxState() {
+        if (!this.thrashCheckbox) return;
+
+        // Проверяем, содержит ли URL-путь '/thrash/'
+        this.thrashCheckbox.checked = window.location.pathname.includes('/thrash/');
+    }
+
+    /**
+     * Обновляет состояние чекбокса "Выбрать все"
+     * в зависимости от состояния всех чекбоксов постов.
+     */
+    updateSelectAll() {
+        if (!this.selectAllDesktop) return;
+
+        const allChecked = this.postCheckboxes.length > 0 && 
+                           Array.from(this.postCheckboxes).every(cb => cb.checked);
+        this.selectAllDesktop.checked = allChecked;
+    }
+
+    /**
+     * Устанавливает слушатели событий для чекбоксов.
+     */
+    setupEventListeners() {
+        if (this.selectAllDesktop) {
+            this.selectAllDesktop.addEventListener('change', () => {
+                this.postCheckboxes.forEach(cb => cb.checked = this.selectAllDesktop.checked);
+            });
+        }
+
+        this.postCheckboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', () => this.updateSelectAll());
+        });
+
+        if (this.thrashCheckbox) {
+            this.thrashCheckbox.addEventListener('change', this.handleThrashChange.bind(this));
         }
     }
 
-    if (selectAllDesktop) {
-        selectAllDesktop.addEventListener('change', function () {
-            postCheckboxes.forEach(cb => cb.checked = this.checked);
-            updateSelectAll();
+    /**
+     * Обрабатывает изменение состояния чекбокса.
+     * Изменяет URL-адрес для переключения между обычным списком и списком
+     * удаленных элементов.
+     *
+     * @returns {void}
+     */
+    handleThrashChange() {
+        // Убираем параметры запроса, чтобы не мешали
+        const currentPath = window.location.pathname;
+        const urlParts = currentPath.split('/').filter(part => part !== ''); // Удаляем пустые строки
+
+        let newPath;
+
+        // Определяем тип ресурса (posts, pages и т.д.), который всегда будет предпоследним элементом
+        // если нет пагинации, или третьим с конца, если есть.
+        const resource = urlParts[urlParts.length - 1].match(/^p\d+$/)
+            ? urlParts[urlParts.length - 2] // Если последний элемент - пагинация, берем предпоследний
+            : urlParts[urlParts.length - 1]; // Иначе берем последний
+
+        if (this.thrashCheckbox.checked) {
+            // Если сейчас на странице обычных постов, переходим на страницу удаленных
+            if (!currentPath.includes('/thrash/')) {
+                newPath = `/${urlParts[0]}/thrash/${resource}`;
+            }
+        } else {
+            // Если сейчас на странице удаленных постов, возвращаемся на страницу обычных
+            if (currentPath.includes('/thrash/')) {
+                newPath = `/${urlParts[0]}/${resource}`;
+            }
+        }
+        
+        // Добавляем обратно параметры запроса, если они были
+        const queryString = window.location.search;
+        if (newPath) {
+            window.location.href = newPath + queryString;
+        }
+    }
+}
+
+/**
+ * Класс для управления раскрытием/скрытием деталей поста на мобильных устройствах.
+ */
+class PostDetailsToggle {
+    constructor() {
+        this.postTitleCells = document.querySelectorAll('.post-title-cell');
+        this.setupEventListeners();
+    }
+
+    /**
+     * Устанавливает слушатели событий для ячеек заголовка поста.
+     */
+    setupEventListeners() {
+        this.postTitleCells.forEach(cell => {
+            cell.addEventListener('click', this.handleCellClick.bind(this));
         });
     }
 
-    postCheckboxes.forEach(checkbox => {
-        checkbox.addEventListener('change', updateSelectAll);
-    });
+    /**
+     * Обработчик клика по ячейке заголовка.
+     * @param {Event} event
+     */
+    handleCellClick(event) {
+        // Игнорируем клики по чекбоксу внутри ячейки
+        if (event.target.tagName === 'INPUT' && event.target.type === 'checkbox') {
+            return; 
+        }
 
-    updateSelectAll(); // Инициализация состояния при загрузке страницы
+        const mobileToggle = event.currentTarget.querySelector('.mobile-details-toggle');
+        
+        // Проверяем, что мы на мобильном устройстве (d-md-none скрыт)
+        if (!mobileToggle || window.getComputedStyle(mobileToggle).display === 'none') {
+            return;
+        }
 
+        const row = event.currentTarget.closest('.post-row');
+        if (!row) return console.error('Родительская строка .post-row НЕ НАЙДЕНА');
 
-    // --- Логика раскрытия/скрытия деталей на мобильных ---
-    // Теперь слушаем клики по всей ячейке заголовка (.post-title-cell) на мобильных
-    const postTitleCells = document.querySelectorAll('.post-title-cell');
-
-    postTitleCells.forEach(cell => {
-        // Добавляем слушатель кликов на всю ячейку
-        cell.addEventListener('click', function (event) {
-            // Игнорируем клики по чекбоксу внутри ячейки
-            if (event.target.tagName === 'INPUT' && event.target.type === 'checkbox') {
-                return; 
-            }
-
-            // Проверяем, что мы находимся на мобильном устройстве (d-md-none виден)
-            // Это важно, чтобы на десктопе не срабатывала логика раскрытия/скрытия
-            const mobileToggle = this.querySelector('.mobile-details-toggle');
-            if (!mobileToggle || window.getComputedStyle(mobileToggle).display === 'none') {
-                 return; // Если mobile-details-toggle скрыт (т.е. мы на десктопе), выходим
-            }
-
-            console.log('Клик по ячейке заголовка на мобильном:', this);
-            const row = this.closest('.post-row'); // Находим родительскую строку <tr>
+        const mobileDetails = row.querySelector('.post-mobile-details');
+        const toggleIcon = event.currentTarget.querySelector('.toggle-icon');
+        
+        if (mobileDetails) {
+            mobileDetails.classList.toggle('d-none');
             
-            if (row) {
-                console.log('Найдена родительская строка:', row); 
-                const mobileDetails = row.querySelector('.post-mobile-details'); 
-                const toggleIcon = this.querySelector('.toggle-icon'); 
-                
-                if (mobileDetails) {
-                    console.log('Найден блок деталей:', mobileDetails); 
-                    console.log('До клика: mobileDetails имеет класс d-none?', mobileDetails.classList.contains('d-none'));
-
-                    // Переключаем класс 'd-none'
-                    mobileDetails.classList.toggle('d-none'); 
-
-                    console.log('После клика: mobileDetails имеет класс d-none?', mobileDetails.classList.contains('d-none'));
-
-                    // Меняем иконку
-                    if (mobileDetails.classList.contains('d-none')) {
-                        // Блок скрыт, показываем стрелку вниз
-                        if (toggleIcon) { // Проверяем, что иконка найдена
-                            toggleIcon.classList.remove('bi-chevron-up');
-                            toggleIcon.classList.add('bi-chevron-down');
-                        }
-                    } else {
-                        // Блок виден, показываем стрелку вверх
-                        if (toggleIcon) { // Проверяем, что иконка найдена
-                            toggleIcon.classList.remove('bi-chevron-down');
-                            toggleIcon.classList.add('bi-chevron-up');
-                        }
-                    }
+            if (toggleIcon) {
+                if (mobileDetails.classList.contains('d-none')) {
+                    toggleIcon.classList.replace('bi-chevron-up', 'bi-chevron-down');
                 } else {
-                    console.error('Блок .post-mobile-details НЕ НАЙДЕН в строке:', row);
+                    toggleIcon.classList.replace('bi-chevron-down', 'bi-chevron-up');
                 }
-            } else {
-                console.error('Родительская строка .post-row НЕ НАЙДЕНА для кнопки:', this);
             }
+        } else {
+            console.error('Блок .post-mobile-details НЕ НАЙДЕН в строке.');
+        }
+    }
+}
+
+/**
+ * Класс для управления модальным окном подтверждения удаления поста.
+ */
+class PostDeleteModal {
+    constructor() {
+        this.currentPostId = null;
+        this.confirmDeleteModal = document.getElementById('confirmDeleteModal');
+        this.confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+        this.deletePostLinks = document.querySelectorAll('.delete-post-link');
+        this.bsModal = null; // Здесь будет храниться экземпляр Bootstrap Modal
+        this.setupEventListeners();
+
+        // Инициализация кастомного модального окна
+        this.alertModal = document.getElementById('custom-alert-modal');
+        this.alertContent = document.getElementById('custom-alert-content');
+        this.alertTitleEl = document.getElementById('custom-alert-title');
+        this.alertMessageEl = document.getElementById('custom-alert-message');
+        this.alertIconContainer = document.getElementById('custom-alert-icon-container');
+        this.alertCloseBtn = document.getElementById('custom-alert-close-btn');
+
+        if (this.alertCloseBtn) {
+            this.alertCloseBtn.addEventListener('click', () => this.hideAlert());
+        }
+        if (this.alertModal) {
+            this.alertModal.addEventListener('click', (e) => {
+                if (e.target === this.alertModal) {
+                    this.hideAlert();
+                }
+            });
+        }
+    }
+
+    /**
+     * Устанавливает слушатели событий для кнопок удаления.
+     */
+    setupEventListeners() {
+        this.deletePostLinks.forEach(link => {
+            link.addEventListener('click', this.handleDeleteClick.bind(this));
         });
-    });
 
-    // --- Модальное окно подтверждения удаления ---
-    let currentPostId = null;
-    const confirmDeleteModal = document.getElementById('confirmDeleteModal');
-    const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
-    const deletePostLinks = document.querySelectorAll('.delete-post-link');
+        if (this.confirmDeleteBtn) {
+            this.confirmDeleteBtn.addEventListener('click', this.confirmDelete.bind(this));
+        }
+    }
 
-    deletePostLinks.forEach(link => {
-        link.addEventListener('click', function (e) {
-            e.preventDefault();
-            currentPostId = this.getAttribute('data-post-id');
-            const postTitle = this.getAttribute('data-post-title');
+    /**
+     * Обработчик клика по кнопке удаления.
+     * @param {Event} e
+     */
+    handleDeleteClick(e) {
+        e.preventDefault();
+        this.currentPostId = e.currentTarget.getAttribute('data-post-id');
+        const postTitle = e.currentTarget.getAttribute('data-post-title');
 
-            // Обновляем заголовок модального окна
-            const modalTitle = document.getElementById('confirmDeleteModalLabel');
-            modalTitle.textContent = `Удалить пост: ${postTitle}`;
+        if (this.confirmDeleteModal) {
+            const modalTitle = this.confirmDeleteModal.querySelector('#confirmDeleteModalLabel');
+            if (modalTitle) {
+                modalTitle.textContent = `Удалить пост: ${postTitle}`;
+            }
 
-            // Показываем модальное окно
-            const modal = new bootstrap.Modal(confirmDeleteModal);
-            modal.show();
-        });
-    });
+            // Создаем и сохраняем экземпляр модального окна в свойстве класса
+            this.bsModal = new bootstrap.Modal(this.confirmDeleteModal);
+            this.bsModal.show();
+        }
+    }
 
-    // Обработка подтверждения удаления
-    confirmDeleteBtn.addEventListener('click', async function () {
-        if (!currentPostId) return;
+    /**
+     * Обработка подтверждения удаления.
+     */
+    async confirmDelete() {
+        if (!this.currentPostId) return;
 
         const csrfToken = document.querySelector('meta[name="csrf_token"]')?.content;
         if (!csrfToken) {
@@ -124,28 +237,25 @@ document.addEventListener('DOMContentLoaded', function () {
                     'X-Requested-With': 'XMLHttpRequest',
                     'X-CSRF-TOKEN': csrfToken
                 },
-                body: JSON.stringify({
-                    post_id: currentPostId
-                })
+                body: JSON.stringify({ post_id: this.currentPostId })
             });
 
             const result = await response.json();
-
-            const modal = bootstrap.Modal.getInstance(confirmDeleteModal);
-            modal.hide();
+            
+            // Используем сохраненный экземпляр для скрытия модального окна
+            if (this.bsModal) {
+                this.bsModal.hide();
+            }
 
             if (!response.ok) {
-                if (response.status === 401)
-                {
-                    // Пользователь не авторизован, перенаправляем на страницу логина
+                if (response.status === 401) {
                     window.location.href = `/${adminRoute}/login`;
+                    return;
                 }
-                
                 throw new Error(result.message);
             }
 
             if (result.success) {
-                // Успешно удалён — перезагружаем страницу
                 location.reload();
             } else {
                 alert('Ошибка: ' + (result.message || 'Не удалось удалить пост.'));
@@ -154,5 +264,14 @@ document.addEventListener('DOMContentLoaded', function () {
             console.error('Ошибка при удалении поста:', error);
             alert('Произошла ошибка при удалении поста.');
         }
-    });
+    }
+}
+
+/**
+ * Инициализируем классы, когда DOM-дерево полностью загружено.
+ */
+document.addEventListener('DOMContentLoaded', () => {
+    new PostSelection();
+    new PostDetailsToggle();
+    new PostDeleteModal();
 });

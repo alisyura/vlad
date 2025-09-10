@@ -27,7 +27,7 @@ class AdminPostsController extends BaseController
      * @param string $articleType Тип статьи. post или page
      */
     private function processArticlesList($currentPage = 1, $articleType = 'post') {
-        $adminRoute = $this->getAdminRoute();
+        // $adminRoute = $this->getAdminRoute();
         $userName = Auth::getUserName();
         try {
             // --- Получение и валидация параметров сортировки ---
@@ -52,20 +52,27 @@ class AdminPostsController extends BaseController
             }
             // --- Конец обработки параметров сортировки ---
 
+            
             // Определяем параметры пагинации
             $postsPerPage = Config::get('admin.PostsPerPage'); // Количество постов на страницу
-            $currentPage = max(1, (int)$currentPage); // Убеждаемся, что страница не меньше 1
-            $offset = ($currentPage - 1) * $postsPerPage; // Вычисляем смещение
 
             $postsListModel = new PostsListModel();
             // Получаем общее количество постов
             $totalPosts = $postsListModel->getTotalPostsCount($articleType);
-            // Вычисляем общее количество страниц
-            $totalPages = ceil($totalPosts / $postsPerPage);
+    
+            // Базовый URL для админки
+            $basePageUrl=$this->getBasePageUrl();
+
+            // Генерируем массив ссылок для умной пагинации
+            $ps = new PaginationService();
+            $paginParams = $ps->calculatePaginationParams(Config::get('admin.PostsPerPage'), $currentPage, 
+                $totalPosts, $basePageUrl);
+
+            ['totalPages' => $totalPages, 
+                'offset' => $offset, 
+                'paginationLinks' => $paginationLinks] = $paginParams;
             
-            // Убеждаемся, что текущая страница не превышает общее количество
-            $currentPage = min($currentPage, $totalPages);
-            $offset = ($currentPage - 1) * $postsPerPage;
+            $isTrash = (new UrlHelperService())->hasThrash($basePageUrl);
 
             // Получаем посты для текущей страницы
             $posts = $postsListModel->getPostsList($articleType, $postsPerPage, $offset,
@@ -123,15 +130,8 @@ class AdminPostsController extends BaseController
             }
             unset($post);
 
-
-            
-            // Генерируем массив ссылок для умной пагинации
-            // Базовый URL для админки
-            $basePageUrl = '/' . htmlspecialchars($adminRoute) . "/{$articleType}s";
-            $paginationLinks = generateSmartPaginationLinks($currentPage, $totalPages, $basePageUrl);
-
             $data = [
-                'adminRoute' => $adminRoute,
+                'adminRoute' => $this->getAdminRoute(),
                 'user_name' => $userName,
                 'title' => 'Список ' . ($articleType === 'post' ? 'постов' : 'страниц'),
                 'active' => "{$articleType}s", // для подсветки в левом меню
@@ -146,6 +146,8 @@ class AdminPostsController extends BaseController
                 'base_page_url' => $basePageUrl,
                 'current_sort_by' => $sortBy,
                 'current_sort_order' => $sortOrder,
+                // 'thrash_link' => '/' . $this->getAdminRoute() . "/thrashbox/{$articleType}s",
+                'isTrash' => $isTrash,
                 'styles' => [
                     'posts_list.css'
                 ],
@@ -158,22 +160,10 @@ class AdminPostsController extends BaseController
 
         } catch (PDOException $e) {
             Logger::error("Database error in listPosts: " . $e->getTraceAsString());
-            $data = [
-                'adminRoute' => $adminRoute,
-                'user_name' => $userName,
-                'title' => 'Ошибка',
-                'error_message' => 'Не удалось загрузить данные. Пожалуйста, попробуйте позже.'
-            ];
-            $this->viewAdmin->renderAdmin('admin/errors/error_view.php', $data);
+            $this->showAdminError('Ошибка', 'Не удалось загрузить данные. Пожалуйста, попробуйте позже.');
         } catch (Throwable $e) {
             Logger::error("Error in listPosts: " . $e->getTraceAsString());
-            $data = [
-                'adminRoute' => $adminRoute,
-                'user_name' => $userName,
-                'title' => 'Ошибка',
-                'error_message' => 'Произошла непредвиденная ошибка.'
-            ];
-            $this->viewAdmin->renderAdmin('admin/errors/error_view.php', $data);
+            $this->showAdminError('Ошибка', 'Произошла непредвиденная ошибка.');
         }
     }
 
@@ -582,8 +572,7 @@ class AdminPostsController extends BaseController
 
         // Проверка ID
         if (!is_numeric($postId)) {
-            http_response_code(400);
-            echo json_encode(['success' => false, 'message' => 'Неверный ID поста.']);
+            $this->sendErrorJsonResponse('Неверный ID поста.');
             return;
         }
 
@@ -592,8 +581,7 @@ class AdminPostsController extends BaseController
             $post = $adminPostsModel->postExists((int)$postId);
 
             if (!$post) {
-                http_response_code(404);
-                echo json_encode(['success' => false, 'message' => 'Пост не найден.']);
+                $this->sendErrorJsonResponse('Пост не найден', 404);
                 return;
             }
 
@@ -601,15 +589,10 @@ class AdminPostsController extends BaseController
             $admPostsModel = new AdminPostsModel();
             $admPostsModel->setPostAsDeleted($postId);
 
-            http_response_code(200);
-            echo json_encode([
-                'success' => true,
-                'message' => 'Пост успешно удалён.'
-            ]);
+            $this->sendSuccessJsonResponse('Пост успешно удалён.');
         } catch (Exception $e) {
             Logger::error("Ошибка при удалении поста $postId: " . $e->getTraceAsString());
-            http_response_code(500);
-            echo json_encode(['success' => false, 'message' => 'Ошибка сервера.']);
+            $this->sendErrorJsonResponse('Ошибка при удалении поста', 500);
         }
     }
 }

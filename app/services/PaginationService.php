@@ -18,7 +18,7 @@ class PaginationService
      * - 'paginationLinks' (array): Массив сгенерированных ссылок для "умной" пагинации.
      */
     public function calculatePaginationParams(int $qntyPerPage, int $currentPage, 
-        int $totalQnty, string $adminRoute, string $basePageSuffix): array
+        int $totalQnty, $basePageUrl): array
     {
         // Определяем параметры пагинации
         // $tagsPerPage = Config::get('admin.TagsPerPage'); // Количество постов на страницу
@@ -34,13 +34,13 @@ class PaginationService
 
         // Генерируем массив ссылок для умной пагинации
         // Базовый URL для админки
-        $basePageUrl = '/' . htmlspecialchars($adminRoute) . '/' . $basePageSuffix;
+        //$basePageUrl = '/' . htmlspecialchars($adminRoute) . '/' . $basePageSuffix;
         $paginationLinks = generateSmartPaginationLinks($currentPage, $totalPages, $basePageUrl);
 
         return [
             'totalPages' => $totalPages,
             'offset' => $offset,
-            'basePageUrl' => $basePageUrl,
+            //'basePageUrl' => $basePageUrl,
             'paginationLinks' => $paginationLinks
         ];
     }

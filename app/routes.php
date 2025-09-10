@@ -267,3 +267,14 @@ $router->addRoute("/$adminRoute/users/api/unblock/(\d+)", function($userId) use 
 $router->addRoute("/$adminRoute/users/api/delete/(\d+)", function($userId) use ($viewAdmin) {
     (new AdminUsersApiController($viewAdmin))->delete($userId);
 }, ['AdminAuthenticatedMiddleware', 'AjaxMiddleware', 'CsrfMiddleware'], ['method' => 'DELETE']);
+
+//Показ удаленных постов/стрнаницы с пагинацией
+$router->addRoute("/$adminRoute/thrash/posts(?:/p(\d+))?", function($page = 1) use ($viewAdmin) {
+    // Передаем номер страницы в контроллер
+    (new AdminPostsController($viewAdmin))->postsList($page);
+}, ['UserAuthenticatedMiddleware']);
+
+$router->addRoute("/$adminRoute/thrash/pages(?:/p(\d+))?", function($page = 1) use ($viewAdmin) {
+    // Передаем номер страницы в контроллер
+    (new AdminPostsController($viewAdmin))->pagesList($page);
+}, ['UserAuthenticatedMiddleware']);

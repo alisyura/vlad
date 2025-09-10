@@ -1,1209 +1,1277 @@
--- phpMyAdmin SQL Dump
--- version 5.2.0
--- https://www.phpmyadmin.net/
+/*M!999999\- enable the sandbox mode */ 
+-- MariaDB dump 10.19-11.8.3-MariaDB, for Win64 (AMD64)
 --
--- Хост: 127.0.0.1:3306
--- Время создания: Авг 23 2025 г., 00:37
--- Версия сервера: 8.0.30
--- Версия PHP: 8.1.9
-
-SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
-START TRANSACTION;
-SET time_zone = "+00:00";
-
+-- Host: localhost    Database: vlad
+-- ------------------------------------------------------
+-- Server version	11.8.3-MariaDB
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
 /*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
 /*!40101 SET NAMES utf8mb4 */;
+/*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
+/*!40103 SET TIME_ZONE='+00:00' */;
+/*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
+/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
+/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
+/*M!100616 SET @OLD_NOTE_VERBOSITY=@@NOTE_VERBOSITY, NOTE_VERBOSITY=0 */;
 
 --
--- База данных: `vlad`
+-- Table structure for table `categories`
 --
 
--- --------------------------------------------------------
-
---
--- Структура таблицы `categories`
---
-
+DROP TABLE IF EXISTS `categories`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `categories` (
-  `id` int NOT NULL,
+  `id` int(11) NOT NULL AUTO_INCREMENT,
   `url` varchar(255) NOT NULL,
   `name` varchar(255) NOT NULL,
-  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+  `created_at` timestamp NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `unique_category_url` (`url`),
+  KEY `idx_categories_name` (`name`)
+) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Дамп данных таблицы `categories`
+-- Dumping data for table `categories`
 --
 
-INSERT INTO `categories` (`id`, `url`, `name`, `created_at`, `updated_at`) VALUES
-(3, 'anekdoty', 'Анекдоты', '2025-04-22 16:55:47', '2025-04-24 12:10:59'),
-(4, 'veselaya-rifma', 'Веселая рифма', '2025-04-22 16:57:05', '2025-04-24 12:11:27'),
-(5, 'citatnik', 'Цитатник', '2025-05-16 18:57:47', '2025-05-16 18:57:47'),
-(6, 'istorii', 'Истории', '2025-05-16 18:58:24', '2025-05-16 19:01:05'),
-(7, 'kartinki', 'Картинки', '2025-05-16 19:01:38', '2025-05-16 19:01:38'),
-(8, 'video', 'Видео', '2025-05-16 19:01:38', '2025-05-16 19:01:38'),
-(9, 'tegi', 'Тэги', '2025-05-16 19:02:23', '2025-05-16 19:02:23'),
-(10, 'luchshee', 'Лучшее', '2025-05-16 19:02:23', '2025-05-16 19:02:23');
-
--- --------------------------------------------------------
+LOCK TABLES `categories` WRITE;
+/*!40000 ALTER TABLE `categories` DISABLE KEYS */;
+set autocommit=0;
+INSERT INTO `categories` VALUES
+(3,'anekdoty','Анекдоты','2025-04-22 16:55:47','2025-04-24 12:10:59'),
+(4,'veselaya-rifma','Веселая рифма','2025-04-22 16:57:05','2025-04-24 12:11:27'),
+(5,'citatnik','Цитатник','2025-05-16 18:57:47','2025-05-16 18:57:47'),
+(6,'istorii','Истории','2025-05-16 18:58:24','2025-05-16 19:01:05'),
+(7,'kartinki','Картинки','2025-05-16 19:01:38','2025-05-16 19:01:38'),
+(8,'video','Видео','2025-05-16 19:01:38','2025-05-16 19:01:38'),
+(9,'tegi','Тэги','2025-05-16 19:02:23','2025-05-16 19:02:23'),
+(10,'luchshee','Лучшее','2025-05-16 19:02:23','2025-05-16 19:02:23');
+/*!40000 ALTER TABLE `categories` ENABLE KEYS */;
+UNLOCK TABLES;
+commit;
 
 --
--- Структура таблицы `comments`
+-- Table structure for table `comments`
 --
 
+DROP TABLE IF EXISTS `comments`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `comments` (
-  `id` int NOT NULL,
-  `post_id` int NOT NULL,
-  `user_id` int DEFAULT NULL,
-  `visitor_id` int DEFAULT NULL,
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `post_id` int(11) NOT NULL,
+  `user_id` int(11) DEFAULT NULL,
+  `visitor_id` int(11) DEFAULT NULL,
   `content` text NOT NULL,
   `status` enum('deleted','pending','published') NOT NULL DEFAULT 'pending',
-  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+  `created_at` timestamp NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`id`),
+  KEY `post_id` (`post_id`),
+  KEY `user_id` (`user_id`),
+  KEY `comments_ibfk_3` (`visitor_id`),
+  CONSTRAINT `comments_ibfk_1` FOREIGN KEY (`post_id`) REFERENCES `posts` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `comments_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE SET NULL,
+  CONSTRAINT `comments_ibfk_3` FOREIGN KEY (`visitor_id`) REFERENCES `visitors` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
--- --------------------------------------------------------
+/*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Структура таблицы `media`
+-- Dumping data for table `comments`
 --
 
+LOCK TABLES `comments` WRITE;
+/*!40000 ALTER TABLE `comments` DISABLE KEYS */;
+set autocommit=0;
+/*!40000 ALTER TABLE `comments` ENABLE KEYS */;
+UNLOCK TABLES;
+commit;
+
+--
+-- Table structure for table `media`
+--
+
+DROP TABLE IF EXISTS `media`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `media` (
-  `id` int NOT NULL COMMENT 'Уникальный идентификатор файла',
-  `post_id` int DEFAULT NULL COMMENT 'ID поста, к которому прикреплен файл (если есть)',
-  `user_id` int DEFAULT NULL COMMENT 'ID пользователя, который загрузил файл',
+  `id` int(11) NOT NULL AUTO_INCREMENT COMMENT 'Уникальный идентификатор файла',
+  `post_id` int(11) DEFAULT NULL COMMENT 'ID поста, к которому прикреплен файл (если есть)',
+  `user_id` int(11) DEFAULT NULL COMMENT 'ID пользователя, который загрузил файл',
   `file_name` varchar(255) NOT NULL COMMENT 'Имя файла (например, image.jpg)',
   `file_path` varchar(255) NOT NULL COMMENT 'Путь к файлу на сервере (например, /uploads/2025/04/image.jpg)',
   `file_type` enum('image','video','audio','document','other') NOT NULL COMMENT 'Тип файла',
   `mime_type` varchar(100) NOT NULL COMMENT 'MIME-тип файла (например, image/jpeg)',
-  `file_size` int NOT NULL COMMENT 'Размер файла в байтах',
-  `thumbnail_path` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL COMMENT 'Путь к миниатюре (если применимо) (не используется и возможно нужно будет удалить)',
+  `file_size` int(11) NOT NULL COMMENT 'Размер файла в байтах',
+  `thumbnail_path` varchar(255) DEFAULT NULL COMMENT 'Путь к миниатюре (если применимо) (не используется и возможно нужно будет удалить)',
   `alt_text` varchar(255) DEFAULT NULL COMMENT 'Альтернативный текст для изображений (SEO)',
-  `description` text CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci COMMENT 'Описание файла (пока не понятно для чего это. возможно удалим)',
-  `uploaded_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Дата и время загрузки',
-  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Дата и время обновления',
-  `status` enum('published','deleted') CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL DEFAULT 'published'
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+  `description` text DEFAULT NULL COMMENT 'Описание файла (пока не понятно для чего это. возможно удалим)',
+  `uploaded_at` timestamp NOT NULL DEFAULT current_timestamp() COMMENT 'Дата и время загрузки',
+  `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp() COMMENT 'Дата и время обновления',
+  `status` enum('published','deleted') NOT NULL DEFAULT 'published',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `unique_file_path` (`file_path`),
+  KEY `idx_media_user_id` (`user_id`),
+  KEY `idx_post_image` (`post_id`,`file_type`,`id`),
+  CONSTRAINT `media_ibfk_1` FOREIGN KEY (`post_id`) REFERENCES `posts` (`id`) ON DELETE SET NULL,
+  CONSTRAINT `media_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB AUTO_INCREMENT=69 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Дамп данных таблицы `media`
+-- Dumping data for table `media`
 --
 
-INSERT INTO `media` (`id`, `post_id`, `user_id`, `file_name`, `file_path`, `file_type`, `mime_type`, `file_size`, `thumbnail_path`, `alt_text`, `description`, `uploaded_at`, `updated_at`, `status`) VALUES
-(4, 230, 2, 'aVUOus_1Tok.jpg', '/assets/uploads/2025/06/aVUOus_1Tok.jpg', 'image', 'image/jpeg', 384086, NULL, NULL, NULL, '2025-06-15 17:03:11', '2025-08-06 15:53:35', 'published'),
-(9, 263, 2, '06_1751660220.png', '/assets/uploads/2025/07/06_1751660220.png', 'image', 'image/png', 143624, NULL, NULL, NULL, '2025-07-06 13:40:47', '2025-08-06 14:59:49', 'published'),
-(10, 264, 2, '06_vverh-vpravo-2.jpg', '/assets/uploads/2025/07/06_vverh-vpravo-2.jpg', 'image', 'image/jpeg', 48241, NULL, 'Вправо вверх', NULL, '2025-07-06 13:41:09', '2025-08-06 14:59:02', 'published'),
-(25, NULL, 2, '___.jpg', '/assets/uploads/2025/08/___.jpg', 'image', 'image/jpeg', 751966, NULL, NULL, NULL, '2025-08-09 11:14:09', '2025-08-09 11:14:09', 'published'),
-(27, NULL, 2, '15440811102024_4e4118d0b87de93a05c5e95c8a3ff86d8d906f5d.jpg', '/assets/uploads/2025/08/15440811102024_4e4118d0b87de93a05c5e95c8a3ff86d8d906f5d.jpg', 'image', 'image/jpeg', 172744, NULL, '', NULL, '2025-08-09 13:43:35', '2025-08-09 13:43:35', 'published'),
-(51, NULL, 2, 'kosmos-za-dveryu.jpg', '/assets/uploads/2025/08/kosmos-za-dveryu.jpg', 'image', 'image/jpeg', 46269, NULL, 'космос за дверью', NULL, '2025-08-11 17:23:40', '2025-08-11 17:23:40', 'published'),
-(52, NULL, 2, 'kosmos-za-dveryu_1.jpg', '/assets/uploads/2025/08/kosmos-za-dveryu_1.jpg', 'image', 'image/jpeg', 46269, NULL, '3534', NULL, '2025-08-14 12:50:50', '2025-08-14 12:50:50', 'published'),
-(53, NULL, 2, '1755117456.jpg', '/assets/uploads/2025/08/1755117456.jpg', 'image', 'image/jpeg', 79489, NULL, 'werewr', NULL, '2025-08-15 13:47:51', '2025-08-15 13:47:51', 'published'),
-(54, NULL, 2, '1755117089.jpg', '/assets/uploads/2025/08/1755117089.jpg', 'image', 'image/jpeg', 77230, NULL, 'уцкуцк', NULL, '2025-08-15 16:00:49', '2025-08-15 16:00:49', 'published'),
-(55, NULL, 2, 'guh3o0t8dw4.jpg', '/assets/uploads/2025/08/guh3o0t8dw4.jpg', 'image', 'image/jpeg', 106514, NULL, 'цуцк', NULL, '2025-08-17 13:03:09', '2025-08-17 13:03:09', 'published'),
-(56, NULL, 2, 'novyy-hersones.jpg', '/assets/uploads/2025/08/novyy-hersones.jpg', 'image', 'image/jpeg', 118225, NULL, 'sdfsd', NULL, '2025-08-17 13:15:10', '2025-08-17 13:15:10', 'published');
-
--- --------------------------------------------------------
-
---
--- Структура таблицы `posts`
---
-
-CREATE TABLE `posts` (
-  `id` int NOT NULL,
-  `url` varchar(128) NOT NULL,
-  `user_id` int NOT NULL,
-  `title` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
-  `content` text NOT NULL,
-  `excerpt` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
-  `thumbnail_media_id` int DEFAULT NULL,
-  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
-  `keywords` varchar(255) DEFAULT NULL,
-  `description` varchar(160) DEFAULT NULL,
-  `robots` enum('index','follow','noindex','nofollow','noindex, follow','index, follow','noindex, nofollow','index, nofollow') CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL DEFAULT 'index',
-  `status` enum('draft','pending','published','deleted') CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL DEFAULT 'draft',
-  `article_type` enum('post','page') CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL DEFAULT 'post',
-  `likes_count` int UNSIGNED NOT NULL DEFAULT '0',
-  `dislikes_count` int UNSIGNED NOT NULL DEFAULT '0'
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+LOCK TABLES `media` WRITE;
+/*!40000 ALTER TABLE `media` DISABLE KEYS */;
+set autocommit=0;
+INSERT INTO `media` VALUES
+(4,230,2,'aVUOus_1Tok.jpg','/assets/uploads/2025/06/aVUOus_1Tok.jpg','image','image/jpeg',384086,NULL,NULL,NULL,'2025-06-15 17:03:11','2025-08-06 15:53:35','published'),
+(9,263,2,'06_1751660220.png','/assets/uploads/2025/07/06_1751660220.png','image','image/png',143624,NULL,NULL,NULL,'2025-07-06 13:40:47','2025-08-06 14:59:49','published'),
+(10,264,2,'06_vverh-vpravo-2.jpg','/assets/uploads/2025/07/06_vverh-vpravo-2.jpg','image','image/jpeg',48241,NULL,'Вправо вверх',NULL,'2025-07-06 13:41:09','2025-08-06 14:59:02','published'),
+(25,NULL,2,'___.jpg','/assets/uploads/2025/08/___.jpg','image','image/jpeg',751966,NULL,NULL,NULL,'2025-08-09 11:14:09','2025-08-09 11:14:09','published'),
+(27,NULL,2,'15440811102024_4e4118d0b87de93a05c5e95c8a3ff86d8d906f5d.jpg','/assets/uploads/2025/08/15440811102024_4e4118d0b87de93a05c5e95c8a3ff86d8d906f5d.jpg','image','image/jpeg',172744,NULL,'',NULL,'2025-08-09 13:43:35','2025-08-09 13:43:35','published'),
+(51,NULL,2,'kosmos-za-dveryu.jpg','/assets/uploads/2025/08/kosmos-za-dveryu.jpg','image','image/jpeg',46269,NULL,'космос за дверью',NULL,'2025-08-11 17:23:40','2025-08-11 17:23:40','published'),
+(52,NULL,2,'kosmos-za-dveryu_1.jpg','/assets/uploads/2025/08/kosmos-za-dveryu_1.jpg','image','image/jpeg',46269,NULL,'3534',NULL,'2025-08-14 12:50:50','2025-08-14 12:50:50','published'),
+(53,NULL,2,'1755117456.jpg','/assets/uploads/2025/08/1755117456.jpg','image','image/jpeg',79489,NULL,'werewr',NULL,'2025-08-15 13:47:51','2025-08-15 13:47:51','published'),
+(54,NULL,2,'1755117089.jpg','/assets/uploads/2025/08/1755117089.jpg','image','image/jpeg',77230,NULL,'уцкуцк',NULL,'2025-08-15 16:00:49','2025-08-15 16:00:49','published'),
+(55,NULL,2,'guh3o0t8dw4.jpg','/assets/uploads/2025/08/guh3o0t8dw4.jpg','image','image/jpeg',106514,NULL,'цуцк',NULL,'2025-08-17 13:03:09','2025-08-17 13:03:09','published'),
+(56,NULL,2,'novyy-hersones.jpg','/assets/uploads/2025/08/novyy-hersones.jpg','image','image/jpeg',118225,NULL,'sdfsd',NULL,'2025-08-17 13:15:10','2025-08-17 13:15:10','published'),
+(57,NULL,2,'kosmos-za-dveryu_2.jpg','/assets/uploads/2025/08/kosmos-za-dveryu_2.jpg','image','image/jpeg',46269,NULL,'ewrew',NULL,'2025-08-24 12:08:55','2025-08-24 12:08:55','published'),
+(58,NULL,2,'1756472718.jpg','/assets/uploads/2025/08/1756472718.jpg','image','image/jpeg',58909,NULL,'98uhj',NULL,'2025-08-31 11:58:51','2025-08-31 11:58:51','published'),
+(59,NULL,2,'1756472718_1.jpg','/assets/uploads/2025/08/1756472718_1.jpg','image','image/jpeg',58909,NULL,'erte',NULL,'2025-08-31 14:38:43','2025-08-31 14:38:43','published'),
+(60,NULL,2,'1756651325.jpg','/assets/uploads/2025/08/1756651325.jpg','image','image/jpeg',39803,NULL,'куеуеук',NULL,'2025-08-31 14:42:42','2025-08-31 14:42:42','published'),
+(61,NULL,2,'1756651325_1.jpg','/assets/uploads/2025/08/1756651325_1.jpg','image','image/jpeg',39803,NULL,'ываыа',NULL,'2025-08-31 15:16:00','2025-08-31 15:16:00','published'),
+(65,NULL,2,'1756651325_2.jpg','/assets/uploads/2025/08/1756651325_2.jpg','image','image/jpeg',39803,NULL,'sdfgfd',NULL,'2025-08-31 15:35:14','2025-08-31 15:35:14','published'),
+(66,NULL,2,'1756651325_3.jpg','/assets/uploads/2025/08/1756651325_3.jpg','image','image/jpeg',39803,NULL,'nmn',NULL,'2025-08-31 15:35:45','2025-08-31 15:35:45','published'),
+(67,NULL,2,'kosmos-za-dveryu.jpg','/assets/uploads/2025/09/kosmos-za-dveryu.jpg','image','image/jpeg',46269,NULL,'йцуйцу',NULL,'2025-09-02 16:40:54','2025-09-02 16:40:54','published'),
+(68,NULL,2,'kosmos-za-dveryu_1.jpg','/assets/uploads/2025/09/kosmos-za-dveryu_1.jpg','image','image/jpeg',46269,NULL,'фывфы',NULL,'2025-09-06 11:44:05','2025-09-06 11:44:05','published');
+/*!40000 ALTER TABLE `media` ENABLE KEYS */;
+UNLOCK TABLES;
+commit;
 
 --
--- Дамп данных таблицы `posts`
+-- Table structure for table `post_category`
 --
 
-INSERT INTO `posts` (`id`, `url`, `user_id`, `title`, `content`, `excerpt`, `thumbnail_media_id`, `created_at`, `updated_at`, `keywords`, `description`, `robots`, `status`, `article_type`, `likes_count`, `dislikes_count`) VALUES
-(3, 'taksuyu', 2, 'Про таксиста', 'Taксую. Ранее утро. Пассажир — женщина. Спокойно катим в пробке. Мимо нас в междурядье с грохотом проносится мотоциклист.\n— Ух, отчаянный, — провожаю его добрым словом.\n— Вы не гоняете, anekdotov.net, случаем, на байке? — спрашиваю женщину.\n— Я — нет, — улыбнулась она.\n— А вот племянник недавно признался, что мечтает о мотоцикле. И никакие доводы на него не действуют. Ни мои, ни матери. Хочу и всё! И понимаем, что запретить никак не получится. Купит втайне и гонять будет. Ну, тогда я ему и предложила месяц у меня поработать, и тогда пусть покупает. Если денег не хватит — добавлю. Работа чисто физическая. Принеси/унеси. Как раз для молодого парня. После второй смены он сказал, что передумал покупать мотоцикл.\n— А где вы работаете?\n— В реанимации.', '', NULL, '2025-04-22 16:54:59', '2025-06-19 18:12:34', 'Про таксиста', 'описание Про таксиста', 'index', 'published', 'post', 19, 25),
-(4, 'sotrudnitsa-otdela-prodazh', 2, 'Про сотрудницу', 'Сотрудница отдела продаж, специалист по сервису и их начальник идут обедать и находят старую масляную лампу. Они трут лампу, и Джин появляется в облаке дыма. Джин говорит:\n— Обычно я выполняю три желания, поэтому каждый из Вас может загадать по одному.\n— Чур, я первая! , — говорит сотрудница отдела продаж. Я хочу быть сейчас на Багамах, мчаться без забот на скутере по волнам.\nПуфф! И она растворяется в воздухе. anekdotov.net,\n— Я следующий! , — говорит спец по сервису. Я хочу на Гавайи, расслабляться на пляже с личной массажисткой и бесконечным запасом Пина-Колады.\nПуфф! Исчезает.\n— OK, твоя очередь! , — говорит Джин менеджеру.\nТогда менеджер говорит:\n— Я хочу, чтобы эти двое были в офисе после обеда.', '', NULL, '2025-04-01 16:57:23', '2025-06-19 18:13:53', NULL, NULL, 'index', 'published', 'post', 3, 14),
-(5, 'pro-fax', 2, 'Про факс', '\"В России одновременно сосуществуют поколения людей, anekdotov.net, которые в 20 лет ещё не знали, что такое \"отправить FAX\" и которые в 20 лет уже не знают, что такое \"отправить FAX\"\"\r\nИ вспомнилось...\r\nВ конце 90-х на \"ЛМЗ\" (Ленинградский Металлический завод, я там работал) и \"Электросилу\" наехали новые \"собственники\" с новыми порядками ведения бизнеса: коммерческая тайна и т. п. А я тогда как раз какой-то проект делал, как обычно: ЛМЗ-шная турбина и Электросиловский генератор. И мне от Электросилы технические данные нужны.\r\nЗвоню в их КБ, задаю вопросы. Мне в ответ: все данные готовы, но передать не можем — новый собственник запретил напрямую письма писать, телексы и факсы отправлять (е-мэйла у нас тогда ещё не было). Только через Службу Безопасности!\r\nА это ещё неделя на согласование!\r\nЯ устно информацию принять, конечно, могу, но мне именно документ нужен.\r\n— Что, совсем всё запретили?\r\n— Всё!\r\n— И телеграммы?\r\n— И телеграммы!\r\n— И факсы?\r\n— И факсы!\r\n— А телефонограммы?\r\n— О!\r\nЧерез 15 минут из факса вылезает лист с крупным заголовком: ТЕЛЕФОНОГРАММА!', '', NULL, '2025-04-24 13:42:02', '2025-06-21 15:30:35', NULL, NULL, 'index', 'published', 'post', 46, 6),
-(184, 'o-proekte', 2, 'О проекте', 'Сайт СмехБук создан группой единомышленников, которых объединяет\r\nжелание разместить в одном месте все те шутки и юмор, который накопился\r\nза определенное время в разных местах (серверах, личных записках, блогах).\r\nНа нашем сайте мы будем собирать все те шутки и юмор, который есть в\r\nнаших запасах и на сторонних проектах. Нашей задачей мы видим создание\r\nюмористического портала сатиры, юмора и хорошего настроения.\r\n\r\n<b>СмехБук строится на следующих принципах:</b>\r\n\r\n1) Мы тщательно отбираем все присланные материалы на сайт. Наш\r\nприоритет сатира и юмор высокого качества, а не «ниже пояса». Да и еще раз\r\nДа, мы правим анекдоты,шутки, цитаты и все остальные материалы, или\r\nудаляем без восстановления и повторного рассмотрения.\r\n\r\n2) Мы любим красивые и тщательно сделанные вещи. Поэтому один из\r\nосновных моментов при формировании материалов на сайт — это соблюдение\r\nправил оформления, все должно быть красиво, ясно и понятно посетителям\r\nсайта.\r\n\r\n3) Мы не обсуждаем ваше чувство юмора и не собираемся обсуждать наше.\r\nЕсли по каким-то причинам вам не нравятся материалы на сайте, то вы\r\nможете проголосовать за них против или просто не посещать наш сайт.', '', NULL, '2025-06-08 12:22:28', '2025-06-08 12:22:28', 'юмор, приколы, смех', 'Описание страницы о проекте', 'index', 'published', 'page', 0, 0),
-(185, 'kontakty', 2, 'Контакты', 'Вы хотели связаться с нами? Это замечательно! Мы тоже давно мечтали о связи — не только электронной, но и духовной. Однако пока наша команда контактов занята важным делом: проверяет, работает ли кнопка \"отправить\" на самом деле, а также спорит, сколько должно быть адресов, чтобы считаться «множеством».\r\n\r\nПока они решают эти глобальные вопросы, мы предлагаем вам немного подождать. Скоро здесь появятся все возможные способы добраться до нас — от электронной почты до телепатии (последнее пока в стадии тестирования).\r\n\r\nЕсли у вас срочное дело, можете попробовать поймать одного из редакторов на просторах сайта — обычно они шатаются где-то между рубриками «Анекдоты» и «Истории». Или просто напишите нам через форму обратной связи (когда она заработает), или как-нибудь иначе — мы всегда рады общению, особенно если оно с юмором!\r\n\r\nТем временем предлагаем вам не скучать, а читать что-нибудь смешное. А потом рассказать об этом друзьям. Или врагам. Всё равно полезно.\r\n\r\nСпасибо, что вы с нами. Почти буквально.', '', NULL, '2025-06-08 12:22:28', '2025-07-29 12:22:28', 'контакты', 'Описание страницы контакты', 'index', 'published', 'page', 0, 0),
-(186, 'policy', 2, 'Пользовательское соглашение', 'Сайт www.smehbook.ru размещается на серверах и управляется на территории\r\nРоссийской Федерации. Вся деятельность сайта находится под действием\r\nдействующего законодательства Российской Федерации.\r\n\r\nВсе права на присланные материалы (контент) принадлежат их владельцам —\r\nнепосредственным участникам и тем, кто прислал материалы (контент) через\r\nформу на нашем сайте. Администрация сайта не несет ответственности\r\nза их использование третьими сторонами.\r\n\r\nАдминистрация сайта не ставит перед собой цели оскорблять честь\r\nи достоинство физических лиц, либо посягать на чью-либо деловую\r\nрепутацию. Совпадения реальных имён и названий считаются случайными.\r\n\r\nАдминистрация сайта не занимается предварительной оценкой присланных\r\nматериалов (контента) на предмет соответствия их действующему\r\nзаконодательству, чьим-то личным представлениям о прекрасном,\r\nи не оценивает содержащиеся в материалах оценочные суждения. При этом\r\nадминистрация оставляет за собой право удалять явно нарушающие\r\nзаконодательство, разглашающие личные сведения или являющиеся личными\r\nвыпадами против конкретных лиц и групп лиц материалы (контент), в том\r\nчисле и автоматически, но не гарантирует полного отсутствия подобных\r\nматериалов (контента). В случае обнаружения таких материалов (контента)\r\nпросьба написать нам, мы постараемся принять меры.\r\n\r\nАдминистрация сайта имеет право публиковать, удалять\r\nи редактировать любые материалы (контент), присланные пользователями,\r\nпо своему усмотрению.\r\n\r\nАдминистрация сайта оставляет за собой право на использование\r\nинформации, содержащейся на сайте, по своему усмотрению.', '', NULL, '2025-06-08 12:22:28', '2025-06-08 12:22:28', 'пользовательское соглашение', 'Описание страницы пользовательское соглашение', 'index', 'published', 'page', 0, 0),
-(187, 'sitemap', 2, 'Карта сайта', 'Вы попали сюда, значит, либо вы — опытный искатель приключений (и кнопок), либо просто потерялись среди нашего безграничного океана юмора. Не волнуйтесь, мы тоже иногда не можем найти, куда запрятали главную страницу.\r\n\r\nПока что эта карта больше похожа на меню в кафе, где половина блюд уже закончилась, а официант уверяет, что «всё есть, просто не всё сразу». Но обещаем — скоро здесь будет настоящий путеводитель по нашему порталу: удобный, понятный и такой же доброжелательный, как наш админ, когда он не в плохом настроении после чтения комментариев.\r\n\r\nЧто вы сможете найти:\r\n\r\nРазделы с анекдотами (свежими, как утренний хлеб, и не менее питательными).\r\nИстории из жизни (потому что реальность порой смешнее вымысла).\r\nВесёлые стихи (рифма есть — совесть не просим).\r\nАвторские колонки и сатира (остро, но не до крови).\r\nВозможно даже кое-что полезное — но это строго на ваш страх и риск.\r\nА пока предлагаем ориентироваться по принципу: «Кликнул — не пожалел», или как говорится у нас в редакции — «Вперёд, туда, где ещё никто не успел заблудиться!»\r\n\r\nЕсли вдруг найдёте что-то интересное по пути — не держите в себе, делитесь с друзьями. А если потеряетесь — не переживайте, выход всегда там, где вход.', '', NULL, '2025-06-08 12:22:28', '2025-06-08 12:40:49', 'карта сайта', 'Описание страницы карта сайта', 'noindex, follow', 'published', 'page', 0, 0),
-(188, 'istoriya-1', 2, 'История 1', 'Представьте, что вы едете на машине. На спидометре стрелка показывает 60 км/ч — это ваша мгновенная скорость в конкретный момент времени. Именно так работает производная!\r\nОна отвечает на вопрос: «Как быстро меняется одна величина (например, путь) относительно другой (например, времени)?»\r\n\r\nПример из жизни:\r\n\r\nВы замечаете, что за 1 час температура на улице поднялась с +5°C до +10°C.\r\nСредняя скорость изменения: 10−51=5110−5​=5°C в час.\r\nНо если температура росла неравномерно (сначала быстро, потом медленно), производная покажет её мгновенное изменение в конкретную минуту.\r\nКак понять производную через графики\r\nДопустим, вы рисуете график, где по оси Х — время, а по оси Y — расстояние, которое вы прошли.\r\n\r\nСредняя скорость — это наклон прямой между двумя точками (например, за весь день).\r\nПроизводная (мгновенная скорость) — это наклон касательной к кривой в конкретной точке.\r\nПроще говоря, чем круче график в определённый момент, тем больше производная (и тем быстрее что-то меняется).\r\n\r\nПримеры из жизни, где встречается производная\r\n1. Экономика: прибыль компании\r\nДопустим, компания продаёт кофе.\r\n\r\nПроизводная покажет, как быстро растёт прибыль при увеличении продаж на 1 чашку.\r\nЕсли график прибыли резко идёт вверх — производная большая (бизнес процветает).\r\nЕсли график падает — производная отрицательная (убытки).\r\n2. Медицина: действие лекарства\r\nДоктор смотрит, как быстро снижается температура у пациента после приёма таблетки.\r\nПроизводная здесь — скорость выздоровления (например, на сколько градусов в час падает жар).\r\n3. Спорт: подготовка марафонца\r\nТренер анализирует, как увеличивается скорость бега спортсмена от недели к неделе.\r\nПроизводная покажет, в какой момент прогресс замедлился и нужно сменить тренировки.\r\n4. Строительство: наполнение бассейна\r\nЕсли вы открываете кран, производная — это скорость наполнения (литры в минуту).\r\nЕсли кран засорился и вода течёт медленнее, производная уменьшается.\r\nЗачем это нужно?\r\nПроизводная помогает:\r\n\r\nРассчитать оптимальную скорость поезда, чтобы он не опоздал.\r\nПредсказать, когда закончится бензин в баке.\r\nПонять, как быстро тают льды в Арктике.\r\nСоздавать реалистичную анимацию в играх (например, падение мяча под уклон).\r\nКак посчитать производную? (Минимум формул)\r\nДля тех, кто хочет чуть больше математики:\r\n\r\nВозьмите функцию, например, y=x² (путь зависит от времени).\r\nПроизводная этой функции — y′=2x.\r\nЭто значит, что скорость изменения y в любой момент x равна 2x.\r\nНапример:\r\n\r\nВ момент времени x=3 скорость будет 2×3=6.\r\nЧем больше x, тем быстрее растёт y.\r\nКрасным проведена касательная к параболе в точке А.\r\nНо не пугайтесь: в жизни производные часто считают компьютеры. Ваша задача — понять, что они означают.\r\n\r\nПроизводная — это как «математическая интуиция», она помогает чувствовать, как мир меняется вокруг нас:\r\n\r\nКогда вы ждёте автобус и решаете, бежать или идти шагом,\r\nКогда видите, как быстро темнеет зимой,\r\nИли когда пытаетесь успеть на скидку в магазине.\r\nПроизводная превращает абстрактные числа в истории о движении, росте и времени. Попробуйте замечать эти изменения — и математика станет чуть ближе к реальности!\r\n\r\nА вы задумывались, как быстро меняется что-то в вашей жизни? Делитесь примерами в комментариях.', '', NULL, '2025-04-22 16:54:59', '2025-04-24 13:44:14', 'История 1', 'описание истории 1', 'index, follow', 'published', 'post', 0, 0),
-(197, 'predlozhennyy-material-2025-06-13-202910', 2, 'Пост от 13.06.2025', 'sdfgsdfgdfsdfgsdfgdfgdfg', '', NULL, '2025-06-13 17:29:10', '2025-06-13 17:29:10', NULL, NULL, 'index', 'published', 'post', 0, 0),
-(198, 'predlozhennyy-material-2025-06-13-203658', 2, 'Пост от 13.06.2025', 'asdfasdfadsf', '', NULL, '2025-06-13 17:36:58', '2025-06-13 17:36:58', NULL, NULL, 'index', 'published', 'post', 0, 0),
-(215, 'predlozhennyy-material-2025-06-13-204608', 2, 'Пост от 13.06.2025', 'вапывапрывапвпвапвапв', '', NULL, '2025-06-13 17:46:08', '2025-06-13 17:46:08', NULL, NULL, 'index', 'published', 'post', 0, 0),
-(216, 'predlozhennyy-material-2025-06-15-190627', 2, 'Пост от 15.06.2025', 'df ghd ghdfgf', '', NULL, '2025-06-15 16:06:27', '2025-06-15 16:06:27', NULL, NULL, 'index', 'published', 'post', 0, 0),
-(217, 'predlozhennyy-material-2025-06-15-191225', 2, 'Пост от 15.06.2025', 'gsdfgsdgsdfggfs', '', NULL, '2025-06-15 16:12:25', '2025-06-15 16:12:25', NULL, NULL, 'index', 'published', 'post', 0, 0),
-(218, 'predlozhennyy-material-2025-06-15-193232', 2, 'Пост от 15.06.2025', 'ячсмчясмвыавыафыва', '', NULL, '2025-06-15 16:32:32', '2025-06-15 16:32:32', NULL, NULL, 'index', 'published', 'post', 0, 0),
-(219, 'predlozhennyy-material-2025-06-15-193249', 2, 'Пост от 15.06.2025', 'ыва ыва вапыва п', '', NULL, '2025-06-15 16:32:49', '2025-06-15 16:32:49', NULL, NULL, 'index', 'published', 'post', 0, 0),
-(220, 'predlozhennyy-material-2025-06-15-193614', 2, 'Пост от 15.06.2025', 'we g ывап sdfgsdfg', '', NULL, '2025-06-15 16:36:14', '2025-06-15 16:36:14', NULL, NULL, 'index', 'published', 'post', 0, 0),
-(221, 'predlozhennyy-material-2025-06-15-193836', 2, 'Пост от 15.06.2025', 'sвапывапваып', '', NULL, '2025-06-15 16:38:36', '2025-06-15 16:38:36', NULL, NULL, 'index', 'published', 'post', 0, 0),
-(222, 'predlozhennyy-material-2025-06-15-193851', 2, 'Пост от 15.06.2025', 'вы ыва sdfs', '', NULL, '2025-06-15 16:38:51', '2025-06-15 16:38:51', NULL, NULL, 'index', 'published', 'post', 0, 0),
-(227, 'predlozhennyy-material-2025-06-15-200020', 2, 'jhkjhkj', 'sdfsdfsdfsdfs', '', NULL, '2025-06-15 17:00:20', '2025-06-15 17:00:20', NULL, NULL, 'index', 'published', 'post', 0, 0),
-(228, 'predlozhennyy-material-2025-06-15-200129', 2, 'Пост от 15.06.2025', 'sdfsgsdfgasdfsad', '', NULL, '2025-06-15 17:01:29', '2025-06-15 17:01:29', NULL, NULL, 'index', 'published', 'post', 0, 0),
-(230, 'predlozhennyy-material-2025-06-15-200311', 2, 'Пост от 15.06.2025', 'вапвап вап вап', '', NULL, '2025-06-15 17:03:11', '2025-06-15 17:03:11', NULL, NULL, 'index', 'published', 'post', 0, 0),
-(231, 'predlozhennyy-material-2025-06-15-201000', 2, 'Пост от 15.06.2025', 'фывафываыфваыфва', '', NULL, '2025-06-15 17:10:00', '2025-06-15 17:10:00', NULL, NULL, 'index', 'published', 'post', 0, 0),
-(232, 'predlozhennyy-material-2025-06-15-203040', 2, 'Пост от 15.06.2025', 'asdfasdfasdfaf', '', NULL, '2025-06-15 17:30:40', '2025-06-15 17:30:40', NULL, NULL, 'index', 'published', 'post', 0, 0),
-(233, 'predlozhennyy-material-2025-06-15-203143', 2, 'Пост от 15.06.2025', 'sdfasdfsdf', '', NULL, '2025-06-15 17:31:43', '2025-06-15 17:31:43', NULL, NULL, 'index', 'published', 'post', 0, 0),
-(234, 'predlozhennyy-material-2025-06-22-190339', 2, 'Пост от 22.06.2025', 'фывафыафываффывафв', '', NULL, '2025-06-22 16:03:39', '2025-06-22 16:03:39', NULL, NULL, 'index', 'published', 'post', 0, 0),
-(235, 'predlozhennyy-material-2025-06-22-191810', 2, 'Пост от 22.06.2025', 'лоприлотлролыыы', '', NULL, '2025-06-22 16:18:10', '2025-06-22 16:18:10', NULL, NULL, 'index', 'published', 'post', 0, 0),
-(236, 'pyatiy-klass', 2, 'пятый класс', 'В пятом классе я записался в кружок математики в Ленинградском Дворце Пионеров, который находился на Невском проспекте. Мы жили на окраине и родители побаивались отпускать 11- летнего ребёнка одного.\r\nНо папа здраво рассудил: \"Пускай лучше ездит по городу, чем болтается во дворе. \"\r\nМама меня напутствовала: \"Будь осторожен: в центре полно хулиганов, воров и... проституток! \"\r\nКонечно я примерно представлял, кто такие проститутки, но не очень понимал зачем я им нужен, и потому не придал маминым словам большого значения. А зря!\r\nОколо входа во Дворец Пионеров меня окружила толпа каких-то девиц, примерно моего возраста. Они стали хватать меня за руки и требовать: \"Пойдём с нами! \"\r\nЯ понял: \"Вот они, anekdotov.net, проститутки! Мама была права! \", вырвался от них и убежал.', '', NULL, '2025-06-22 16:42:04', '2025-06-22 16:42:04', '5 класс', '5 класс', 'index, follow', 'published', 'post', 0, 0),
-(237, 'gomeostizis', 2, 'гомеостазис', 'Был у нас один преподаватель, как говорится ума палата. Любил он всякими научными терминами бросаться. И как-то рассказывает нам по этому поводу историю.\r\nВот однажды пошел он с сынишкой купаться. anekdotov.net, Зашел по колено в воду. Благодать! Солнышко светит, птички поют. Ну и препод так восхищенно говорит:\r\n— Вот это гомеостазис!!!\r\nСынишка спрашивает:\r\n— Пап, а что такое гомеостазис?\r\n— Ну, это когда тебе хорошо, единство в природе, так сказать, состояние равновесия. В общем, это когда вокруг все тихо, размеренно, когда нет внутренних противоречий.\r\nСынок у него смышленый попался, словечко мудрое запомнил. И вот как-то на уроке природоведения учительница спрашивает про круговорот веществ в природе. Мальчик тут же вскакивает и кричит:\r\n— Мария Ивановна, это полный гомеост', '', NULL, '2025-06-22 16:44:27', '2025-06-22 16:44:27', 'гомеостазис', 'гомеостазис', 'index, follow', 'published', 'post', 0, 0),
-(238, 'park', 2, 'парк', 'Семилетний мальчик веpнyлся домой из паpка без своих новых салазок.\r\n— Вы знаете, — сказал он pодителям, — y меня их попpосил покататься стаpик с симпатичным малышом. К 4 часам они пообещали салазки веpнyть.\r\nРодителям все это не очень понpавилось, но в глyбине дyши они были довольны пpоявлением столь добpых чyвств со стоpоны своего pебенка. Четыpе часа — нет салазок. Hо в 4:30 pаздался звонок, и появился стаpик с малышом, салазками и большой коpобкой конфет. Сын тyт же скpылся в спальне и, выбежав оттyда, anekdotov.net, внимательно осмотpел салазки, и заявил:\r\n— Все в поpядке, полyчите свои часы.', '', NULL, '2025-06-22 16:44:27', '2025-06-22 16:44:27', 'парк', 'парк', 'index, follow', 'published', 'post', 0, 0),
-(239, 'vovchka', 2, 'вовочка', 'Вовочка получил два балла за контрольную. Отец пришел в школу разбираться. Учительница ему говорит, ваш сын все списал у своей соседки:\r\n- Вот смотрите, вопрос - в каком году родился Пушкин.\r\nМаша правильно пишет - в 1799. anekdotov.net, И ваш сын тоже.\r\n- Ну так и что? Почему мой сын не может правильно ответить?\r\n- Смотрите дальше. Вопрос - кто написал \"Войну и мир\"?\r\nМаша пишет - Лермонтов, и Вовочка то же самое.\r\n- А почему они не могли оба ошибиться?\r\n- Ну, допустим. Но вот следующий вопрос - какие пьесы написал Чехов?\r\nМаша написала - \"Я не знаю\". А Вовочка - \"И я тоже\".', '', NULL, '2025-06-22 16:47:32', '2025-06-22 16:47:32', 'вовочка', 'вовочка', 'index, follow', 'published', 'post', 1, 0),
-(240, 'ironiya', 2, 'ирония', '— Дети, anekdotov.net, кто знает, что такое ирония?\r\nВовочка:\r\n— Это когда я говорю, что мне нравится делать домашнее задание.', '', NULL, '2025-06-22 16:47:32', '2025-06-22 16:47:32', 'ирония', 'ирония', 'index, follow', 'published', 'post', 0, 0),
-(241, 'cod', 2, 'код', '  $total_posts = $this->model->countAllPosts();\r\n\r\n    // Генерируем ссылки пагинации\r\n    $pagination_links = generatePaginationLinks(\r\n        $page,\r\n        $total_posts,\r\n        $posts_per_page,\r\n        \'/\' // базовый URL\r\n    );\r\n\r\n    $URL = sprintf(\"%s://%s\", $_SERVER[\'REQUEST_SCHEME\'], $_SERVER[\'HTTP_HOST\']);\r\n\r\n    $content = View::render(\'../app/views/posts/index.php\', [\r\n        \'posts\' => $posts,\r\n        \'show_caption\' => false,\r\n        \'url\' => $URL,\r\n        \'pagination\' => [\r\n            \'current_page\' => $page,\r\n            \'posts_per_page\' => $posts_per_page,', '', NULL, '2025-06-22 17:22:30', '2025-06-22 17:22:30', 'код', 'код', 'index, follow', 'published', 'post', 0, 0),
-(242, 'predlozhennyy-material-2025-06-24-193559', 2, 'Пост от 24.06.2025', 'dgfdsfgdsfgsdfgsdfgds', '', NULL, '2025-06-24 16:35:59', '2025-08-15 16:22:52', NULL, NULL, 'index', 'deleted', 'post', 0, 0),
-(243, 'predlozhennyy-material-2025-06-24-193638', 2, 'Пост от 24.06.2025', 'fghdfghdfghdfgh', '', NULL, '2025-06-24 16:36:38', '2025-06-24 16:36:38', NULL, NULL, 'index', 'published', 'post', 0, 0),
-(244, 'predlozhennyy-material-2025-06-24-193642', 2, 'Пост от 24.06.2025', 'gdhjgjghjfghjg', '', NULL, '2025-06-24 16:36:42', '2025-08-15 16:23:10', NULL, NULL, 'index', 'deleted', 'post', 0, 0),
-(245, 'predlozhennyy-material-2025-06-24-193646', 2, 'Пост от 24.06.2025', 'fghjghjgfhjhfgj', '', NULL, '2025-06-24 16:36:46', '2025-06-24 16:36:46', NULL, NULL, 'index', 'published', 'post', 0, 0),
-(246, 'predlozhennyy-material-2025-06-24-193649', 2, 'Пост от 24.06.2025', 'fghjghghjghj', '', NULL, '2025-06-24 16:36:49', '2025-06-24 16:36:49', NULL, NULL, 'index', 'published', 'post', 0, 0),
-(247, 'predlozhennyy-material-2025-06-24-193653', 2, 'Пост от 24.06.2025', 'fghjghjgfhjg', '', NULL, '2025-06-24 16:36:53', '2025-06-24 16:36:53', NULL, NULL, 'index', 'published', 'post', 0, 0),
-(248, 'predlozhennyy-material-2025-06-24-193657', 2, 'Пост от 24.06.2025', 'fghjghjfghjg', '', NULL, '2025-06-24 16:36:57', '2025-06-24 16:36:57', NULL, NULL, 'index', 'published', 'post', 1, 0),
-(249, 'predlozhennyy-material-2025-06-24-193701', 2, 'Пост от 24.06.2025', 'fghjghjgfhgf', '', NULL, '2025-06-24 16:37:01', '2025-06-24 16:37:01', NULL, NULL, 'index', 'published', 'post', 0, 0),
-(250, 'predlozhennyy-material-2025-06-24-193704', 2, 'Пост от 24.06.2025', 'gfjghjghjg', '', NULL, '2025-06-24 16:37:04', '2025-06-24 16:37:04', NULL, NULL, 'index', 'published', 'post', 0, 0),
-(251, 'predlozhennyy-material-2025-06-24-193708', 2, 'Пост от 24.06.2025', 'fghjghjgjghj', '', NULL, '2025-06-24 16:37:08', '2025-06-24 16:37:08', NULL, NULL, 'index', 'published', 'post', 0, 0),
-(252, 'predlozhennyy-material-2025-06-24-193711', 2, 'Пост от 24.06.2025', 'fghjghjfghjgf', '', NULL, '2025-06-24 16:37:11', '2025-06-24 16:37:11', NULL, NULL, 'index', 'published', 'post', 0, 1),
-(253, 'predlozhennyy-material-2025-06-24-193715', 2, 'Пост от 24.06.2025', 'паропропаро', '', NULL, '2025-06-24 16:37:15', '2025-06-24 16:37:15', NULL, NULL, 'index', 'published', 'post', 0, 0),
-(254, 'predlozhennyy-material-2025-06-24-193718', 2, 'Пост от 24.06.2025', 'паропаропро', '', NULL, '2025-06-24 16:37:18', '2025-06-24 16:37:18', NULL, NULL, 'index', 'published', 'post', 0, 0),
-(255, 'predlozhennyy-material-2025-06-24-193721', 2, 'Пост от 24.06.2025', 'пароапропаро', '', NULL, '2025-06-24 16:37:21', '2025-06-24 16:37:21', NULL, NULL, 'index', 'published', 'post', 0, 0),
-(256, 'predlozhennyy-material-2025-06-24-193725', 2, 'Пост от 24.06.2025', '3245234муцкемкмек', '', NULL, '2025-06-24 16:37:25', '2025-06-24 16:37:25', NULL, NULL, 'index', 'published', 'post', 0, 0),
-(257, 'predlozhennyy-material-2025-06-24-193729', 2, 'Пост от 24.06.2025', 'гьлопртопато', '', NULL, '2025-06-24 16:37:29', '2025-06-24 16:37:29', NULL, NULL, 'index', 'published', 'post', 0, 0),
-(258, 'predlozhennyy-material-2025-06-24-193732', 2, 'Пост от 24.06.2025', 'sdfgvdsgvf', '', NULL, '2025-06-24 16:37:32', '2025-06-24 16:37:32', NULL, NULL, 'index', 'published', 'post', 0, 0),
-(259, 'predlozhennyy-material-2025-06-24-193735', 2, 'Пост от 24.06.2025', 'кетноектекн', '', NULL, '2025-06-24 16:37:35', '2025-06-24 16:37:35', NULL, NULL, 'index', 'published', 'post', 1, 0),
-(260, 'predlozhennyy-material-2025-06-24-193739', 2, 'Пост от 24.06.2025', 'ипаравипрвирав', '', NULL, '2025-06-24 16:37:39', '2025-06-24 16:37:39', NULL, NULL, 'index', 'pending', 'post', 0, 0),
-(261, 'predlozhennyy-material-2025-06-24-193742', 2, 'Пост от 24.06.2025', 'тнгнгтентгн', '', NULL, '2025-06-24 16:37:42', '2025-06-24 16:37:42', NULL, NULL, 'index', 'pending', 'post', 0, 0),
-(262, 'predlozhennyy-material-2025-06-24-193748', 2, 'Пост от 24.06.2025', 'иукинкеикерирпа', '', NULL, '2025-06-24 16:37:48', '2025-06-24 16:37:48', NULL, NULL, 'index', 'pending', 'post', 0, 0),
-(263, 'predlozhennyy-material-2025-07-06-164047', 2, 'Пост от 06.07.2025', '5645b645y куреп уеапреа', '', NULL, '2025-07-06 13:40:47', '2025-07-06 13:40:47', NULL, NULL, 'index', 'published', 'post', 0, 1),
-(264, 'predlozhennyy-material-2025-07-06-164109', 2, 'Пост от 06.07.2025', 'смичсмисчмисчмисчми', '', NULL, '2025-07-06 13:41:09', '2025-07-06 13:41:09', NULL, NULL, 'index', 'draft', 'post', 1, 0),
-(265, 'predlozhennyy-material-2025-07-06-164625', 2, 'Пост от 06.07.2025', 'фысч xc vxcv cvx', '', NULL, '2025-07-06 13:46:25', '2025-07-06 13:46:25', NULL, NULL, 'index', 'deleted', 'post', 1, 0),
-(266, 'predlozhennyy-material-2025-07-13-190430', 2, 'Пост от 13.07.2025', 'sadfsadafsadf', '', NULL, '2025-07-13 16:04:30', '2025-07-13 16:04:30', NULL, NULL, 'index', 'pending', 'post', 0, 0),
-(267, 'predlozhennyy-material-2025-07-28-201000', 2, 'Пост от 28.07.2025', 'sdfdfgdsfgdfgdsgdfdfsg', '', NULL, '2025-07-28 17:10:00', '2025-07-28 17:10:00', NULL, NULL, 'index', 'published', 'post', 0, 0),
-(268, 'predlozhennyy-material-2025-07-28-201159', 2, 'Пост от 28.07.2025', 'смитсмитсмитсмитсми', '', NULL, '2025-07-28 17:11:59', '2025-07-28 17:11:59', NULL, NULL, 'index', 'published', 'post', 15, 0),
-(269, 'predlozhennyy-material-2025-08-05-165354', 2, 'Пост от 05.08.2025', 'asfdasdfsadfsadfsadf', '', NULL, '2025-08-05 13:53:54', '2025-08-05 13:53:54', NULL, NULL, 'index', 'published', 'post', 1, 0),
-(270, 'predlozhennyy-material-2025-08-06-173232', 2, 'Пост от 06.08.2025', 'в ва dfsg вап вап вапвыап', '', NULL, '2025-08-06 14:32:32', '2025-08-06 14:32:32', NULL, NULL, 'index', 'published', 'post', 1, 2),
-(271, 'predlozhennyy-material-2025-08-08-202043', 2, 'Пост от 08.08.2025', 'asdasasdas', '', NULL, '2025-08-08 17:20:43', '2025-08-08 17:20:43', NULL, NULL, 'index', 'pending', 'post', 0, 0),
-(272, '4645645', 2, '4645645', '', '', NULL, '2025-08-10 15:28:23', '2025-08-10 15:28:23', '', '', 'index', 'draft', 'post', 0, 0),
-(273, 'prv-apr-ap', 2, 'прв апр ап', '', '', NULL, '2025-08-10 15:30:21', '2025-08-10 15:30:21', '', '', 'index', 'draft', 'post', 0, 0),
-(274, 'novaya-kartinka', 2, 'новая картинка', '', '', NULL, '2025-08-10 15:42:25', '2025-08-10 15:42:25', '', '', 'index', 'published', 'post', 0, 0),
-(275, '5inueikeniekn', 2, '5инуеикениекн', '<p>впвпвапвапвап</p>', '', NULL, '2025-08-10 15:45:52', '2025-08-10 15:45:52', '', '', 'index', 'published', 'post', 0, 1),
-(276, 'terteter', 2, 'terteter', '', '', NULL, '2025-08-10 15:51:07', '2025-08-10 15:51:07', '', '', 'index', 'draft', 'post', 0, 0),
-(277, 'erterter', 2, 'erterter', '', '', NULL, '2025-08-10 15:51:16', '2025-08-10 15:51:16', '', '', 'index', 'draft', 'post', 0, 0),
-(278, 'rterterter', 2, 'rterterter', '', '', NULL, '2025-08-10 15:51:27', '2025-08-10 15:51:27', '', '', 'index', 'draft', 'post', 0, 0),
-(279, '3tertewrw', 2, '3tertewrw', '', '', NULL, '2025-08-10 15:56:27', '2025-08-10 15:56:27', '', '', 'index', 'draft', 'post', 0, 0),
-(280, 'vapkekue', 2, 'вапкекуе', '', '', NULL, '2025-08-10 16:13:34', '2025-08-10 16:13:34', '', '', 'index', 'draft', 'post', 0, 0),
-(281, '464564565464', 2, '464564565464', '', '', 27, '2025-08-10 16:19:38', '2025-08-10 16:19:38', '', '', 'index', 'draft', 'post', 0, 0),
-(282, 'proraprparap', 2, 'прорапрпарап', 'Сидят два друга в баре. Один, Вася, грустный-грустный. Другой, Петя, спрашивает:\r\n— Вась, ты чего такой кислый?\r\n— Да понимаешь, вчера с женой поссорился. Долго ругались, потом она говорит: «Всё, я от тебя ухожу! У меня есть три мужчины, которые ждут моего звонка. Один из них — начальник, он предложил мне повышение. Второй — коллега, он предложил мне работу в другом городе. А третий… Ну, третий просто ждёт».\r\n— Ну и что? — спрашивает Петя.\r\n— А я, дурак, ей говорю: «Ну и звони своим трём мужикам! А я найду себе трёх женщин, которые ждут моего звонка!»\r\n— И что?\r\n— Звоню одной. Спрашиваю: «Мам, как дела?» Вторая — сестра, третья — тётя. А теперь сижу и думаю… А жена-то, наверное, уже ушла.', 'dgdfgdfgdf', 25, '2025-08-10 16:21:56', '2025-08-10 16:21:56', 'вапвапавп', 'вапвап', 'index', 'published', 'post', 2, 0),
-(283, 'proba', 2, 'проба', '', '', NULL, '2025-08-10 16:26:37', '2025-08-10 16:26:37', '', '', 'index', 'draft', 'post', 0, 0),
-(284, 'ukeuke', 2, 'укеуке', '', '', NULL, '2025-08-10 16:36:13', '2025-08-10 16:36:13', '', '', 'index', 'draft', 'post', 0, 0),
-(285, 'fsdfdsf', 2, 'fsdfdsf', '', '', NULL, '2025-08-10 16:36:54', '2025-08-10 16:36:54', '', '', 'index', 'draft', 'post', 0, 0),
-(287, '88888', 2, '88888', '<p>Почему бык, который всю жизнь бегал за коровами, наконец женился на свинье?</p>\r\n<p>Потому что он устал от отношений, где всегда он был виноват, и захотел чего-то нового.</p>', '', 51, '2025-08-12 13:48:52', '2025-08-15 15:49:23', '', '', 'index', 'deleted', 'post', 1, 0),
-(288, 'werewrwerforma', 2, 'werewrwer', '<p>ываыавыаываы</p>\r\n<p>ыва</p>\r\n<p>sd</p>\r\n<p>а</p>\r\n<p>выа</p>\r\n<p>sd</p>\r\n<p>f</p>', '', NULL, '2025-08-12 15:18:53', '2025-08-12 15:18:53', '', '', 'index', 'draft', 'post', 0, 0),
-(289, '23423432', 2, '23423432', '<p><img src=\"/assets/uploads/2025/08/kosmos-za-dveryu_1.jpg\" alt=\"3534\"></p>', '', 27, '2025-08-14 12:51:31', '2025-08-14 12:51:31', '', '', 'index', 'published', 'post', 0, 0),
-(290, 'novyj-super-zagolovok', 2, 'новый супер заголовок', '<div _ngcontent-ng-c3041318976=\"\" class=\"markdown markdown-main-panel enable-updated-hr-color\" id=\"model-response-message-contentr_bd0cbf24013a6e78\" dir=\"ltr\">\r\n<p>Идут по джунглям обезьяна и бегемот. Обезьяна, как всегда, не может усидеть на месте &mdash; прыгает с лианы на лиану, корчит рожицы. Вдруг она видит огромный, красивый кокос, который висит на самой верхушке пальмы.</p>\r\n<p>&mdash; Эй, бегемот, &mdash; кричит обезьяна, &mdash; смотри, какой кокос! Хочешь?</p>\r\n<p>Бегемот хмуро качает головой:</p>\r\n<p>&mdash; Да что мне твой кокос? Я и так сыт.</p>\r\n<p>Обезьяна, конечно, не унимается. Она мгновенно забирается на пальму, срывает кокос и спускается вниз.</p>\r\n<p>&mdash; Ладно, &mdash; говорит она, &mdash; тогда я его расколю и съем сама.</p>\r\n<p>Она начинает бить кокосом о камень, но ничего не выходит. Кокос твёрдый, как камень, а обезьяна маленькая и слабая.</p>\r\n<p>&mdash; Помоги, бегемот! &mdash; просит она. &mdash; У тебя такая большая челюсть, ты разгрызёшь его в два счёта.</p>\r\n<p>Бегемот, который как раз решил вздремнуть, открывает один глаз, лениво зевает:</p>\r\n<p>&mdash; Отстань, обезьяна. Я отдыхаю.</p>\r\n<p>Тогда обезьяна решает пойти на хитрость. Она берёт кокос, подходит к бегемоту и говорит:</p>\r\n<p>&mdash; А знаешь, бегемот, ты ведь очень сильный. Наверное, самый сильный в этих джунглях! Даже этот кокос перед тобой не устоит.</p>\r\n<p>Бегемот недоверчиво смотрит на неё, но лесть ему приятна.</p>\r\n<p>&mdash; Ну&hellip; я не знаю.</p>\r\n<p>&mdash; Как не знаешь?! &mdash; восклицает обезьяна. &mdash; Да ты одним своим ударом можешь свалить целое дерево! А этот кокос &mdash; просто ерунда!</p>\r\n<p>Бегемот улыбается своей широкой улыбкой:</p>\r\n<p>&mdash; Ну&hellip; это да. Сила у меня есть.</p>\r\n<p>&mdash; Вот и покажи! &mdash; настаивает обезьяна. &mdash; Просто раздави его!</p>\r\n<p>Бегемот берёт кокос и сжимает его в своей огромной пасти. Хруст, треск &mdash; и кокос разлетается на мелкие кусочки.</p>\r\n<p>Обезьяна с восторгом собирает их, запихивая в рот, и говорит, радостно потирая лапы:</p>\r\n<p>&mdash; Вот видишь! Ты настоящий чемпион!</p>\r\n<p>Бегемот довольный, но немного сонный, снова закрывает глаза и говорит:</p>\r\n<p>&mdash; Ладно, обезьяна, я пошёл.</p>\r\n<p>Идёт бегемот по тропинке, а навстречу ему &mdash; другой бегемот.</p>\r\n<p>&mdash; Привет, &mdash; говорит второй бегемот. &mdash; Что-то ты грустный.</p>\r\n<p>&mdash; Да нет, &mdash; отвечает первый, &mdash; просто устал.</p>\r\n<p>&mdash; А чего устал?</p>\r\n<p>&mdash; Да обезьяна какая-то привязалась&hellip; Сначала кокос разгрызи, потом ещё чего-нибудь придумает&hellip;</p>\r\n<p>&mdash; Понятно, &mdash; кивает второй бегемот. &mdash; Ну, а зачем ты ей вообще помогал?</p>\r\n<p>&mdash; Так она меня убедила, что я сильный! &mdash; гордо говорит первый бегемот. &mdash; Сказала, что я могу свалить дерево одним ударом.</p>\r\n<p>Второй бегемот удивлённо смотрит на него:</p>\r\n<p>&mdash; Ну, а почему ты ей просто не сказал, что это не так?</p>\r\n<p>Первый бегемот пожимает плечами:</p>\r\n<p>&mdash; Да потому что я и вправду могу свалить дерево одним ударом. А она&hellip; она просто обезьяна.</p>\r\n</div>', '', 25, '2025-08-14 15:30:01', '2025-08-14 15:30:01', 'обезьяний анекдот ключевик', 'обезьяний анекдот описание', 'index', 'draft', 'post', 0, 0),
-(291, '345345345', 2, '345345345', '<p>dsfgdsfgdfsgd</p>', '', NULL, '2025-08-15 13:50:36', '2025-08-15 13:50:36', '', '', 'index', 'draft', 'post', 0, 0),
-(292, 'fdg-vapvyapyva', 2, 'fdg вапвыапыва', '<p>выпа ывап dfsg ывап ывап выа пвапыва пва</p>', '', 27, '2025-08-15 13:51:30', '2025-08-15 13:51:30', '', '', 'index', 'published', 'post', 0, 0),
-(293, 'pa-pa-vpr-ap-avpra-p', 2, 'па па впр ап авпра п', '<p>&nbsp;sf а пывар ке ра равр ап</p>', '', NULL, '2025-08-15 13:52:19', '2025-08-15 13:52:19', '', '', 'index', 'published', 'post', 0, 0),
-(294, 'avp-sdfgdf', 2, 'авп sdfgdf', '<p>ыва пвап ывап ывап ывап вапв</p>', '', 51, '2025-08-15 13:53:17', '2025-08-15 13:53:17', '', '', 'index', 'draft', 'post', 0, 0),
-(295, 'parop-opr', 2, 'пароп опр', '<p>&nbsp;fsdgdf пва пываы&nbsp;</p>', '', NULL, '2025-08-15 13:54:00', '2025-08-15 13:54:00', '', '', 'index', 'draft', 'post', 0, 0),
-(296, '3453453453', 2, '3453453453', '<p>terwtewterwt</p>', '', NULL, '2025-08-15 14:01:49', '2025-08-15 16:08:11', '', '', 'index', 'deleted', 'post', 0, 0),
-(297, 'k-ek-apr-vapr-apr-ap', 2, 'к ек апр вапр апр ап', '', '', NULL, '2025-08-15 14:03:38', '2025-08-15 15:49:09', '', '', 'index', 'deleted', 'post', 0, 0),
-(298, 'rapr-vparvap', 2, 'рапр впарвап', '', '', NULL, '2025-08-15 14:43:30', '2025-08-15 15:48:57', '', '', 'index', 'deleted', 'post', 0, 0),
-(299, 'vaprapr', 2, 'вапрапр', '<p>sdfgdfsf</p>', '', NULL, '2025-08-15 16:26:32', '2025-08-15 16:26:32', '', '', 'index', 'draft', 'post', 0, 0),
-(300, 'werterwtert', 2, 'werterwtert', '', '', NULL, '2025-08-15 16:30:25', '2025-08-15 16:30:25', '', '', 'index', 'draft', 'post', 0, 0),
-(301, 'dfs-gsdfg-vap-sdfgd', 2, 'dfs gsdfg вап sdfgd', '', '', NULL, '2025-08-15 16:31:35', '2025-08-15 16:31:35', '', '', 'index', 'draft', 'post', 0, 0),
-(302, 'u-ap-vap-vyarapryva', 2, 'у ап вап выарапрыва', '<p>иавпрв арапр</p>', '', NULL, '2025-08-15 16:33:47', '2025-08-15 16:33:47', '', '', 'index', 'draft', 'post', 0, 0),
-(303, 'sd-gdsfg', 2, 'sd gdsfg', '', '', NULL, '2025-08-15 16:39:02', '2025-08-15 16:39:02', '', '', 'index', 'draft', 'post', 0, 0),
-(304, 'ukuckcukc', 2, 'укуцкцукц', '', '', NULL, '2025-08-17 14:52:16', '2025-08-17 14:52:16', '', '', 'index', 'draft', 'post', 0, 0),
-(306, 'va-rap-rap-ravp-arp', 2, 'ва рап рап равп арп', '', '', NULL, '2025-08-17 15:10:06', '2025-08-17 15:10:06', '', '', 'index', 'draft', 'post', 0, 0),
-(307, 'a-gds-avap-sdfgd', 2, 'а gds авап sdfgd', '', '', NULL, '2025-08-17 15:10:34', '2025-08-17 15:10:34', '', '', 'index', 'draft', 'post', 0, 0),
-(310, 's-vapv-va-pavypa', 2, 's вапв ва павыпа', '', '', NULL, '2025-08-17 15:29:20', '2025-08-17 15:29:20', '', '', 'index', 'draft', 'post', 0, 0),
-(311, 'f-g-dh-fg-rvap-rvapr', 2, 'f g dh fg рвап рвапр', '', '', NULL, '2025-08-17 15:31:17', '2025-08-17 15:31:17', '', '', 'index', 'draft', 'post', 0, 0),
-(312, 'dgdf-gds-gdsfg', 2, 'dgdf gds gdsfg', '', '', NULL, '2025-08-17 15:35:03', '2025-08-17 15:35:03', '', '', 'index', 'draft', 'post', 0, 0),
-(313, 'v-vyp-vyap-v', 2, 'в вып выап в', '', '', NULL, '2025-08-17 15:51:43', '2025-08-17 15:51:43', '', '', 'index', 'draft', 'post', 0, 0),
-(314, 'vap-vayppv', 2, 'вап ваыппв', '', '', NULL, '2025-08-17 16:06:10', '2025-08-17 16:06:10', '', '', 'index', 'draft', 'post', 0, 0),
-(315, 'vya-papyp', 2, 'выа папып', '', '', NULL, '2025-08-17 16:12:02', '2025-08-17 16:12:02', '', '', 'index', 'draft', 'post', 0, 0),
-(316, 'va-gdg-gf', 2, 'ва gdg gf', '', '', NULL, '2025-08-17 16:17:34', '2025-08-17 16:17:34', '', '', 'index', 'draft', 'post', 0, 0),
-(319, 'sfd-ggs-vapy', 2, 'sfd ggs вапы', '', '', NULL, '2025-08-17 16:27:31', '2025-08-17 16:27:31', '', '', 'index', 'draft', 'post', 0, 0),
-(320, 'vya-pa-yvap-yvap-sdfgsd', 2, 'выа па ывап ывап sdfgsd', '', '', NULL, '2025-08-17 16:28:56', '2025-08-17 16:28:56', '', '', 'index', 'draft', 'post', 0, 0),
-(321, 'yva-pavy', 2, 'ыва павы', '', '', NULL, '2025-08-17 16:30:52', '2025-08-17 16:30:52', '', '', 'index', 'draft', 'post', 0, 0),
-(322, 'vya-pvva', 2, 'выа пвва', '', '', NULL, '2025-08-17 16:35:00', '2025-08-17 16:35:00', '', '', 'index', 'draft', 'post', 0, 0),
-(323, 'var-apavpr', 2, 'вар апавпр', '', '', NULL, '2025-08-18 11:44:15', '2025-08-18 11:44:15', '', '', 'index', 'draft', 'post', 0, 0),
-(324, 'vapv-vy', 2, 'вапв вы', '', '', NULL, '2025-08-18 11:48:54', '2025-08-18 11:48:54', '', '', 'index', 'draft', 'post', 0, 0),
-(325, 'a-rap-rapr', 2, 'а рап рапр', '', '', NULL, '2025-08-18 12:06:18', '2025-08-18 12:06:18', '', '', 'index', 'draft', 'post', 0, 0),
-(326, 's-pva-pyvap', 2, 's пва пывап', '', '', NULL, '2025-08-18 12:17:26', '2025-08-18 12:17:26', '', '', 'index', 'draft', 'post', 0, 0),
-(327, 'apvp-vap-v', 2, 'апвп вап в', '', '', NULL, '2025-08-18 12:20:26', '2025-08-18 12:20:26', '', '', 'index', 'draft', 'post', 0, 0),
-(328, 'r-a-avpr-apr-apr', 2, 'р а авпр апр апр', '', '', NULL, '2025-08-18 12:32:45', '2025-08-18 12:32:45', '', '', 'index', 'draft', 'post', 0, 0),
-(329, 'pr-va-pra-prvpapvrpr', 2, 'пр ва пра првпапврпр', '', '', NULL, '2025-08-18 12:38:47', '2025-08-18 12:38:47', '', '', 'index', 'draft', 'post', 0, 0),
-(330, 'ap-hgf-hf-fgh', 2, 'ап hgf hf fgh', '', '', NULL, '2025-08-18 12:55:32', '2025-08-18 12:55:32', '', '', 'index', 'draft', 'post', 0, 0),
-(331, 'yvap-dfsg-dfsgdfs-gdff', 2, 'ывап dfsg dfsgdfs gdff', '', '', NULL, '2025-08-18 13:35:49', '2025-08-18 13:35:49', '', '', 'index', 'draft', 'post', 0, 0),
-(332, 'apr-ap-vapr-avpr', 2, 'апр ап вапр авпр', '', '', NULL, '2025-08-18 13:38:22', '2025-08-18 13:38:22', '', '', 'index', 'draft', 'post', 0, 0),
-(333, 'k-k-pv-ava-p', 2, 'к к пв ава п', '', '', NULL, '2025-08-18 13:43:43', '2025-08-18 13:43:43', '', '', 'index', 'draft', 'post', 0, 0),
-(334, 'ueuckeukeuk', 2, 'уеуцкеукеук', '', '', NULL, '2025-08-18 13:45:58', '2025-08-18 13:45:58', '', '', 'index', 'draft', 'post', 0, 0),
-(335, 'p-vap-vap', 2, 'п вап вап', '', '', NULL, '2025-08-18 13:52:22', '2025-08-18 13:52:22', '', '', 'index', 'draft', 'post', 0, 0),
-(336, 'fghfdgdfgh', 2, 'fghfdgdfgh', '', '', NULL, '2025-08-18 14:00:33', '2025-08-18 14:00:33', '', '', 'index', 'draft', 'post', 0, 0),
-(337, 'l-orlor-lo', 2, 'л орлор ло', '', '', NULL, '2025-08-18 14:13:51', '2025-08-18 14:13:51', '', '', 'index', 'draft', 'post', 0, 0),
-(338, 'yvap-a', 2, 'ывап а', '', '', NULL, '2025-08-18 14:16:51', '2025-08-18 14:16:51', '', '', 'index', 'draft', 'post', 0, 0),
-(339, 'pyvapvyp', 2, 'пывапвып', '', '', NULL, '2025-08-18 14:18:44', '2025-08-18 14:18:44', '', '', 'index', 'draft', 'post', 0, 0),
-(340, 'dolshgshchshz', 2, 'долшгщшз', '', '', NULL, '2025-08-18 14:20:22', '2025-08-18 14:20:22', '', '', 'index', 'draft', 'post', 0, 0),
-(341, 's-vap-vayp', 2, 's вап ваып', '', '', NULL, '2025-08-18 15:44:13', '2025-08-18 15:44:13', '', '', 'index', 'draft', 'post', 0, 0),
-(342, 'avpvpv', 2, 'авпвпв', '', '', NULL, '2025-08-18 15:51:51', '2025-08-18 15:51:51', '', '', 'index', 'draft', 'post', 0, 0),
-(343, 'image', 2, 'пвапывапвы', '', '', NULL, '2025-08-18 15:52:08', '2025-08-18 15:52:08', '', '', 'index', 'draft', 'post', 0, 0),
-(344, 'dsfgdfs', 2, 'dsfgdfs', '', '', NULL, '2025-08-18 15:56:04', '2025-08-18 15:56:04', '', '', 'index', 'draft', 'post', 0, 0),
-(345, 'ewrwerwer', 2, 'ewrwerwer', '<p>asdfsadfsadf</p>', '', NULL, '2025-08-20 15:54:03', '2025-08-20 15:54:03', '', '', 'index', 'draft', 'post', 0, 0),
-(346, 'uckeuckeuke', 2, 'уцкеуцкеуке', '<p>укецукеуке</p>', '', NULL, '2025-08-20 15:55:28', '2025-08-20 15:55:28', '', '', 'index', 'draft', 'post', 0, 0),
-(347, 'uckeuckeukedd', 2, 'уцкеуцкеуке', '<p>укецукеуке</p>', '', NULL, '2025-08-20 15:58:54', '2025-08-20 15:58:54', '', '', 'index', 'draft', 'post', 0, 0),
-(348, 'vyapvyap', 2, 'выапвыап', '<p>sdgdf</p>', '', NULL, '2025-08-20 16:00:21', '2025-08-20 16:00:21', '', '', 'index', 'draft', 'post', 0, 0),
-(349, 'novrvprrv', 2, 'новрвпррв', '<p>ваплдо дылвапо двыалп sdfgdsfg</p>', '', 55, '2025-08-20 16:01:47', '2025-08-20 16:01:47', '', '', 'index', 'draft', 'post', 0, 0),
-(350, 'novyj-post', 2, 'новый пост', '<div _ngcontent-ng-c2856499467=\"\" class=\"markdown markdown-main-panel enable-updated-hr-color\" id=\"model-response-message-contentr_29365847a8043887\" dir=\"ltr\">\r\n<p>В одном офисе, где всегда было холодно, даже летом, работал менеджер по имени Олег. Каждый год с наступлением зимы его настроение падало ниже нуля, как и температура за окном. Он постоянно жаловался на холод и на то, что работа идёт медленно.</p>\r\n<p>Как-то раз, в самый разгар декабря, Олег собрал всех сотрудников на совещание. Лица у всех были мрачные, а руки спрятаны в карманах. Олег начал с пафосной речи о том, что нужно быть эффективнее и быстрее, несмотря на \"суровые условия\".</p>\r\n<p>Один из сотрудников, программист Миша, у которого всегда было хорошее чувство юмора, тихонько сказал своему соседу: &laquo;Олег думает, что мы здесь пингвины, которые должны работать в Антарктиде&raquo;. Эта шутка мгновенно разлетелась по всему офису.</p>\r\n<p>Вдруг Олег, услышав смех, строго спросил: &laquo;Миша, что такого смешного?&raquo;. Миша, ничуть не смутившись, встал и ответил: &laquo;Да вот, Олег Владимирович, мы тут обсуждаем, как вам помочь. Может, пора ввести дресс-код: пуховики, шапки и валенки? Чтобы повысить производительность&raquo;.</p>\r\n<p>Олег на мгновение опешил, а потом расплылся в улыбке. Он понял, что его нытьё никому не помогает, и сам начал смеяться. С тех пор в офисе стало немного теплее &ndash; хотя бы от хорошего настроения и шуток.</p>\r\n<p>В конце концов, Олег признал, что юмор &mdash; это лучшее средство против зимней депрессии. Он даже предложил ввести пятничные \"дни тёплой одежды\", и работа действительно пошла веселее и эффективнее. А Миша получил премию за \"инновационный подход к мотивации сотрудников\".</p>\r\n</div>', 'анонс', 52, '2025-08-20 16:05:43', '2025-08-20 16:05:43', 'ключевики', 'описание', 'index', 'published', 'post', 0, 0),
-(351, 'super-zagolovok', 2, 'супер заголовок', '<div _ngcontent-ng-c2856499467=\"\" class=\"markdown markdown-main-panel enable-updated-hr-color\" id=\"model-response-message-contentr_7ff9b2a8fab1fb2b\" dir=\"ltr\">\r\n<p>Хорошо, вот ещё один анекдот на 5-6 абзацев про зиму и рабочие отношения.</p>\r\n<p>В одной IT-компании, где все работали на удалёнке, приближалась зима. Начальник отдела, Пётр, был человеком старой закалки и считал, что продуктивность зависит от физического присутствия. Ему не давала покоя мысль, что его команда сидит дома в тепле, пока он едет на работу в холодном автомобиле.</p>\r\n<p>В один морозный январский день Пётр собрал срочное видеосовещание. Все подключились, укутанные в свитера, а кто-то даже в одеяла. Пётр, демонстративно сидящий в костюме, начал свою речь: &laquo;Коллеги, я заметил, что с наступлением холодов наша производительность падает. Пора перестать расслабляться!&raquo;</p>\r\n<p>Один из разработчиков, Саша, который был известен своим острым умом, тихонько спросил: &laquo;Пётр Николаевич, может, дело не в холодах, а в том, что наша работа просто не приспособлена для зимы?&raquo;. Пётр не понял шутки и продолжил свою тираду о дисциплине и ответственности.</p>\r\n<p>В этот момент у Сашиного соседа по виртуальному экрану, Лены, отключился интернет. Она быстро перезагрузила роутер и вернулась в чат, написав: &laquo;Извините, у нас тут локальный апокалипсис, роутер замёрз&raquo;. Все засмеялись.</p>\r\n<p>Пётр, наконец, осознал, что в удалённой работе свои трудности. Он по-доброму посмеялся вместе со всеми и сказал: &laquo;Хорошо, друзья, давайте тогда так: к каждому сотруднику отправим по обогревателю и термосу с чаем. И, Миша, прекрати сидеть в одеяле &mdash; это не прилично!&raquo;</p>\r\n<p>С этого дня компания стала известна как самая заботливая в городе. Анекдот про &laquo;мёрзлый роутер&raquo; стал корпоративной легендой, а Пётр понял, что главное &mdash; не контроль, а забота о команде, особенно в холода.</p>\r\n</div>', 'sdfsdfssd', 54, '2025-08-20 16:12:17', '2025-08-20 16:12:17', 'ключевики', 'описание', 'index', 'published', 'post', 1, 0);
-
--- --------------------------------------------------------
-
---
--- Структура таблицы `post_category`
---
-
+DROP TABLE IF EXISTS `post_category`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `post_category` (
-  `post_id` int NOT NULL,
-  `category_id` int NOT NULL
+  `post_id` int(11) NOT NULL,
+  `category_id` int(11) NOT NULL,
+  PRIMARY KEY (`post_id`,`category_id`),
+  KEY `fk_post_category_category_id` (`category_id`),
+  CONSTRAINT `fk_post_category_category_id` FOREIGN KEY (`category_id`) REFERENCES `categories` (`id`),
+  CONSTRAINT `post_category_ibfk_1` FOREIGN KEY (`post_id`) REFERENCES `posts` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Дамп данных таблицы `post_category`
+-- Dumping data for table `post_category`
 --
 
-INSERT INTO `post_category` (`post_id`, `category_id`) VALUES
-(3, 3),
-(5, 3),
-(236, 3),
-(241, 3),
-(263, 3),
-(265, 3),
-(269, 3),
-(275, 3),
-(282, 3),
-(287, 3),
-(290, 3),
-(291, 3),
-(298, 3),
-(310, 3),
-(311, 3),
-(313, 3),
-(314, 3),
-(315, 3),
-(316, 3),
-(319, 3),
-(320, 3),
-(322, 3),
-(325, 3),
-(329, 3),
-(332, 3),
-(334, 3),
-(338, 3),
-(345, 3),
-(346, 3),
-(347, 3),
-(348, 3),
-(349, 3),
-(350, 3),
-(351, 3),
-(4, 4),
-(278, 4),
-(282, 4),
-(293, 4),
-(321, 4),
-(324, 4),
-(326, 4),
-(327, 4),
-(330, 4),
-(335, 4),
-(198, 5),
-(216, 5),
-(217, 5),
-(219, 5),
-(221, 5),
-(227, 5),
-(230, 5),
-(232, 5),
-(234, 5),
-(237, 5),
-(238, 5),
-(242, 5),
-(244, 5),
-(246, 5),
-(248, 5),
-(250, 5),
-(252, 5),
-(254, 5),
-(256, 5),
-(258, 5),
-(259, 5),
-(277, 5),
-(188, 6),
-(264, 6),
-(270, 6),
-(278, 6),
-(289, 6),
-(333, 6),
-(337, 6),
-(339, 6),
-(274, 7),
-(278, 7),
-(312, 7),
-(197, 8),
-(215, 8),
-(216, 8),
-(218, 8),
-(220, 8),
-(222, 8),
-(228, 8),
-(231, 8),
-(233, 8),
-(235, 8),
-(243, 8),
-(245, 8),
-(247, 8),
-(249, 8),
-(251, 8),
-(253, 8),
-(255, 8),
-(257, 8),
-(267, 8),
-(268, 8),
-(273, 8),
-(292, 8),
-(294, 8),
-(295, 8),
-(296, 8),
-(297, 8),
-(299, 8),
-(300, 8),
-(301, 8),
-(302, 8),
-(303, 8),
-(304, 8),
-(306, 8),
-(307, 8),
-(323, 8),
-(328, 8),
-(331, 8),
-(336, 8),
-(239, 10),
-(240, 10),
-(340, 10);
-
--- --------------------------------------------------------
+LOCK TABLES `post_category` WRITE;
+/*!40000 ALTER TABLE `post_category` DISABLE KEYS */;
+set autocommit=0;
+INSERT INTO `post_category` VALUES
+(3,3),
+(5,3),
+(236,3),
+(241,3),
+(263,3),
+(265,3),
+(269,3),
+(275,3),
+(282,3),
+(287,3),
+(290,3),
+(291,3),
+(298,3),
+(310,3),
+(311,3),
+(313,3),
+(314,3),
+(315,3),
+(316,3),
+(319,3),
+(320,3),
+(322,3),
+(325,3),
+(329,3),
+(332,3),
+(334,3),
+(338,3),
+(345,3),
+(346,3),
+(347,3),
+(348,3),
+(349,3),
+(350,3),
+(351,3),
+(353,3),
+(358,3),
+(361,3),
+(364,3),
+(367,3),
+(370,3),
+(371,3),
+(374,3),
+(375,3),
+(377,3),
+(4,4),
+(278,4),
+(282,4),
+(293,4),
+(321,4),
+(324,4),
+(326,4),
+(327,4),
+(330,4),
+(335,4),
+(362,4),
+(363,4),
+(198,5),
+(216,5),
+(217,5),
+(219,5),
+(221,5),
+(227,5),
+(230,5),
+(232,5),
+(234,5),
+(237,5),
+(238,5),
+(242,5),
+(244,5),
+(246,5),
+(248,5),
+(250,5),
+(252,5),
+(254,5),
+(256,5),
+(258,5),
+(259,5),
+(277,5),
+(188,6),
+(264,6),
+(270,6),
+(278,6),
+(289,6),
+(333,6),
+(337,6),
+(339,6),
+(274,7),
+(278,7),
+(312,7),
+(366,7),
+(197,8),
+(215,8),
+(216,8),
+(218,8),
+(220,8),
+(222,8),
+(228,8),
+(231,8),
+(233,8),
+(235,8),
+(243,8),
+(245,8),
+(247,8),
+(249,8),
+(251,8),
+(253,8),
+(255,8),
+(257,8),
+(267,8),
+(268,8),
+(273,8),
+(292,8),
+(294,8),
+(295,8),
+(296,8),
+(297,8),
+(299,8),
+(300,8),
+(301,8),
+(302,8),
+(303,8),
+(304,8),
+(306,8),
+(307,8),
+(323,8),
+(328,8),
+(331,8),
+(336,8),
+(365,8),
+(368,8),
+(369,8),
+(372,8),
+(239,10),
+(240,10),
+(340,10);
+/*!40000 ALTER TABLE `post_category` ENABLE KEYS */;
+UNLOCK TABLES;
+commit;
 
 --
--- Структура таблицы `post_tag`
+-- Table structure for table `post_tag`
 --
 
+DROP TABLE IF EXISTS `post_tag`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `post_tag` (
-  `post_id` int NOT NULL,
-  `tag_id` int NOT NULL
+  `post_id` int(11) NOT NULL,
+  `tag_id` int(11) NOT NULL,
+  PRIMARY KEY (`post_id`,`tag_id`),
+  KEY `fk_post_tag_tag_id` (`tag_id`),
+  CONSTRAINT `fk_post_tag_tag_id` FOREIGN KEY (`tag_id`) REFERENCES `tags` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `post_tag_ibfk_1` FOREIGN KEY (`post_id`) REFERENCES `posts` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Дамп данных таблицы `post_tag`
+-- Dumping data for table `post_tag`
 --
 
-INSERT INTO `post_tag` (`post_id`, `tag_id`) VALUES
-(3, 7),
-(218, 7),
-(287, 7),
-(315, 7),
-(316, 7),
-(319, 7),
-(320, 7),
-(321, 7),
-(322, 7),
-(323, 7),
-(324, 7),
-(325, 7),
-(326, 7),
-(328, 7),
-(331, 7),
-(332, 7),
-(334, 7),
-(350, 7),
-(351, 7),
-(3, 8),
-(197, 8),
-(198, 8),
-(215, 8),
-(216, 8),
-(217, 8),
-(218, 8),
-(219, 8),
-(220, 8),
-(221, 8),
-(222, 8),
-(227, 8),
-(306, 8),
-(307, 8),
-(315, 8),
-(319, 8),
-(322, 8),
-(323, 8),
-(325, 8),
-(329, 8),
-(331, 8),
-(332, 8),
-(334, 8),
-(186, 9),
-(238, 9),
-(264, 9),
-(186, 10),
-(219, 11),
-(263, 11),
-(315, 11),
-(321, 11),
-(220, 12),
-(239, 12),
-(262, 12),
-(264, 12),
-(315, 12),
-(316, 12),
-(320, 12),
-(321, 12),
-(324, 12),
-(325, 12),
-(326, 12),
-(328, 12),
-(333, 12),
-(335, 12),
-(279, 13),
-(316, 13),
-(281, 14),
-(283, 16),
-(291, 16),
-(293, 16),
-(295, 16),
-(296, 16),
-(298, 16),
-(316, 16),
-(322, 16),
-(335, 16),
-(283, 17),
-(320, 17),
-(283, 18),
-(315, 18),
-(283, 19),
-(312, 19),
-(323, 19),
-(327, 19),
-(333, 19),
-(283, 20),
-(284, 21),
-(285, 22),
-(290, 28),
-(291, 31),
-(292, 34),
-(293, 37),
-(294, 41),
-(294, 42),
-(295, 46),
-(296, 47),
-(296, 48),
-(296, 49),
-(297, 50),
-(298, 51),
-(299, 52),
-(300, 53),
-(301, 54),
-(302, 55),
-(302, 56),
-(303, 57),
-(303, 58),
-(304, 59),
-(306, 60),
-(307, 61),
-(310, 66),
-(311, 67),
-(311, 68),
-(312, 69),
-(312, 70),
-(313, 71),
-(313, 72),
-(314, 73),
-(314, 74),
-(314, 75),
-(315, 76),
-(315, 77),
-(315, 78),
-(315, 79),
-(315, 80),
-(316, 81),
-(316, 82),
-(316, 83),
-(319, 97),
-(320, 100),
-(320, 101),
-(320, 102),
-(321, 106),
-(321, 107),
-(321, 108),
-(321, 109),
-(321, 110),
-(321, 111),
-(321, 112),
-(321, 113),
-(322, 117),
-(322, 118),
-(322, 119),
-(322, 120),
-(322, 121),
-(323, 123),
-(323, 124),
-(323, 125),
-(324, 129),
-(324, 130),
-(324, 131),
-(324, 132),
-(325, 133),
-(325, 134),
-(325, 135),
-(325, 136),
-(326, 137),
-(326, 138),
-(326, 139),
-(326, 140),
-(326, 141),
-(326, 142),
-(326, 143),
-(327, 144),
-(331, 144),
-(327, 145),
-(327, 146),
-(331, 146),
-(327, 147),
-(327, 148),
-(327, 149),
-(329, 149),
-(330, 149),
-(328, 151),
-(328, 152),
-(329, 152),
-(328, 153),
-(328, 154),
-(328, 155),
-(328, 156),
-(328, 157),
-(328, 158),
-(329, 159),
-(329, 160),
-(329, 161),
-(329, 162),
-(329, 163),
-(329, 164),
-(339, 164),
-(330, 165),
-(330, 166),
-(330, 167),
-(330, 168),
-(330, 169),
-(330, 170),
-(331, 170),
-(330, 171),
-(331, 174),
-(331, 175),
-(331, 176),
-(331, 177),
-(331, 178),
-(332, 184),
-(332, 185),
-(332, 186),
-(332, 187),
-(332, 188),
-(333, 191),
-(333, 192),
-(334, 195),
-(334, 196),
-(334, 197),
-(334, 198),
-(335, 201),
-(335, 202),
-(335, 203),
-(336, 203),
-(335, 204),
-(336, 207),
-(337, 207),
-(340, 207),
-(349, 207),
-(336, 208),
-(338, 208),
-(339, 208),
-(340, 208),
-(349, 208),
-(337, 210),
-(337, 211),
-(338, 213),
-(338, 214),
-(339, 216),
-(339, 217),
-(339, 218),
-(339, 219),
-(339, 220),
-(340, 221),
-(349, 222),
-(351, 223),
-(351, 224);
-
--- --------------------------------------------------------
+LOCK TABLES `post_tag` WRITE;
+/*!40000 ALTER TABLE `post_tag` DISABLE KEYS */;
+set autocommit=0;
+INSERT INTO `post_tag` VALUES
+(3,7),
+(218,7),
+(287,7),
+(315,7),
+(316,7),
+(319,7),
+(320,7),
+(321,7),
+(322,7),
+(323,7),
+(324,7),
+(325,7),
+(326,7),
+(328,7),
+(331,7),
+(332,7),
+(334,7),
+(350,7),
+(351,7),
+(358,7),
+(361,7),
+(364,7),
+(365,7),
+(377,7),
+(3,8),
+(197,8),
+(198,8),
+(215,8),
+(216,8),
+(217,8),
+(218,8),
+(219,8),
+(220,8),
+(221,8),
+(222,8),
+(227,8),
+(306,8),
+(307,8),
+(315,8),
+(319,8),
+(322,8),
+(323,8),
+(325,8),
+(329,8),
+(331,8),
+(332,8),
+(334,8),
+(186,9),
+(238,9),
+(264,9),
+(355,9),
+(186,10),
+(219,11),
+(263,11),
+(315,11),
+(321,11),
+(364,11),
+(220,12),
+(239,12),
+(262,12),
+(264,12),
+(315,12),
+(316,12),
+(320,12),
+(321,12),
+(324,12),
+(325,12),
+(326,12),
+(328,12),
+(333,12),
+(335,12),
+(361,12),
+(279,13),
+(316,13),
+(358,13),
+(281,14),
+(283,16),
+(291,16),
+(293,16),
+(295,16),
+(296,16),
+(298,16),
+(316,16),
+(322,16),
+(335,16),
+(361,16),
+(283,17),
+(320,17),
+(283,18),
+(315,18),
+(283,19),
+(312,19),
+(323,19),
+(327,19),
+(333,19),
+(283,20),
+(284,21),
+(285,22),
+(290,28),
+(291,31),
+(292,34),
+(293,37),
+(294,41),
+(294,42),
+(295,46),
+(296,47),
+(296,48),
+(296,49),
+(297,50),
+(298,51),
+(299,52),
+(300,53),
+(301,54),
+(302,55),
+(302,56),
+(303,57),
+(303,58),
+(304,59),
+(306,60),
+(307,61),
+(310,66),
+(311,67),
+(311,68),
+(312,69),
+(312,70),
+(313,71),
+(313,72),
+(314,73),
+(314,74),
+(314,75),
+(315,76),
+(315,77),
+(315,78),
+(315,79),
+(315,80),
+(316,81),
+(316,82),
+(316,83),
+(319,97),
+(320,100),
+(320,101),
+(320,102),
+(321,106),
+(321,107),
+(321,108),
+(321,110),
+(321,111),
+(321,112),
+(321,113),
+(322,117),
+(322,118),
+(322,119),
+(322,120),
+(322,121),
+(323,123),
+(323,124),
+(323,125),
+(324,129),
+(324,130),
+(324,131),
+(324,132),
+(325,133),
+(325,136),
+(326,137),
+(326,138),
+(326,139),
+(326,140),
+(326,141),
+(326,142),
+(326,143),
+(327,144),
+(331,144),
+(327,145),
+(327,146),
+(331,146),
+(327,147),
+(327,148),
+(327,149),
+(329,149),
+(330,149),
+(328,151),
+(328,152),
+(329,152),
+(328,153),
+(328,154),
+(328,155),
+(328,156),
+(328,157),
+(328,158),
+(329,159),
+(329,160),
+(329,161),
+(329,162),
+(329,163),
+(329,164),
+(339,164),
+(330,165),
+(330,166),
+(330,167),
+(330,168),
+(330,169),
+(330,170),
+(331,170),
+(330,171),
+(331,174),
+(331,175),
+(331,176),
+(331,177),
+(331,178),
+(332,184),
+(332,185),
+(332,186),
+(332,187),
+(332,188),
+(333,191),
+(333,192),
+(334,195),
+(334,196),
+(334,197),
+(334,198),
+(335,201),
+(335,202),
+(335,203),
+(336,203),
+(335,204),
+(336,207),
+(337,207),
+(340,207),
+(349,207),
+(361,207),
+(336,208),
+(338,208),
+(339,208),
+(340,208),
+(349,208),
+(337,210),
+(337,211),
+(338,213),
+(338,214),
+(339,216),
+(339,217),
+(339,218),
+(339,219),
+(339,220),
+(340,221),
+(349,222),
+(351,223),
+(351,224),
+(356,225),
+(356,226),
+(361,227),
+(362,228),
+(373,230),
+(374,231),
+(374,232),
+(374,233),
+(374,234),
+(374,235),
+(377,236),
+(377,237);
+/*!40000 ALTER TABLE `post_tag` ENABLE KEYS */;
+UNLOCK TABLES;
+commit;
 
 --
--- Структура таблицы `post_votes`
+-- Table structure for table `post_votes`
 --
 
+DROP TABLE IF EXISTS `post_votes`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `post_votes` (
-  `id` int NOT NULL,
-  `post_id` int NOT NULL,
-  `visitor_id` int DEFAULT NULL,
-  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  `vote_type` enum('like','dislike') NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `post_id` int(11) NOT NULL,
+  `visitor_id` int(11) DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `vote_type` enum('like','dislike') NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `unique_post_visitor` (`post_id`,`visitor_id`),
+  KEY `idx_post_vote` (`post_id`,`vote_type`),
+  KEY `post_votes_ibfk_2` (`visitor_id`),
+  CONSTRAINT `post_votes_ibfk_1` FOREIGN KEY (`post_id`) REFERENCES `posts` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `post_votes_ibfk_2` FOREIGN KEY (`visitor_id`) REFERENCES `visitors` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=54 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Дамп данных таблицы `post_votes`
+-- Dumping data for table `post_votes`
 --
 
-INSERT INTO `post_votes` (`id`, `post_id`, `visitor_id`, `created_at`, `updated_at`, `vote_type`) VALUES
-(3, 5, 1, '2025-04-24 14:42:42', '2025-04-24 14:42:42', 'like'),
-(4, 5, 2, '2025-04-24 14:44:51', '2025-04-24 14:44:51', 'like'),
-(5, 5, 4, '2025-04-24 14:45:32', '2025-04-24 14:45:32', 'dislike'),
-(6, 4, 2, '2025-04-24 14:45:32', '2025-04-24 14:45:32', 'dislike'),
-(8, 4, 1, '2025-06-08 15:17:19', '2025-06-08 15:17:19', 'dislike'),
-(32, 5, 9, '2025-06-21 17:32:30', '2025-06-21 17:32:30', 'dislike'),
-(33, 4, 9, '2025-06-21 17:32:49', '2025-06-21 17:32:49', 'like'),
-(34, 3, 9, '2025-06-22 15:17:16', '2025-06-22 15:17:16', 'dislike'),
-(35, 265, 9, '2025-07-07 13:07:42', '2025-07-07 13:07:42', 'like'),
-(36, 264, 9, '2025-07-12 13:14:14', '2025-07-12 13:14:14', 'like'),
-(37, 263, 9, '2025-07-13 16:57:04', '2025-07-13 16:57:04', 'dislike'),
-(38, 259, 9, '2025-07-13 16:57:11', '2025-07-13 16:57:11', 'like'),
-(39, 239, 9, '2025-07-14 13:53:32', '2025-07-14 13:53:32', 'like'),
-(40, 270, 9, '2025-08-06 14:33:33', '2025-08-06 14:33:33', 'dislike'),
-(41, 270, 1, '2025-08-06 14:33:33', '2025-08-06 14:33:33', 'dislike'),
-(42, 270, 2, '2025-08-06 14:33:33', '2025-08-06 14:33:33', 'like'),
-(43, 282, 9, '2025-08-10 16:23:00', '2025-08-10 16:23:00', 'like'),
-(45, 287, 9, '2025-08-14 11:53:38', '2025-08-14 11:53:38', 'like'),
-(46, 275, 9, '2025-08-14 11:56:55', '2025-08-14 11:56:55', 'dislike'),
-(47, 269, 9, '2025-08-14 12:14:13', '2025-08-14 12:14:13', 'like'),
-(48, 268, 9, '2025-08-14 12:31:25', '2025-08-14 12:31:25', 'like'),
-(49, 248, 10, '2025-08-16 10:33:16', '2025-08-16 10:33:16', 'like'),
-(50, 252, 10, '2025-08-16 10:33:31', '2025-08-16 10:33:31', 'dislike'),
-(51, 4, 10, '2025-08-16 10:33:56', '2025-08-16 10:33:56', 'dislike'),
-(52, 282, 10, '2025-08-16 10:34:07', '2025-08-16 10:34:07', 'like'),
-(53, 351, 10, '2025-08-20 16:12:51', '2025-08-20 16:12:51', 'like');
-
---
--- Триггеры `post_votes`
---
-DELIMITER $$
-CREATE TRIGGER `after_post_vote_insert` AFTER INSERT ON `post_votes` FOR EACH ROW BEGIN
+LOCK TABLES `post_votes` WRITE;
+/*!40000 ALTER TABLE `post_votes` DISABLE KEYS */;
+set autocommit=0;
+INSERT INTO `post_votes` VALUES
+(3,5,1,'2025-04-24 14:42:42','2025-04-24 14:42:42','like'),
+(4,5,2,'2025-04-24 14:44:51','2025-04-24 14:44:51','like'),
+(5,5,4,'2025-04-24 14:45:32','2025-04-24 14:45:32','dislike'),
+(6,4,2,'2025-04-24 14:45:32','2025-04-24 14:45:32','dislike'),
+(8,4,1,'2025-06-08 15:17:19','2025-06-08 15:17:19','dislike'),
+(32,5,9,'2025-06-21 17:32:30','2025-06-21 17:32:30','dislike'),
+(33,4,9,'2025-06-21 17:32:49','2025-06-21 17:32:49','like'),
+(34,3,9,'2025-06-22 15:17:16','2025-06-22 15:17:16','dislike'),
+(35,265,9,'2025-07-07 13:07:42','2025-07-07 13:07:42','like'),
+(36,264,9,'2025-07-12 13:14:14','2025-07-12 13:14:14','like'),
+(37,263,9,'2025-07-13 16:57:04','2025-07-13 16:57:04','dislike'),
+(38,259,9,'2025-07-13 16:57:11','2025-07-13 16:57:11','like'),
+(39,239,9,'2025-07-14 13:53:32','2025-07-14 13:53:32','like'),
+(40,270,9,'2025-08-06 14:33:33','2025-08-06 14:33:33','dislike'),
+(41,270,1,'2025-08-06 14:33:33','2025-08-06 14:33:33','dislike'),
+(42,270,2,'2025-08-06 14:33:33','2025-08-06 14:33:33','like'),
+(43,282,9,'2025-08-10 16:23:00','2025-08-10 16:23:00','like'),
+(45,287,9,'2025-08-14 11:53:38','2025-08-14 11:53:38','like'),
+(46,275,9,'2025-08-14 11:56:55','2025-08-14 11:56:55','dislike'),
+(47,269,9,'2025-08-14 12:14:13','2025-08-14 12:14:13','like'),
+(48,268,9,'2025-08-14 12:31:25','2025-08-14 12:31:25','like'),
+(49,248,10,'2025-08-16 10:33:16','2025-08-16 10:33:16','like'),
+(50,252,10,'2025-08-16 10:33:31','2025-08-16 10:33:31','dislike'),
+(51,4,10,'2025-08-16 10:33:56','2025-08-16 10:33:56','dislike'),
+(52,282,10,'2025-08-16 10:34:07','2025-08-16 10:34:07','like'),
+(53,351,10,'2025-08-20 16:12:51','2025-08-20 16:12:51','like');
+/*!40000 ALTER TABLE `post_votes` ENABLE KEYS */;
+UNLOCK TABLES;
+commit;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_uca1400_ai_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'NO_AUTO_VALUE_ON_ZERO' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER `after_post_vote_insert` AFTER INSERT ON `post_votes` FOR EACH ROW BEGIN
     IF NEW.vote_type = 'like' THEN
         UPDATE posts SET likes_count = likes_count + 1 WHERE id = NEW.post_id;
     ELSEIF NEW.vote_type = 'dislike' THEN
         UPDATE posts SET dislikes_count = dislikes_count + 1 WHERE id = NEW.post_id;
     END IF;
-END
-$$
+END */;;
 DELIMITER ;
-DELIMITER $$
-CREATE TRIGGER `before_post_vote_delete` BEFORE DELETE ON `post_votes` FOR EACH ROW BEGIN
-    SIGNAL SQLSTATE '45000'
-    SET MESSAGE_TEXT = 'Удаление голоса запрещено';
-END
-$$
-DELIMITER ;
-DELIMITER $$
-CREATE TRIGGER `before_post_vote_update` BEFORE UPDATE ON `post_votes` FOR EACH ROW BEGIN
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_uca1400_ai_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'NO_AUTO_VALUE_ON_ZERO' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER `before_post_vote_update` BEFORE UPDATE ON `post_votes` FOR EACH ROW BEGIN
     SIGNAL SQLSTATE '45000'
     SET MESSAGE_TEXT = 'Изменение голоса запрещено';
-END
-$$
+END */;;
 DELIMITER ;
-
--- --------------------------------------------------------
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_uca1400_ai_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'NO_AUTO_VALUE_ON_ZERO' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER `before_post_vote_delete` BEFORE DELETE ON `post_votes` FOR EACH ROW BEGIN
+    SIGNAL SQLSTATE '45000'
+    SET MESSAGE_TEXT = 'Удаление голоса запрещено';
+END */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
 
 --
--- Структура таблицы `roles`
+-- Table structure for table `posts`
 --
 
+DROP TABLE IF EXISTS `posts`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `posts` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `url` varchar(128) NOT NULL,
+  `user_id` int(11) NOT NULL,
+  `title` varchar(128) NOT NULL,
+  `content` text NOT NULL,
+  `excerpt` varchar(200) NOT NULL,
+  `thumbnail_media_id` int(11) DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NULL DEFAULT current_timestamp(),
+  `meta_title` varchar(128) NOT NULL,
+  `meta_keywords` varchar(255) DEFAULT NULL,
+  `meta_description` varchar(160) DEFAULT NULL,
+  `robots` enum('index','follow','noindex','nofollow','noindex, follow','index, follow','noindex, nofollow','index, nofollow') NOT NULL DEFAULT 'index',
+  `status` enum('draft','pending','published','deleted') NOT NULL DEFAULT 'draft',
+  `article_type` enum('post','page') NOT NULL DEFAULT 'post',
+  `likes_count` int(10) unsigned NOT NULL DEFAULT 0,
+  `dislikes_count` int(10) unsigned NOT NULL DEFAULT 0,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `unique_url` (`url`),
+  KEY `posts_ibfk_1` (`user_id`),
+  KEY `idx_status_article_updated` (`status`,`article_type`,`updated_at`),
+  KEY `fk_posts_thumbnail_media` (`thumbnail_media_id`),
+  KEY `idx_posts_created` (`created_at`),
+  KEY `idx_posts_type_created` (`article_type`,`created_at`),
+  CONSTRAINT `fk_posts_thumbnail_media` FOREIGN KEY (`thumbnail_media_id`) REFERENCES `media` (`id`) ON DELETE SET NULL,
+  CONSTRAINT `posts_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=378 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `posts`
+--
+
+LOCK TABLES `posts` WRITE;
+/*!40000 ALTER TABLE `posts` DISABLE KEYS */;
+set autocommit=0;
+INSERT INTO `posts` VALUES
+(3,'taksuyu',2,'Про таксиста','Taксую. Ранее утро. Пассажир — женщина. Спокойно катим в пробке. Мимо нас в междурядье с грохотом проносится мотоциклист.\n— Ух, отчаянный, — провожаю его добрым словом.\n— Вы не гоняете, anekdotov.net, случаем, на байке? — спрашиваю женщину.\n— Я — нет, — улыбнулась она.\n— А вот племянник недавно признался, что мечтает о мотоцикле. И никакие доводы на него не действуют. Ни мои, ни матери. Хочу и всё! И понимаем, что запретить никак не получится. Купит втайне и гонять будет. Ну, тогда я ему и предложила месяц у меня поработать, и тогда пусть покупает. Если денег не хватит — добавлю. Работа чисто физическая. Принеси/унеси. Как раз для молодого парня. После второй смены он сказал, что передумал покупать мотоцикл.\n— А где вы работаете?\n— В реанимации.','',NULL,'2025-04-22 16:54:59','2025-06-19 18:12:34','','Про таксиста','описание Про таксиста','index','published','post',19,25),
+(4,'sotrudnitsa-otdela-prodazh',2,'Про сотрудницу','Сотрудница отдела продаж, специалист по сервису и их начальник идут обедать и находят старую масляную лампу. Они трут лампу, и Джин появляется в облаке дыма. Джин говорит:\n— Обычно я выполняю три желания, поэтому каждый из Вас может загадать по одному.\n— Чур, я первая! , — говорит сотрудница отдела продаж. Я хочу быть сейчас на Багамах, мчаться без забот на скутере по волнам.\nПуфф! И она растворяется в воздухе. anekdotov.net,\n— Я следующий! , — говорит спец по сервису. Я хочу на Гавайи, расслабляться на пляже с личной массажисткой и бесконечным запасом Пина-Колады.\nПуфф! Исчезает.\n— OK, твоя очередь! , — говорит Джин менеджеру.\nТогда менеджер говорит:\n— Я хочу, чтобы эти двое были в офисе после обеда.','',NULL,'2025-04-01 16:57:23','2025-06-19 18:13:53','',NULL,NULL,'index','published','post',3,14),
+(5,'pro-fax',2,'Про факс','\"В России одновременно сосуществуют поколения людей, anekdotov.net, которые в 20 лет ещё не знали, что такое \"отправить FAX\" и которые в 20 лет уже не знают, что такое \"отправить FAX\"\"\r\nИ вспомнилось...\r\nВ конце 90-х на \"ЛМЗ\" (Ленинградский Металлический завод, я там работал) и \"Электросилу\" наехали новые \"собственники\" с новыми порядками ведения бизнеса: коммерческая тайна и т. п. А я тогда как раз какой-то проект делал, как обычно: ЛМЗ-шная турбина и Электросиловский генератор. И мне от Электросилы технические данные нужны.\r\nЗвоню в их КБ, задаю вопросы. Мне в ответ: все данные готовы, но передать не можем — новый собственник запретил напрямую письма писать, телексы и факсы отправлять (е-мэйла у нас тогда ещё не было). Только через Службу Безопасности!\r\nА это ещё неделя на согласование!\r\nЯ устно информацию принять, конечно, могу, но мне именно документ нужен.\r\n— Что, совсем всё запретили?\r\n— Всё!\r\n— И телеграммы?\r\n— И телеграммы!\r\n— И факсы?\r\n— И факсы!\r\n— А телефонограммы?\r\n— О!\r\nЧерез 15 минут из факса вылезает лист с крупным заголовком: ТЕЛЕФОНОГРАММА!','',NULL,'2025-04-24 13:42:02','2025-06-21 15:30:35','',NULL,NULL,'index','published','post',46,6),
+(184,'o-proekte',2,'О проекте','Сайт СмехБук создан группой единомышленников, которых объединяет\r\nжелание разместить в одном месте все те шутки и юмор, который накопился\r\nза определенное время в разных местах (серверах, личных записках, блогах).\r\nНа нашем сайте мы будем собирать все те шутки и юмор, который есть в\r\nнаших запасах и на сторонних проектах. Нашей задачей мы видим создание\r\nюмористического портала сатиры, юмора и хорошего настроения.\r\n\r\n<b>СмехБук строится на следующих принципах:</b>\r\n\r\n1) Мы тщательно отбираем все присланные материалы на сайт. Наш\r\nприоритет сатира и юмор высокого качества, а не «ниже пояса». Да и еще раз\r\nДа, мы правим анекдоты,шутки, цитаты и все остальные материалы, или\r\nудаляем без восстановления и повторного рассмотрения.\r\n\r\n2) Мы любим красивые и тщательно сделанные вещи. Поэтому один из\r\nосновных моментов при формировании материалов на сайт — это соблюдение\r\nправил оформления, все должно быть красиво, ясно и понятно посетителям\r\nсайта.\r\n\r\n3) Мы не обсуждаем ваше чувство юмора и не собираемся обсуждать наше.\r\nЕсли по каким-то причинам вам не нравятся материалы на сайте, то вы\r\nможете проголосовать за них против или просто не посещать наш сайт.','',NULL,'2025-06-08 12:22:28','2025-06-08 12:22:28','','юмор, приколы, смех','Описание страницы о проекте','index','published','page',0,0),
+(185,'kontakty',2,'Контакты','Вы хотели связаться с нами? Это замечательно! Мы тоже давно мечтали о связи — не только электронной, но и духовной. Однако пока наша команда контактов занята важным делом: проверяет, работает ли кнопка \"отправить\" на самом деле, а также спорит, сколько должно быть адресов, чтобы считаться «множеством».\r\n\r\nПока они решают эти глобальные вопросы, мы предлагаем вам немного подождать. Скоро здесь появятся все возможные способы добраться до нас — от электронной почты до телепатии (последнее пока в стадии тестирования).\r\n\r\nЕсли у вас срочное дело, можете попробовать поймать одного из редакторов на просторах сайта — обычно они шатаются где-то между рубриками «Анекдоты» и «Истории». Или просто напишите нам через форму обратной связи (когда она заработает), или как-нибудь иначе — мы всегда рады общению, особенно если оно с юмором!\r\n\r\nТем временем предлагаем вам не скучать, а читать что-нибудь смешное. А потом рассказать об этом друзьям. Или врагам. Всё равно полезно.\r\n\r\nСпасибо, что вы с нами. Почти буквально.','',NULL,'2025-06-08 12:22:28','2025-07-29 12:22:28','','контакты','Описание страницы контакты','index','published','page',0,0),
+(186,'policy',2,'Пользовательское соглашение','Сайт www.smehbook.ru размещается на серверах и управляется на территории\r\nРоссийской Федерации. Вся деятельность сайта находится под действием\r\nдействующего законодательства Российской Федерации.\r\n\r\nВсе права на присланные материалы (контент) принадлежат их владельцам —\r\nнепосредственным участникам и тем, кто прислал материалы (контент) через\r\nформу на нашем сайте. Администрация сайта не несет ответственности\r\nза их использование третьими сторонами.\r\n\r\nАдминистрация сайта не ставит перед собой цели оскорблять честь\r\nи достоинство физических лиц, либо посягать на чью-либо деловую\r\nрепутацию. Совпадения реальных имён и названий считаются случайными.\r\n\r\nАдминистрация сайта не занимается предварительной оценкой присланных\r\nматериалов (контента) на предмет соответствия их действующему\r\nзаконодательству, чьим-то личным представлениям о прекрасном,\r\nи не оценивает содержащиеся в материалах оценочные суждения. При этом\r\nадминистрация оставляет за собой право удалять явно нарушающие\r\nзаконодательство, разглашающие личные сведения или являющиеся личными\r\nвыпадами против конкретных лиц и групп лиц материалы (контент), в том\r\nчисле и автоматически, но не гарантирует полного отсутствия подобных\r\nматериалов (контента). В случае обнаружения таких материалов (контента)\r\nпросьба написать нам, мы постараемся принять меры.\r\n\r\nАдминистрация сайта имеет право публиковать, удалять\r\nи редактировать любые материалы (контент), присланные пользователями,\r\nпо своему усмотрению.\r\n\r\nАдминистрация сайта оставляет за собой право на использование\r\nинформации, содержащейся на сайте, по своему усмотрению.','',NULL,'2025-06-08 12:22:28','2025-06-08 12:22:28','','пользовательское соглашение','Описание страницы пользовательское соглашение','index','published','page',0,0),
+(187,'sitemap',2,'Карта сайта','Вы попали сюда, значит, либо вы — опытный искатель приключений (и кнопок), либо просто потерялись среди нашего безграничного океана юмора. Не волнуйтесь, мы тоже иногда не можем найти, куда запрятали главную страницу.\r\n\r\nПока что эта карта больше похожа на меню в кафе, где половина блюд уже закончилась, а официант уверяет, что «всё есть, просто не всё сразу». Но обещаем — скоро здесь будет настоящий путеводитель по нашему порталу: удобный, понятный и такой же доброжелательный, как наш админ, когда он не в плохом настроении после чтения комментариев.\r\n\r\nЧто вы сможете найти:\r\n\r\nРазделы с анекдотами (свежими, как утренний хлеб, и не менее питательными).\r\nИстории из жизни (потому что реальность порой смешнее вымысла).\r\nВесёлые стихи (рифма есть — совесть не просим).\r\nАвторские колонки и сатира (остро, но не до крови).\r\nВозможно даже кое-что полезное — но это строго на ваш страх и риск.\r\nА пока предлагаем ориентироваться по принципу: «Кликнул — не пожалел», или как говорится у нас в редакции — «Вперёд, туда, где ещё никто не успел заблудиться!»\r\n\r\nЕсли вдруг найдёте что-то интересное по пути — не держите в себе, делитесь с друзьями. А если потеряетесь — не переживайте, выход всегда там, где вход.','',NULL,'2025-06-08 12:22:28','2025-06-08 12:40:49','','карта сайта','Описание страницы карта сайта','noindex, follow','published','page',0,0),
+(188,'istoriya-1',2,'История 1','Представьте, что вы едете на машине. На спидометре стрелка показывает 60 км/ч — это ваша мгновенная скорость в конкретный момент времени. Именно так работает производная!\r\nОна отвечает на вопрос: «Как быстро меняется одна величина (например, путь) относительно другой (например, времени)?»\r\n\r\nПример из жизни:\r\n\r\nВы замечаете, что за 1 час температура на улице поднялась с +5°C до +10°C.\r\nСредняя скорость изменения: 10−51=5110−5​=5°C в час.\r\nНо если температура росла неравномерно (сначала быстро, потом медленно), производная покажет её мгновенное изменение в конкретную минуту.\r\nКак понять производную через графики\r\nДопустим, вы рисуете график, где по оси Х — время, а по оси Y — расстояние, которое вы прошли.\r\n\r\nСредняя скорость — это наклон прямой между двумя точками (например, за весь день).\r\nПроизводная (мгновенная скорость) — это наклон касательной к кривой в конкретной точке.\r\nПроще говоря, чем круче график в определённый момент, тем больше производная (и тем быстрее что-то меняется).\r\n\r\nПримеры из жизни, где встречается производная\r\n1. Экономика: прибыль компании\r\nДопустим, компания продаёт кофе.\r\n\r\nПроизводная покажет, как быстро растёт прибыль при увеличении продаж на 1 чашку.\r\nЕсли график прибыли резко идёт вверх — производная большая (бизнес процветает).\r\nЕсли график падает — производная отрицательная (убытки).\r\n2. Медицина: действие лекарства\r\nДоктор смотрит, как быстро снижается температура у пациента после приёма таблетки.\r\nПроизводная здесь — скорость выздоровления (например, на сколько градусов в час падает жар).\r\n3. Спорт: подготовка марафонца\r\nТренер анализирует, как увеличивается скорость бега спортсмена от недели к неделе.\r\nПроизводная покажет, в какой момент прогресс замедлился и нужно сменить тренировки.\r\n4. Строительство: наполнение бассейна\r\nЕсли вы открываете кран, производная — это скорость наполнения (литры в минуту).\r\nЕсли кран засорился и вода течёт медленнее, производная уменьшается.\r\nЗачем это нужно?\r\nПроизводная помогает:\r\n\r\nРассчитать оптимальную скорость поезда, чтобы он не опоздал.\r\nПредсказать, когда закончится бензин в баке.\r\nПонять, как быстро тают льды в Арктике.\r\nСоздавать реалистичную анимацию в играх (например, падение мяча под уклон).\r\nКак посчитать производную? (Минимум формул)\r\nДля тех, кто хочет чуть больше математики:\r\n\r\nВозьмите функцию, например, y=x² (путь зависит от времени).\r\nПроизводная этой функции — y′=2x.\r\nЭто значит, что скорость изменения y в любой момент x равна 2x.\r\nНапример:\r\n\r\nВ момент времени x=3 скорость будет 2×3=6.\r\nЧем больше x, тем быстрее растёт y.\r\nКрасным проведена касательная к параболе в точке А.\r\nНо не пугайтесь: в жизни производные часто считают компьютеры. Ваша задача — понять, что они означают.\r\n\r\nПроизводная — это как «математическая интуиция», она помогает чувствовать, как мир меняется вокруг нас:\r\n\r\nКогда вы ждёте автобус и решаете, бежать или идти шагом,\r\nКогда видите, как быстро темнеет зимой,\r\nИли когда пытаетесь успеть на скидку в магазине.\r\nПроизводная превращает абстрактные числа в истории о движении, росте и времени. Попробуйте замечать эти изменения — и математика станет чуть ближе к реальности!\r\n\r\nА вы задумывались, как быстро меняется что-то в вашей жизни? Делитесь примерами в комментариях.','',NULL,'2025-04-22 16:54:59','2025-04-24 13:44:14','','История 1','описание истории 1','index, follow','published','post',0,0),
+(197,'predlozhennyy-material-2025-06-13-202910',2,'Пост от 13.06.2025','sdfgsdfgdfsdfgsdfgdfgdfg','',NULL,'2025-06-13 17:29:10','2025-06-13 17:29:10','',NULL,NULL,'index','published','post',0,0),
+(198,'predlozhennyy-material-2025-06-13-203658',2,'Пост от 13.06.2025','asdfasdfadsf','',NULL,'2025-06-13 17:36:58','2025-06-13 17:36:58','',NULL,NULL,'index','published','post',0,0),
+(215,'predlozhennyy-material-2025-06-13-204608',2,'Пост от 13.06.2025','вапывапрывапвпвапвапв','',NULL,'2025-06-13 17:46:08','2025-06-13 17:46:08','',NULL,NULL,'index','published','post',0,0),
+(216,'predlozhennyy-material-2025-06-15-190627',2,'Пост от 15.06.2025','df ghd ghdfgf','',NULL,'2025-06-15 16:06:27','2025-06-15 16:06:27','',NULL,NULL,'index','published','post',0,0),
+(217,'predlozhennyy-material-2025-06-15-191225',2,'Пост от 15.06.2025','gsdfgsdgsdfggfs','',NULL,'2025-06-15 16:12:25','2025-06-15 16:12:25','',NULL,NULL,'index','published','post',0,0),
+(218,'predlozhennyy-material-2025-06-15-193232',2,'Пост от 15.06.2025','ячсмчясмвыавыафыва','',NULL,'2025-06-15 16:32:32','2025-06-15 16:32:32','',NULL,NULL,'index','published','post',0,0),
+(219,'predlozhennyy-material-2025-06-15-193249',2,'Пост от 15.06.2025','ыва ыва вапыва п','',NULL,'2025-06-15 16:32:49','2025-06-15 16:32:49','',NULL,NULL,'index','published','post',0,0),
+(220,'predlozhennyy-material-2025-06-15-193614',2,'Пост от 15.06.2025','we g ывап sdfgsdfg','',NULL,'2025-06-15 16:36:14','2025-06-15 16:36:14','',NULL,NULL,'index','published','post',0,0),
+(221,'predlozhennyy-material-2025-06-15-193836',2,'Пост от 15.06.2025','sвапывапваып','',NULL,'2025-06-15 16:38:36','2025-06-15 16:38:36','',NULL,NULL,'index','published','post',0,0),
+(222,'predlozhennyy-material-2025-06-15-193851',2,'Пост от 15.06.2025','вы ыва sdfs','',NULL,'2025-06-15 16:38:51','2025-06-15 16:38:51','',NULL,NULL,'index','published','post',0,0),
+(227,'predlozhennyy-material-2025-06-15-200020',2,'jhkjhkj','sdfsdfsdfsdfs','',NULL,'2025-06-15 17:00:20','2025-06-15 17:00:20','',NULL,NULL,'index','published','post',0,0),
+(228,'predlozhennyy-material-2025-06-15-200129',2,'Пост от 15.06.2025','sdfsgsdfgasdfsad','',NULL,'2025-06-15 17:01:29','2025-06-15 17:01:29','',NULL,NULL,'index','published','post',0,0),
+(230,'predlozhennyy-material-2025-06-15-200311',2,'Пост от 15.06.2025','вапвап вап вап','',NULL,'2025-06-15 17:03:11','2025-06-15 17:03:11','',NULL,NULL,'index','published','post',0,0),
+(231,'predlozhennyy-material-2025-06-15-201000',2,'Пост от 15.06.2025','фывафываыфваыфва','',NULL,'2025-06-15 17:10:00','2025-06-15 17:10:00','',NULL,NULL,'index','published','post',0,0),
+(232,'predlozhennyy-material-2025-06-15-203040',2,'Пост от 15.06.2025','asdfasdfasdfaf','',NULL,'2025-06-15 17:30:40','2025-06-15 17:30:40','',NULL,NULL,'index','published','post',0,0),
+(233,'predlozhennyy-material-2025-06-15-203143',2,'Пост от 15.06.2025','sdfasdfsdf','',NULL,'2025-06-15 17:31:43','2025-06-15 17:31:43','',NULL,NULL,'index','published','post',0,0),
+(234,'predlozhennyy-material-2025-06-22-190339',2,'Пост от 22.06.2025','фывафыафываффывафв','',NULL,'2025-06-22 16:03:39','2025-06-22 16:03:39','',NULL,NULL,'index','published','post',0,0),
+(235,'predlozhennyy-material-2025-06-22-191810',2,'Пост от 22.06.2025','лоприлотлролыыы','',NULL,'2025-06-22 16:18:10','2025-06-22 16:18:10','',NULL,NULL,'index','published','post',0,0),
+(236,'pyatiy-klass',2,'пятый класс','В пятом классе я записался в кружок математики в Ленинградском Дворце Пионеров, который находился на Невском проспекте. Мы жили на окраине и родители побаивались отпускать 11- летнего ребёнка одного.\r\nНо папа здраво рассудил: \"Пускай лучше ездит по городу, чем болтается во дворе. \"\r\nМама меня напутствовала: \"Будь осторожен: в центре полно хулиганов, воров и... проституток! \"\r\nКонечно я примерно представлял, кто такие проститутки, но не очень понимал зачем я им нужен, и потому не придал маминым словам большого значения. А зря!\r\nОколо входа во Дворец Пионеров меня окружила толпа каких-то девиц, примерно моего возраста. Они стали хватать меня за руки и требовать: \"Пойдём с нами! \"\r\nЯ понял: \"Вот они, anekdotov.net, проститутки! Мама была права! \", вырвался от них и убежал.','',NULL,'2025-06-22 16:42:04','2025-06-22 16:42:04','','5 класс','5 класс','index, follow','published','post',0,0),
+(237,'gomeostizis',2,'гомеостазис','Был у нас один преподаватель, как говорится ума палата. Любил он всякими научными терминами бросаться. И как-то рассказывает нам по этому поводу историю.\r\nВот однажды пошел он с сынишкой купаться. anekdotov.net, Зашел по колено в воду. Благодать! Солнышко светит, птички поют. Ну и препод так восхищенно говорит:\r\n— Вот это гомеостазис!!!\r\nСынишка спрашивает:\r\n— Пап, а что такое гомеостазис?\r\n— Ну, это когда тебе хорошо, единство в природе, так сказать, состояние равновесия. В общем, это когда вокруг все тихо, размеренно, когда нет внутренних противоречий.\r\nСынок у него смышленый попался, словечко мудрое запомнил. И вот как-то на уроке природоведения учительница спрашивает про круговорот веществ в природе. Мальчик тут же вскакивает и кричит:\r\n— Мария Ивановна, это полный гомеост','',NULL,'2025-06-22 16:44:27','2025-06-22 16:44:27','','гомеостазис','гомеостазис','index, follow','published','post',0,0),
+(238,'park',2,'парк','Семилетний мальчик веpнyлся домой из паpка без своих новых салазок.\r\n— Вы знаете, — сказал он pодителям, — y меня их попpосил покататься стаpик с симпатичным малышом. К 4 часам они пообещали салазки веpнyть.\r\nРодителям все это не очень понpавилось, но в глyбине дyши они были довольны пpоявлением столь добpых чyвств со стоpоны своего pебенка. Четыpе часа — нет салазок. Hо в 4:30 pаздался звонок, и появился стаpик с малышом, салазками и большой коpобкой конфет. Сын тyт же скpылся в спальне и, выбежав оттyда, anekdotov.net, внимательно осмотpел салазки, и заявил:\r\n— Все в поpядке, полyчите свои часы.','',NULL,'2025-06-22 16:44:27','2025-06-22 16:44:27','','парк','парк','index, follow','published','post',0,0),
+(239,'vovchka',2,'вовочка','Вовочка получил два балла за контрольную. Отец пришел в школу разбираться. Учительница ему говорит, ваш сын все списал у своей соседки:\r\n- Вот смотрите, вопрос - в каком году родился Пушкин.\r\nМаша правильно пишет - в 1799. anekdotov.net, И ваш сын тоже.\r\n- Ну так и что? Почему мой сын не может правильно ответить?\r\n- Смотрите дальше. Вопрос - кто написал \"Войну и мир\"?\r\nМаша пишет - Лермонтов, и Вовочка то же самое.\r\n- А почему они не могли оба ошибиться?\r\n- Ну, допустим. Но вот следующий вопрос - какие пьесы написал Чехов?\r\nМаша написала - \"Я не знаю\". А Вовочка - \"И я тоже\".','',NULL,'2025-06-22 16:47:32','2025-06-22 16:47:32','','вовочка','вовочка','index, follow','published','post',1,0),
+(240,'ironiya',2,'ирония','— Дети, anekdotov.net, кто знает, что такое ирония?\r\nВовочка:\r\n— Это когда я говорю, что мне нравится делать домашнее задание.','',NULL,'2025-06-22 16:47:32','2025-06-22 16:47:32','','ирония','ирония','index, follow','published','post',0,0),
+(241,'cod',2,'код','  $total_posts = $this->model->countAllPosts();\r\n\r\n    // Генерируем ссылки пагинации\r\n    $pagination_links = generatePaginationLinks(\r\n        $page,\r\n        $total_posts,\r\n        $posts_per_page,\r\n        \'/\' // базовый URL\r\n    );\r\n\r\n    $URL = sprintf(\"%s://%s\", $_SERVER[\'REQUEST_SCHEME\'], $_SERVER[\'HTTP_HOST\']);\r\n\r\n    $content = View::render(\'../app/views/posts/index.php\', [\r\n        \'posts\' => $posts,\r\n        \'show_caption\' => false,\r\n        \'url\' => $URL,\r\n        \'pagination\' => [\r\n            \'current_page\' => $page,\r\n            \'posts_per_page\' => $posts_per_page,','',NULL,'2025-06-22 17:22:30','2025-06-22 17:22:30','','код','код','index, follow','published','post',0,0),
+(242,'predlozhennyy-material-2025-06-24-193559',2,'Пост от 24.06.2025','dgfdsfgdsfgsdfgsdfgds','',NULL,'2025-06-24 16:35:59','2025-08-15 16:22:52','',NULL,NULL,'index','deleted','post',0,0),
+(243,'predlozhennyy-material-2025-06-24-193638',2,'Пост от 24.06.2025','fghdfghdfghdfgh','',NULL,'2025-06-24 16:36:38','2025-06-24 16:36:38','',NULL,NULL,'index','published','post',0,0),
+(244,'predlozhennyy-material-2025-06-24-193642',2,'Пост от 24.06.2025','gdhjgjghjfghjg','',NULL,'2025-06-24 16:36:42','2025-08-15 16:23:10','',NULL,NULL,'index','deleted','post',0,0),
+(245,'predlozhennyy-material-2025-06-24-193646',2,'Пост от 24.06.2025','fghjghjgfhjhfgj','',NULL,'2025-06-24 16:36:46','2025-06-24 16:36:46','',NULL,NULL,'index','published','post',0,0),
+(246,'predlozhennyy-material-2025-06-24-193649',2,'Пост от 24.06.2025','fghjghghjghj','',NULL,'2025-06-24 16:36:49','2025-06-24 16:36:49','',NULL,NULL,'index','published','post',0,0),
+(247,'predlozhennyy-material-2025-06-24-193653',2,'Пост от 24.06.2025','fghjghjgfhjg','',NULL,'2025-06-24 16:36:53','2025-06-24 16:36:53','',NULL,NULL,'index','published','post',0,0),
+(248,'predlozhennyy-material-2025-06-24-193657',2,'Пост от 24.06.2025','fghjghjfghjg','',NULL,'2025-06-24 16:36:57','2025-06-24 16:36:57','',NULL,NULL,'index','published','post',1,0),
+(249,'predlozhennyy-material-2025-06-24-193701',2,'Пост от 24.06.2025','fghjghjgfhgf','',NULL,'2025-06-24 16:37:01','2025-06-24 16:37:01','',NULL,NULL,'index','published','post',0,0),
+(250,'predlozhennyy-material-2025-06-24-193704',2,'Пост от 24.06.2025','gfjghjghjg','',NULL,'2025-06-24 16:37:04','2025-06-24 16:37:04','',NULL,NULL,'index','published','post',0,0),
+(251,'predlozhennyy-material-2025-06-24-193708',2,'Пост от 24.06.2025','fghjghjgjghj','',NULL,'2025-06-24 16:37:08','2025-06-24 16:37:08','',NULL,NULL,'index','published','post',0,0),
+(252,'predlozhennyy-material-2025-06-24-193711',2,'Пост от 24.06.2025','fghjghjfghjgf','',NULL,'2025-06-24 16:37:11','2025-06-24 16:37:11','',NULL,NULL,'index','published','post',0,1),
+(253,'predlozhennyy-material-2025-06-24-193715',2,'Пост от 24.06.2025','паропропаро','',NULL,'2025-06-24 16:37:15','2025-06-24 16:37:15','',NULL,NULL,'index','published','post',0,0),
+(254,'predlozhennyy-material-2025-06-24-193718',2,'Пост от 24.06.2025','паропаропро','',NULL,'2025-06-24 16:37:18','2025-06-24 16:37:18','',NULL,NULL,'index','published','post',0,0),
+(255,'predlozhennyy-material-2025-06-24-193721',2,'Пост от 24.06.2025','пароапропаро','',NULL,'2025-06-24 16:37:21','2025-06-24 16:37:21','',NULL,NULL,'index','published','post',0,0),
+(256,'predlozhennyy-material-2025-06-24-193725',2,'Пост от 24.06.2025','3245234муцкемкмек','',NULL,'2025-06-24 16:37:25','2025-06-24 16:37:25','',NULL,NULL,'index','published','post',0,0),
+(257,'predlozhennyy-material-2025-06-24-193729',2,'Пост от 24.06.2025','гьлопртопато','',NULL,'2025-06-24 16:37:29','2025-06-24 16:37:29','',NULL,NULL,'index','published','post',0,0),
+(258,'predlozhennyy-material-2025-06-24-193732',2,'Пост от 24.06.2025','sdfgvdsgvf','',NULL,'2025-06-24 16:37:32','2025-06-24 16:37:32','',NULL,NULL,'index','published','post',0,0),
+(259,'predlozhennyy-material-2025-06-24-193735',2,'Пост от 24.06.2025','кетноектекн','',NULL,'2025-06-24 16:37:35','2025-06-24 16:37:35','',NULL,NULL,'index','published','post',1,0),
+(260,'predlozhennyy-material-2025-06-24-193739',2,'Пост от 24.06.2025','ипаравипрвирав','',NULL,'2025-06-24 16:37:39','2025-06-24 16:37:39','',NULL,NULL,'index','pending','post',0,0),
+(261,'predlozhennyy-material-2025-06-24-193742',2,'Пост от 24.06.2025','тнгнгтентгн','',NULL,'2025-06-24 16:37:42','2025-06-24 16:37:42','',NULL,NULL,'index','pending','post',0,0),
+(262,'predlozhennyy-material-2025-06-24-193748',2,'Пост от 24.06.2025','иукинкеикерирпа','',NULL,'2025-06-24 16:37:48','2025-06-24 16:37:48','',NULL,NULL,'index','pending','post',0,0),
+(263,'predlozhennyy-material-2025-07-06-164047',2,'Пост от 06.07.2025','5645b645y куреп уеапреа','',NULL,'2025-07-06 13:40:47','2025-07-06 13:40:47','',NULL,NULL,'index','published','post',0,1),
+(264,'predlozhennyy-material-2025-07-06-164109',2,'Пост от 06.07.2025','смичсмисчмисчмисчми','',NULL,'2025-07-06 13:41:09','2025-07-06 13:41:09','',NULL,NULL,'index','draft','post',1,0),
+(265,'predlozhennyy-material-2025-07-06-164625',2,'Пост от 06.07.2025','фысч xc vxcv cvx','',NULL,'2025-07-06 13:46:25','2025-07-06 13:46:25','',NULL,NULL,'index','deleted','post',1,0),
+(266,'predlozhennyy-material-2025-07-13-190430',2,'Пост от 13.07.2025','sadfsadafsadf','',NULL,'2025-07-13 16:04:30','2025-07-13 16:04:30','',NULL,NULL,'index','pending','post',0,0),
+(267,'predlozhennyy-material-2025-07-28-201000',2,'Пост от 28.07.2025','sdfdfgdsfgdfgdsgdfdfsg','',NULL,'2025-07-28 17:10:00','2025-07-28 17:10:00','',NULL,NULL,'index','published','post',0,0),
+(268,'predlozhennyy-material-2025-07-28-201159',2,'Пост от 28.07.2025','смитсмитсмитсмитсми','',NULL,'2025-07-28 17:11:59','2025-07-28 17:11:59','',NULL,NULL,'index','published','post',15,0),
+(269,'predlozhennyy-material-2025-08-05-165354',2,'Пост от 05.08.2025','asfdasdfsadfsadfsadf','',NULL,'2025-08-05 13:53:54','2025-08-05 13:53:54','',NULL,NULL,'index','published','post',1,0),
+(270,'predlozhennyy-material-2025-08-06-173232',2,'Пост от 06.08.2025','в ва dfsg вап вап вапвыап','',NULL,'2025-08-06 14:32:32','2025-08-06 14:32:32','',NULL,NULL,'index','published','post',1,2),
+(271,'predlozhennyy-material-2025-08-08-202043',2,'Пост от 08.08.2025','asdasasdas','',NULL,'2025-08-08 17:20:43','2025-08-08 17:20:43','',NULL,NULL,'index','pending','post',0,0),
+(272,'4645645',2,'4645645','','',NULL,'2025-08-10 15:28:23','2025-08-10 15:28:23','','','','index','draft','post',0,0),
+(273,'prv-apr-ap',2,'прв апр ап','','',NULL,'2025-08-10 15:30:21','2025-08-10 15:30:21','','','','index','draft','post',0,0),
+(274,'novaya-kartinka',2,'новая картинка','','',NULL,'2025-08-10 15:42:25','2025-08-10 15:42:25','','','','index','published','post',0,0),
+(275,'5inueikeniekn',2,'5инуеикениекн','<p>впвпвапвапвап</p>','',NULL,'2025-08-10 15:45:52','2025-08-10 15:45:52','','','','index','published','post',0,1),
+(276,'terteter',2,'terteter','','',NULL,'2025-08-10 15:51:07','2025-08-10 15:51:07','','','','index','draft','post',0,0),
+(277,'erterter',2,'erterter','','',NULL,'2025-08-10 15:51:16','2025-08-10 15:51:16','','','','index','draft','post',0,0),
+(278,'rterterter',2,'rterterter','','',NULL,'2025-08-10 15:51:27','2025-08-10 15:51:27','','','','index','draft','post',0,0),
+(279,'3tertewrw',2,'3tertewrw','','',NULL,'2025-08-10 15:56:27','2025-08-10 15:56:27','','','','index','draft','post',0,0),
+(280,'vapkekue',2,'вапкекуе','','',NULL,'2025-08-10 16:13:34','2025-08-10 16:13:34','','','','index','draft','post',0,0),
+(281,'464564565464',2,'464564565464','','',27,'2025-08-10 16:19:38','2025-08-10 16:19:38','','','','index','draft','post',0,0),
+(282,'proraprparap',2,'прорапрпарап','Сидят два друга в баре. Один, Вася, грустный-грустный. Другой, Петя, спрашивает:\r\n— Вась, ты чего такой кислый?\r\n— Да понимаешь, вчера с женой поссорился. Долго ругались, потом она говорит: «Всё, я от тебя ухожу! У меня есть три мужчины, которые ждут моего звонка. Один из них — начальник, он предложил мне повышение. Второй — коллега, он предложил мне работу в другом городе. А третий… Ну, третий просто ждёт».\r\n— Ну и что? — спрашивает Петя.\r\n— А я, дурак, ей говорю: «Ну и звони своим трём мужикам! А я найду себе трёх женщин, которые ждут моего звонка!»\r\n— И что?\r\n— Звоню одной. Спрашиваю: «Мам, как дела?» Вторая — сестра, третья — тётя. А теперь сижу и думаю… А жена-то, наверное, уже ушла.','dgdfgdfgdf',25,'2025-08-10 16:21:56','2025-08-10 16:21:56','','вапвапавп','вапвап','index','published','post',2,0),
+(283,'proba',2,'проба','','',NULL,'2025-08-10 16:26:37','2025-08-10 16:26:37','','','','index','draft','post',0,0),
+(284,'ukeuke',2,'укеуке','','',NULL,'2025-08-10 16:36:13','2025-08-10 16:36:13','','','','index','draft','post',0,0),
+(285,'fsdfdsf',2,'fsdfdsf','','',NULL,'2025-08-10 16:36:54','2025-08-10 16:36:54','','','','index','draft','post',0,0),
+(287,'88888',2,'88888','<p>Почему бык, который всю жизнь бегал за коровами, наконец женился на свинье?</p>\r\n<p>Потому что он устал от отношений, где всегда он был виноват, и захотел чего-то нового.</p>','',51,'2025-08-12 13:48:52','2025-08-15 15:49:23','','','','index','deleted','post',1,0),
+(288,'werewrwerforma',2,'werewrwer','<p>ываыавыаываы</p>\r\n<p>ыва</p>\r\n<p>sd</p>\r\n<p>а</p>\r\n<p>выа</p>\r\n<p>sd</p>\r\n<p>f</p>','',NULL,'2025-08-12 15:18:53','2025-08-12 15:18:53','','','','index','draft','post',0,0),
+(289,'23423432',2,'23423432','<p><img src=\"/assets/uploads/2025/08/kosmos-za-dveryu_1.jpg\" alt=\"3534\"></p>','',27,'2025-08-14 12:51:31','2025-08-14 12:51:31','','','','index','published','post',0,0),
+(290,'novyj-super-zagolovok',2,'новый супер заголовок','<div _ngcontent-ng-c3041318976=\"\" class=\"markdown markdown-main-panel enable-updated-hr-color\" id=\"model-response-message-contentr_bd0cbf24013a6e78\" dir=\"ltr\">\r\n<p>Идут по джунглям обезьяна и бегемот. Обезьяна, как всегда, не может усидеть на месте &mdash; прыгает с лианы на лиану, корчит рожицы. Вдруг она видит огромный, красивый кокос, который висит на самой верхушке пальмы.</p>\r\n<p>&mdash; Эй, бегемот, &mdash; кричит обезьяна, &mdash; смотри, какой кокос! Хочешь?</p>\r\n<p>Бегемот хмуро качает головой:</p>\r\n<p>&mdash; Да что мне твой кокос? Я и так сыт.</p>\r\n<p>Обезьяна, конечно, не унимается. Она мгновенно забирается на пальму, срывает кокос и спускается вниз.</p>\r\n<p>&mdash; Ладно, &mdash; говорит она, &mdash; тогда я его расколю и съем сама.</p>\r\n<p>Она начинает бить кокосом о камень, но ничего не выходит. Кокос твёрдый, как камень, а обезьяна маленькая и слабая.</p>\r\n<p>&mdash; Помоги, бегемот! &mdash; просит она. &mdash; У тебя такая большая челюсть, ты разгрызёшь его в два счёта.</p>\r\n<p>Бегемот, который как раз решил вздремнуть, открывает один глаз, лениво зевает:</p>\r\n<p>&mdash; Отстань, обезьяна. Я отдыхаю.</p>\r\n<p>Тогда обезьяна решает пойти на хитрость. Она берёт кокос, подходит к бегемоту и говорит:</p>\r\n<p>&mdash; А знаешь, бегемот, ты ведь очень сильный. Наверное, самый сильный в этих джунглях! Даже этот кокос перед тобой не устоит.</p>\r\n<p>Бегемот недоверчиво смотрит на неё, но лесть ему приятна.</p>\r\n<p>&mdash; Ну&hellip; я не знаю.</p>\r\n<p>&mdash; Как не знаешь?! &mdash; восклицает обезьяна. &mdash; Да ты одним своим ударом можешь свалить целое дерево! А этот кокос &mdash; просто ерунда!</p>\r\n<p>Бегемот улыбается своей широкой улыбкой:</p>\r\n<p>&mdash; Ну&hellip; это да. Сила у меня есть.</p>\r\n<p>&mdash; Вот и покажи! &mdash; настаивает обезьяна. &mdash; Просто раздави его!</p>\r\n<p>Бегемот берёт кокос и сжимает его в своей огромной пасти. Хруст, треск &mdash; и кокос разлетается на мелкие кусочки.</p>\r\n<p>Обезьяна с восторгом собирает их, запихивая в рот, и говорит, радостно потирая лапы:</p>\r\n<p>&mdash; Вот видишь! Ты настоящий чемпион!</p>\r\n<p>Бегемот довольный, но немного сонный, снова закрывает глаза и говорит:</p>\r\n<p>&mdash; Ладно, обезьяна, я пошёл.</p>\r\n<p>Идёт бегемот по тропинке, а навстречу ему &mdash; другой бегемот.</p>\r\n<p>&mdash; Привет, &mdash; говорит второй бегемот. &mdash; Что-то ты грустный.</p>\r\n<p>&mdash; Да нет, &mdash; отвечает первый, &mdash; просто устал.</p>\r\n<p>&mdash; А чего устал?</p>\r\n<p>&mdash; Да обезьяна какая-то привязалась&hellip; Сначала кокос разгрызи, потом ещё чего-нибудь придумает&hellip;</p>\r\n<p>&mdash; Понятно, &mdash; кивает второй бегемот. &mdash; Ну, а зачем ты ей вообще помогал?</p>\r\n<p>&mdash; Так она меня убедила, что я сильный! &mdash; гордо говорит первый бегемот. &mdash; Сказала, что я могу свалить дерево одним ударом.</p>\r\n<p>Второй бегемот удивлённо смотрит на него:</p>\r\n<p>&mdash; Ну, а почему ты ей просто не сказал, что это не так?</p>\r\n<p>Первый бегемот пожимает плечами:</p>\r\n<p>&mdash; Да потому что я и вправду могу свалить дерево одним ударом. А она&hellip; она просто обезьяна.</p>\r\n</div>','',25,'2025-08-14 15:30:01','2025-08-14 15:30:01','','обезьяний анекдот ключевик','обезьяний анекдот описание','index','draft','post',0,0),
+(291,'345345345',2,'345345345','<p>dsfgdsfgdfsgd</p>','',NULL,'2025-08-15 13:50:36','2025-08-15 13:50:36','','','','index','draft','post',0,0),
+(292,'fdg-vapvyapyva',2,'fdg вапвыапыва','<p>выпа ывап dfsg ывап ывап выа пвапыва пва</p>','',27,'2025-08-15 13:51:30','2025-08-15 13:51:30','','','','index','published','post',0,0),
+(293,'pa-pa-vpr-ap-avpra-p',2,'па па впр ап авпра п','<p>&nbsp;sf а пывар ке ра равр ап</p>','',NULL,'2025-08-15 13:52:19','2025-08-15 13:52:19','','','','index','published','post',0,0),
+(294,'avp-sdfgdf',2,'авп sdfgdf','<p>ыва пвап ывап ывап ывап вапв</p>','',51,'2025-08-15 13:53:17','2025-08-15 13:53:17','','','','index','draft','post',0,0),
+(295,'parop-opr',2,'пароп опр','<p>&nbsp;fsdgdf пва пываы&nbsp;</p>','',NULL,'2025-08-15 13:54:00','2025-08-15 13:54:00','','','','index','draft','post',0,0),
+(296,'3453453453',2,'3453453453','<p>terwtewterwt</p>','',NULL,'2025-08-15 14:01:49','2025-08-15 16:08:11','','','','index','deleted','post',0,0),
+(297,'k-ek-apr-vapr-apr-ap',2,'к ек апр вапр апр ап','','',NULL,'2025-08-15 14:03:38','2025-08-15 15:49:09','','','','index','deleted','post',0,0),
+(298,'rapr-vparvap',2,'рапр впарвап','','',NULL,'2025-08-15 14:43:30','2025-08-15 15:48:57','','','','index','deleted','post',0,0),
+(299,'vaprapr',2,'вапрапр','<p>sdfgdfsf</p>','',NULL,'2025-08-15 16:26:32','2025-08-15 16:26:32','','','','index','draft','post',0,0),
+(300,'werterwtert',2,'werterwtert','','',NULL,'2025-08-15 16:30:25','2025-08-15 16:30:25','','','','index','draft','post',0,0),
+(301,'dfs-gsdfg-vap-sdfgd',2,'dfs gsdfg вап sdfgd','','',NULL,'2025-08-15 16:31:35','2025-08-15 16:31:35','','','','index','draft','post',0,0),
+(302,'u-ap-vap-vyarapryva',2,'у ап вап выарапрыва','<p>иавпрв арапр</p>','',NULL,'2025-08-15 16:33:47','2025-08-15 16:33:47','','','','index','draft','post',0,0),
+(303,'sd-gdsfg',2,'sd gdsfg','','',NULL,'2025-08-15 16:39:02','2025-08-15 16:39:02','','','','index','draft','post',0,0),
+(304,'ukuckcukc',2,'укуцкцукц','','',NULL,'2025-08-17 14:52:16','2025-08-17 14:52:16','','','','index','draft','post',0,0),
+(306,'va-rap-rap-ravp-arp',2,'ва рап рап равп арп','','',NULL,'2025-08-17 15:10:06','2025-08-17 15:10:06','','','','index','draft','post',0,0),
+(307,'a-gds-avap-sdfgd',2,'а gds авап sdfgd','','',NULL,'2025-08-17 15:10:34','2025-08-17 15:10:34','','','','index','draft','post',0,0),
+(310,'s-vapv-va-pavypa',2,'s вапв ва павыпа','','',NULL,'2025-08-17 15:29:20','2025-08-17 15:29:20','','','','index','draft','post',0,0),
+(311,'f-g-dh-fg-rvap-rvapr',2,'f g dh fg рвап рвапр','','',NULL,'2025-08-17 15:31:17','2025-08-17 15:31:17','','','','index','draft','post',0,0),
+(312,'dgdf-gds-gdsfg',2,'dgdf gds gdsfg','','',NULL,'2025-08-17 15:35:03','2025-08-17 15:35:03','','','','index','draft','post',0,0),
+(313,'v-vyp-vyap-v',2,'в вып выап в','','',NULL,'2025-08-17 15:51:43','2025-08-17 15:51:43','','','','index','draft','post',0,0),
+(314,'vap-vayppv',2,'вап ваыппв','','',NULL,'2025-08-17 16:06:10','2025-08-17 16:06:10','','','','index','draft','post',0,0),
+(315,'vya-papyp',2,'выа папып','','',NULL,'2025-08-17 16:12:02','2025-08-17 16:12:02','','','','index','draft','post',0,0),
+(316,'va-gdg-gf',2,'ва gdg gf','','',NULL,'2025-08-17 16:17:34','2025-08-17 16:17:34','','','','index','draft','post',0,0),
+(319,'sfd-ggs-vapy',2,'sfd ggs вапы','','',NULL,'2025-08-17 16:27:31','2025-08-17 16:27:31','','','','index','draft','post',0,0),
+(320,'vya-pa-yvap-yvap-sdfgsd',2,'выа па ывап ывап sdfgsd','','',NULL,'2025-08-17 16:28:56','2025-08-17 16:28:56','','','','index','draft','post',0,0),
+(321,'yva-pavy',2,'ыва павы','','',NULL,'2025-08-17 16:30:52','2025-08-17 16:30:52','','','','index','draft','post',0,0),
+(322,'vya-pvva',2,'выа пвва','','',NULL,'2025-08-17 16:35:00','2025-08-17 16:35:00','','','','index','draft','post',0,0),
+(323,'var-apavpr',2,'вар апавпр','','',NULL,'2025-08-18 11:44:15','2025-08-18 11:44:15','','','','index','draft','post',0,0),
+(324,'vapv-vy',2,'вапв вы','','',NULL,'2025-08-18 11:48:54','2025-08-18 11:48:54','','','','index','draft','post',0,0),
+(325,'a-rap-rapr',2,'а рап рапр','','',NULL,'2025-08-18 12:06:18','2025-08-18 12:06:18','','','','index','draft','post',0,0),
+(326,'s-pva-pyvap',2,'s пва пывап','','',NULL,'2025-08-18 12:17:26','2025-08-18 12:17:26','','','','index','draft','post',0,0),
+(327,'apvp-vap-v',2,'апвп вап в','','',NULL,'2025-08-18 12:20:26','2025-08-18 12:20:26','','','','index','draft','post',0,0),
+(328,'r-a-avpr-apr-apr',2,'р а авпр апр апр','','',NULL,'2025-08-18 12:32:45','2025-08-18 12:32:45','','','','index','draft','post',0,0),
+(329,'pr-va-pra-prvpapvrpr',2,'пр ва пра првпапврпр','','',NULL,'2025-08-18 12:38:47','2025-08-18 12:38:47','','','','index','draft','post',0,0),
+(330,'ap-hgf-hf-fgh',2,'ап hgf hf fgh','','',NULL,'2025-08-18 12:55:32','2025-08-18 12:55:32','','','','index','draft','post',0,0),
+(331,'yvap-dfsg-dfsgdfs-gdff',2,'ывап dfsg dfsgdfs gdff','','',NULL,'2025-08-18 13:35:49','2025-08-18 13:35:49','','','','index','draft','post',0,0),
+(332,'apr-ap-vapr-avpr',2,'апр ап вапр авпр','','',NULL,'2025-08-18 13:38:22','2025-08-18 13:38:22','','','','index','draft','post',0,0),
+(333,'k-k-pv-ava-p',2,'к к пв ава п','','',NULL,'2025-08-18 13:43:43','2025-08-18 13:43:43','','','','index','draft','post',0,0),
+(334,'ueuckeukeuk',2,'уеуцкеукеук','','',NULL,'2025-08-18 13:45:58','2025-08-18 13:45:58','','','','index','draft','post',0,0),
+(335,'p-vap-vap',2,'п вап вап','','',NULL,'2025-08-18 13:52:22','2025-08-18 13:52:22','','','','index','draft','post',0,0),
+(336,'fghfdgdfgh',2,'fghfdgdfgh','','',NULL,'2025-08-18 14:00:33','2025-08-18 14:00:33','','','','index','draft','post',0,0),
+(337,'l-orlor-lo',2,'л орлор ло','','',NULL,'2025-08-18 14:13:51','2025-08-18 14:13:51','','','','index','draft','post',0,0),
+(338,'yvap-a',2,'ывап а','','',NULL,'2025-08-18 14:16:51','2025-08-18 14:16:51','','','','index','draft','post',0,0),
+(339,'pyvapvyp',2,'пывапвып','','',NULL,'2025-08-18 14:18:44','2025-08-18 14:18:44','','','','index','draft','post',0,0),
+(340,'dolshgshchshz',2,'долшгщшз','','',NULL,'2025-08-18 14:20:22','2025-08-18 14:20:22','','','','index','draft','post',0,0),
+(341,'s-vap-vayp',2,'s вап ваып','','',NULL,'2025-08-18 15:44:13','2025-08-28 12:31:11','','','','index','deleted','post',0,0),
+(342,'avpvpv',2,'авпвпв','','',NULL,'2025-08-18 15:51:51','2025-08-18 15:51:51','','','','index','draft','post',0,0),
+(343,'image',2,'пвапывапвы','','',NULL,'2025-08-18 15:52:08','2025-08-18 15:52:08','','','','index','draft','post',0,0),
+(344,'dsfgdfs',2,'dsfgdfs','','',NULL,'2025-08-18 15:56:04','2025-08-18 15:56:04','','','','index','draft','post',0,0),
+(345,'ewrwerwer',2,'ewrwerwer','<p>asdfsadfsadf</p>','',NULL,'2025-08-20 15:54:03','2025-08-20 15:54:03','','','','index','draft','post',0,0),
+(346,'uckeuckeuke',2,'уцкеуцкеуке','<p>укецукеуке</p>','',NULL,'2025-08-20 15:55:28','2025-08-20 15:55:28','','','','index','draft','post',0,0),
+(347,'uckeuckeukedd',2,'уцкеуцкеуке','<p>укецукеуке</p>','',NULL,'2025-08-20 15:58:54','2025-08-20 15:58:54','','','','index','draft','post',0,0),
+(348,'vyapvyap',2,'выапвыап','<p>sdgdf</p>','',NULL,'2025-08-20 16:00:21','2025-08-28 12:30:58','','','','index','deleted','post',0,0),
+(349,'novrvprrv',2,'новрвпррв','<p>ваплдо дылвапо двыалп sdfgdsfg</p>','',55,'2025-08-20 16:01:47','2025-08-20 16:01:47','','','','index','draft','post',0,0),
+(350,'novyj-post',2,'новый пост','<div _ngcontent-ng-c2856499467=\"\" class=\"markdown markdown-main-panel enable-updated-hr-color\" id=\"model-response-message-contentr_29365847a8043887\" dir=\"ltr\">\r\n<p>В одном офисе, где всегда было холодно, даже летом, работал менеджер по имени Олег. Каждый год с наступлением зимы его настроение падало ниже нуля, как и температура за окном. Он постоянно жаловался на холод и на то, что работа идёт медленно.</p>\r\n<p>Как-то раз, в самый разгар декабря, Олег собрал всех сотрудников на совещание. Лица у всех были мрачные, а руки спрятаны в карманах. Олег начал с пафосной речи о том, что нужно быть эффективнее и быстрее, несмотря на \"суровые условия\".</p>\r\n<p>Один из сотрудников, программист Миша, у которого всегда было хорошее чувство юмора, тихонько сказал своему соседу: &laquo;Олег думает, что мы здесь пингвины, которые должны работать в Антарктиде&raquo;. Эта шутка мгновенно разлетелась по всему офису.</p>\r\n<p>Вдруг Олег, услышав смех, строго спросил: &laquo;Миша, что такого смешного?&raquo;. Миша, ничуть не смутившись, встал и ответил: &laquo;Да вот, Олег Владимирович, мы тут обсуждаем, как вам помочь. Может, пора ввести дресс-код: пуховики, шапки и валенки? Чтобы повысить производительность&raquo;.</p>\r\n<p>Олег на мгновение опешил, а потом расплылся в улыбке. Он понял, что его нытьё никому не помогает, и сам начал смеяться. С тех пор в офисе стало немного теплее &ndash; хотя бы от хорошего настроения и шуток.</p>\r\n<p>В конце концов, Олег признал, что юмор &mdash; это лучшее средство против зимней депрессии. Он даже предложил ввести пятничные \"дни тёплой одежды\", и работа действительно пошла веселее и эффективнее. А Миша получил премию за \"инновационный подход к мотивации сотрудников\".</p>\r\n</div>','анонс',52,'2025-08-20 16:05:43','2025-08-20 16:05:43','','ключевики','описание','index','published','post',0,0),
+(351,'super-zagolovok',2,'супер заголовок','<div _ngcontent-ng-c2856499467=\"\" class=\"markdown markdown-main-panel enable-updated-hr-color\" id=\"model-response-message-contentr_7ff9b2a8fab1fb2b\" dir=\"ltr\">\r\n<p>Хорошо, вот ещё один анекдот на 5-6 абзацев про зиму и рабочие отношения.</p>\r\n<p>В одной IT-компании, где все работали на удалёнке, приближалась зима. Начальник отдела, Пётр, был человеком старой закалки и считал, что продуктивность зависит от физического присутствия. Ему не давала покоя мысль, что его команда сидит дома в тепле, пока он едет на работу в холодном автомобиле.</p>\r\n<p>В один морозный январский день Пётр собрал срочное видеосовещание. Все подключились, укутанные в свитера, а кто-то даже в одеяла. Пётр, демонстративно сидящий в костюме, начал свою речь: &laquo;Коллеги, я заметил, что с наступлением холодов наша производительность падает. Пора перестать расслабляться!&raquo;</p>\r\n<p>Один из разработчиков, Саша, который был известен своим острым умом, тихонько спросил: &laquo;Пётр Николаевич, может, дело не в холодах, а в том, что наша работа просто не приспособлена для зимы?&raquo;. Пётр не понял шутки и продолжил свою тираду о дисциплине и ответственности.</p>\r\n<p>В этот момент у Сашиного соседа по виртуальному экрану, Лены, отключился интернет. Она быстро перезагрузила роутер и вернулась в чат, написав: &laquo;Извините, у нас тут локальный апокалипсис, роутер замёрз&raquo;. Все засмеялись.</p>\r\n<p>Пётр, наконец, осознал, что в удалённой работе свои трудности. Он по-доброму посмеялся вместе со всеми и сказал: &laquo;Хорошо, друзья, давайте тогда так: к каждому сотруднику отправим по обогревателю и термосу с чаем. И, Миша, прекрати сидеть в одеяле &mdash; это не прилично!&raquo;</p>\r\n<p>С этого дня компания стала известна как самая заботливая в городе. Анекдот про &laquo;мёрзлый роутер&raquo; стал корпоративной легендой, а Пётр понял, что главное &mdash; не контроль, а забота о команде, особенно в холода.</p>\r\n</div>','sdfsdfssd',54,'2025-08-20 16:12:17','2025-08-20 16:12:17','','ключевики','описание','index','published','post',1,0),
+(352,'vapvapav',2,'вапвапав','<p>сарпрапр</p>','',NULL,'2025-08-24 14:32:44','2025-08-24 14:32:44','','','','index','draft','post',0,0),
+(353,'sfsdfsdf',2,'sfsdfsdf','<p>sdfsadfsdafsdfsdf</p>','',NULL,'2025-08-24 15:04:25','2025-08-24 15:04:25','','','','index','draft','post',0,0),
+(354,'yryrtyrtyret',2,'yryrtyrtyret','<p>ryerytrtytr</p>','',NULL,'2025-08-24 15:04:45','2025-08-28 13:07:05','','','','index','draft','page',0,0),
+(355,'novaya-stranica',2,'Новая страница','<div _ngcontent-ng-c2953961629=\"\" class=\"markdown markdown-main-panel enable-updated-hr-color\" id=\"model-response-message-contentr_9e45b674d0fa3442\" dir=\"ltr\">\r\n<p>Хорошо, вот несколько вариантов текста для новой страницы, на выбор. Они достаточно универсальны и подойдут для разных целей.</p>\r\n<hr>\r\n<p></p>\r\n<h3><b>Вариант 1: Короткий и энергичный</b></h3>\r\n<p></p>\r\n<p><b>Добро пожаловать на нашу новую страницу!</b></p>\r\n<p>Мы рады, что вы здесь. Это место, где вы найдёте всё, что вам нужно. Узнайте о наших услугах, погрузитесь в мир наших идей и откройте для себя новые возможности.</p>\r\n<hr>\r\n<p></p>\r\n<h3><b>Вариант 2: Для привлечения внимания</b></h3>\r\n<p></p>\r\n<p><b>Ищете что-то новое? Вы это нашли!</b></p>\r\n<p>Мы создали эту страницу, чтобы ответить на все ваши вопросы и помочь в достижении ваших целей. Откройте для себя наши уникальные решения и узнайте, как мы можем быть полезны именно вам.</p>\r\n<hr>\r\n<p></p>\r\n<h3><b>Вариант 3: Более информативный</b></h3>\r\n<p></p>\r\n<p><b>О нас и наших ценностях</b></p>\r\n<p>Добро пожаловать! Мы рады представить вам нашу новую страницу, где вы можете познакомиться с нашей историей, принципами и тем, что делает нас особенными. У нас вы найдёте подробную информацию о наших продуктах/услугах и сможете лучше понять, как мы работаем.</p>\r\n<hr>\r\n<p></p>\r\n<h3><b>Вариант 4: Более личный и дружелюбный</b></h3>\r\n<p></p>\r\n<p><b>Привет! Загляните к нам на огонёк!</b></p>\r\n<p>Мы очень рады, что вы заглянули на нашу новую страничку! Здесь вы сможете узнать нас получше, вдохновиться нашими проектами и, конечно же, найти ответы на свои вопросы. Чувствуйте себя как дома!</p>\r\n<hr>\r\n<p>Выбери тот, который тебе больше нравится, или используй его как основу, чтобы создать свой собственный, идеальный текст.</p>\r\n</div>','',NULL,'2025-08-24 15:09:41','2025-08-28 13:07:25','','','','index','deleted','page',0,0),
+(356,'podvodnaya-skazka-egejskogo-morya',2,'Подводная сказка Эгейского моря','<div _ngcontent-ng-c2953961629=\"\" class=\"markdown markdown-main-panel enable-updated-hr-color\" id=\"model-response-message-contentr_541f2bf961e5609d\" dir=\"ltr\">\n<p>Когда думаешь о Турции, на ум сразу приходят исторические руины, шумные базары и, конечно, шикарные пляжи. Но настоящая магия скрыта под бирюзовой гладью Эгейского моря.</p>\n<p>Эгейское побережье Турции &mdash; это не только идеальное место для пляжного отдыха, но и настоящий рай для любителей дайвинга и снорклинга. Здесь вода настолько чистая и прозрачная, что кажется, будто плаваешь в огромном аквариуме.</p>\n<p>Что же можно увидеть под водой?</p>\n<ul>\n<li>\n<p><b>Жизнь у скал:</b> Среди подводных утёсов и пещер обитает множество видов рыб &mdash; от шустрых стаек до крупных морских окуней.</p>\n</li>\n<li>\n<p><b>Древние артефакты:</b> Эгейское море богато на историю, и иногда под водой можно встретить остатки древних амфор и затонувших кораблей, что делает погружение похожим на настоящее археологическое приключение.</p>\n</li>\n<li>\n<p><b>Яркие краски:</b> Вода усыпана красочными морскими губками, кораллами и анемонами, которые создают невероятные подводные сады.</p>\n</li>\n</ul>\n<p>Дайвинг-центры в таких городах, как Мармарис, Бодрум или Каш, предлагают курсы для новичков и интересные маршруты для опытных дайверов. А если ты пока не готов к погружению, просто возьми маску и трубку, чтобы познакомиться с подводным миром прямо у берега.</p>\n<p>Так что, если ты ищешь нечто большее, чем просто загар и коктейли, отправляйся исследовать подводные сокровища Эгейского моря!</p>\n<hr>\n<p><b>❓ А ты бы хотел(-а) погрузиться в Эгейское море?</b> Поделись в комментариях!</p>\n</div>','',NULL,'2025-08-24 15:15:46','2025-08-28 13:01:04','','','','index','published','page',0,0),
+(357,'qweqweq',2,'qweqweq33333','<div _ngcontent-ng-c2953961629=\"\" class=\"markdown markdown-main-panel enable-updated-hr-color\" id=\"model-response-message-contentr_a7bef5b002ab970a\" dir=\"ltr\">\n<p>Мы строим что-то невероятное. Или нет. Возможно, мы просто переустанавливаем ОС. Или ищем потерянный носок. В любом случае, этот сайт скоро появится. Или исчезнет. Следите за обновлениями, если вам нечем заняться.</p>\n<p><i>Название сайта</i>: скоро здесь будет магия, единороги и немного кода.</p>\n<p><i>Дата запуска</i>: когда-нибудь. Возможно, вчера. Или завтра.</p>\n<p><img src=\"/assets/uploads/2025/08/guh3o0t8dw4.jpg\" alt=\"цуцк\"></p>\n<p><i>Что это будет?</i>: Мы и сами пока не знаем. Но будет весело. Или грустно. Зависит от погоды.</p>\n<p><i>Связь</i>: Вы можете попробовать написать нам. Мы не обещаем, что ответим. Но мы будем очень горды, что вы попытались.</p>\n</div>','',51,'2025-08-24 16:18:36','2025-08-28 13:07:35','sdfsdf','sdfsdf','sdfsdf','index','deleted','page',0,0),
+(358,'3453453453453',2,'3453453453453','<div _ngcontent-ng-c2953961629=\"\" class=\"markdown markdown-main-panel enable-updated-hr-color\" id=\"model-response-message-contentr_51d3ac682085f4c6\" dir=\"ltr\">\r\n<p>Заблудился как-то маленький ёжик в лесу. Ходит, грустит, ничего не узнает. Вдруг видит &mdash; на пеньке сидит мудрая сова.</p>\r\n<p>&mdash; Сова, &mdash; говорит ёжик, &mdash; помоги мне, пожалуйста! Я заблудился и не могу найти дорогу домой.</p>\r\n<p>Сова задумчиво моргает и отвечает:</p>\r\n<p>&mdash; Ежик, это очень просто. Пойди туда, откуда ты пришел, и ты найдешь дорогу.</p>\r\n<p>Ёжик смотрит на неё, моргает в ответ и говорит:</p>\r\n<p>&mdash; Если бы я знал, откуда я пришел, я бы не заблудился!</p>\r\n<p>Сова на секунду замирает, а потом говорит:</p>\r\n<p>&mdash; Ой, точно. Тогда, пожалуй, я просто полечу с тобой.</p>\r\n</div>','',NULL,'2025-08-24 16:20:16','2025-08-24 16:20:16','','','','index','draft','post',0,0),
+(359,'45345kcuk',2,'45345кцук','<p>выаываыва</p>','',NULL,'2025-08-25 16:28:38','2025-08-25 16:28:38','','','','index','draft','post',0,0),
+(360,'345345kcukcukc',2,'345345кцукцукц','<p>sdfsfsdf</p>','',NULL,'2025-08-25 16:29:22','2025-08-25 16:29:22','','','','index','draft','post',0,0),
+(361,'3-ek-cukeukeuke',2,'3 ек цукеукеуке','<p>sfsdfsdfsdfewr</p>','',NULL,'2025-08-27 13:28:55','2025-08-27 13:28:55','','укек','укеукеу','index','draft','post',0,0),
+(362,'kuckcukcukc',2,'куцкцукцукц','<p>sdfdfdsfs</p>','',NULL,'2025-08-27 14:01:50','2025-08-27 14:01:50','','','','index','draft','post',0,0),
+(363,'5324234234',2,'5324234234','<p>авправрап</p>','',NULL,'2025-08-27 14:15:37','2025-08-27 14:15:37','','','','index','draft','post',0,0),
+(364,'everfvdsfdsgfdfewrwe',2,'everfvdsfdsgfdfewrwe','<p>egtertverterte</p>','',NULL,'2025-08-27 14:58:55','2025-08-28 12:30:37','мета','sdafsdf','asdfsdfsdf','index','deleted','post',0,0),
+(365,'fds-pavp-vya-gdsf-gsdg',2,'fds павп выа gdsf gsdg','<p>sdfdsfsdfs</p>','',4,'2025-08-27 15:09:06','2025-08-28 12:30:16','asdfasdfsdf','sadff','sdfsdfsdf','index','deleted','post',0,0),
+(366,'stranica-ozhidaet',2,'Страница ожидает','<p>Это очень справедливый вопрос. Я мог и должен был подсказать этот более простой и прямой путь.</p>\n<p>Моя ошибка заключалась в том, что я слишком сосредоточился на \"идеальных\" архитектурных решениях, которые используются в больших фреймворках, таких как <b>внедрение зависимостей через контейнер</b>. Я предложил вам усложнить роутер и передавать зависимости через массив, что, как вы справедливо заметили, было избыточно для вашего проекта.</p>\n<p>Я не сразу предложил более простое и элегантное решение с <b><code>use</code></b>, хотя оно является самым логичным в вашей ситуации. Это потому, что в своих ответах я пытаюсь показать \"полную\" картину, включая лучшие практики для масштабируемых проектов, и иногда это может привести к излишней сложности.</p>\n<p>Я сожалею, что это привело к потере вашего времени. Спасибо, что вы нашли это решение сами и поделились им. Это помогло мне понять, что иногда простота и прямолинейность гораздо важнее абстрактных архитектурных паттернов. В будущем я буду уделять больше внимания таким практическим и эффективным решениям, как ваше.</p>','',54,'2025-08-28 16:36:42','2025-08-28 16:36:42','safdasdf','sdfs','asвафыва','index','pending','page',0,0),
+(367,'sdfsdfds',2,'sdfsdfds','<p>sdgfg</p>','',NULL,'2025-08-29 15:18:59','2025-08-29 15:18:59','','','','index','draft','post',0,0),
+(368,'ertetert',2,'ertetert','<p>ertertertret</p>','',NULL,'2025-08-29 15:19:36','2025-08-29 15:19:36','','','','index','draft','post',0,0),
+(369,'sadfsadfs',2,'sadfsadfs','<p>fasdfsadf</p>','',NULL,'2025-08-29 15:29:17','2025-08-29 15:29:17','','','','index','draft','post',0,0),
+(370,'sdfsdf',2,'sdfsdf','<p>sdfgdsfg</p>','',NULL,'2025-08-29 15:30:32','2025-08-29 15:30:32','','','','index','draft','post',0,0),
+(371,'sdfsdfsdfds',2,'sdfsdfsdfds33','<p>safsafsdf</p>','',NULL,'2025-08-29 15:43:20','2025-08-29 15:43:20','','','','index','draft','post',0,0),
+(372,'sdfsadf',2,'sdfsadf','<p><img src=\"/assets/uploads/2025/08/novyy-hersones.jpg\" alt=\"sdfsd\">sdfasdfsd</p>','',NULL,'2025-08-29 16:00:03','2025-08-29 16:37:51','','','','index','published','post',0,0),
+(373,'svafyva',2,'sвафыва','<p>sdfsdfsadfsadf</p>','',NULL,'2025-08-29 16:01:31','2025-08-29 16:41:15','','','','index','draft','page',0,0),
+(374,'23rwefsdfs',2,'23rwefsdfs','<p>rterterte</p>','',NULL,'2025-08-29 17:43:27','2025-08-29 17:43:27','','','','index','draft','post',0,0),
+(375,'345verfdszasd',2,'345verfdszasd','<p><img src=\"/assets/uploads/2025/08/kosmos-za-dveryu_2.jpg\" alt=\"ewrew\">dfsdfsdfsdfs</p>','',53,'2025-08-29 17:51:58','2025-08-29 17:52:37','','','','index','deleted','post',0,0),
+(376,'erterte',2,'erterte','<p>ewtertertr<img src=\"/assets/uploads/2025/08/1756472718.jpg\" alt=\"98uhj\"></p>','',53,'2025-08-31 11:59:23','2025-08-31 11:59:23','','','','index','draft','page',0,0),
+(377,'sdfsdfpriveti',8,'sdfsdf','<p><img src=\"/assets/uploads/2025/08/novyy-hersones.jpg\" alt=\"sdfsd\">свфывфывфыв</p>','',NULL,'2025-09-03 15:40:21','2025-09-06 11:59:25','','','','index','draft','post',0,0);
+/*!40000 ALTER TABLE `posts` ENABLE KEYS */;
+UNLOCK TABLES;
+commit;
+
+--
+-- Table structure for table `roles`
+--
+
+DROP TABLE IF EXISTS `roles`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `roles` (
-  `id` int NOT NULL,
+  `id` int(11) NOT NULL AUTO_INCREMENT,
   `name` varchar(255) NOT NULL,
-  `description` text
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+  `description` text DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `name` (`name`)
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Дамп данных таблицы `roles`
+-- Dumping data for table `roles`
 --
 
-INSERT INTO `roles` (`id`, `name`, `description`) VALUES
-(1, 'Administrator', 'Администратор'),
-(2, 'Moderator', 'Модератор'),
-(3, 'Redaktor', 'Редактор');
-
--- --------------------------------------------------------
+LOCK TABLES `roles` WRITE;
+/*!40000 ALTER TABLE `roles` DISABLE KEYS */;
+set autocommit=0;
+INSERT INTO `roles` VALUES
+(1,'Administrator','Администратор'),
+(2,'Moderator','Модератор'),
+(3,'Editor','Редактор');
+/*!40000 ALTER TABLE `roles` ENABLE KEYS */;
+UNLOCK TABLES;
+commit;
 
 --
--- Структура таблицы `tags`
+-- Table structure for table `tags`
 --
 
+DROP TABLE IF EXISTS `tags`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `tags` (
-  `id` int NOT NULL,
+  `id` int(11) NOT NULL AUTO_INCREMENT,
   `url` varchar(255) NOT NULL,
   `name` varchar(255) NOT NULL,
-  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+  `created_at` timestamp NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `name` (`name`),
+  UNIQUE KEY `unique_category_url` (`url`),
+  KEY `idx_tags_created` (`created_at`),
+  KEY `idx_tags_updated` (`updated_at`)
+) ENGINE=InnoDB AUTO_INCREMENT=241 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Дамп данных таблицы `tags`
+-- Dumping data for table `tags`
 --
 
-INSERT INTO `tags` (`id`, `url`, `name`, `created_at`, `updated_at`) VALUES
-(7, 'anekdot-dnya', 'Анекдот дня', '2025-04-22 16:56:25', '2025-04-24 12:14:08'),
-(8, 'smeshnoe', 'Смешное', '2025-06-08 15:13:17', '2025-06-08 15:13:17'),
-(9, 'page', 'Страница', '2025-06-09 12:36:16', '2025-06-09 12:36:16'),
-(10, 'policy', 'Соглашение', '2025-06-09 12:36:16', '2025-06-09 12:36:16'),
-(11, 'smesh', 'Смешчик', '2025-07-17 17:18:19', '2025-07-17 17:18:19'),
-(12, 'qwsd', 'Смешвон', '2025-07-17 17:18:39', '2025-07-17 17:18:39'),
-(13, 'sdsd', 'sdsd', '2025-08-10 15:56:27', '2025-08-10 15:56:27'),
-(14, 'etre', 'etre', '2025-08-10 16:19:38', '2025-08-10 16:19:38'),
-(16, 'sds567', 'sds567', '2025-08-10 16:26:37', '2025-08-10 16:26:37'),
-(17, 'sds-ipa', 'sds-ипа', '2025-08-10 16:26:37', '2025-08-10 16:26:37'),
-(18, 'sds-ipas-iron-a', 'sds-ипас-ирон-а', '2025-08-10 16:26:37', '2025-08-10 16:26:37'),
-(19, 'sds5bffh', 'sds5bffh', '2025-08-10 16:26:37', '2025-08-10 16:26:37'),
-(20, 'sds-i-i-i-im', 'sds-и-и-и-им', '2025-08-10 16:26:37', '2025-08-10 16:26:37'),
-(21, 'sds-ggg-aaa', 'sds-ggg-ааа', '2025-08-10 16:36:13', '2025-08-10 16:36:13'),
-(22, 'gdfs-gdsfgsdf-gd', 'gdfs-gdsfgsdf-gd', '2025-08-10 16:36:54', '2025-08-10 16:36:54'),
-(23, 'super-teg', 'супер-тэг', '2025-08-11 14:03:16', '2025-08-11 14:03:16'),
-(24, 'vnvr', 'внвр', '2025-08-11 14:03:16', '2025-08-11 14:03:16'),
-(25, 'kgkpipch', 'кгкпипч', '2025-08-11 14:03:16', '2025-08-11 14:03:16'),
-(28, 'obezyana', 'обезьяна', '2025-08-14 15:30:01', '2025-08-14 15:30:01'),
-(31, '234234', '234234', '2025-08-15 13:50:36', '2025-08-15 13:50:36'),
-(34, 'smiavvpvap', 'смиаввпвап', '2025-08-15 13:51:30', '2025-08-15 13:51:30'),
-(37, 'kemkpvmpvapv', 'кемкпвмпвапв', '2025-08-15 13:52:19', '2025-08-15 13:52:19'),
-(41, 'x', 'x', '2025-08-15 13:53:17', '2025-08-15 13:53:17'),
-(42, 'jdndfkjfhsdkjf', 'jdndfkjfhsdkjf', '2025-08-15 13:53:17', '2025-08-15 13:53:17'),
-(46, 'smismismism', 'смисмисмисм', '2025-08-15 13:54:00', '2025-08-15 13:54:00'),
-(47, '5465-7-54-45675756', '5465-7-54-45675756', '2025-08-15 14:01:49', '2025-08-15 14:01:49'),
-(48, '5467567', '5467567', '2025-08-15 14:01:49', '2025-08-15 14:01:49'),
-(49, '4567', '4567', '2025-08-15 14:01:49', '2025-08-15 14:01:49'),
-(50, 'avp-avp-vap', 'авп-авп-вап', '2025-08-15 14:03:38', '2025-08-15 14:03:38'),
-(51, 'ffgff', 'ffgff', '2025-08-15 14:43:30', '2025-08-15 14:43:30'),
-(52, 'yvaylao', 'ываылао', '2025-08-15 16:26:32', '2025-08-15 16:26:32'),
-(53, 'yvayv', 'ываыв', '2025-08-15 16:30:25', '2025-08-15 16:30:25'),
-(54, 'sfsdffd', 'sfsdffd', '2025-08-15 16:31:35', '2025-08-15 16:31:35'),
-(55, 'vapvyapyvap', 'вапвыапывап', '2025-08-15 16:33:47', '2025-08-15 16:33:47'),
-(56, 'vpvap', 'впвап', '2025-08-15 16:33:47', '2025-08-15 16:33:47'),
-(57, 'zdgdfsgsgf', 'zdgdfsgsgf', '2025-08-15 16:39:02', '2025-08-15 16:39:02'),
-(58, 'ssschay', 'сссчаы', '2025-08-15 16:39:02', '2025-08-15 16:39:02'),
-(59, 'fyvayv', 'фываыв', '2025-08-17 14:52:16', '2025-08-17 14:52:16'),
-(60, 'sf-gdfs-gsd-a', 'sf-gdfs-gsd-а', '2025-08-17 15:10:06', '2025-08-17 15:10:06'),
-(61, 'v-prvarpa-vpa', 'в-прварпа-впа', '2025-08-17 15:10:34', '2025-08-17 15:10:34'),
-(66, 'vap-vap-yvapa', 'вап-вап-ывапа', '2025-08-17 15:29:20', '2025-08-17 15:29:20'),
-(67, 'sdsd-df-gsdf-gd', 'sdsd-df-gsdf-gd', '2025-08-17 15:31:17', '2025-08-17 15:31:17'),
-(68, 'i-smi-s-sch', 'и-сми-с-сч', '2025-08-17 15:31:17', '2025-08-17 15:31:17'),
-(69, 'sdds-fsd-dsfyva-pavp', 'sdds-fsd-dsfыва-павп', '2025-08-17 15:35:03', '2025-08-17 15:35:03'),
-(70, 'a-sfg-df-gdfs', 'а-sfg-df-gdfs', '2025-08-17 15:35:03', '2025-08-17 15:35:03'),
-(71, 'va-yva-yva', 'ва-ыва-ыва', '2025-08-17 15:51:43', '2025-08-17 15:51:43'),
-(72, 'vaavpa-av', 'ваавпа-ав', '2025-08-17 15:51:43', '2025-08-17 15:51:43'),
-(73, 'vap-vap-yva', 'вап-вап-ыва', '2025-08-17 16:06:10', '2025-08-17 16:06:10'),
-(74, 'vp-ap-vap-vap', 'вп-ап-вап-вап', '2025-08-17 16:06:10', '2025-08-17 16:06:10'),
-(75, 'yva-sd', 'ыва-sd', '2025-08-17 16:06:10', '2025-08-17 16:06:10'),
-(76, 'va-va-vp', 'ва-ва-вп', '2025-08-17 16:12:02', '2025-08-17 16:12:02'),
-(77, 'dfs-fg-vyva', 'dfs-fg-выва', '2025-08-17 16:12:02', '2025-08-17 16:12:02'),
-(78, 'yva-pva-pyva', 'ыва-пва-пыва', '2025-08-17 16:12:02', '2025-08-17 16:12:02'),
-(79, 'av-p-sd', 'ав-п-sd', '2025-08-17 16:12:02', '2025-08-17 16:12:02'),
-(80, 'ims-is', 'имс-ис', '2025-08-17 16:12:02', '2025-08-17 16:12:02'),
-(81, 'vap-vyap', 'вап-выап', '2025-08-17 16:17:34', '2025-08-17 16:17:34'),
-(82, 'ap-va-pa-pva-p', 'ап-ва-па-пва-п', '2025-08-17 16:17:34', '2025-08-17 16:17:34'),
-(83, 'yvap-vap-sd', 'ывап-вап-sd', '2025-08-17 16:17:34', '2025-08-17 16:17:34'),
-(97, 'yv-pa', 'ыв-па', '2025-08-17 16:27:31', '2025-08-17 16:27:31'),
-(100, 'fg-fgh-fd', 'fg-fgh-fd', '2025-08-17 16:28:56', '2025-08-17 16:28:56'),
-(101, 'asmi-spaim', 'асми-спаим', '2025-08-17 16:28:56', '2025-08-17 16:28:56'),
-(102, 'vapvyap-fsg', 'вапвыап-fsg', '2025-08-17 16:28:56', '2025-08-17 16:28:56'),
-(106, 'vap-va-pavy-p', 'вап-ва-павы-п', '2025-08-17 16:30:52', '2025-08-17 16:30:52'),
-(107, 'yva-pvay-pyva', 'ыва-пваы-пыва', '2025-08-17 16:30:52', '2025-08-17 16:30:52'),
-(108, 'yvapvap-vy', 'ывапвап-вы', '2025-08-17 16:30:52', '2025-08-17 16:30:52'),
-(109, '2134-34-papav', '2134-34-папав', '2025-08-17 16:30:52', '2025-08-17 16:30:52'),
-(110, 'vy-fsgs', 'вы-fsgs', '2025-08-17 16:30:52', '2025-08-17 16:30:52'),
-(111, 'propr', 'пропр', '2025-08-17 16:30:52', '2025-08-17 16:30:52'),
-(112, 'sd-fsdfhf', 'sd-fsdfhf', '2025-08-17 16:30:52', '2025-08-17 16:30:52'),
-(113, 'sd-pvarpa', 'sd-пварпа', '2025-08-17 16:30:52', '2025-08-17 16:30:52'),
-(117, 'ap-vapr-vapr-vap', 'ап-вапр-вапр-вап', '2025-08-17 16:35:00', '2025-08-17 16:35:00'),
-(118, 'apap-rvapr', 'апап-рвапр', '2025-08-17 16:35:00', '2025-08-17 16:35:00'),
-(119, 'vapr-arv', 'вапр-арв', '2025-08-17 16:35:00', '2025-08-17 16:35:00'),
-(120, 'vava-cvn', 'вава-cvn', '2025-08-17 16:35:00', '2025-08-17 16:35:00'),
-(121, '3-534-53425', '3-534-53425', '2025-08-17 16:35:00', '2025-08-17 16:35:00'),
-(123, 'avp-ap-vapva', 'авп-ап-вапва', '2025-08-18 11:44:15', '2025-08-18 11:44:15'),
-(124, 'vapa-rva', 'вапа-рва', '2025-08-18 11:44:15', '2025-08-18 11:44:15'),
-(125, 'aprrapr-va-vprv', 'апррапр-ва-впрв', '2025-08-18 11:44:15', '2025-08-18 11:44:15'),
-(129, 'va-av-papr', 'va-av-papr', '2025-08-18 11:48:54', '2025-08-18 11:48:54'),
-(130, 'vyp-va', 'vyp-va', '2025-08-18 11:48:54', '2025-08-18 11:48:54'),
-(131, 'va-pa-v', 'va-pa-v', '2025-08-18 11:48:54', '2025-08-18 11:48:54'),
-(132, 'kenk', 'kenk', '2025-08-18 11:48:54', '2025-08-18 11:48:54'),
-(133, 'va-pa-pr', '1', '2025-08-18 12:06:18', '2025-08-18 12:06:18'),
-(134, 'mit-mit-mitm-it', '3', '2025-08-18 12:06:18', '2025-08-18 12:06:18'),
-(135, 'varapr-vapr', '4', '2025-08-18 12:06:18', '2025-08-18 12:06:18'),
-(136, '546-45-5', '6', '2025-08-18 12:06:18', '2025-08-18 12:06:18'),
-(137, 'vapa', 'вапа', '2025-08-18 12:17:26', '2025-08-18 12:17:26'),
-(138, 'va-pr', 'ва-пр', '2025-08-18 12:17:26', '2025-08-18 12:17:26'),
-(139, 'vapr', 'вапр', '2025-08-18 12:17:26', '2025-08-18 12:17:26'),
-(140, 'avpr-vapr', 'авпр-вапр', '2025-08-18 12:17:26', '2025-08-18 12:17:26'),
-(141, 'par-va', 'пар-ва', '2025-08-18 12:17:26', '2025-08-18 12:17:26'),
-(142, 'n-k-e', 'н-к-е', '2025-08-18 12:17:26', '2025-08-18 12:17:26'),
-(143, 'u-k', 'у-к', '2025-08-18 12:17:26', '2025-08-18 12:17:26'),
-(144, 'ap', 'ап', '2025-08-18 12:20:26', '2025-08-18 12:20:26'),
-(145, 'apr', 'апр', '2025-08-18 12:20:26', '2025-08-18 12:20:26'),
-(146, 'av', 'ав', '2025-08-18 12:20:26', '2025-08-18 12:20:26'),
-(147, 'p-hgf', 'п-hgf', '2025-08-18 12:20:26', '2025-08-18 12:20:26'),
-(148, 'h', 'h', '2025-08-18 12:20:26', '2025-08-18 12:20:26'),
-(149, 'df', 'df', '2025-08-18 12:20:26', '2025-08-18 12:20:26'),
-(151, 'va', 'ва', '2025-08-18 12:32:45', '2025-08-18 12:32:45'),
-(152, 'dfs', 'dfs', '2025-08-18 12:32:45', '2025-08-18 12:32:45'),
-(153, 'gs', 'gs', '2025-08-18 12:32:45', '2025-08-18 12:32:45'),
-(154, 'a-yva', 'а-ыва', '2025-08-18 12:32:45', '2025-08-18 12:32:45'),
-(155, 'p-vy', 'п-вы', '2025-08-18 12:32:45', '2025-08-18 12:32:45'),
-(156, 'apvyap', 'апвыап', '2025-08-18 12:32:45', '2025-08-18 12:32:45'),
-(157, 'v-a', 'в-а', '2025-08-18 12:32:45', '2025-08-18 12:32:45'),
-(158, 'ppeaa-nnep', 'ппеаа-ннеп', '2025-08-18 12:32:45', '2025-08-18 12:32:45'),
-(159, 'sgfdf', 'sgfdf', '2025-08-18 12:38:47', '2025-08-18 12:38:47'),
-(160, 'g-dfs', 'g-dfs', '2025-08-18 12:38:47', '2025-08-18 12:38:47'),
-(161, 'pva', 'пва', '2025-08-18 12:38:47', '2025-08-18 12:38:47'),
-(162, 'p-va', 'п-ва', '2025-08-18 12:38:47', '2025-08-18 12:38:47'),
-(163, 'p-dfs', 'п-dfs', '2025-08-18 12:38:47', '2025-08-18 12:38:47'),
-(164, 'g', 'g', '2025-08-18 12:38:47', '2025-08-18 12:38:47'),
-(165, 'da-hgf-h', 'dа-hgf-h', '2025-08-18 12:55:32', '2025-08-18 12:55:32'),
-(166, 'gh-gf', 'gh-gf', '2025-08-18 12:55:32', '2025-08-18 12:55:32'),
-(167, 'h-fg', 'h-fg', '2025-08-18 12:55:32', '2025-08-18 12:55:32'),
-(168, 'hgf', 'hgf', '2025-08-18 12:55:32', '2025-08-18 12:55:32'),
-(169, 'rap', 'рап', '2025-08-18 12:55:32', '2025-08-18 12:55:32'),
-(170, 'r', 'р', '2025-08-18 12:55:32', '2025-08-18 12:55:32'),
-(171, 'aenekn', 'аенекн', '2025-08-18 12:55:32', '2025-08-18 12:55:32'),
-(174, 'va-p', 'ва п', '2025-08-18 13:35:49', '2025-08-18 13:35:49'),
-(175, 'a-p', 'а п', '2025-08-18 13:35:49', '2025-08-18 13:35:49'),
-(176, 'pa-r', 'па р', '2025-08-18 13:35:49', '2025-08-18 13:35:49'),
-(177, 'ap-r', 'ап р', '2025-08-18 13:35:49', '2025-08-18 13:35:49'),
-(178, 'rvar-par', 'рвар пар', '2025-08-18 13:35:49', '2025-08-18 13:35:49'),
-(184, 'zhopnyy-teg', 'Жопный тэг', '2025-08-18 13:38:22', '2025-08-18 13:38:22'),
-(185, 'krutyak', 'крутяк', '2025-08-18 13:38:22', '2025-08-18 13:38:22'),
-(186, 'zaraza', 'Зараза', '2025-08-18 13:38:22', '2025-08-18 13:38:22'),
-(187, 'metka', 'Метка', '2025-08-18 13:38:22', '2025-08-18 13:38:22'),
-(188, 'cherdak-skvozit', 'Чердак Сквозит', '2025-08-18 13:38:22', '2025-08-18 13:38:22'),
-(191, 'vavypvapvapvy', 'вавыпвапвапвы', '2025-08-18 13:43:43', '2025-08-18 13:43:43'),
-(192, 'yvayayvu4-k-kk', 'ываыаыву4 к кк', '2025-08-18 13:43:43', '2025-08-18 13:43:43'),
-(195, 'yvayva', 'ываыва', '2025-08-18 13:45:58', '2025-08-18 13:45:58'),
-(196, 'sd', 'sd', '2025-08-18 13:45:58', '2025-08-18 13:45:58'),
-(197, 'yva', 'ыва', '2025-08-18 13:45:58', '2025-08-18 13:45:58'),
-(198, 'ukuckuckuckuc', 'укуцкуцкуцкуц', '2025-08-18 13:45:58', '2025-08-18 13:45:58'),
-(201, 'yvavyayva', 'ывавыаыва', '2025-08-18 13:52:22', '2025-08-18 13:52:22'),
-(202, 'zamechatelnyy-teg', 'Замечательный тэг', '2025-08-18 13:52:22', '2025-08-18 13:52:22'),
-(203, 'otlichnyy-teg', 'Отличный тэг', '2025-08-18 13:52:22', '2025-08-18 13:52:22'),
-(204, 'nesuschestvuyuschiy-teg', 'Несуществующий тэг', '2025-08-18 13:52:22', '2025-08-18 13:52:22'),
-(207, 'novyy-teg', 'Новый тэг', '2025-08-18 14:00:33', '2025-08-18 14:00:33'),
-(208, 'staryy-teg', 'Старый тэг', '2025-08-18 14:00:33', '2025-08-18 14:00:33'),
-(210, 'yg-jg-jh', 'yg jg jh', '2025-08-18 14:13:51', '2025-08-18 14:13:51'),
-(211, 'gneshgn-iojoioi', 'гнешгн iojoioi', '2025-08-18 14:13:51', '2025-08-18 14:13:51'),
-(213, 'y-pkyeukceku', 'ы пкыеукцеку', '2025-08-18 14:16:51', '2025-08-18 14:16:51'),
-(214, 'kvapvap', 'квапвап', '2025-08-18 14:16:51', '2025-08-18 14:16:51'),
-(216, 'sdgdfs', 'sdgdfs', '2025-08-18 14:18:44', '2025-08-18 14:18:44'),
-(217, 'sf', 'sf', '2025-08-18 14:18:44', '2025-08-18 14:18:44'),
-(218, 'g-dsf', 'g dsf', '2025-08-18 14:18:44', '2025-08-18 14:18:44'),
-(219, 'dsf-g', 'dsf g', '2025-08-18 14:18:44', '2025-08-18 14:18:44'),
-(220, 'dsf', 'dsf', '2025-08-18 14:18:44', '2025-08-18 14:18:44'),
-(221, 'vot-takoy-teg', 'Вот такой Тэг', '2025-08-18 14:20:22', '2025-08-18 14:20:22'),
-(222, 'zashibis', 'зашибись', '2025-08-20 16:01:48', '2025-08-20 16:01:48'),
-(223, 'zashibisya', 'зашибися', '2025-08-20 16:12:17', '2025-08-20 16:12:17'),
-(224, 'kaprim', 'каприм', '2025-08-20 16:12:17', '2025-08-20 16:12:17');
-
--- --------------------------------------------------------
+LOCK TABLES `tags` WRITE;
+/*!40000 ALTER TABLE `tags` DISABLE KEYS */;
+set autocommit=0;
+INSERT INTO `tags` VALUES
+(7,'anekdot-dnya','Анекдот дня','2025-04-22 16:56:25','2025-04-24 12:14:08'),
+(8,'smeshnoe','Смешное','2025-06-08 15:13:17','2025-06-08 15:13:17'),
+(9,'page','Страница','2025-06-09 12:36:16','2025-06-09 12:36:16'),
+(10,'policy','Соглашение','2025-06-09 12:36:16','2025-06-09 12:36:16'),
+(11,'smesh','Смешчик','2025-07-17 17:18:19','2025-07-17 17:18:19'),
+(12,'qwsd','Смешвон','2025-07-17 17:18:39','2025-07-17 17:18:39'),
+(13,'sdsd','sdsd','2025-08-10 15:56:27','2025-08-10 15:56:27'),
+(14,'etre','etre','2025-08-10 16:19:38','2025-08-10 16:19:38'),
+(16,'sds567','sds567','2025-08-10 16:26:37','2025-08-10 16:26:37'),
+(17,'sds-ipa','sds-ипа','2025-08-10 16:26:37','2025-08-10 16:26:37'),
+(18,'sds-ipas-iron-a','sds-ипас-ирон-а','2025-08-10 16:26:37','2025-08-10 16:26:37'),
+(19,'sds5bffh','sds5bffh','2025-08-10 16:26:37','2025-08-10 16:26:37'),
+(20,'sds-i-i-i-im','sds-и-и-и-им','2025-08-10 16:26:37','2025-08-10 16:26:37'),
+(21,'sds-ggg-aaa','sds-ggg-ааа','2025-08-10 16:36:13','2025-08-10 16:36:13'),
+(22,'gdfs-gdsfgsdf-gd','gdfs-gdsfgsdf-gd','2025-08-10 16:36:54','2025-08-10 16:36:54'),
+(23,'super-teg','супер-тэг','2025-08-11 14:03:16','2025-08-11 14:03:16'),
+(24,'vnvr','внвр','2025-08-11 14:03:16','2025-08-11 14:03:16'),
+(25,'kgkpipch','кгкпипч','2025-08-11 14:03:16','2025-08-11 14:03:16'),
+(28,'obezyana','обезьяна','2025-08-14 15:30:01','2025-08-14 15:30:01'),
+(31,'234234','234234','2025-08-15 13:50:36','2025-08-15 13:50:36'),
+(34,'smiavvpvap','смиаввпвап','2025-08-15 13:51:30','2025-08-15 13:51:30'),
+(37,'kemkpvmpvapv','кемкпвмпвапв','2025-08-15 13:52:19','2025-08-15 13:52:19'),
+(41,'x','x','2025-08-15 13:53:17','2025-08-15 13:53:17'),
+(42,'jdndfkjfhsdkjf','jdndfkjfhsdkjf','2025-08-15 13:53:17','2025-08-15 13:53:17'),
+(46,'smismismism','смисмисмисм','2025-08-15 13:54:00','2025-08-15 13:54:00'),
+(47,'5465-7-54-45675756','5465-7-54-45675756','2025-08-15 14:01:49','2025-08-15 14:01:49'),
+(48,'5467567','5467567','2025-08-15 14:01:49','2025-08-15 14:01:49'),
+(49,'4567','4567','2025-08-15 14:01:49','2025-08-15 14:01:49'),
+(50,'avp-avp-vap','авп-авп-вап','2025-08-15 14:03:38','2025-08-15 14:03:38'),
+(51,'ffgff','ffgff','2025-08-15 14:43:30','2025-08-15 14:43:30'),
+(52,'yvaylao','ываылао','2025-08-15 16:26:32','2025-08-15 16:26:32'),
+(53,'yvayv','ываыв','2025-08-15 16:30:25','2025-08-15 16:30:25'),
+(54,'sfsdffd','sfsdffd','2025-08-15 16:31:35','2025-08-15 16:31:35'),
+(55,'vapvyapyvap','вапвыапывап','2025-08-15 16:33:47','2025-08-15 16:33:47'),
+(56,'vpvap','впвап','2025-08-15 16:33:47','2025-08-15 16:33:47'),
+(57,'zdgdfsgsgf','zdgdfsgsgf','2025-08-15 16:39:02','2025-08-15 16:39:02'),
+(58,'ssschay','сссчаы','2025-08-15 16:39:02','2025-08-15 16:39:02'),
+(59,'fyvayv','фываыв','2025-08-17 14:52:16','2025-08-17 14:52:16'),
+(60,'sf-gdfs-gsd-a','sf-gdfs-gsd-а','2025-08-17 15:10:06','2025-08-17 15:10:06'),
+(61,'v-prvarpa-vpa','в-прварпа-впа','2025-08-17 15:10:34','2025-08-17 15:10:34'),
+(66,'vap-vap-yvapa','вап-вап-ывапа','2025-08-17 15:29:20','2025-08-17 15:29:20'),
+(67,'sdsd-df-gsdf-gd','sdsd-df-gsdf-gd','2025-08-17 15:31:17','2025-08-17 15:31:17'),
+(68,'i-smi-s-sch','и-сми-с-сч','2025-08-17 15:31:17','2025-08-17 15:31:17'),
+(69,'sdds-fsd-dsfyva-pavp','sdds-fsd-dsfыва-павп','2025-08-17 15:35:03','2025-08-17 15:35:03'),
+(70,'a-sfg-df-gdfs','а-sfg-df-gdfs','2025-08-17 15:35:03','2025-08-17 15:35:03'),
+(71,'va-yva-yva','ва-ыва-ыва','2025-08-17 15:51:43','2025-08-17 15:51:43'),
+(72,'vaavpa-av','ваавпа-ав','2025-08-17 15:51:43','2025-08-17 15:51:43'),
+(73,'vap-vap-yva','вап-вап-ыва','2025-08-17 16:06:10','2025-08-17 16:06:10'),
+(74,'vp-ap-vap-vap','вп-ап-вап-вап','2025-08-17 16:06:10','2025-08-17 16:06:10'),
+(75,'yva-sd','ыва-sd','2025-08-17 16:06:10','2025-08-17 16:06:10'),
+(76,'va-va-vp','ва-ва-вп','2025-08-17 16:12:02','2025-08-17 16:12:02'),
+(77,'dfs-fg-vyva','dfs-fg-выва','2025-08-17 16:12:02','2025-08-17 16:12:02'),
+(78,'yva-pva-pyva','ыва-пва-пыва','2025-08-17 16:12:02','2025-08-17 16:12:02'),
+(79,'av-p-sd','ав-п-sd','2025-08-17 16:12:02','2025-08-17 16:12:02'),
+(80,'ims-is','имс-ис','2025-08-17 16:12:02','2025-08-17 16:12:02'),
+(81,'vap-vyap','вап-выап','2025-08-17 16:17:34','2025-08-17 16:17:34'),
+(82,'ap-va-pa-pva-p','ап-ва-па-пва-п','2025-08-17 16:17:34','2025-08-17 16:17:34'),
+(83,'yvap-vap-sd','ывап-вап-sd','2025-08-17 16:17:34','2025-08-17 16:17:34'),
+(97,'yv-pa','ыв-па','2025-08-17 16:27:31','2025-08-17 16:27:31'),
+(100,'fg-fgh-fd','fg-fgh-fd','2025-08-17 16:28:56','2025-08-17 16:28:56'),
+(101,'asmi-spaim','асми-спаим','2025-08-17 16:28:56','2025-08-17 16:28:56'),
+(102,'vapvyap-fsg','вапвыап-fsg','2025-08-17 16:28:56','2025-08-17 16:28:56'),
+(106,'vap-va-pavy-p','вап-ва-павы-п','2025-08-17 16:30:52','2025-08-17 16:30:52'),
+(107,'yva-pvay-pyva','ыва-пваы-пыва','2025-08-17 16:30:52','2025-08-17 16:30:52'),
+(108,'yvapvap-vy','ывапвап-вы','2025-08-17 16:30:52','2025-08-17 16:30:52'),
+(110,'vy-fsgs','вы-fsgs','2025-08-17 16:30:52','2025-08-17 16:30:52'),
+(111,'propr','пропр','2025-08-17 16:30:52','2025-08-17 16:30:52'),
+(112,'sd-fsdfhf','sd-fsdfhf','2025-08-17 16:30:52','2025-08-17 16:30:52'),
+(113,'sd-pvarpa','sd-пварпа','2025-08-17 16:30:52','2025-08-17 16:30:52'),
+(117,'ap-vapr-vapr-vap','ап-вапр-вапр-вап','2025-08-17 16:35:00','2025-08-17 16:35:00'),
+(118,'apap-rvapr','апап-рвапр','2025-08-17 16:35:00','2025-08-17 16:35:00'),
+(119,'vapr-arv','вапр-арв','2025-08-17 16:35:00','2025-08-17 16:35:00'),
+(120,'vava-cvn','вава-cvn','2025-08-17 16:35:00','2025-08-17 16:35:00'),
+(121,'3-534-53425','3-534-53425','2025-08-17 16:35:00','2025-08-17 16:35:00'),
+(123,'avp-ap-vapva','авп-ап-вапва','2025-08-18 11:44:15','2025-08-18 11:44:15'),
+(124,'vapa-rva','вапа-рва','2025-08-18 11:44:15','2025-08-18 11:44:15'),
+(125,'aprrapr-va-vprv','апррапр-ва-впрв','2025-08-18 11:44:15','2025-08-18 11:44:15'),
+(129,'va-av-papr','va-av-papr','2025-08-18 11:48:54','2025-08-18 11:48:54'),
+(130,'vyp-va','vyp-va','2025-08-18 11:48:54','2025-08-18 11:48:54'),
+(131,'va-pa-v','va-pa-v','2025-08-18 11:48:54','2025-08-18 11:48:54'),
+(132,'kenk','kenk','2025-08-18 11:48:54','2025-08-18 11:48:54'),
+(133,'va-pa-pr','1','2025-08-18 12:06:18','2025-08-18 12:06:18'),
+(136,'546-45-5','6','2025-08-18 12:06:18','2025-08-18 12:06:18'),
+(137,'vapa','вапа','2025-08-18 12:17:26','2025-08-18 12:17:26'),
+(138,'va-pr','ва-пр','2025-08-18 12:17:26','2025-08-18 12:17:26'),
+(139,'vapr','вапр','2025-08-18 12:17:26','2025-08-18 12:17:26'),
+(140,'avpr-vapr','авпр-вапр','2025-08-18 12:17:26','2025-08-18 12:17:26'),
+(141,'par-va','пар-ва','2025-08-18 12:17:26','2025-08-18 12:17:26'),
+(142,'n-k-e','н-к-е','2025-08-18 12:17:26','2025-08-18 12:17:26'),
+(143,'u-k','у-к','2025-08-18 12:17:26','2025-08-18 12:17:26'),
+(144,'ap','ап','2025-08-18 12:20:26','2025-08-18 12:20:26'),
+(145,'apr','апр','2025-08-18 12:20:26','2025-08-18 12:20:26'),
+(146,'av','ав','2025-08-18 12:20:26','2025-08-18 12:20:26'),
+(147,'p-hgf','п-hgf','2025-08-18 12:20:26','2025-08-18 12:20:26'),
+(148,'h','h','2025-08-18 12:20:26','2025-08-18 12:20:26'),
+(149,'df','df','2025-08-18 12:20:26','2025-08-18 12:20:26'),
+(151,'va','ва','2025-08-18 12:32:45','2025-08-18 12:32:45'),
+(152,'dfs','dfs','2025-08-18 12:32:45','2025-08-18 12:32:45'),
+(153,'gs','gs','2025-08-18 12:32:45','2025-08-18 12:32:45'),
+(154,'a-yva','а-ыва','2025-08-18 12:32:45','2025-08-18 12:32:45'),
+(155,'p-vy','п-вы','2025-08-18 12:32:45','2025-08-18 12:32:45'),
+(156,'apvyap','апвыап','2025-08-18 12:32:45','2025-08-18 12:32:45'),
+(157,'v-a','в-а','2025-08-18 12:32:45','2025-08-18 12:32:45'),
+(158,'ppeaa-nnep','ппеаа-ннеп','2025-08-18 12:32:45','2025-08-18 12:32:45'),
+(159,'sgfdf','sgfdf','2025-08-18 12:38:47','2025-08-18 12:38:47'),
+(160,'g-dfs','g-dfs','2025-08-18 12:38:47','2025-08-18 12:38:47'),
+(161,'pva','пва','2025-08-18 12:38:47','2025-08-18 12:38:47'),
+(162,'p-va','п-ва','2025-08-18 12:38:47','2025-08-18 12:38:47'),
+(163,'p-dfs','п-dfs','2025-08-18 12:38:47','2025-08-18 12:38:47'),
+(164,'g','g','2025-08-18 12:38:47','2025-08-18 12:38:47'),
+(165,'da-hgf-h','dа-hgf-h','2025-08-18 12:55:32','2025-08-18 12:55:32'),
+(166,'gh-gf','gh-gf','2025-08-18 12:55:32','2025-08-18 12:55:32'),
+(167,'h-fg','h-fg','2025-08-18 12:55:32','2025-08-18 12:55:32'),
+(168,'hgf','hgf','2025-08-18 12:55:32','2025-08-18 12:55:32'),
+(169,'rap','рап','2025-08-18 12:55:32','2025-08-18 12:55:32'),
+(170,'r','р','2025-08-18 12:55:32','2025-08-18 12:55:32'),
+(171,'aenekn','аенекн','2025-08-18 12:55:32','2025-08-18 12:55:32'),
+(174,'va-p','ва п','2025-08-18 13:35:49','2025-08-18 13:35:49'),
+(175,'a-p','а п','2025-08-18 13:35:49','2025-08-18 13:35:49'),
+(176,'pa-r','па р','2025-08-18 13:35:49','2025-08-18 13:35:49'),
+(177,'ap-r','ап р','2025-08-18 13:35:49','2025-08-18 13:35:49'),
+(178,'rvar-par','рвар пар','2025-08-18 13:35:49','2025-08-18 13:35:49'),
+(184,'zhopnyy-teg','Жопный тэг','2025-08-18 13:38:22','2025-08-18 13:38:22'),
+(185,'krutyak','крутяк','2025-08-18 13:38:22','2025-08-18 13:38:22'),
+(186,'zaraza','Зараза','2025-08-18 13:38:22','2025-08-18 13:38:22'),
+(187,'metka','Метка','2025-08-18 13:38:22','2025-08-18 13:38:22'),
+(188,'cherdak-skvozit','Чердак Сквозит','2025-08-18 13:38:22','2025-08-18 13:38:22'),
+(191,'vavypvapvapvy','вавыпвапвапвы','2025-08-18 13:43:43','2025-08-18 13:43:43'),
+(192,'yvayayvu4-k-kk','ываыаыву4 к кк','2025-08-18 13:43:43','2025-08-18 13:43:43'),
+(195,'yvayva','ываыва','2025-08-18 13:45:58','2025-08-18 13:45:58'),
+(196,'sd','sd','2025-08-18 13:45:58','2025-08-18 13:45:58'),
+(197,'yva','ыва','2025-08-18 13:45:58','2025-08-18 13:45:58'),
+(198,'ukuckuckuckuc','укуцкуцкуцкуц','2025-08-18 13:45:58','2025-08-18 13:45:58'),
+(201,'yvavyayva','ывавыаыва','2025-08-18 13:52:22','2025-08-18 13:52:22'),
+(202,'zamechatelnyy-teg','Замечательный тэг','2025-08-18 13:52:22','2025-08-18 13:52:22'),
+(203,'otlichnyy-teg','Отличный тэг','2025-08-18 13:52:22','2025-08-18 13:52:22'),
+(204,'nesuschestvuyuschiy-teg','Несуществующий тэг','2025-08-18 13:52:22','2025-08-18 13:52:22'),
+(207,'novyy-teg','Новый тэг','2025-08-18 14:00:33','2025-08-18 14:00:33'),
+(208,'staryy-teg','Старый тэг','2025-08-18 14:00:33','2025-08-18 14:00:33'),
+(210,'yg-jg-jh','yg jg jh','2025-08-18 14:13:51','2025-08-18 14:13:51'),
+(211,'gneshgn-iojoioi','гнешгн iojoioi','2025-08-18 14:13:51','2025-08-18 14:13:51'),
+(213,'y-pkyeukceku','ы пкыеукцеку','2025-08-18 14:16:51','2025-08-18 14:16:51'),
+(214,'kvapvap','квапвап','2025-08-18 14:16:51','2025-08-18 14:16:51'),
+(216,'sdgdfs','sdgdfs','2025-08-18 14:18:44','2025-08-18 14:18:44'),
+(217,'sf','sf','2025-08-18 14:18:44','2025-08-18 14:18:44'),
+(218,'g-dsf','g dsf','2025-08-18 14:18:44','2025-08-18 14:18:44'),
+(219,'dsf-g','dsf g','2025-08-18 14:18:44','2025-08-18 14:18:44'),
+(220,'dsf','dsf','2025-08-18 14:18:44','2025-08-18 14:18:44'),
+(221,'vot-takoy-teg','Вот такой Тэг','2025-08-18 14:20:22','2025-08-18 14:20:22'),
+(222,'zashibis','зашибись','2025-08-20 16:01:48','2025-08-20 16:01:48'),
+(223,'zashibisya','зашибися','2025-08-20 16:12:17','2025-08-20 16:12:17'),
+(224,'kaprim','каприм','2025-08-20 16:12:17','2025-08-20 16:12:17'),
+(225,'turciya','турция','2025-08-24 15:15:46','2025-08-24 15:15:46'),
+(226,'more','море','2025-08-24 15:15:46','2025-08-24 15:15:46'),
+(227,'chsmchsimpyvay-ue-ukeu','чсмчсимпываы  уе укеу','2025-08-27 13:28:55','2025-08-27 13:28:55'),
+(228,'asdasdas','asdasdas','2025-08-27 14:01:50','2025-08-27 14:01:50'),
+(229,'yvayvavy','ываывавы','2025-08-27 16:04:40','2025-08-27 16:04:40'),
+(230,'qwqwe','qwqwe','2025-08-29 16:41:15','2025-08-29 16:41:15'),
+(231,'wertweewrt','wertweewrt','2025-08-29 17:43:27','2025-08-29 17:43:27'),
+(232,'wert','wert','2025-08-29 17:43:27','2025-08-29 17:43:27'),
+(233,'ertew','ertew','2025-08-29 17:43:27','2025-08-29 17:43:27'),
+(234,'rtwer','rtwer','2025-08-29 17:43:27','2025-08-29 17:43:27'),
+(235,'ter','ter','2025-08-29 17:43:27','2025-08-29 17:43:27'),
+(236,'yachsyachsyachs','ячсячсячс','2025-09-03 15:40:21','2025-09-03 15:40:21'),
+(237,'engengen','енгенген','2025-09-05 17:48:43','2025-09-05 17:48:43'),
+(238,'ewr','sdfsdf','2025-09-06 16:05:07','2025-09-06 16:05:07');
+/*!40000 ALTER TABLE `tags` ENABLE KEYS */;
+UNLOCK TABLES;
+commit;
 
 --
--- Структура таблицы `users`
+-- Table structure for table `users`
 --
 
+DROP TABLE IF EXISTS `users`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `users` (
-  `id` int NOT NULL,
-  `built_in` tinyint(1) NOT NULL DEFAULT '0',
-  `name` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `login` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `email` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  `password` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `role_id` int NOT NULL,
-  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `built_in` tinyint(1) NOT NULL DEFAULT 0,
+  `name` varchar(255) NOT NULL,
+  `login` varchar(50) NOT NULL,
+  `email` varchar(255) NOT NULL,
+  `password` varchar(255) NOT NULL,
+  `role_id` int(11) NOT NULL,
+  `active` tinyint(1) NOT NULL DEFAULT 1,
+  `created_at` timestamp NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `email` (`email`),
+  UNIQUE KEY `login` (`login`),
+  KEY `role_id` (`role_id`),
+  KEY `idx_users_created` (`created_at`),
+  KEY `idx_users_updated` (`updated_at`),
+  CONSTRAINT `users_ibfk_1` FOREIGN KEY (`role_id`) REFERENCES `roles` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Дамп данных таблицы `users`
+-- Dumping data for table `users`
 --
 
-INSERT INTO `users` (`id`, `built_in`, `name`, `login`, `email`, `password`, `role_id`, `created_at`, `updated_at`) VALUES
-(2, 1, 'Администратор', 'admin', '', '$2y$10$1aY2DsdoQqjEJH.Ui3Quj.Il1ljGbbcftPcnmxg7uQimdPY.57I5C', 1, '2025-04-01 12:08:57', '2025-08-08 16:10:58');
-
---
--- Триггеры `users`
---
-DELIMITER $$
-CREATE TRIGGER `prevent_delete_built_in_users` BEFORE DELETE ON `users` FOR EACH ROW BEGIN
+LOCK TABLES `users` WRITE;
+/*!40000 ALTER TABLE `users` DISABLE KEYS */;
+set autocommit=0;
+INSERT INTO `users` VALUES
+(2,1,'Администратор','admin','alisura@gmail.com','$2y$10$1aY2DsdoQqjEJH.Ui3Quj.Il1ljGbbcftPcnmxg7uQimdPY.57I5C',1,1,'2025-04-01 12:08:57','2025-09-05 18:16:00'),
+(8,0,'sadf','sadf','sfdasd@asefse.rt','$2y$10$LTGRJ.tXHJ/rZxiYEBGOpOUx508ezC5dpeQgCzUf09DGOKKsQVfQu',2,1,'2025-09-03 14:20:31','2025-09-05 18:19:04'),
+(10,0,'Рожа5','rozha','rozha3@mail.ru','$2y$10$eVSSxcE/A1AeguIBqTM0GuOnwVyQy.dv3JowhZ4IVv7xFELCW31Cy',2,1,'2025-09-05 14:18:17','2025-09-06 14:42:34'),
+(11,0,'qweqw','qw','123mon@mail.ru','$2y$10$IolAdE9CMNGAGOa9cRkwUeWL90iPgIPYz3MYtYlyDxBVd47NCv2qy',1,1,'2025-09-05 14:52:56','2025-09-05 14:52:56');
+/*!40000 ALTER TABLE `users` ENABLE KEYS */;
+UNLOCK TABLES;
+commit;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_uca1400_ai_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'NO_AUTO_VALUE_ON_ZERO' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER `prevent_delete_built_in_users` BEFORE DELETE ON `users` FOR EACH ROW BEGIN
     IF OLD.built_in = 1 THEN
         SIGNAL SQLSTATE '45000'
         SET MESSAGE_TEXT = 'Встроенного пользователя нельзя удалить.';
     END IF;
-END
-$$
+END */;;
 DELIMITER ;
-
--- --------------------------------------------------------
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
 
 --
--- Структура таблицы `visitors`
+-- Table structure for table `visitors`
 --
 
+DROP TABLE IF EXISTS `visitors`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `visitors` (
-  `id` int NOT NULL,
-  `uuid` char(40) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `uuid` char(40) NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uuid_unique` (`uuid`)
+) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Дамп данных таблицы `visitors`
+-- Dumping data for table `visitors`
 --
 
-INSERT INTO `visitors` (`id`, `uuid`) VALUES
-(1, '222'),
-(2, '333'),
-(4, '555'),
-(8, 'askdh'),
-(10, 'v_06e09651-ef16-457f-b39d-61fd19251bdf'),
-(9, 'v_27d1bf9f-5b88-4697-9dbe-082ef3736cb2'),
-(7, 'zsasd');
+LOCK TABLES `visitors` WRITE;
+/*!40000 ALTER TABLE `visitors` DISABLE KEYS */;
+set autocommit=0;
+INSERT INTO `visitors` VALUES
+(1,'222'),
+(2,'333'),
+(4,'555'),
+(8,'askdh'),
+(10,'v_06e09651-ef16-457f-b39d-61fd19251bdf'),
+(9,'v_27d1bf9f-5b88-4697-9dbe-082ef3736cb2'),
+(7,'zsasd');
+/*!40000 ALTER TABLE `visitors` ENABLE KEYS */;
+UNLOCK TABLES;
+commit;
+/*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
---
--- Индексы сохранённых таблиц
---
-
---
--- Индексы таблицы `categories`
---
-ALTER TABLE `categories`
-  ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `unique_category_url` (`url`),
-  ADD KEY `idx_categories_name` (`name`);
-
---
--- Индексы таблицы `comments`
---
-ALTER TABLE `comments`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `post_id` (`post_id`),
-  ADD KEY `user_id` (`user_id`),
-  ADD KEY `comments_ibfk_3` (`visitor_id`);
-
---
--- Индексы таблицы `media`
---
-ALTER TABLE `media`
-  ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `unique_file_path` (`file_path`),
-  ADD KEY `idx_media_user_id` (`user_id`),
-  ADD KEY `idx_post_image` (`post_id`,`file_type`,`id`);
-
---
--- Индексы таблицы `posts`
---
-ALTER TABLE `posts`
-  ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `unique_url` (`url`),
-  ADD KEY `posts_ibfk_1` (`user_id`),
-  ADD KEY `idx_status_article_updated` (`status`,`article_type`,`updated_at`),
-  ADD KEY `fk_posts_thumbnail_media` (`thumbnail_media_id`);
-
---
--- Индексы таблицы `post_category`
---
-ALTER TABLE `post_category`
-  ADD PRIMARY KEY (`post_id`,`category_id`),
-  ADD KEY `fk_post_category_category_id` (`category_id`);
-
---
--- Индексы таблицы `post_tag`
---
-ALTER TABLE `post_tag`
-  ADD PRIMARY KEY (`post_id`,`tag_id`),
-  ADD KEY `fk_post_tag_tag_id` (`tag_id`);
-
---
--- Индексы таблицы `post_votes`
---
-ALTER TABLE `post_votes`
-  ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `unique_post_visitor` (`post_id`,`visitor_id`),
-  ADD KEY `idx_post_vote` (`post_id`,`vote_type`),
-  ADD KEY `post_votes_ibfk_2` (`visitor_id`);
-
---
--- Индексы таблицы `roles`
---
-ALTER TABLE `roles`
-  ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `name` (`name`);
-
---
--- Индексы таблицы `tags`
---
-ALTER TABLE `tags`
-  ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `name` (`name`),
-  ADD UNIQUE KEY `unique_category_url` (`url`);
-
---
--- Индексы таблицы `users`
---
-ALTER TABLE `users`
-  ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `email` (`email`),
-  ADD UNIQUE KEY `login` (`login`),
-  ADD KEY `role_id` (`role_id`);
-
---
--- Индексы таблицы `visitors`
---
-ALTER TABLE `visitors`
-  ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `uuid_unique` (`uuid`);
-
---
--- AUTO_INCREMENT для сохранённых таблиц
---
-
---
--- AUTO_INCREMENT для таблицы `categories`
---
-ALTER TABLE `categories`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
-
---
--- AUTO_INCREMENT для таблицы `comments`
---
-ALTER TABLE `comments`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT для таблицы `media`
---
-ALTER TABLE `media`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT COMMENT 'Уникальный идентификатор файла', AUTO_INCREMENT=57;
-
---
--- AUTO_INCREMENT для таблицы `posts`
---
-ALTER TABLE `posts`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=352;
-
---
--- AUTO_INCREMENT для таблицы `post_votes`
---
-ALTER TABLE `post_votes`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=54;
-
---
--- AUTO_INCREMENT для таблицы `roles`
---
-ALTER TABLE `roles`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
-
---
--- AUTO_INCREMENT для таблицы `tags`
---
-ALTER TABLE `tags`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=225;
-
---
--- AUTO_INCREMENT для таблицы `users`
---
-ALTER TABLE `users`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
-
---
--- AUTO_INCREMENT для таблицы `visitors`
---
-ALTER TABLE `visitors`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
-
---
--- Ограничения внешнего ключа сохраненных таблиц
---
-
---
--- Ограничения внешнего ключа таблицы `comments`
---
-ALTER TABLE `comments`
-  ADD CONSTRAINT `comments_ibfk_1` FOREIGN KEY (`post_id`) REFERENCES `posts` (`id`) ON DELETE CASCADE,
-  ADD CONSTRAINT `comments_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE SET NULL,
-  ADD CONSTRAINT `comments_ibfk_3` FOREIGN KEY (`visitor_id`) REFERENCES `visitors` (`id`) ON DELETE SET NULL;
-
---
--- Ограничения внешнего ключа таблицы `media`
---
-ALTER TABLE `media`
-  ADD CONSTRAINT `media_ibfk_1` FOREIGN KEY (`post_id`) REFERENCES `posts` (`id`) ON DELETE SET NULL,
-  ADD CONSTRAINT `media_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE SET NULL;
-
---
--- Ограничения внешнего ключа таблицы `posts`
---
-ALTER TABLE `posts`
-  ADD CONSTRAINT `fk_posts_thumbnail_media` FOREIGN KEY (`thumbnail_media_id`) REFERENCES `media` (`id`) ON DELETE SET NULL,
-  ADD CONSTRAINT `posts_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE RESTRICT;
-
---
--- Ограничения внешнего ключа таблицы `post_category`
---
-ALTER TABLE `post_category`
-  ADD CONSTRAINT `fk_post_category_category_id` FOREIGN KEY (`category_id`) REFERENCES `categories` (`id`) ON DELETE RESTRICT,
-  ADD CONSTRAINT `post_category_ibfk_1` FOREIGN KEY (`post_id`) REFERENCES `posts` (`id`) ON DELETE CASCADE;
-
---
--- Ограничения внешнего ключа таблицы `post_tag`
---
-ALTER TABLE `post_tag`
-  ADD CONSTRAINT `fk_post_tag_tag_id` FOREIGN KEY (`tag_id`) REFERENCES `tags` (`id`) ON DELETE RESTRICT,
-  ADD CONSTRAINT `post_tag_ibfk_1` FOREIGN KEY (`post_id`) REFERENCES `posts` (`id`) ON DELETE CASCADE;
-
---
--- Ограничения внешнего ключа таблицы `post_votes`
---
-ALTER TABLE `post_votes`
-  ADD CONSTRAINT `post_votes_ibfk_1` FOREIGN KEY (`post_id`) REFERENCES `posts` (`id`) ON DELETE CASCADE,
-  ADD CONSTRAINT `post_votes_ibfk_2` FOREIGN KEY (`visitor_id`) REFERENCES `visitors` (`id`) ON DELETE CASCADE;
-
---
--- Ограничения внешнего ключа таблицы `users`
---
-ALTER TABLE `users`
-  ADD CONSTRAINT `users_ibfk_1` FOREIGN KEY (`role_id`) REFERENCES `roles` (`id`) ON DELETE RESTRICT;
-COMMIT;
-
+/*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
+/*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
+/*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+/*M!100616 SET NOTE_VERBOSITY=@OLD_NOTE_VERBOSITY */;
+
+-- Dump completed on 2025-09-08 12:44:56
