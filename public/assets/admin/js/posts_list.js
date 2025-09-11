@@ -1,6 +1,144 @@
 // public/admin/js/posts_list.js
 
 /**
+ * Класс для управления модальным окном подтверждения различных действий с постом.
+ */
+class PostActionsModal {
+    constructor() {
+        this.currentPostId = null;
+        this.currentAction = null;
+        this.confirmActionModal = document.getElementById('confirmDeleteModal');
+        this.confirmActionBtn = document.getElementById('confirmDeleteBtn');
+        this.actionLinks = document.querySelectorAll('.delete-post-link, .restore-post-link');
+        this.bsModal = null;
+        this.setupEventListeners();
+    }
+
+    /**
+     * Устанавливает слушатели событий для кнопок действий.
+     */
+    setupEventListeners() {
+        this.actionLinks.forEach(link => {
+            link.addEventListener('click', this.handleActionClick.bind(this));
+        });
+        if (this.confirmActionBtn) {
+            this.confirmActionBtn.addEventListener('click', this.confirmAction.bind(this));
+        }
+    }
+
+    /**
+     * Обработчик клика по кнопке действия (удалить, восстановить).
+     * @param {Event} e
+     */
+    handleActionClick(e) {
+        e.preventDefault();
+        this.currentPostId = e.currentTarget.getAttribute('data-post-id');
+        this.currentAction = e.currentTarget.getAttribute('data-action');
+        const postTitle = e.currentTarget.getAttribute('data-post-title');
+
+        if (this.confirmActionModal) {
+            const modalTitle = this.confirmActionModal.querySelector('#confirmDeleteModalLabel');
+            const modalBody = this.confirmActionModal.querySelector('.modal-body');
+
+            switch (this.currentAction) {
+                case 'delete':
+                    modalTitle.textContent = `Удалить пост: ${postTitle}`;
+                    modalBody.innerHTML = 'Вы действительно хотите **переместить** этот пост в корзину?';
+                    this.confirmActionBtn.classList.remove('btn-success');
+                    this.confirmActionBtn.classList.add('btn-danger');
+                    this.confirmActionBtn.textContent = 'Да, удалить';
+                    break;
+                case 'delete-forever':
+                    modalTitle.textContent = `Удалить навсегда: ${postTitle}`;
+                    modalBody.innerHTML = 'Вы действительно хотите **удалить навсегда** этот пост? Это действие нельзя отменить.';
+                    this.confirmActionBtn.classList.remove('btn-success');
+                    this.confirmActionBtn.classList.add('btn-danger');
+                    this.confirmActionBtn.textContent = 'Да, удалить навсегда';
+                    break;
+                case 'restore':
+                    modalTitle.textContent = `Восстановить пост: ${postTitle}`;
+                    modalBody.innerHTML = 'Вы действительно хотите **восстановить** этот пост?';
+                    this.confirmActionBtn.classList.remove('btn-danger');
+                    this.confirmActionBtn.classList.add('btn-success');
+                    this.confirmActionBtn.textContent = 'Да, восстановить';
+                    break;
+            }
+
+            this.bsModal = new bootstrap.Modal(this.confirmActionModal);
+            this.bsModal.show();
+        }
+    }
+
+    /**
+     * Обработка подтверждения действия.
+     */
+    async confirmAction() {
+        if (!this.currentPostId) return;
+
+        let url;
+        let method = 'PATCH';
+
+        // Выбор URL в зависимости от действия
+        switch (this.currentAction) {
+            case 'delete':
+                url = `/${adminRoute}/posts/delete`;
+                break;
+            case 'delete-forever':
+                url = `/${adminRoute}/posts/delete-forever`;
+                method = 'DELETE';
+                break;
+            case 'restore':
+                url = `/${adminRoute}/posts/restore`;
+                break;
+            default:
+                console.error('Неизвестное действие');
+                return;
+        }
+
+        const csrfToken = document.querySelector('meta[name="csrf_token"]')?.content;
+        if (!csrfToken) {
+            alert('Ошибка: CSRF-токен не найден.');
+            return;
+        }
+
+        try {
+            const response = await fetch(url, {
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRF-TOKEN': csrfToken
+                },
+                body: JSON.stringify({ post_id: this.currentPostId })
+            });
+
+            if (this.bsModal) {
+                this.bsModal.hide();
+            }
+
+            const result = await response.json();
+
+            if (!response.ok) {
+                if (response.status === 401) {
+                    window.location.href = `/admin/login`;
+                    return;
+                }
+                throw new Error(result.message);
+            }
+
+            if (result.success) {
+                location.reload();
+            } else {
+                alert('Ошибка: ' + (result.message || 'Не удалось выполнить действие.'));
+            }
+        } catch (error) {
+            console.error('Ошибка при выполнении действия:', error);
+            alert('Произошла ошибка.');
+        }
+    }
+}
+
+/**
  * Класс для управления логикой выбора всех постов.
  */
 class PostSelection {
@@ -152,126 +290,10 @@ class PostDetailsToggle {
 }
 
 /**
- * Класс для управления модальным окном подтверждения удаления поста.
- */
-class PostDeleteModal {
-    constructor() {
-        this.currentPostId = null;
-        this.confirmDeleteModal = document.getElementById('confirmDeleteModal');
-        this.confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
-        this.deletePostLinks = document.querySelectorAll('.delete-post-link');
-        this.bsModal = null; // Здесь будет храниться экземпляр Bootstrap Modal
-        this.setupEventListeners();
-
-        // Инициализация кастомного модального окна
-        this.alertModal = document.getElementById('custom-alert-modal');
-        this.alertContent = document.getElementById('custom-alert-content');
-        this.alertTitleEl = document.getElementById('custom-alert-title');
-        this.alertMessageEl = document.getElementById('custom-alert-message');
-        this.alertIconContainer = document.getElementById('custom-alert-icon-container');
-        this.alertCloseBtn = document.getElementById('custom-alert-close-btn');
-
-        if (this.alertCloseBtn) {
-            this.alertCloseBtn.addEventListener('click', () => this.hideAlert());
-        }
-        if (this.alertModal) {
-            this.alertModal.addEventListener('click', (e) => {
-                if (e.target === this.alertModal) {
-                    this.hideAlert();
-                }
-            });
-        }
-    }
-
-    /**
-     * Устанавливает слушатели событий для кнопок удаления.
-     */
-    setupEventListeners() {
-        this.deletePostLinks.forEach(link => {
-            link.addEventListener('click', this.handleDeleteClick.bind(this));
-        });
-
-        if (this.confirmDeleteBtn) {
-            this.confirmDeleteBtn.addEventListener('click', this.confirmDelete.bind(this));
-        }
-    }
-
-    /**
-     * Обработчик клика по кнопке удаления.
-     * @param {Event} e
-     */
-    handleDeleteClick(e) {
-        e.preventDefault();
-        this.currentPostId = e.currentTarget.getAttribute('data-post-id');
-        const postTitle = e.currentTarget.getAttribute('data-post-title');
-
-        if (this.confirmDeleteModal) {
-            const modalTitle = this.confirmDeleteModal.querySelector('#confirmDeleteModalLabel');
-            if (modalTitle) {
-                modalTitle.textContent = `Удалить пост: ${postTitle}`;
-            }
-
-            // Создаем и сохраняем экземпляр модального окна в свойстве класса
-            this.bsModal = new bootstrap.Modal(this.confirmDeleteModal);
-            this.bsModal.show();
-        }
-    }
-
-    /**
-     * Обработка подтверждения удаления.
-     */
-    async confirmDelete() {
-        if (!this.currentPostId) return;
-
-        const csrfToken = document.querySelector('meta[name="csrf_token"]')?.content;
-        if (!csrfToken) {
-            alert('Ошибка: CSRF-токен не найден.');
-            return;
-        }
-
-        try {
-            const response = await fetch(`/${adminRoute}/posts/delete`, {
-                method: 'PATCH',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'X-CSRF-TOKEN': csrfToken
-                },
-                body: JSON.stringify({ post_id: this.currentPostId })
-            });
-
-            const result = await response.json();
-            
-            // Используем сохраненный экземпляр для скрытия модального окна
-            if (this.bsModal) {
-                this.bsModal.hide();
-            }
-
-            if (!response.ok) {
-                if (response.status === 401) {
-                    window.location.href = `/${adminRoute}/login`;
-                    return;
-                }
-                throw new Error(result.message);
-            }
-
-            if (result.success) {
-                location.reload();
-            } else {
-                alert('Ошибка: ' + (result.message || 'Не удалось удалить пост.'));
-            }
-        } catch (error) {
-            console.error('Ошибка при удалении поста:', error);
-            alert('Произошла ошибка при удалении поста.');
-        }
-    }
-}
-
-/**
  * Инициализируем классы, когда DOM-дерево полностью загружено.
  */
 document.addEventListener('DOMContentLoaded', () => {
     new PostSelection();
     new PostDetailsToggle();
-    new PostDeleteModal();
+    new PostActionsModal();
 });

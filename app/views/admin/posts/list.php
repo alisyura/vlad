@@ -106,14 +106,16 @@
                                     <!-- Для мобильных -->
                                     <?php if ($isTrash): ?>
                                         <a href="#" 
-                                            class="btn btn-sm btn-outline-primary mb-1 me-1" 
+                                            class="btn btn-sm btn-outline-primary mb-1 me-1 restore-post-link"
                                             data-post-id="<?= htmlspecialchars($post['id']) ?>"
+                                            data-action="restore"
                                             data-post-title="<?= htmlspecialchars($post['title']) ?>">
                                             Восстановить
                                         </a>
                                         <a href="#" 
-                                                class="btn btn-sm btn-outline-danger mb-1 me-1 delete-post-link" 
+                                                class="btn btn-sm btn-outline-danger mb-1 me-1 delete-post-link"
                                                 data-post-id="<?= htmlspecialchars($post['id']) ?>"
+                                                data-action="delete-forever"
                                                 data-post-title="<?= htmlspecialchars($post['title']) ?>">
                                                 Удалить навсегда
                                             </a>
@@ -123,6 +125,7 @@
                                             <a href="#" 
                                                 class="btn btn-sm btn-outline-danger mb-1 me-1 delete-post-link" 
                                                 data-post-id="<?= htmlspecialchars($post['id']) ?>"
+                                                data-action="delete"
                                                 data-post-title="<?= htmlspecialchars($post['title']) ?>">
                                                 Удалить
                                             </a>
@@ -138,8 +141,9 @@
                                 <!-- Для десктопа -->
                                 <?php if ($isTrash): ?>
                                     <a href="#" 
-                                            class="text-primary me-2" 
+                                            class="text-primary me-2 restore-post-link"
                                             data-post-id="<?= htmlspecialchars($post['id']) ?>"
+                                            data-action="restore"
                                             data-post-title="<?= htmlspecialchars($post['title']) ?>">
                                             Восстановить
                                         </a>
@@ -147,6 +151,7 @@
                                         <a href="#" 
                                             class="btn btn-sm text-danger mb-1 me-1 delete-post-link" 
                                             data-post-id="<?= htmlspecialchars($post['id']) ?>"
+                                            data-action="delete-forever"
                                             data-post-title="<?= htmlspecialchars($post['title']) ?>">
                                             Удалить навсегда
                                         </a>
@@ -157,6 +162,7 @@
                                         <a href="#" 
                                             class="btn btn-sm text-danger mb-1 me-1 delete-post-link" 
                                             data-post-id="<?= htmlspecialchars($post['id']) ?>"
+                                            data-action="delete"
                                             data-post-title="<?= htmlspecialchars($post['title']) ?>">
                                             Удалить
                                         </a>
