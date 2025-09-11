@@ -52,17 +52,17 @@ class AdminPostsController extends BaseController
             }
             // --- Конец обработки параметров сортировки ---
 
-            
+            // Базовый URL для админки
+            $basePageUrl=$this->getBasePageUrl();
+            $isTrash = (new UrlHelperService())->hasThrash($basePageUrl);
+
             // Определяем параметры пагинации
             $postsPerPage = Config::get('admin.PostsPerPage'); // Количество постов на страницу
 
             $postsListModel = new PostsListModel();
             // Получаем общее количество постов
-            $totalPosts = $postsListModel->getTotalPostsCount($articleType);
+            $totalPosts = $postsListModel->getTotalPostsCount($articleType, $isTrash);
     
-            // Базовый URL для админки
-            $basePageUrl=$this->getBasePageUrl();
-
             // Генерируем массив ссылок для умной пагинации
             $ps = new PaginationService();
             $paginParams = $ps->calculatePaginationParams(Config::get('admin.PostsPerPage'), $currentPage, 
@@ -72,11 +72,11 @@ class AdminPostsController extends BaseController
                 'offset' => $offset, 
                 'paginationLinks' => $paginationLinks] = $paginParams;
             
-            $isTrash = (new UrlHelperService())->hasThrash($basePageUrl);
+            
 
             // Получаем посты для текущей страницы
             $posts = $postsListModel->getPostsList($articleType, $postsPerPage, $offset,
-                $sortBy, $sortOrder);
+                $sortBy, $sortOrder, $isTrash);
             
             // Обрабатываем каждый пост для форматирования и подготовки к выводу
             foreach ($posts as &$post) {

@@ -6,38 +6,29 @@ class PostsListModel extends BaseModel {
      * Получает общее количество постов. Необходимо для пагинации.
      *
      * @param string $article_type Тип статьи. post или page
+     * @param bool $showThrash Получить список удаленных или активных постов.
      * @return int Общее количество постов.
      */
-    public function getTotalPostsCount(string $article_type) {
-        // Определяем массив исключений в зависимости от типа статьи
-        $configKey = null;
-        if ($article_type === 'page') {
-            $configKey = 'admin.PagesToExclude';
-        } elseif ($article_type === 'post') {
-            $configKey = 'admin.PostsToExclude';
+    public function getTotalPostsCount(string $article_type, bool $showThrash = false) {
+        [$excludeCondition, $excludeUrls] = $this->getExcludeConditionAndUrls($article_type);
+        
+        // Создаем массив для всех условий WHERE
+        $conditions = [
+            'p.article_type = :article_type'
+        ];
+        
+        // Добавляем условие по статусу
+        $conditions[] = $showThrash ? "p.status = 'deleted'" : "p.status <> 'deleted'";
+        
+        // Добавляем условие исключения URL, если оно есть
+        if (!empty($excludeCondition)) {
+            $conditions[] = $excludeCondition;
         }
 
-        $excludeUrls = [];
-        $excludeCondition = '';
-
-        // Если ключ конфигурации определён
-        if ($configKey) {
-            $rawExcludeUrls = \Config::get($configKey);
-            $excludeUrls = array_filter($rawExcludeUrls, 'strlen');
-
-            // Проверяем, что массив не пустой после фильтрации
-            if (!empty($excludeUrls)) {
-                $placeholders = [];
-                foreach ($excludeUrls as $index => $url) {
-                    $placeholders[] = ":url{$index}";
-                }
-                $excludeCondition = " AND url NOT IN (" . implode(', ', $placeholders) . ")";
-            }
-        }
-
-        $sql = "SELECT COUNT(id) AS total_posts 
-                FROM posts 
-                WHERE article_type = :article_type AND status <> 'deleted' {$excludeCondition}";
+        // Собираем запрос
+        $sql = "SELECT COUNT(p.id) AS total_posts 
+                FROM posts AS p
+                WHERE " . implode(' AND ', $conditions);
 
         try {
             $stmt = $this->db->prepare($sql);
@@ -70,10 +61,15 @@ class PostsListModel extends BaseModel {
      * @param int $offset Смещение (сколько постов пропустить).
      * @param string $sortBy Колонка для сортировки (например, 'title', 'created_at').
      * @param string $sortOrder Направление сортировки ('ASC' или 'DESC').
+     * @param bool $showThrash Получить список удаленных или активных постов.
      * @return array Список постов, каждый из которых содержит массив категорий и массив тегов.
      */
     public function getPostsList(string $article_type, int $limit, int $offset,
-                             string $sortBy = 'updated_at', string $sortOrder = 'DESC') {
+                             string $sortBy = 'updated_at', string $sortOrder = 'DESC',
+                             bool $showThrash = false) {
+        // Получаем условие исключения и URL-адреса, используя существующий метод
+        [$excludeCondition, $excludeUrls] = $this->getExcludeConditionAndUrls($article_type);
+
         // Допустимые поля для сортировки и их соответствие в базе данных
         $allowedSortColumns = [
             'id' => 'p.id',
@@ -97,30 +93,17 @@ class PostsListModel extends BaseModel {
             $sortOrder = 'DESC'; // По умолчанию DESC
         }
 
-        // вставляем параметры для исключения постов/страниц из выборки
-        // Определяем массив исключений в зависимости от типа статьи
-        $configKey = null;
-        if ($article_type === 'page') {
-            $configKey = 'admin.PagesToExclude';
-        } elseif ($article_type === 'post') {
-            $configKey = 'admin.PostsToExclude';
+        // Собираем массив условий для части WHERE
+        $conditions = [
+            'p.article_type = :article_type',
+            $showThrash ? "p.status = 'deleted'" : "p.status <> 'deleted'"
+        ];
+
+        // Добавляем условие исключения, если оно есть
+        if (!empty($excludeCondition)) {
+            $conditions[] = $excludeCondition;
         }
 
-        // Если ключ конфигурации определён
-        if ($configKey) {
-            $rawExcludeUrls = \Config::get($configKey);
-            $excludeUrls = array_filter($rawExcludeUrls, 'strlen');
-
-            // Проверяем, что массив не пустой после фильтрации
-            if (!empty($excludeUrls)) {
-                $placeholders = [];
-                foreach ($excludeUrls as $index => $url) {
-                    $placeholders[] = ":url{$index}";
-                }
-                $excludeCondition = " AND p.url NOT IN (" . implode(', ', $placeholders) . ")";
-            }
-        }
-        
         $sql = "SELECT
                      p.id,
                      p.title,
@@ -147,9 +130,7 @@ class PostsListModel extends BaseModel {
                  LEFT JOIN
                      tags t ON pt.tag_id = t.id
                  WHERE
-                     article_type = :article_type
-                     AND status <> 'deleted'
-                     {$excludeCondition}
+                     " . implode(' AND ', $conditions) . "
                  GROUP BY
                      p.id
                  ORDER BY
@@ -175,53 +156,93 @@ class PostsListModel extends BaseModel {
             $stmt->execute();
             $rawPosts = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-            $posts = [];
-            foreach ($rawPosts as $post) {
-                // Разбираем данные категорий
-                $post['categories'] = [];
-                if (!empty($post['category_data'])) {
-                    $category_pairs = explode(';;', $post['category_data']);
-                    foreach ($category_pairs as $pair) {
-                        if (strpos($pair, '||') !== false) {
-                            list($name, $url) = explode('||', $pair, 2);
-                            $post['categories'][] = ['name' => $name, 'url' => $url];
-                        }
-                    }
-                }
-                unset($post['category_data']); // Удаляем сырые данные после обработки
-                
-                // Теперь используем category_names_concat для вывода в HTML, 
-                // если хотите именно строку, а не массив объектов.
-                // Или можно продолжать использовать $post['categories'] для построения ссылок.
-                // В контроллере вы уже делаем это, так что category_names_concat не строго нужен для вывода,
-                // но помогает в сортировке.
-                $post['category_names'] = $post['category_names_concat']; // Сохраняем конкатенированное имя для сортировки/отображения
-                unset($post['category_names_concat']); // Удаляем сырые данные после обработки
-
-                // Разбираем данные тегов
-                $post['tags'] = [];
-                if (!empty($post['tag_data'])) {
-                    $tag_pairs = explode(';;', $post['tag_data']);
-                    foreach ($tag_pairs as $pair) {
-                         if (strpos($pair, '||') !== false) {
-                             list($name, $url) = explode('||', $pair, 2);
-                             $post['tags'][] = ['name' => $name, 'url' => $url];
-                         }
-                    }
-                }
-                unset($post['tag_data']); // Удаляем сырые данные после обработки
-
-                $post['tag_names'] = $post['tag_names_concat']; // Сохраняем конкатенированное имя
-                unset($post['tag_names_concat']); // Удаляем сырые данные после обработки
-
-                $posts[] = $post;
-            }
-
-            return $posts;
+            // Вызываем вспомогательный метод для парсинга данных
+            return $this->parsePostData($rawPosts);
 
         } catch (PDOException $e) {
             Logger::error("Error fetching paginated posts in AdminPostsModel: " . $e->getTraceAsString());
             throw $e;
         }
+    }
+
+    /**
+     * Обрабатывает данные, полученные из запроса к базе данных,
+     * разделяя объединенные строки категорий и тегов.
+     *
+     * @param array $rawPosts Массив необработанных данных постов.
+     * @return array Массив обработанных данных постов.
+     */
+    private function parsePostData(array $rawPosts): array
+    {
+        $posts = [];
+        foreach ($rawPosts as $post) {
+            $post['categories'] = $this->parseGroupedData($post['category_data']);
+            unset($post['category_data']);
+            unset($post['category_names_concat']);
+
+            $post['tags'] = $this->parseGroupedData($post['tag_data']);
+            unset($post['tag_data']);
+            unset($post['tag_names_concat']);
+
+            $posts[] = $post;
+        }
+        return $posts;
+    }
+
+    /**
+     * Разделяет строку объединенных данных на массив объектов.
+     *
+     * @param string|null $data Строка объединенных данных.
+     * @return array Массив объектов.
+     */
+    private function parseGroupedData(?string $data): array
+    {
+        if (empty($data)) {
+            return [];
+        }
+
+        $items = [];
+        $pairs = explode(';;', $data);
+        foreach ($pairs as $pair) {
+             if (strpos($pair, '||') !== false) {
+                 list($name, $url) = explode('||', $pair, 2);
+                 $items[] = ['name' => $name, 'url' => $url];
+             }
+        }
+        return $items;
+    }
+
+    /**
+     * Получает SQL-условие и URL-адреса для исключения.
+     *
+     * @param string $article_type Тип статьи ('post' или 'page').
+     * @return array Массив, содержащий строку условия и массив URL-адресов.
+     */
+    private function getExcludeConditionAndUrls(string $article_type): array
+    {
+        $configKey = null;
+        if ($article_type === 'page') {
+            $configKey = 'admin.PagesToExclude';
+        } elseif ($article_type === 'post') {
+            $configKey = 'admin.PostsToExclude';
+        }
+    
+        $excludeUrls = [];
+        $excludeCondition = '';
+    
+        if ($configKey) {
+            $rawExcludeUrls = \Config::get($configKey);
+            $excludeUrls = array_filter($rawExcludeUrls, 'strlen');
+    
+            if (!empty($excludeUrls)) {
+                $placeholders = array_map(function($index) {
+                    return ":url{$index}";
+                }, array_keys($excludeUrls));
+                
+                $excludeCondition = " p.url NOT IN (" . implode(', ', $placeholders) . ")";
+            }
+        }
+    
+        return [$excludeCondition, $excludeUrls];
     }
 }

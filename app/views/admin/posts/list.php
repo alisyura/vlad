@@ -2,10 +2,11 @@
     <h1 class="h2"><?= htmlspecialchars($title) ?></h1>
     <div class="btn-toolbar mb-2 mb-md-0">
         <?php if (!$isTrash): ?>
-        <a href="/<?= htmlspecialchars($adminRoute ?? 'admin') ?>/<?= htmlspecialchars($articleType) ?>s/create" class="btn btn-sm btn-outline-secondary">
-            Добавить
-        </a>
+            <a href="/<?= htmlspecialchars($adminRoute ?? 'admin') ?>/<?= htmlspecialchars($articleType) ?>s/create" class="btn btn-sm btn-outline-secondary">
+                Добавить
+            </a>
         <?php else: ?>
+            &nbsp;
         <?php endif ?>
     </div>
 </div>
@@ -103,34 +104,66 @@
                                 </div>
                                 <div class="post-actions mt-2">
                                     <!-- Для мобильных -->
-                                    <a href="/<?= htmlspecialchars($adminRoute ?? 'admin') ?>/posts/edit/<?= htmlspecialchars($post['id']) ?>" class="btn btn-sm btn-outline-primary mb-1 me-1">Редактировать</a>
-                                    <?php if ($allowDelete): ?>
+                                    <?php if ($isTrash): ?>
                                         <a href="#" 
-                                            class="btn btn-sm btn-outline-danger mb-1 me-1 delete-post-link" 
+                                            class="btn btn-sm btn-outline-primary mb-1 me-1" 
                                             data-post-id="<?= htmlspecialchars($post['id']) ?>"
                                             data-post-title="<?= htmlspecialchars($post['title']) ?>">
-                                            Удалить
+                                            Восстановить
                                         </a>
-                                    <?php endif ?>
-                                    <?php if (!empty($post['url']) && strtolower($post['status']) === 'published'): ?>
-                                        <a href="/<?= htmlspecialchars($post['url']) ?>.html" target="_blank" class="btn btn-sm btn-outline-info text-secondary mb-1">Посмотреть на сайте</a>
+                                        <a href="#" 
+                                                class="btn btn-sm btn-outline-danger mb-1 me-1 delete-post-link" 
+                                                data-post-id="<?= htmlspecialchars($post['id']) ?>"
+                                                data-post-title="<?= htmlspecialchars($post['title']) ?>">
+                                                Удалить навсегда
+                                            </a>
+                                    <?php else: ?>
+                                        <a href="/<?= htmlspecialchars($adminRoute ?? 'admin') ?>/posts/edit/<?= htmlspecialchars($post['id']) ?>" class="btn btn-sm btn-outline-primary mb-1 me-1">Редактировать</a>
+                                        <?php if ($allowDelete): ?>
+                                            <a href="#" 
+                                                class="btn btn-sm btn-outline-danger mb-1 me-1 delete-post-link" 
+                                                data-post-id="<?= htmlspecialchars($post['id']) ?>"
+                                                data-post-title="<?= htmlspecialchars($post['title']) ?>">
+                                                Удалить
+                                            </a>
+                                        <?php endif ?>
+                                        <?php if (!empty($post['url']) && strtolower($post['status']) === 'published'): ?>
+                                            <a href="/<?= htmlspecialchars($post['url']) ?>.html" target="_blank" class="btn btn-sm btn-outline-info text-secondary mb-1">Посмотреть на сайте</a>
+                                        <?php endif; ?>
                                     <?php endif; ?>
                                 </div>
                             </div>
 
                             <div class="post-actions mt-1 d-none d-md-block">
                                 <!-- Для десктопа -->
-                                <a href="/<?= htmlspecialchars($adminRoute ?? 'admin') ?>/<?= htmlspecialchars($articleType) ?>s/edit/<?= htmlspecialchars($post['id']) ?>" class="text-primary me-2">Редактировать</a>
-                                <?php if ($allowDelete): ?>
+                                <?php if ($isTrash): ?>
                                     <a href="#" 
-                                        class="btn btn-sm text-danger mb-1 me-1 delete-post-link" 
-                                        data-post-id="<?= htmlspecialchars($post['id']) ?>"
-                                        data-post-title="<?= htmlspecialchars($post['title']) ?>">
-                                        Удалить
-                                    </a>
-                                <?php endif ?>
-                                <?php if (!empty($post['full_url']) && strtolower($post['status']) === 'published'): ?>
-                                    <a href="/<?= htmlspecialchars($post['full_url']) ?>.html" target="_blank" class="text-info">Посмотреть на сайте</a>
+                                            class="text-primary me-2" 
+                                            data-post-id="<?= htmlspecialchars($post['id']) ?>"
+                                            data-post-title="<?= htmlspecialchars($post['title']) ?>">
+                                            Восстановить
+                                        </a>
+                                    <?php if ($allowDelete): ?>
+                                        <a href="#" 
+                                            class="btn btn-sm text-danger mb-1 me-1 delete-post-link" 
+                                            data-post-id="<?= htmlspecialchars($post['id']) ?>"
+                                            data-post-title="<?= htmlspecialchars($post['title']) ?>">
+                                            Удалить навсегда
+                                        </a>
+                                    <?php endif ?>
+                                <?php else: ?>
+                                    <a href="/<?= htmlspecialchars($adminRoute) ?>/<?= htmlspecialchars($articleType) ?>s/edit/<?= htmlspecialchars($post['id']) ?>" class="text-primary me-2">Редактировать</a>
+                                    <?php if ($allowDelete): ?>
+                                        <a href="#" 
+                                            class="btn btn-sm text-danger mb-1 me-1 delete-post-link" 
+                                            data-post-id="<?= htmlspecialchars($post['id']) ?>"
+                                            data-post-title="<?= htmlspecialchars($post['title']) ?>">
+                                            Удалить
+                                        </a>
+                                    <?php endif ?>
+                                    <?php if (!empty($post['full_url']) && strtolower($post['status']) === 'published'): ?>
+                                        <a href="/<?= htmlspecialchars($post['full_url']) ?>.html" target="_blank" class="text-info">Посмотреть на сайте</a>
+                                    <?php endif; ?>
                                 <?php endif; ?>
                             </div>
                         </td>
