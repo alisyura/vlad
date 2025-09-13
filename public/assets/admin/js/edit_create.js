@@ -244,7 +244,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         try {
-            const response = await fetch(`/${adminRoute}/posts/check-url`, {
+            const response = await fetch(`/${adminRoute}/posts/api/check-url`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

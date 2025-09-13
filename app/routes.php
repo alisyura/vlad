@@ -117,68 +117,46 @@ $router->addRoute("/$adminRoute/logout", function() use ($viewAdmin) {
     (new AdminLoginController($viewAdmin))->logout();
 }, ['UserAuthenticatedMiddleware']);
 
+
+// Формы GET
+
 // Список постов/страниц с пагинацией
-$router->addRoute("/$adminRoute/posts(?:/p(\d+))?", function($page = 1) use ($viewAdmin) {
+$router->addRoute("/$adminRoute/(post|page)s(?:/p(\d+))?", function($articleType, $page = 1) use ($viewAdmin) {
     // Передаем номер страницы в контроллер
-    (new AdminPostsController($viewAdmin))->list($page, 'post');
-}, ['UserAuthenticatedMiddleware', 'ArticleTypeMiddleware:post']);
+    (new AdminPostsController($viewAdmin))->list($page, $articleType);
+}, ['UserAuthenticatedMiddleware', 'ArticleTypeMiddleware:post,page']);
 
-$router->addRoute("/$adminRoute/pages(?:/p(\d+))?", function($page = 1) use ($viewAdmin) {
-    // Передаем номер страницы в контроллер
-    (new AdminPostsController($viewAdmin))->list($page, 'page');
-}, ['UserAuthenticatedMiddleware', 'ArticleTypeMiddleware:page']);
+// Форма создание нового поста/страницы
+$router->addRoute("/$adminRoute/(post|page)s/create", function($articleType) use ($viewAdmin) {
+    (new AdminPostsController($viewAdmin))->create($articleType);
+}, ['UserAuthenticatedMiddleware', 'ArticleTypeMiddleware:post,page']);
+
+// Форма редактирования существующего поста/страницы
+$router->addRoute("/$adminRoute/(post|page)s/edit/(\d+)", function($articleType, $postId) use ($viewAdmin) {
+    (new AdminPostsController($viewAdmin))->edit($postId, $articleType);
+}, ['UserAuthenticatedMiddleware', 'ArticleTypeMiddleware:post,page']);
 
 
-// Создание нового поста
-$router->addRoute("/$adminRoute/posts/create", function() use ($viewAdmin) {
-    (new AdminPostsController($viewAdmin))->createPostGet();
-}, ['UserAuthenticatedMiddleware']);
+
+// Вызовы API работы с постами/страницами
 
 // Вызов api создания нового поста из формы создания нового поста по кнопке "опубликовать"
-$router->addRoute("/$adminRoute/posts/api/create", function() use ($viewAdmin) {
-    (new AdminPostsController($viewAdmin))->createPostPost();
+$router->addRoute("/$adminRoute/(post|page)s/api/create", function($articleType) use ($viewAdmin) {
+    (new AdminPostsApiController($viewAdmin))->create($articleType);
 }, ['UserAuthenticatedMiddleware', 'AjaxMiddleware', 'CsrfMiddleware'], ['method' => 'POST']);
-
-// Редактирование существующего поста
-$router->addRoute("/$adminRoute/posts/edit/(\d+)", function($postId) use ($viewAdmin) {
-    (new AdminPostsController($viewAdmin))->editPostGet($postId);
-}, ['UserAuthenticatedMiddleware']);
 
 // Вызов api изменения поста из формы изменения поста по кнопке "обновить"
-$router->addRoute("/$adminRoute/posts/api/edit", function() use ($viewAdmin) {
-    (new AdminPostsController($viewAdmin))->editPostPut();
+$router->addRoute("/$adminRoute/(post|page)s/api/edit", function($articleType) use ($viewAdmin) {
+    (new AdminPostsApiController($viewAdmin))->edit($articleType);
 }, ['UserAuthenticatedMiddleware', 'AjaxMiddleware', 'CsrfMiddleware'], ['method' => 'PUT']);
-
-
-
-// Создание новой страницы
-$router->addRoute("/$adminRoute/pages/create", function() use ($viewAdmin) {
-    (new AdminPostsController($viewAdmin))->createPageGet();
-}, ['UserAuthenticatedMiddleware']);
-
-// Вызов api создания новой страницы из формы создания новой страницы по кнопке "опубликовать"
-$router->addRoute("/$adminRoute/pages/api/create", function() use ($viewAdmin) {
-    (new AdminPostsController($viewAdmin))->createPagePost();
-}, ['UserAuthenticatedMiddleware', 'AjaxMiddleware', 'CsrfMiddleware'], ['method' => 'POST']);
-
-// Редактирование существующей страницы
-$router->addRoute("/$adminRoute/pages/edit/(\d+)", function($pageId) use ($viewAdmin) {
-    (new AdminPostsController($viewAdmin))->editPageGet($pageId);
-}, ['UserAuthenticatedMiddleware']);
-
-// Вызов api изменения страницы из формы изменения стараницы по кнопке "обновить"
-$router->addRoute("/$adminRoute/pages/api/edit", function() use ($viewAdmin) {
-    (new AdminPostsController($viewAdmin))->editPagePut();
-}, ['UserAuthenticatedMiddleware', 'AjaxMiddleware', 'CsrfMiddleware'], ['method' => 'PUT']);
-
 
 // Мягкое удаление поста/страницы. Простановка статуса "удален"
 $router->addRoute("/$adminRoute/posts/api/delete", function() use ($viewAdmin) {
     (new AdminPostsApiController($viewAdmin))->deletePost();
 }, ['UserAuthenticatedMiddleware', 'AjaxMiddleware', 'CsrfMiddleware'], ['method' => 'PATCH']);
 
-
-$router->addRoute("/$adminRoute/posts/check-url", function() use ($viewAdmin) {
+// Проверка урла при создании поста/страницы
+$router->addRoute("/$adminRoute/posts/api/check-url", function() use ($viewAdmin) {
     (new AdminPostsApiController($viewAdmin))->checkUrl();
 }, ['UserAuthenticatedMiddleware', 'AjaxMiddleware', 'CsrfMiddleware'], ['method' => 'POST']);
 
@@ -199,6 +177,7 @@ $router->addRoute("/$adminRoute/media/api/upload", function() use ($viewAdmin) {
 
 
 
+// Формы для тэгов
 
 // Открыть форму списка тэгов
 $router->addRoute("/$adminRoute/tags(?:/p(\d+))?", function($page = 1) use ($viewAdmin) {
@@ -206,8 +185,8 @@ $router->addRoute("/$adminRoute/tags(?:/p(\d+))?", function($page = 1) use ($vie
 }, ['UserAuthenticatedMiddleware']);
 
 // Открыть форму редактирование тэга
-$router->addRoute("/$adminRoute/tags/edit/(\d+)", function($userId) use ($viewAdmin) {
-    (new AdminTagsController($viewAdmin))->edit($userId);
+$router->addRoute("/$adminRoute/tags/edit/(\d+)", function($tagId) use ($viewAdmin) {
+    (new AdminTagsController($viewAdmin))->edit($tagId);
 }, ['UserAuthenticatedMiddleware']);
 
 
@@ -229,12 +208,13 @@ $router->addRoute("/$adminRoute/tags/api/edit/(\d+)", function($userId) use ($vi
 }, ['UserAuthenticatedMiddleware', 'AjaxMiddleware', 'CsrfMiddleware'], ['method' => 'PUT']);
 
 // Удаление тэга
-$router->addRoute("/$adminRoute/tags/api/delete/(\d+)", function($userId) use ($viewAdmin) {
-    (new AdminTagsApiController($viewAdmin))->delete($userId);
+$router->addRoute("/$adminRoute/tags/api/delete/(\d+)", function($tagId) use ($viewAdmin) {
+    (new AdminTagsApiController($viewAdmin))->delete($tagId);
 }, ['UserAuthenticatedMiddleware', 'AjaxMiddleware', 'CsrfMiddleware'], ['method' => 'DELETE']);
 
 
 
+// Формы для управления пользователями
 
 // Открыть форму списка пользователей
 $router->addRoute("/$adminRoute/users", function() use ($viewAdmin) {
@@ -245,6 +225,7 @@ $router->addRoute("/$adminRoute/users", function() use ($viewAdmin) {
 $router->addRoute("/$adminRoute/users/edit/(\d+)", function($userId) use ($viewAdmin) {
     (new AdminUsersController($viewAdmin))->edit($userId);
 }, ['AdminAuthenticatedMiddleware']);
+
 
 // Операции над пользователями
 
@@ -273,18 +254,17 @@ $router->addRoute("/$adminRoute/users/api/delete/(\d+)", function($userId) use (
     (new AdminUsersApiController($viewAdmin))->delete($userId);
 }, ['AdminAuthenticatedMiddleware', 'AjaxMiddleware', 'CsrfMiddleware'], ['method' => 'DELETE']);
 
-// Корзина удаленных постов/страниц
 
-//Показ удаленных постов/страниц с пагинацией
-$router->addRoute("/$adminRoute/thrash/posts(?:/p(\d+))?", function($page = 1) use ($viewAdmin) {
-    // Передаем номер страницы в контроллер
-    (new AdminPostsController($viewAdmin))->list($page, 'post');
-}, ['UserAuthenticatedMiddleware', 'ArticleTypeMiddleware:post']);
+// Формы для работы с корзиной удаленных постов/страниц
 
-$router->addRoute("/$adminRoute/thrash/pages(?:/p(\d+))?", function($page = 1) use ($viewAdmin) {
+// Форма списка удаленных постов/страниц с пагинацией
+$router->addRoute("/$adminRoute/thrash/(post|page)s(?:/p(\d+))?", function($articleType, $page = 1) use ($viewAdmin) {
     // Передаем номер страницы в контроллер
-    (new AdminPostsController($viewAdmin))->list($page, 'page');
-}, ['UserAuthenticatedMiddleware', 'ArticleTypeMiddleware:page']);
+    (new AdminPostsController($viewAdmin))->list($page, $articleType);
+}, ['UserAuthenticatedMiddleware', 'ArticleTypeMiddleware:post,page']);
+
+
+// Операции над корзиной
 
 // Восстановление поста/страницы из корзины. Простановка статуса "черновик"
 $router->addRoute("/$adminRoute/thrash/api/restore", function() use ($viewAdmin) {

@@ -7,6 +7,7 @@ class ArticleTypeMiddleware implements MiddlewareInterface
     {
         // Если массив пустой или не передан, считаем, что проверка не пройдена
         if (empty($articleTypes)) {
+            $this->showError();
             return false;
         }
 
@@ -18,6 +19,22 @@ class ArticleTypeMiddleware implements MiddlewareInterface
         $unallowedTypes = array_diff($articleTypes, $allowedTypes);
         
         // Если массив неразрешенных элементов пуст, значит, все переданные типы разрешены.
-        return empty($unallowedTypes);
+        $res = empty($unallowedTypes);
+        if (!$res)
+        {
+            $this->showError();
+        }
+
+        return $res;
+    }
+
+    private function showError()
+    {
+        header("HTTP/1.0 404 Not Found");
+        $content = View::render('../app/views/admin/errors/not_found_view.php', [
+            'adminRoute' => (new Request())->getAdminRoute(),
+            'title' => '404'
+        ]);
+        require '../app/views/admin/admin_layout.php';
     }
 }

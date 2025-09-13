@@ -81,7 +81,7 @@ class AdminPostsApiController extends BaseController
     }
 
     /**
-     * Выполняет мягкое удаление поста по ID (через AJAX).
+     * Выполняет мягкое удаление поста/страницы по ID (через AJAX).
      * Ожидает PATCH-запрос с JSON: { post_id: 123, csrf_token: "..." }
      */
     public function deletePost()
@@ -116,6 +116,10 @@ class AdminPostsApiController extends BaseController
         }
     }
 
+    /**
+     * Проверяет что поста/страницы с переданным урлом нет, чтобы создать новый пост/страницу
+     * (AJAX POST запрос)
+     */
     public function checkUrl()
     {
         try
@@ -127,7 +131,6 @@ class AdminPostsApiController extends BaseController
             $url = $input['url'] ?? '';
 
             if (empty($url)) {
-                // echo json_encode(['is_unique' => false]);
                 $this->sendSuccessJsonResponse('Урл доступен', 200, ['is_unique' => false]);
                 return;
             }
@@ -136,7 +139,6 @@ class AdminPostsApiController extends BaseController
             // В данном случае мы не передаём ID, так как пост создаётся
             $isUnique = !$postModel->postExists(null, $url); 
 
-            // echo json_encode(['is_unique' => $isUnique]);
             $this->sendSuccessJsonResponse('Урл доступен', 200, ['is_unique' => $isUnique]);
         }
         catch(Exception $e)
@@ -145,5 +147,191 @@ class AdminPostsApiController extends BaseController
             $this->sendErrorJsonResponse('Ошибка при проверке URL', 403);
             exit;
         }
+    }
+
+    /**
+     * Точка входа на создание нового поста/страницы (AJAX POST запрос)
+     * 
+     * @param string $articleType Тип статьи (post/page).
+     */
+    public function create($articleType)
+    {
+        $this->createArticle($articleType);
+    }
+
+    /**
+     * Создает запись с типом из articleType
+     * Вызывается по AJAX POST
+     */
+    private function createArticle($articleType) {
+        header('Content-Type: application/json');
+
+
+        Logger::debug("createPostPost. Начало");
+        
+        $json_data = file_get_contents('php://input');
+        // Декодируем JSON-строку в ассоциативный массив PHP
+        $post_data = json_decode($json_data, true);
+
+            
+        $adminPostsModel = new AdminPostsModel();
+        
+        $title = trim($post_data['title'] ?? '');
+        $content = $post_data['content'] ?? '';
+        $url = transliterate($post_data['url'] ?? '');
+        $status = $post_data['status'] ?? 'draft';
+        $meta_title = trim($post_data['meta_title'] ?? '');
+        $meta_description = trim($post_data['meta_description'] ?? '');
+        $meta_keywords = trim($post_data['meta_keywords'] ?? '');
+        $excerpt = trim($post_data['excerpt'] ?? '');
+        $selectedCategories = $post_data['categories'] ?? [];
+
+        $selectedTags = $post_data['tags'] ?? [];
+        $tagsString = is_array($selectedTags) ? implode(',', $selectedTags) : $selectedTags;
+
+        $thumbnailUrl = trim($post_data['post_image_url'] ?? ''); 
+
+        if (empty($title)) {
+            Logger::debug("createPostPost. title empty");
+            $data['errors'][] = 'Заголовок поста обязателен.';
+        }
+        if (empty($url)) {
+            Logger::debug("createPostPost. url empty");
+            $data['errors'][] = 'URL поста обязателен.';
+        } else if ($adminPostsModel->postExists(null, $url)) {
+            Logger::debug("createPostPost. url exists");
+            $data['errors'][] = 'Указанный URL уже занят.';
+        }
+
+        if (!empty($data['errors'])) {
+            Logger::debug("createPostPost. ошибки заполнены. выход");
+            http_response_code(500);
+            echo json_encode(['success' => false, 
+                'message' => 'Неверно заполнены поля.',
+                'errors' => $data['errors']]);
+            exit;
+        }
+
+            
+        $user_id = Auth::getUserId();
+        $postData = [
+            'user_id' => $user_id,
+            'article_type' => $articleType,
+            'status' => $status,
+            'title' => $title,
+            'content' => $content,
+            'url' => $url,
+            'meta_title' => $meta_title,
+            'meta_description' => $meta_description,
+            'meta_keywords' => $meta_keywords,
+            'excerpt' => $excerpt,
+            'thumbnail_url' => $thumbnailUrl,
+        ];
+
+        $postId = $adminPostsModel->createPost($postData, $selectedCategories, $tagsString);
+        
+        if ($postId) {
+            $adminRoute = Config::get('admin.AdminRoute');
+            $msgText = ($articleType == 'post' ? 'Пост успешно создан' : 'Страница успешно создана');
+            echo json_encode(['success' => true, 
+                'redirect' => "/$adminRoute/{$articleType}s",
+                'message' => $msgText]);
+        } else {
+            http_response_code(500);
+            echo json_encode(['success' => false, 
+                'message' => 'Произошла ошибка при создании поста.']);
+        }
+
+    }
+
+    /**
+     * Точка входа на редактирование поста/страницы (AJAX PUT запрос)
+     * 
+     * @param string $articleType Тип статьи (post/page).
+     */
+    public function edit($articleType)
+    {
+        $this->editArticle($articleType);
+    }
+
+    /**
+     * Изменяет запись с типом из articleType
+     * Вызов по AJAX PUT
+     */
+    private function editArticle($articleType)
+    {
+        header('Content-Type: application/json');
+
+
+        Logger::debug("editArticle. Начало");
+
+
+        $json_data = file_get_contents('php://input');
+        $decodedData = json_decode($json_data, true);
+
+        $postId = filter_var($decodedData['id'] ?? null, FILTER_VALIDATE_INT);
+        $title = trim($decodedData['title'] ?? '');
+        $content = $decodedData['content'] ?? '';
+        $status = $decodedData['status'] ?? 'draft';
+        $meta_title = trim($decodedData['meta_title'] ?? '');
+        $meta_description = trim($decodedData['meta_description'] ?? '');
+        $meta_keywords = trim($decodedData['meta_keywords'] ?? '');
+        $excerpt = trim($decodedData['excerpt'] ?? '');
+        $selectedCategories = $decodedData['categories'] ?? [];
+
+        $selectedTags = $decodedData['tags'] ?? [];
+        $tagsString = is_array($selectedTags) ? implode(',', $selectedTags) : $selectedTags;
+
+        $thumbnailUrl = trim($decodedData['post_image_url'] ?? '');
+
+        $adminPostsModel = new AdminPostsModel();
+        if (!$adminPostsModel->postExists($postId))
+        {
+            Logger::debug("editArticle. post does not exists. postId={$postId}");
+            $data['errors'][] = 'Пост не найден.';
+        }
+        if (empty($title)) {
+            Logger::debug("editArticle. title empty");
+            $data['errors'][] = 'Заголовок поста обязателен.';
+        }
+
+        if (!empty($data['errors'])) {
+            Logger::debug("editArticle. ошибки заполнены. выход");
+            http_response_code(500);
+            echo json_encode(['success' => false, 
+                'message' => 'Неверно заполнены поля.',
+                'errors' => $data['errors']]);
+            exit;
+        }
+
+
+        $user_id = Auth::getUserId();
+        $postData = [
+            'user_id' => $user_id,
+            'article_type' => $articleType,
+            'status' => $status,
+            'title' => $title,
+            'content' => $content,
+            'meta_title' => $meta_title,
+            'meta_description' => $meta_description,
+            'meta_keywords' => $meta_keywords,
+            'excerpt' => $excerpt,
+            'thumbnail_url' => $thumbnailUrl,
+        ];
+
+        $updateResult = $adminPostsModel->updatePost($postId, $postData, $selectedCategories, $tagsString);
+        
+        if ($updateResult) {
+            $adminRoute = Config::get('admin.AdminRoute');
+            $msgText = ($articleType == 'post' ? 'Пост успешно обновлен' : 'Страница успешно обновлена');
+            echo json_encode(['success' => true, 
+                'redirect' => "/$adminRoute/{$articleType}s/edit/{$postId}",
+                'message' => $msgText]);
+        } else {
+            http_response_code(500);
+            echo json_encode(['success' => false, 
+                'message' => 'Произошла ошибка при создании поста.']);
+        }
+
     }
 }
