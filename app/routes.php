@@ -173,8 +173,8 @@ $router->addRoute("/$adminRoute/pages/api/edit", function() use ($viewAdmin) {
 
 
 // Мягкое удаление поста/страницы. Простановка статуса "удален"
-$router->addRoute("/$adminRoute/posts/delete", function() use ($viewAdmin) {
-    (new AdminPostsController($viewAdmin))->deletePost();
+$router->addRoute("/$adminRoute/posts/api/delete", function() use ($viewAdmin) {
+    (new AdminPostsApiController($viewAdmin))->deletePost();
 }, ['UserAuthenticatedMiddleware', 'AjaxMiddleware', 'CsrfMiddleware'], ['method' => 'PATCH']);
 
 
@@ -182,19 +182,19 @@ $router->addRoute("/$adminRoute/posts/check-url", function() use ($viewAdmin) {
     (new AdminPostsApiController($viewAdmin))->checkUrl();
 }, ['UserAuthenticatedMiddleware', 'AjaxMiddleware', 'CsrfMiddleware'], ['method' => 'POST']);
 
-$router->addRoute("/$adminRoute/tags/search", function() use ($viewAdmin) {
-    (new AdminTagsApiController($viewAdmin))->searchTags();
-}, ['UserAuthenticatedMiddleware', 'AjaxMiddleware', 'CsrfMiddleware'], ['method' => 'POST']);
 
 
 
 // Маршруты для работы с медиа изображениями
-$router->addRoute("/$adminRoute/media/list", function() use ($viewAdmin) {
-    (new AdminMediaController($viewAdmin))->list();
+
+// Получение списка картинок
+$router->addRoute("/$adminRoute/media/api/list", function() use ($viewAdmin) {
+    (new AdminMediaApiController($viewAdmin))->list();
 }, ['UserAuthenticatedMiddleware', 'AjaxMiddleware']);
 
-$router->addRoute("/$adminRoute/media/upload", function() use ($viewAdmin) {
-    (new AdminMediaController($viewAdmin))->upload();
+// Загрузка новой картинки
+$router->addRoute("/$adminRoute/media/api/upload", function() use ($viewAdmin) {
+    (new AdminMediaApiController($viewAdmin))->upload();
 }, ['UserAuthenticatedMiddleware', 'AjaxMiddleware', 'CsrfMiddleware'], ['method' => 'POST']);
 
 
@@ -212,6 +212,11 @@ $router->addRoute("/$adminRoute/tags/edit/(\d+)", function($userId) use ($viewAd
 
 
 // Операции над тэгами
+
+// Поиск тэгов по имени (автодополнение при создании поста/страницы)
+$router->addRoute("/$adminRoute/tags/api/search", function() use ($viewAdmin) {
+    (new AdminTagsApiController($viewAdmin))->searchTags();
+}, ['UserAuthenticatedMiddleware', 'AjaxMiddleware', 'CsrfMiddleware'], ['method' => 'POST']);
 
 // Создание нового тэга
 $router->addRoute("/$adminRoute/tags/api/create", function() use ($viewAdmin) {
@@ -270,7 +275,7 @@ $router->addRoute("/$adminRoute/users/api/delete/(\d+)", function($userId) use (
 
 // Корзина удаленных постов/страниц
 
-//Показ удаленных постов/стрнаницы с пагинацией
+//Показ удаленных постов/страниц с пагинацией
 $router->addRoute("/$adminRoute/thrash/posts(?:/p(\d+))?", function($page = 1) use ($viewAdmin) {
     // Передаем номер страницы в контроллер
     (new AdminPostsController($viewAdmin))->list($page, 'post');
@@ -280,3 +285,13 @@ $router->addRoute("/$adminRoute/thrash/pages(?:/p(\d+))?", function($page = 1) u
     // Передаем номер страницы в контроллер
     (new AdminPostsController($viewAdmin))->list($page, 'page');
 }, ['UserAuthenticatedMiddleware', 'ArticleTypeMiddleware:page']);
+
+// Восстановление поста/страницы из корзины. Простановка статуса "черновик"
+$router->addRoute("/$adminRoute/thrash/api/restore", function() use ($viewAdmin) {
+    (new AdminPostsApiController($viewAdmin))->restore();
+}, ['UserAuthenticatedMiddleware', 'AjaxMiddleware', 'CsrfMiddleware'], ['method' => 'PATCH']);
+
+// Физическое удаление поста/страницы из БД.
+$router->addRoute("/$adminRoute/thrash/api/delete-forever", function() use ($viewAdmin) {
+    (new AdminPostsApiController($viewAdmin))->hardDelete();
+}, ['AdminAuthenticatedMiddleware', 'AjaxMiddleware', 'CsrfMiddleware'], ['method' => 'DELETE']);

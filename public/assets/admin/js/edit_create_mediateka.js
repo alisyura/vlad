@@ -47,7 +47,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Функция для загрузки и отображения картинок из медиатеки
     async function loadMediaItems() {
         // В следующих шагах мы создадим этот роут на сервере
-        const url = `/${adminRoute}/media/list`;
+        const url = `/${adminRoute}/media/api/list`;
 
         try {
             //console.log('loadMediaItems fetch');
@@ -145,7 +145,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 alert('Ошибка: CSRF-токен не найден.');
                 return;
             }
-            const url = `/${adminRoute}/media/upload`;
+            const url = `/${adminRoute}/media/api/upload`;
             
             const formData = new FormData();
             formData.append('file', file);

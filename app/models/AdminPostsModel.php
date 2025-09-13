@@ -3,6 +3,31 @@
 
 class AdminPostsModel extends BaseModel {
     /**
+     * Определяет статус "удален".
+     *
+     * @var string
+     */
+    public const string STATUS_DELETED = 'deleted';
+    /**
+     * Определяет статус "черновик".
+     *
+     * @var string
+     */
+    public const string STATUS_DRAFT = 'draft';
+    /**
+     * Определяет статус "опубликовано".
+     *
+     * @var string
+     */
+    public const string STATUS_PUBLISHED = 'published';
+    /**
+     * Определяет статус "в ожидании", ожидающий проверки или утверждения.
+     *
+     * @var string
+     */
+    public const string STATUS_PENDING = 'pending';
+
+    /**
      * Получает пост по ID с категориями и тегами.
      * @param int $id ID поста.
      * @param string $articleType Тип поста (post/page).
@@ -213,38 +238,44 @@ class AdminPostsModel extends BaseModel {
     }
 
     /**
-     * Проверяет существование поста по URL, ID или по обоим.
+     * Проверяет существование поста по ID, URL или их комбинации,
+     * с возможностью фильтрации по статусу.
+     * Статус может быть проверен только при наличии ID или URL.
      *
      * @param int|null $postId ID поста.
      * @param string|null $url URL поста.
+     * @param string|null $status Статус поста.
      * @return bool True, если пост существует, false в противном случае.
      */
-    public function postExists(?int $postId = null, ?string $url = null): bool
+    public function postExists(?int $postId = null, ?string $url = null, ?string $status = null): bool
     {
-        // Если ни URL, ни ID не переданы, пост не может существовать.
         if (is_null($url) && is_null($postId)) {
             return false;
         }
 
-        $sql = "SELECT COUNT(*) FROM posts WHERE 1";
+        $whereClauses = [];
         $params = [];
 
-        // Добавляем условие для URL, если оно передано.
-        if (!is_null($url)) {
-            $sql .= " AND url = :url";
-            $params[':url'] = $url;
-        }
-
-        // Добавляем условие для ID, если оно передано.
         if (!is_null($postId)) {
-            $sql .= " AND id = :id";
+            $whereClauses[] = "id = :id";
             $params[':id'] = $postId;
         }
+
+        if (!is_null($url)) {
+            $whereClauses[] = "url = :url";
+            $params[':url'] = $url;
+        }
+        
+        if (!is_null($status)) {
+            $whereClauses[] = "status = :status";
+            $params[':status'] = $status;
+        }
+
+        $sql = "SELECT COUNT(*) FROM posts WHERE " . implode(" AND ", $whereClauses);
 
         $stmt = $this->db->prepare($sql);
         $stmt->execute($params);
 
-        // Возвращаем true, если количество записей > 0
         return $stmt->fetchColumn() > 0;
     }
 
@@ -375,22 +406,47 @@ class AdminPostsModel extends BaseModel {
      * Помечает пост/страницу как удалённый (soft delete), устанавливая статус 'deleted'.
      * 
      * @param int $postId ID поста.
+     * @param string $status Статус поста. См. константы в начале класса.
      * @return bool true в случае успеха, false — если произошла ошибка или пост не найден.
      */
-    public function setPostAsDeleted(int $postId): bool
+    public function setPostStatus(int $postId, string $status): bool
     {
-        $sql = "UPDATE posts SET status = 'deleted', updated_at = :updated_at WHERE id = :id";
+        $sql = "UPDATE posts SET status = :status, updated_at = :updated_at WHERE id = :id";
         try {
             $stmt = $this->db->prepare($sql);
             $result = $stmt->execute([
                 ':id' => $postId,
+                ':status' => $status,
                 ':updated_at' => date('Y-m-d H:i:s')
             ]);
             
             // Возвращаем true, только если хотя бы одна строка была обновлена
             return $stmt->rowCount() > 0;
         } catch (PDOException $e) {
-            Logger::error("Ошибка при пометке поста ID $postId как удалённого: " . $e->getMessage());
+            Logger::error("Ошибка при установке посту ID {$postId} статуса {$status} : " . $e->getTraceAsString());
+            return false;
+        }
+    }
+
+    /**
+     * Выполняет полное удаление поста из базы данных.
+     *
+     * @param int $postId ID поста.
+     * @return bool true в случае успеха, false — если произошла ошибка или пост не найден.
+     */
+    public function hardDeletePost(int $postId): bool
+    {
+        // Запрос на полное удаление записи
+        $sql = "DELETE FROM posts WHERE id = :id";
+        try {
+            $stmt = $this->db->prepare($sql);
+            $stmt->execute([':id' => $postId]);
+            
+            // Возвращаем true, если удалена хотя бы одна строка
+            return $stmt->rowCount() > 0;
+        } catch (PDOException $e) {
+            // Логирование ошибки и возврат false
+            Logger::error("Ошибка при полном удалении поста ID {$postId}: " . $e->getTraceAsString());
             return false;
         }
     }

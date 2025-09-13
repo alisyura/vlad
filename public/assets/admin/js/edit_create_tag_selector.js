@@ -83,7 +83,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     return;
                 }
 
-                const url = `/${adminRoute}/tags/search`;
+                const url = `/${adminRoute}/tags/api/search`;
 
                 const response = await fetch(url, {
                     method: 'POST',
@@ -94,13 +94,13 @@ document.addEventListener('DOMContentLoaded', function() {
                     },
                     body: JSON.stringify({ q: query })
                 });
-                
+
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
-                
+
                 const tags = await response.json();
-                
+
                 tagSuggestions.innerHTML = '';
                 if (tags.length > 0) {
                     tags.forEach(tag => {

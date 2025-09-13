@@ -550,40 +550,4 @@ class AdminPostsController extends BaseController
         }
 
     }
-
-    /**
-     * Выполняет мягкое удаление поста по ID (через AJAX).
-     * Ожидает PATCH-запрос с JSON: { post_id: 123, csrf_token: "..." }
-     */
-    public function deletePost()
-    {
-        // Считываем JSON
-        $input = json_decode(file_get_contents('php://input'), true);
-        $postId = filter_var($input['post_id'] ?? null, FILTER_VALIDATE_INT);
-
-        // Проверка ID
-        if (!is_numeric($postId)) {
-            $this->sendErrorJsonResponse('Неверный ID поста.');
-            return;
-        }
-
-        try {
-            $adminPostsModel = new AdminPostsModel();
-            $post = $adminPostsModel->postExists((int)$postId);
-
-            if (!$post) {
-                $this->sendErrorJsonResponse('Пост не найден', 404);
-                return;
-            }
-
-            // Помечаем пост как удалённый
-            $admPostsModel = new AdminPostsModel();
-            $admPostsModel->setPostAsDeleted($postId);
-
-            $this->sendSuccessJsonResponse('Пост успешно удалён.');
-        } catch (Exception $e) {
-            Logger::error("Ошибка при удалении поста $postId: " . $e->getTraceAsString());
-            $this->sendErrorJsonResponse('Ошибка при удалении поста', 500);
-        }
-    }
 }

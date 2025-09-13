@@ -1,9 +1,9 @@
 <?php
 
-// app/controllers/AdminMediaController.php
+// app/controllers/AdminMediaApiController.php
 
 
-class AdminMediaController extends BaseController
+class AdminMediaApiController extends BaseController
 {
     public function list()
     {

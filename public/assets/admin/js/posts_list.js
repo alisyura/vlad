@@ -43,21 +43,21 @@ class PostActionsModal {
             switch (this.currentAction) {
                 case 'delete':
                     modalTitle.textContent = `Удалить пост: ${postTitle}`;
-                    modalBody.innerHTML = 'Вы действительно хотите **переместить** этот пост в корзину?';
+                    modalBody.innerHTML = 'Вы действительно хотите <b>переместить</b> этот пост в корзину?';
                     this.confirmActionBtn.classList.remove('btn-success');
                     this.confirmActionBtn.classList.add('btn-danger');
                     this.confirmActionBtn.textContent = 'Да, удалить';
                     break;
                 case 'delete-forever':
                     modalTitle.textContent = `Удалить навсегда: ${postTitle}`;
-                    modalBody.innerHTML = 'Вы действительно хотите **удалить навсегда** этот пост? Это действие нельзя отменить.';
+                    modalBody.innerHTML = 'Вы действительно хотите <b style="color: red;">удалить навсегда</b> этот пост? Это действие нельзя отменить.';
                     this.confirmActionBtn.classList.remove('btn-success');
                     this.confirmActionBtn.classList.add('btn-danger');
                     this.confirmActionBtn.textContent = 'Да, удалить навсегда';
                     break;
                 case 'restore':
                     modalTitle.textContent = `Восстановить пост: ${postTitle}`;
-                    modalBody.innerHTML = 'Вы действительно хотите **восстановить** этот пост?';
+                    modalBody.innerHTML = 'Вы действительно хотите <b>восстановить</b> этот пост?';
                     this.confirmActionBtn.classList.remove('btn-danger');
                     this.confirmActionBtn.classList.add('btn-success');
                     this.confirmActionBtn.textContent = 'Да, восстановить';
@@ -81,14 +81,14 @@ class PostActionsModal {
         // Выбор URL в зависимости от действия
         switch (this.currentAction) {
             case 'delete':
-                url = `/${adminRoute}/posts/delete`;
+                url = `/${adminRoute}/posts/api/delete`;
                 break;
             case 'delete-forever':
-                url = `/${adminRoute}/posts/delete-forever`;
+                url = `/${adminRoute}/thrash/api/delete-forever`;
                 method = 'DELETE';
                 break;
             case 'restore':
-                url = `/${adminRoute}/posts/restore`;
+                url = `/${adminRoute}/thrash/api/restore`;
                 break;
             default:
                 console.error('Неизвестное действие');
@@ -120,10 +120,17 @@ class PostActionsModal {
 
             if (!response.ok) {
                 if (response.status === 401) {
-                    window.location.href = `/admin/login`;
+                    window.location.href = `/${adminRoute}/login`;
                     return;
                 }
-                throw new Error(result.message);
+                // Проверяем, существует ли result.message и является ли он непустой строкой
+                if (result && result.message) {
+                    alert('Ошибка: ' + result.message);
+                } else {
+                    // Если result.message пуст или не существует
+                    throw new Error('Не удалось выполнить действие.');
+                }
+                return;
             }
 
             if (result.success) {

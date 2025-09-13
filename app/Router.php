@@ -59,7 +59,7 @@ class Router {
                     if (is_string($middleware) && class_exists($middleware)) {
                         $middlewareInstance = new $middleware();
                         // Предполагаем, что у middleware есть метод handle, возвращающий true/false или выбрасывающий исключение
-                        if (method_exists($middlewareInstance, 'handle')) {
+                        if ($middlewareInstance instanceof MiddlewareInterface) {
                             $paramToPass = (!empty($params) && !($paramString === '')) ? $params : null;
                             $result = $middlewareInstance->handle($paramToPass);
                             // Если middleware вернул false или выбросил исключение (например, редирект), останавливаем выполнение

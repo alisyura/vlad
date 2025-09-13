@@ -12,7 +12,7 @@ class AdminTagsApiController extends BaseController
     }
 
     /**
-     * Поиск меток по названию для автодополнения (POST-запрос).
+     * Поиск тэгов по названию для автодополнения (POST-запрос).
      */
     public function searchTags()
     {
