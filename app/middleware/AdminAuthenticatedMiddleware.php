@@ -8,7 +8,7 @@ class AdminAuthenticatedMiddleware implements MiddlewareInterface
      * Проверяет авторизацию администратора.
      * @return bool True если авторизован, иначе выполнение скрипта прерывается.
      */
-    public function handle(): bool
+    public function handle(?array $param = null): bool
     {
         if (!\Auth::isUserAdmin()) {
             $adminRoute = Config::get('admin.AdminRoute');

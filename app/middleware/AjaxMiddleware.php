@@ -3,7 +3,7 @@
 
 class AjaxMiddleware implements MiddlewareInterface
 {
-    public function handle(): bool
+    public function handle(?array $param = null): bool
     {
         // Если метод запроса верный, проверяем наличие AJAX-заголовка
         $http_requested_with = $_SERVER['HTTP_X_REQUESTED_WITH'] ?? '';

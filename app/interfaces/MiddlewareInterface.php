@@ -1,5 +1,5 @@
 <?php
 
 interface MiddlewareInterface {
-    function handle(): bool;
+    function handle(?array $params = null): bool;
 }

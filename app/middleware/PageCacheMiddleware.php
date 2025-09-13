@@ -14,7 +14,7 @@ class PageCacheMiddleware implements MiddlewareInterface
         $this->useCache = Config::get('cache.UseCache');
     }
 
-    public function handle(): bool
+    public function handle(?array $param = null): bool
     {
         // Убедимся, что это GET-запрос
         if (!$this->useCache || $_SERVER['REQUEST_METHOD'] !== 'GET') {

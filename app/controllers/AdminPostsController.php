@@ -7,18 +7,9 @@ class AdminPostsController extends BaseController
      * Отображает список постов в админ-панели с пагинацией.
      * @param int $currentPage Номер текущей страницы (из URL, по умолчанию 1).
      */
-    public function postsList($currentPage = 1)
+    public function list($currentPage = 1, $articleType)
     {
-        $this->processArticlesList($currentPage, 'post');
-    }
-
-    /**
-     * Отображает список страниц в админ-панели с пагинацией.
-     * @param int $currentPage Номер текущей страницы (из URL, по умолчанию 1).
-     */
-    public function pagesList($currentPage = 1)
-    {
-        $this->processArticlesList($currentPage, 'page');
+        $this->processList($currentPage, $articleType);
     }
 
     /**
@@ -26,7 +17,7 @@ class AdminPostsController extends BaseController
      * @param int $currentPage Номер текущей страницы (из URL, по умолчанию 1).
      * @param string $articleType Тип статьи. post или page
      */
-    private function processArticlesList($currentPage = 1, $articleType = 'post') {
+    private function processList($currentPage = 1, $articleType = 'post') {
         // $adminRoute = $this->getAdminRoute();
         $userName = Auth::getUserName();
         try {

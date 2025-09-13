@@ -3,7 +3,7 @@
 
 class CsrfMiddleware implements MiddlewareInterface
 {
-    public function handle(): bool
+    public function handle(?array $param = null): bool
     {
         // Методы, которые требуют CSRF-защиты
         $unsafeMethods = ['POST', 'PUT', 'PATCH', 'DELETE'];

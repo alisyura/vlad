@@ -120,13 +120,13 @@ $router->addRoute("/$adminRoute/logout", function() use ($viewAdmin) {
 // Список постов/страниц с пагинацией
 $router->addRoute("/$adminRoute/posts(?:/p(\d+))?", function($page = 1) use ($viewAdmin) {
     // Передаем номер страницы в контроллер
-    (new AdminPostsController($viewAdmin))->postsList($page);
-}, ['UserAuthenticatedMiddleware']);
+    (new AdminPostsController($viewAdmin))->list($page, 'post');
+}, ['UserAuthenticatedMiddleware', 'ArticleTypeMiddleware:post']);
 
 $router->addRoute("/$adminRoute/pages(?:/p(\d+))?", function($page = 1) use ($viewAdmin) {
     // Передаем номер страницы в контроллер
-    (new AdminPostsController($viewAdmin))->pagesList($page);
-}, ['UserAuthenticatedMiddleware']);
+    (new AdminPostsController($viewAdmin))->list($page, 'page');
+}, ['UserAuthenticatedMiddleware', 'ArticleTypeMiddleware:page']);
 
 
 // Создание нового поста
@@ -268,13 +268,15 @@ $router->addRoute("/$adminRoute/users/api/delete/(\d+)", function($userId) use (
     (new AdminUsersApiController($viewAdmin))->delete($userId);
 }, ['AdminAuthenticatedMiddleware', 'AjaxMiddleware', 'CsrfMiddleware'], ['method' => 'DELETE']);
 
+// Корзина удаленных постов/страниц
+
 //Показ удаленных постов/стрнаницы с пагинацией
 $router->addRoute("/$adminRoute/thrash/posts(?:/p(\d+))?", function($page = 1) use ($viewAdmin) {
     // Передаем номер страницы в контроллер
-    (new AdminPostsController($viewAdmin))->postsList($page);
-}, ['UserAuthenticatedMiddleware']);
+    (new AdminPostsController($viewAdmin))->list($page, 'post');
+}, ['UserAuthenticatedMiddleware', 'ArticleTypeMiddleware:post']);
 
 $router->addRoute("/$adminRoute/thrash/pages(?:/p(\d+))?", function($page = 1) use ($viewAdmin) {
     // Передаем номер страницы в контроллер
-    (new AdminPostsController($viewAdmin))->pagesList($page);
-}, ['UserAuthenticatedMiddleware']);
+    (new AdminPostsController($viewAdmin))->list($page, 'page');
+}, ['UserAuthenticatedMiddleware', 'ArticleTypeMiddleware:page']);

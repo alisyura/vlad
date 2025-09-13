@@ -43,12 +43,25 @@ class Router {
 
                 // Выполняем middleware ДО основного обработчика
                 foreach ($middlewares as $middleware) {
+                    $params = [];
+
+                    // Проверяем, есть ли двоеточие в имени middleware
+                    if (is_string($middleware) && strpos($middleware, ':') !== false) {
+                        // Разделяем строку на имя класса и параметры
+                        [$middleware, $paramString] = explode(':', $middleware, 2);
+                        
+                        // Преобразуем строку параметров в массив.
+                        // Если параметров несколько, их можно разделять запятой, например 'param1,param2'
+                        $params = explode(',', $paramString);
+                    }
+                    
                      // Проверяем, является ли $middleware строкой (именем класса) или объектом/замыканием
                     if (is_string($middleware) && class_exists($middleware)) {
                         $middlewareInstance = new $middleware();
                         // Предполагаем, что у middleware есть метод handle, возвращающий true/false или выбрасывающий исключение
                         if (method_exists($middlewareInstance, 'handle')) {
-                            $result = $middlewareInstance->handle();
+                            $paramToPass = (!empty($params) && !($paramString === '')) ? $params : null;
+                            $result = $middlewareInstance->handle($paramToPass);
                             // Если middleware вернул false или выбросил исключение (например, редирект), останавливаем выполнение
                             if ($result === false) {
                                 return; // Или можно бросить исключение
