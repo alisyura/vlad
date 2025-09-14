@@ -3,6 +3,8 @@
 
 class AdminPostsController extends BaseController
 {
+    use UrlHelperTrait;
+
     /**
      * Отображает список постов/страниц в админ-панели с пагинацией.
      * @param int $currentPage Номер текущей страницы (из URL, по умолчанию 1).
@@ -46,7 +48,7 @@ class AdminPostsController extends BaseController
 
             // Базовый URL для админки
             $basePageUrl=$this->getBasePageUrl();
-            $isTrash = (new UrlHelperService())->hasThrash($basePageUrl);
+            $isTrash = $this->hasThrash($basePageUrl);
 
             // Определяем параметры пагинации
             $postsPerPage = Config::get('admin.PostsPerPage'); // Количество постов на страницу
