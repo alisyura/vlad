@@ -61,13 +61,13 @@ $router->addRoute('/api/publish', function () {
 $router->addRoute('/api/reaction', function () {
     $controller = new AjaxController();
     $controller->reaction();
-});
+}, ['AjaxMiddleware', 'CsrfMiddleware'], ['method' => 'POST']);
 
 // Получение лайков/дислайков постов
 $router->addRoute('/api/post-votes', function () {
     $controller = new AjaxController();
     $controller->getPostVotes();
-});
+}, ['AjaxMiddleware', 'CsrfMiddleware'], ['method' => 'POST']);
 
 // Отправка сообщения через форму обратной связи
 $router->addRoute('/api/send_msg', function () {
@@ -79,6 +79,12 @@ $router->addRoute('/api/send_msg', function () {
 $router->addRoute('/api/search_tags', function () {
     $controller = new AjaxController();
     $controller->searchTags();
+});
+
+// Получение CSRF токена
+$router->addRoute('/api/get-csrf-token', function () {
+    $controller = new AjaxController();
+    $controller->getCsrfToken();
 });
 
 

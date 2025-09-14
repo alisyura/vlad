@@ -66,3 +66,18 @@ function getFormData(obj)
         console.log(key, value);
     }
 }
+
+/**
+ * Получает свежий CSRF-токен с сервера.
+ * @returns {Promise<string|null>}
+ */
+window.getFreshCsrfToken = async function() {
+    try {
+        const response = await fetch('/api/get-csrf-token', { cache: 'no-store' });
+        const data = await response.json();
+        return data.csrf_token;
+    } catch (error) {
+        console.error('Ошибка при получении CSRF-токена:', error);
+        return null;
+    }
+}

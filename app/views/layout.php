@@ -269,7 +269,8 @@
     <script src="/assets/js/menu.js" defer></script>
     <script src="/assets/js/common.js" defer></script>
     <script src="/assets/js/new_pub.js" defer></script>
-    <script src="/assets/js/react.js" defer></script>
+    <!-- <script src="/assets/js/react.js" defer></script> -->
+    <script src="/assets/js/main.js" defer></script>
     <?php
         switch ($structuredData['page_type']) {
             case 'kontakty':

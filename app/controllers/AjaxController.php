@@ -21,7 +21,11 @@ class AjaxController
 
     public function getPostVotes()
     {
-        $posts = $_POST['posts'] ?? '';
+        $json_data = file_get_contents('php://input');
+        // Декодируем JSON-строку в ассоциативный массив PHP
+        $post_data = json_decode($json_data, true);
+
+        $posts = $post_data['posts'] ?? '';
         if (empty($posts)) {
             echo json_encode(['success' => false, 'message' => 'Нет постов']);
             exit;
@@ -31,10 +35,6 @@ class AjaxController
 
             $uuid = getVisitorCookie();
 
-            // $stmtVisitor = $this->db->prepare("SELECT id FROM visitors WHERE uuid = :uuid");
-            // $stmtVisitor->execute([':uuid' => $uuid]);
-            // $visitor = $stmtVisitor->fetch(PDO::FETCH_ASSOC);
-            // $visitorId = $visitor ? $visitor['id'] : null;
             $visitorId=$this->getVisitorIdForUUID($uuid);
 
             // Убираем дубликаты и пустые значения
@@ -107,8 +107,12 @@ class AjaxController
      */
     public function reaction()
     {
-        $postUrl = $_POST['postUrl'] ?? '';
-        $voteType = $_POST['type'] ?? '';
+        $json_data = file_get_contents('php://input');
+        // Декодируем JSON-строку в ассоциативный массив PHP
+        $post_data = json_decode($json_data, true);
+
+        $postUrl = $post_data['postUrl'] ?? '';
+        $voteType = $post_data['type'] ?? '';
         $uuid = getVisitorCookie();
 
         Logger::debug("reaction. postUrl=".$postUrl.", voteType=".$voteType);
@@ -156,7 +160,7 @@ class AjaxController
             if (!$post) {
                 Logger::debug("reaction. Пост не найден");
                 $this->db->rollBack();
-                //return ['success' => false, 'message' => 'Пост не найден'];
+
                 echo json_encode([
                     'success' => false,
                     'message' => 'Пост не найден'
@@ -169,15 +173,7 @@ class AjaxController
             // Шаг 3: Добавляем новый голос
             Logger::debug("reaction. Добавляем новый голос. ".
                 ':post_id='. $postId.':visitor_id='.$visitorId.':vote_type='.$voteType);
-            // $stmt = $this->db->prepare("
-            //     INSERT INTO post_votes (post_id, visitor_id, vote_type, created_at, updated_at)
-            //     SELECT :post_id, :visitor_id, :vote_type, NOW(), NOW()
-            //     FROM dual
-            //     WHERE NOT EXISTS (
-            //         SELECT 1 FROM post_votes 
-            //         WHERE post_id = :post_id AND visitor_id = :visitor_id
-            //     )
-            //  ");
+
             $stmt = $this->db->prepare('INSERT IGNORE INTO post_votes 
                         (post_id, visitor_id, vote_type, created_at, updated_at)
                     VALUES (:post_id, :visitor_id, :vote_type, NOW(), NOW())');
@@ -207,7 +203,7 @@ class AjaxController
             Logger::debug("reaction. res=".$res);
             echo $res;
         }
-        catch (Exception $e) {
+        catch (Throwable $e) {
             if ($this->db->inTransaction()) {
                 $this->db->rollBack();
             }
@@ -504,5 +500,14 @@ class AjaxController
                 'message' => $e->getMessage()
             ]);
         }
+    }
+
+    public function getCsrfToken()
+    {
+        echo json_encode([
+                'success' => true,
+                'csrf_token' => CSRF::getToken()
+            ]);
+        exit;
     }
 }
