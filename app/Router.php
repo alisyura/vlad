@@ -12,15 +12,15 @@ class Router {
         ];
     }
     
-    public function dispatch($uri) {
-        $uri = strtok($uri, '?');
+    public function dispatch(Request $request, ?ViewAdmin $viewAdmin) {
+        $uri = strtok($request->getUri(), '?');
         foreach ($this->routes as $route) {
             $pattern = $route['pattern'];
             $handler = $route['handler'];
             $middlewares = $route['middlewares']; // Получаем список middleware для этого маршрута
 
             if (preg_match("#^$pattern$#", $uri, $matches)) {
-                $requestMethod = strtoupper($_SERVER['REQUEST_METHOD']);
+                $requestMethod = strtoupper($request->getMethod());
                 if ($requestMethod === 'OPTIONS') {
                     http_response_code(204); // No Content - успешный ответ без тела
                     exit;
@@ -29,7 +29,7 @@ class Router {
                 if ($route['method'] !== 'ANY')
                 {
                     // Разбиваем строку и фильтруем пустые значения
-                    $allowedMethods = array_filter(array_map('trim', explode(',', $route['method'])));                    
+                    $allowedMethods = array_filter(array_map('trim', explode(',', $route['method'])));
                     // Преобразуем все в верхний регистр
                     $allowedMethods = array_map('strtoupper', $allowedMethods);
                         
@@ -87,6 +87,17 @@ class Router {
                 }
 
                 // Если все middleware прошли успешно, вызываем основной обработчик
+                array_unshift($matches, $request); // вставляем первым параметром
+                
+                // временное решение. пока не отрефачена клиентская часть. 
+                // впоследствии там тоже будет передавать View
+
+                // Если viewAdmin был передан, значит его надо использовать
+                if ($viewAdmin !== null) {
+                    // Вставляем строку 'viewadmin' на второй индекс (позиция 1)
+                    // оборачиваем в массив, чтобы вставился объектом
+                    array_splice($matches, 1, 0, [$viewAdmin]);
+                }
                 call_user_func_array($handler, $matches);
                 return;
             }

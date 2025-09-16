@@ -257,7 +257,7 @@ class PostModel {
                 p.title AS title,
                 p.content AS content,
                 DATE_FORMAT(p.updated_at, '%Y-%m-%d') AS updated_at,
-                p.description AS description,
+                p.meta_description AS description,
                 t.url AS tag_url,
                 t.name AS tag_name,
                 c.url AS category_url,

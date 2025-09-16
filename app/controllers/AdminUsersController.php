@@ -5,9 +5,9 @@ class AdminUsersController extends BaseController
     private UserService $userService;
     private UserModel $userModel;
 
-    public function __construct(ViewAdmin $view)
+    public function __construct(Request $request, ViewAdmin $view)
     {
-        parent::__construct($view);
+        parent::__construct($request, $view);
         $this->userService = new UserService();
         $this->userModel = new UserModel();
     }

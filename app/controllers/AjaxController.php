@@ -3,12 +3,14 @@
 class AjaxController
 {
     private $db;
+    private $request;
 
-    public function __construct()
+    public function __construct(Request $request)
     {
         header('Content-Type: application/json');
 
         $this->db = Database::getConnection();
+        $this->request = $request;
     }
 
     private function getVisitorIdForUUID($uuid)
@@ -223,12 +225,6 @@ class AjaxController
 
     public function publish()
     {
-        // if (!$this->isAjaxRequest()) {
-        //     http_response_code(403);
-        //     echo json_encode(['success' => false, 'message' => 'Доступ запрещён']);
-        //     exit;
-        // }
-
         $content = $_POST['text'] ?? '';
         $file = $_FILES['image'] ?? null;
 
@@ -376,15 +372,6 @@ class AjaxController
         $stmt->execute();
         return $stmt->fetch();
     }
-
-    // protected function isAjaxRequest()
-    // {
-    //     return (
-    //         $_SERVER['REQUEST_METHOD'] === 'POST'
-    //         && !empty($_SERVER['HTTP_X_REQUESTED_WITH'])
-    //         && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest'
-    //     );
-    // }
 
     public function sendMsg()
     {

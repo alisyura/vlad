@@ -6,9 +6,9 @@ class AdminUsersApiController extends BaseController
 {
     private UserModel $userModel;
 
-    public function __construct(ViewAdmin $view)
+    public function __construct(Request $request, ?ViewAdmin $view = null)
     {
-        parent::__construct($view);
+        parent::__construct($request, $view);
         $this->userModel = new UserModel();
     }
 

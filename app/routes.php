@@ -1,50 +1,51 @@
 <?php
 
 // Главная страница. Или пустая, или номером страницы /p/2
-$router->addRoute('/(p(\d+))?', function($fullMatch = null, $page = 1) {
+$router->addRoute('/(p(\d+))?', function($request, $fullMatch = null, $page = 1) {
     $controller = new PostController();
     $controller->index(max(1, (int)$page)); // защита от нуля и отрицательных
 }, ['PageCacheMiddleware']);
 
 // Страница post
-$router->addRoute('/([0-9a-zA-Z-_]+)\.html', function($post_url) {
+$router->addRoute('/([0-9a-zA-Z-_]+)\.html', function($request, $post_url) {
     $controller = new PostController();
     $controller->showPost($post_url);
 }, ['PageCacheMiddleware']);
 
 // Страница контакты
-$router->addRoute('/page/kontakty\.html', function() {
+$router->addRoute('/page/kontakty\.html', function($request) {
     $controller = new PostController();
     $controller->showKontakty();
 }, ['PageCacheMiddleware']);
 
 // Страница карта сайта
-$router->addRoute('/page/sitemap\.html', function() {
+$router->addRoute('/page/sitemap\.html', function($request) {
     $controller = new PostController();
     $controller->showSitemap();
 }, ['PageCacheMiddleware']);
 
 // Страница page
-$router->addRoute('/page\/([0-9a-zA-Z-_]+)\.html', function($page_url) {
+$router->addRoute('/page\/([0-9a-zA-Z-_]+)\.html', function($request, $page_url) {
     $controller = new PostController();
     $controller->showPage($page_url);
 }, ['PageCacheMiddleware']);
 
 // Список постов по тэгу
-$router->addRoute('/tag\/([0-9a-zA-Z-_]+)(?:\/p(\d+))?', function($tagUrl, $page = 1) {
+$router->addRoute('/tag\/([0-9a-zA-Z-_]+)(?:\/p(\d+))?', function($request, $tagUrl, $page = 1) {
     $controller = new PostController();
     $controller->showTag($tagUrl, max(1, (int)$page));
 }, ['PageCacheMiddleware']);
 
 // Список постов по разделу
-$router->addRoute('/cat\/(anekdoty|veselaya-rifma|citatnik|istorii|kartinki|video|tegi|luchshee)(?:\/p(\d+))?', function($cat_url, $page = 1) {
-    $controller = new PostController();
-    if ($cat_url === 'tegi') {
-        $controller->showTagFilter();
-    }
-    else {
-        $controller->showSection($cat_url, $cat_url === 'istorii', max(1, (int)$page));
-    }
+$router->addRoute('/cat\/(anekdoty|veselaya-rifma|citatnik|istorii|kartinki|video|tegi|luchshee)(?:\/p(\d+))?', 
+    function($request, $cat_url, $page = 1) {
+        $controller = new PostController();
+        if ($cat_url === 'tegi') {
+            $controller->showTagFilter();
+        }
+        else {
+            $controller->showSection($cat_url, $cat_url === 'istorii', max(1, (int)$page));
+        }
 }, ['PageCacheMiddleware']);
 
 
@@ -52,50 +53,50 @@ $router->addRoute('/cat\/(anekdoty|veselaya-rifma|citatnik|istorii|kartinki|vide
 // Вызовы Ajax
 
 // Добавление пользователем материала через кнопку Добавить из меню
-$router->addRoute('/api/publish', function () {
-    $controller = new AjaxController();
+$router->addRoute('/api/publish', function ($request) {
+    $controller = new AjaxController($request);
     $controller->publish();
 });
 
 // Лайк/дислайк
-$router->addRoute('/api/reaction', function () {
-    $controller = new AjaxController();
+$router->addRoute('/api/reaction', function ($request) {
+    $controller = new AjaxController($request);
     $controller->reaction();
 }, ['AjaxMiddleware', 'CsrfMiddleware'], ['method' => 'POST']);
 
 // Получение лайков/дислайков постов
-$router->addRoute('/api/post-votes', function () {
-    $controller = new AjaxController();
+$router->addRoute('/api/post-votes', function ($request) {
+    $controller = new AjaxController($request);
     $controller->getPostVotes();
 }, ['AjaxMiddleware', 'CsrfMiddleware'], ['method' => 'POST']);
 
 // Отправка сообщения через форму обратной связи
-$router->addRoute('/api/send_msg', function () {
-    $controller = new AjaxController();
+$router->addRoute('/api/send_msg', function ($request) {
+    $controller = new AjaxController($request);
     $controller->sendMsg();
 });
 
 // Получение списка тэгов
-$router->addRoute('/api/search_tags', function () {
-    $controller = new AjaxController();
+$router->addRoute('/api/search_tags', function ($request) {
+    $controller = new AjaxController($request);
     $controller->searchTags();
 });
 
 // Получение CSRF токена
-$router->addRoute('/api/get-csrf-token', function () {
-    $controller = new AjaxController();
+$router->addRoute('/api/get-csrf-token', function ($request) {
+    $controller = new AjaxController($request);
     $controller->getCsrfToken();
 });
 
 
 
 // Sitemap.xml
-$router->addRoute('/sitemap\.xml', function () {
+$router->addRoute('/sitemap\.xml', function ($request) {
     $controller = new SitemapController();
     $controller->generateSitemapIndexXml();
 });
 
-$router->addRoute('/sitemap-(posts|pages)-(\d+)\.xml', function ($type, $page) {
+$router->addRoute('/sitemap-(posts|pages)-(\d+)\.xml', function ($request, $type, $page) {
     $controller = new SitemapController();
     $controller->generateSitemapPartXml($type, $page);
 });
@@ -103,43 +104,38 @@ $router->addRoute('/sitemap-(posts|pages)-(\d+)\.xml', function ($type, $page) {
 
 
 // Админка
-$adminRoute = Config::get('admin.AdminRoute');
-$viewsRootPath = Config::get('global.ViewsRootPath');
-$viewAdmin = new ViewAdmin(
-    $viewsRootPath,
-    'admin/login.php',
-    'admin/admin_layout.php'
-);
 
-$router->addRoute("/$adminRoute/login", function() use ($viewAdmin) {
-    (new AdminLoginController($viewAdmin))->login();
+$adminRoute = Config::get('admin.AdminRoute');
+
+$router->addRoute("/$adminRoute/login", function($request, $viewAdmin) {
+    (new AdminLoginController($request, $viewAdmin))->login();
 }, [], ['method' => 'GET, POST']);
 
-$router->addRoute("/$adminRoute/dashboard", function() use ($viewAdmin) {
-    (new AdminDashboardController($viewAdmin))->dashboard();
+$router->addRoute("/$adminRoute/dashboard", function($request,$viewAdmin) {
+    (new AdminDashboardController($request, $viewAdmin))->dashboard();
 }, ['UserAuthenticatedMiddleware']);
 
-$router->addRoute("/$adminRoute/logout", function() use ($viewAdmin) {
-    (new AdminLoginController($viewAdmin))->logout();
+$router->addRoute("/$adminRoute/logout", function($request, $viewAdmin) {
+    (new AdminLoginController($request, $viewAdmin))->logout();
 }, ['UserAuthenticatedMiddleware']);
 
 
 // Формы GET
 
 // Список постов/страниц с пагинацией
-$router->addRoute("/$adminRoute/(post|page)s(?:/p(\d+))?", function($articleType, $page = 1) use ($viewAdmin) {
+$router->addRoute("/$adminRoute/(post|page)s(?:/p(\d+))?", function($request, $viewAdmin, $articleType, $page = 1) {
     // Передаем номер страницы в контроллер
-    (new AdminPostsController($viewAdmin))->list($page, $articleType);
+    (new AdminPostsController($request, $viewAdmin))->list($page, $articleType);
 }, ['UserAuthenticatedMiddleware', 'ArticleTypeMiddleware:post,page']);
 
 // Форма создание нового поста/страницы
-$router->addRoute("/$adminRoute/(post|page)s/create", function($articleType) use ($viewAdmin) {
-    (new AdminPostsController($viewAdmin))->create($articleType);
+$router->addRoute("/$adminRoute/(post|page)s/create", function($request, $viewAdmin, $articleType) {
+    (new AdminPostsController($request, $viewAdmin))->create($articleType);
 }, ['UserAuthenticatedMiddleware', 'ArticleTypeMiddleware:post,page']);
 
 // Форма редактирования существующего поста/страницы
-$router->addRoute("/$adminRoute/(post|page)s/edit/(\d+)", function($articleType, $postId) use ($viewAdmin) {
-    (new AdminPostsController($viewAdmin))->edit($postId, $articleType);
+$router->addRoute("/$adminRoute/(post|page)s/edit/(\d+)", function($request, $viewAdmin, $articleType, $postId) {
+    (new AdminPostsController($request, $viewAdmin))->edit($postId, $articleType);
 }, ['UserAuthenticatedMiddleware', 'ArticleTypeMiddleware:post,page']);
 
 
@@ -147,23 +143,23 @@ $router->addRoute("/$adminRoute/(post|page)s/edit/(\d+)", function($articleType,
 // Вызовы API работы с постами/страницами
 
 // Вызов api создания нового поста из формы создания нового поста по кнопке "опубликовать"
-$router->addRoute("/$adminRoute/(post|page)s/api/create", function($articleType) use ($viewAdmin) {
-    (new AdminPostsApiController($viewAdmin))->create($articleType);
+$router->addRoute("/$adminRoute/(post|page)s/api/create", function($request, $viewAdmin, $articleType) {
+    (new AdminPostsApiController($request))->create($articleType);
 }, ['UserAuthenticatedMiddleware', 'AjaxMiddleware', 'CsrfMiddleware'], ['method' => 'POST']);
 
 // Вызов api изменения поста из формы изменения поста по кнопке "обновить"
-$router->addRoute("/$adminRoute/(post|page)s/api/edit", function($articleType) use ($viewAdmin) {
-    (new AdminPostsApiController($viewAdmin))->edit($articleType);
+$router->addRoute("/$adminRoute/(post|page)s/api/edit", function($request, $viewAdmin, $articleType) {
+    (new AdminPostsApiController($request))->edit($articleType);
 }, ['UserAuthenticatedMiddleware', 'AjaxMiddleware', 'CsrfMiddleware'], ['method' => 'PUT']);
 
 // Мягкое удаление поста/страницы. Простановка статуса "удален"
-$router->addRoute("/$adminRoute/posts/api/delete", function() use ($viewAdmin) {
-    (new AdminPostsApiController($viewAdmin))->deletePost();
+$router->addRoute("/$adminRoute/posts/api/delete", function($request, $viewAdmin) {
+    (new AdminPostsApiController($request))->deletePost();
 }, ['UserAuthenticatedMiddleware', 'AjaxMiddleware', 'CsrfMiddleware'], ['method' => 'PATCH']);
 
 // Проверка урла при создании поста/страницы
-$router->addRoute("/$adminRoute/posts/api/check-url", function() use ($viewAdmin) {
-    (new AdminPostsApiController($viewAdmin))->checkUrl();
+$router->addRoute("/$adminRoute/posts/api/check-url", function($request, $viewAdmin) {
+    (new AdminPostsApiController($request))->checkUrl();
 }, ['UserAuthenticatedMiddleware', 'AjaxMiddleware', 'CsrfMiddleware'], ['method' => 'POST']);
 
 
@@ -172,13 +168,13 @@ $router->addRoute("/$adminRoute/posts/api/check-url", function() use ($viewAdmin
 // Маршруты для работы с медиа изображениями
 
 // Получение списка картинок
-$router->addRoute("/$adminRoute/media/api/list", function() use ($viewAdmin) {
-    (new AdminMediaApiController($viewAdmin))->list();
+$router->addRoute("/$adminRoute/media/api/list", function($request, $viewAdmin) {
+    (new AdminMediaApiController($request))->list();
 }, ['UserAuthenticatedMiddleware', 'AjaxMiddleware']);
 
 // Загрузка новой картинки
-$router->addRoute("/$adminRoute/media/api/upload", function() use ($viewAdmin) {
-    (new AdminMediaApiController($viewAdmin))->upload();
+$router->addRoute("/$adminRoute/media/api/upload", function($request, $viewAdmin) {
+    (new AdminMediaApiController($request))->upload();
 }, ['UserAuthenticatedMiddleware', 'AjaxMiddleware', 'CsrfMiddleware'], ['method' => 'POST']);
 
 
@@ -186,36 +182,36 @@ $router->addRoute("/$adminRoute/media/api/upload", function() use ($viewAdmin) {
 // Формы для тэгов
 
 // Открыть форму списка тэгов
-$router->addRoute("/$adminRoute/tags(?:/p(\d+))?", function($page = 1) use ($viewAdmin) {
-    (new AdminTagsController($viewAdmin))->list($page);
+$router->addRoute("/$adminRoute/tags(?:/p(\d+))?", function($request, $viewAdmin, $page = 1) {
+    (new AdminTagsController($request, $viewAdmin))->list($page);
 }, ['UserAuthenticatedMiddleware']);
 
 // Открыть форму редактирование тэга
-$router->addRoute("/$adminRoute/tags/edit/(\d+)", function($tagId) use ($viewAdmin) {
-    (new AdminTagsController($viewAdmin))->edit($tagId);
+$router->addRoute("/$adminRoute/tags/edit/(\d+)", function($request, $viewAdmin, $tagId) {
+    (new AdminTagsController($request, $viewAdmin))->edit($tagId);
 }, ['UserAuthenticatedMiddleware']);
 
 
 // Операции над тэгами
 
 // Поиск тэгов по имени (автодополнение при создании поста/страницы)
-$router->addRoute("/$adminRoute/tags/api/search", function() use ($viewAdmin) {
-    (new AdminTagsApiController($viewAdmin))->searchTags();
+$router->addRoute("/$adminRoute/tags/api/search", function($request, $viewAdmin) {
+    (new AdminTagsApiController($request))->searchTags();
 }, ['UserAuthenticatedMiddleware', 'AjaxMiddleware', 'CsrfMiddleware'], ['method' => 'POST']);
 
 // Создание нового тэга
-$router->addRoute("/$adminRoute/tags/api/create", function() use ($viewAdmin) {
-    (new AdminTagsApiController($viewAdmin))->create();
+$router->addRoute("/$adminRoute/tags/api/create", function($request, $viewAdmin) {
+    (new AdminTagsApiController($request))->create();
 }, ['UserAuthenticatedMiddleware', 'AjaxMiddleware', 'CsrfMiddleware'], ['method' => 'POST']);
 
 // Редактирование тэга
-$router->addRoute("/$adminRoute/tags/api/edit/(\d+)", function($userId) use ($viewAdmin) {
-    (new AdminTagsApiController($viewAdmin))->edit($userId);
+$router->addRoute("/$adminRoute/tags/api/edit/(\d+)", function($request, $viewAdmin, $userId) {
+    (new AdminTagsApiController($request))->edit($userId);
 }, ['UserAuthenticatedMiddleware', 'AjaxMiddleware', 'CsrfMiddleware'], ['method' => 'PUT']);
 
 // Удаление тэга
-$router->addRoute("/$adminRoute/tags/api/delete/(\d+)", function($tagId) use ($viewAdmin) {
-    (new AdminTagsApiController($viewAdmin))->delete($tagId);
+$router->addRoute("/$adminRoute/tags/api/delete/(\d+)", function($request, $viewAdmin, $tagId) {
+    (new AdminTagsApiController($request))->delete($tagId);
 }, ['UserAuthenticatedMiddleware', 'AjaxMiddleware', 'CsrfMiddleware'], ['method' => 'DELETE']);
 
 
@@ -223,61 +219,61 @@ $router->addRoute("/$adminRoute/tags/api/delete/(\d+)", function($tagId) use ($v
 // Формы для управления пользователями
 
 // Открыть форму списка пользователей
-$router->addRoute("/$adminRoute/users", function() use ($viewAdmin) {
-    (new AdminUsersController($viewAdmin))->list();
+$router->addRoute("/$adminRoute/users", function($request, $viewAdmin) {
+    (new AdminUsersController($request, $viewAdmin))->list();
 }, ['AdminAuthenticatedMiddleware']);
 
 // Открыть форму редактирование пользователя
-$router->addRoute("/$adminRoute/users/edit/(\d+)", function($userId) use ($viewAdmin) {
-    (new AdminUsersController($viewAdmin))->edit($userId);
+$router->addRoute("/$adminRoute/users/edit/(\d+)", function($request, $viewAdmin, $userId) {
+    (new AdminUsersController($request, $viewAdmin))->edit($userId);
 }, ['AdminAuthenticatedMiddleware']);
 
 
 // Операции над пользователями
 
 // Создание нового пользователя
-$router->addRoute("/$adminRoute/users/api/create", function() use ($viewAdmin) {
-    (new AdminUsersApiController($viewAdmin))->create();
+$router->addRoute("/$adminRoute/users/api/create", function($request, $viewAdmin) {
+    (new AdminUsersApiController($request))->create();
 }, ['AdminAuthenticatedMiddleware', 'AjaxMiddleware', 'CsrfMiddleware'], ['method' => 'POST']);
 
 // Редактирование пользователя
-$router->addRoute("/$adminRoute/users/api/edit/(\d+)", function($userId) use ($viewAdmin) {
-    (new AdminUsersApiController($viewAdmin))->edit($userId);
+$router->addRoute("/$adminRoute/users/api/edit/(\d+)", function($request, $viewAdmin, $userId) {
+    (new AdminUsersApiController($request))->edit($userId);
 }, ['AdminAuthenticatedMiddleware', 'AjaxMiddleware', 'CsrfMiddleware'], ['method' => 'PUT']);
 
 // Блокирование пользователя
-$router->addRoute("/$adminRoute/users/api/block/(\d+)", function($userId) use ($viewAdmin) {
-    (new AdminUsersApiController($viewAdmin))->block($userId);
+$router->addRoute("/$adminRoute/users/api/block/(\d+)", function($request, $viewAdmin, $userId) {
+    (new AdminUsersApiController($request))->block($userId);
 }, ['AdminAuthenticatedMiddleware', 'AjaxMiddleware', 'CsrfMiddleware'], ['method' => 'PATCH']);
 
 // Разблокирование пользователя
-$router->addRoute("/$adminRoute/users/api/unblock/(\d+)", function($userId) use ($viewAdmin) {
-    (new AdminUsersApiController($viewAdmin))->unblock($userId);
+$router->addRoute("/$adminRoute/users/api/unblock/(\d+)", function($request, $viewAdmin, $userId) {
+    (new AdminUsersApiController($request))->unblock($userId);
 }, ['AdminAuthenticatedMiddleware', 'AjaxMiddleware', 'CsrfMiddleware'], ['method' => 'PATCH']);
 
 // Удаление пользователя
-$router->addRoute("/$adminRoute/users/api/delete/(\d+)", function($userId) use ($viewAdmin) {
-    (new AdminUsersApiController($viewAdmin))->delete($userId);
+$router->addRoute("/$adminRoute/users/api/delete/(\d+)", function($request, $viewAdmin, $userId) {
+    (new AdminUsersApiController($request))->delete($userId);
 }, ['AdminAuthenticatedMiddleware', 'AjaxMiddleware', 'CsrfMiddleware'], ['method' => 'DELETE']);
 
 
 // Формы для работы с корзиной удаленных постов/страниц
 
 // Форма списка удаленных постов/страниц с пагинацией
-$router->addRoute("/$adminRoute/thrash/(post|page)s(?:/p(\d+))?", function($articleType, $page = 1) use ($viewAdmin) {
+$router->addRoute("/$adminRoute/thrash/(post|page)s(?:/p(\d+))?", function($request, $viewAdmin, $articleType, $page = 1) {
     // Передаем номер страницы в контроллер
-    (new AdminPostsController($viewAdmin))->list($page, $articleType);
+    (new AdminPostsController($request, $viewAdmin))->list($page, $articleType);
 }, ['UserAuthenticatedMiddleware', 'ArticleTypeMiddleware:post,page']);
 
 
 // Операции над корзиной
 
 // Восстановление поста/страницы из корзины. Простановка статуса "черновик"
-$router->addRoute("/$adminRoute/thrash/api/restore", function() use ($viewAdmin) {
-    (new AdminPostsApiController($viewAdmin))->restore();
+$router->addRoute("/$adminRoute/thrash/api/restore", function($request, $viewAdmin) {
+    (new AdminPostsApiController($request))->restore();
 }, ['UserAuthenticatedMiddleware', 'AjaxMiddleware', 'CsrfMiddleware'], ['method' => 'PATCH']);
 
 // Физическое удаление поста/страницы из БД.
-$router->addRoute("/$adminRoute/thrash/api/delete-forever", function() use ($viewAdmin) {
-    (new AdminPostsApiController($viewAdmin))->hardDelete();
+$router->addRoute("/$adminRoute/thrash/api/delete-forever", function($request, $viewAdmin) {
+    (new AdminPostsApiController($request))->hardDelete();
 }, ['AdminAuthenticatedMiddleware', 'AjaxMiddleware', 'CsrfMiddleware'], ['method' => 'DELETE']);

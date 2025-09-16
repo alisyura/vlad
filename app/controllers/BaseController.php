@@ -16,6 +16,12 @@ abstract class BaseController {
      */
     protected $viewAdmin;
     /**
+     * Объект Request для получения данных из запроса.
+     *
+     * @var ViewAdmin
+     */
+    protected $request;
+    /**
      * Базовый маршрут (route) для доступа к административной панели.
      * Используется для формирования правильных URL.
      *
@@ -37,9 +43,10 @@ abstract class BaseController {
      */
     protected $requestUrl;
 
-    public function __construct(ViewAdmin $viewAdmin)
+    public function __construct(Request $request, ?ViewAdmin $viewAdmin = null)
     {
         $this->viewAdmin = $viewAdmin;
+        $this->request = $request;
         $this->adminRoute = Config::get('admin.AdminRoute');
         $this->uri = sprintf("%s://%s", $_SERVER['REQUEST_SCHEME'], $_SERVER['HTTP_HOST']);
         $this->requestUrl = sprintf("%s/%s", rtrim($this->uri, '/'), ltrim($_SERVER['REQUEST_URI'], '/'));
@@ -93,6 +100,10 @@ abstract class BaseController {
             'title' => $title,
             'error_message' => $errMsg
         ];
+        if ($this->viewAdmin === null)
+        {
+            throw new Exception('ViewAdmin null');
+        }
         $this->viewAdmin->renderAdmin('admin/errors/error_view.php', $data);
     }
 
