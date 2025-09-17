@@ -12,7 +12,9 @@ class Router {
         ];
     }
     
-    public function dispatch(Request $request, ?ViewAdmin $viewAdmin) {
+    // public function dispatch(Request $request, ?ViewAdmin $viewAdmin) {
+    public function dispatch(Container $container) {
+        $request = $container->make(Request::class);
         $uri = strtok($request->getUri(), '?');
         foreach ($this->routes as $route) {
             $pattern = $route['pattern'];
@@ -87,17 +89,18 @@ class Router {
                 }
 
                 // Если все middleware прошли успешно, вызываем основной обработчик
-                array_unshift($matches, $request); // вставляем первым параметром
+                //array_unshift($matches, $request); // вставляем первым параметром
+                array_unshift($matches, $container); // вставляем первым параметром
                 
                 // временное решение. пока не отрефачена клиентская часть. 
                 // впоследствии там тоже будет передавать View
 
                 // Если viewAdmin был передан, значит его надо использовать
-                if ($viewAdmin !== null) {
-                    // Вставляем строку 'viewadmin' на второй индекс (позиция 1)
-                    // оборачиваем в массив, чтобы вставился объектом
-                    array_splice($matches, 1, 0, [$viewAdmin]);
-                }
+                // if ($viewAdmin !== null) {
+                //     // Вставляем строку 'viewadmin' на второй индекс (позиция 1)
+                //     // оборачиваем в массив, чтобы вставился объектом
+                //     array_splice($matches, 1, 0, [$viewAdmin]);
+                // }
                 call_user_func_array($handler, $matches);
                 return;
             }

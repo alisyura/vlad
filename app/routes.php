@@ -1,45 +1,47 @@
 <?php
 
 // Главная страница. Или пустая, или номером страницы /p/2
-$router->addRoute('/(p(\d+))?', function($request, $fullMatch = null, $page = 1) {
-    $controller = new PostController();
+$router->addRoute('/(p(\d+))?', function(Container $container, $fullMatch = null, $page = 1) {
+    $controller = $container->make(PostController::class);
     $controller->index(max(1, (int)$page)); // защита от нуля и отрицательных
 }, ['PageCacheMiddleware']);
 
 // Страница post
-$router->addRoute('/([0-9a-zA-Z-_]+)\.html', function($request, $post_url) {
-    $controller = new PostController();
+$router->addRoute('/([0-9a-zA-Z-_]+)\.html', function(Container $container, $post_url) {
+    $controller = $container->make(PostController::class);
     $controller->showPost($post_url);
 }, ['PageCacheMiddleware']);
 
 // Страница контакты
-$router->addRoute('/page/kontakty\.html', function($request) {
-    $controller = new PostController();
+$router->addRoute('/page/kontakty\.html', function(Container $container) {
+    ///////////////////////////////////
+    $controller = $container->make(PostController::class);
     $controller->showKontakty();
 }, ['PageCacheMiddleware']);
 
 // Страница карта сайта
-$router->addRoute('/page/sitemap\.html', function($request) {
-    $controller = new PostController();
+$router->addRoute('/page/sitemap\.html', function(Container $container) {
+    /////////////////////////////////////////
+    $controller = $container->make(PostController::class);
     $controller->showSitemap();
 }, ['PageCacheMiddleware']);
 
 // Страница page
-$router->addRoute('/page\/([0-9a-zA-Z-_]+)\.html', function($request, $page_url) {
-    $controller = new PostController();
+$router->addRoute('/page\/([0-9a-zA-Z-_]+)\.html', function(Container $container, $page_url) {
+    $controller = $container->make(PostController::class);
     $controller->showPage($page_url);
 }, ['PageCacheMiddleware']);
 
 // Список постов по тэгу
-$router->addRoute('/tag\/([0-9a-zA-Z-_]+)(?:\/p(\d+))?', function($request, $tagUrl, $page = 1) {
-    $controller = new PostController();
+$router->addRoute('/tag\/([0-9a-zA-Z-_]+)(?:\/p(\d+))?', function(Container $container, $tagUrl, $page = 1) {
+    $controller = $container->make(PostController::class);
     $controller->showTag($tagUrl, max(1, (int)$page));
 }, ['PageCacheMiddleware']);
 
 // Список постов по разделу
 $router->addRoute('/cat\/(anekdoty|veselaya-rifma|citatnik|istorii|kartinki|video|tegi|luchshee)(?:\/p(\d+))?', 
-    function($request, $cat_url, $page = 1) {
-        $controller = new PostController();
+    function(Container $container, $cat_url, $page = 1) {
+        $controller = $container->make(PostController::class);
         if ($cat_url === 'tegi') {
             $controller->showTagFilter();
         }

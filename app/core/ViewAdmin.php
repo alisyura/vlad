@@ -1,22 +1,29 @@
 <?php
 
-final class ViewAdmin
+final class ViewAdmin implements ViewInterface
 {
     private string $viewsRootPath;
     private string $loginLayoutPath;
     private string $adminLayoutPath;
+    private string $clientLayoutPath;
 
-    public function __construct(string $viewsRootPath, string $loginLayoutPath, string $adminLayoutPath)
+    public function __construct(string $viewsRootPath, 
+        string $loginLayoutPath, string $adminLayoutPath, string $clientLayoutPath)
     {
         $this->viewsRootPath = $viewsRootPath;
         $this->loginLayoutPath = $loginLayoutPath;
         $this->adminLayoutPath = $adminLayoutPath;
+        $this->clientLayoutPath = $clientLayoutPath;
     }
     
+    public function getViewsRootPath()
+    {
+        return $this->viewsRootPath;
+    }
     /**
      * Renders a specific template and returns its content as a string.
      */
-    private function render(string $templatePath, array $data = []): string
+    public function render(string $templatePath, array $data = []): string
     {
         extract($data);
         ob_start();
@@ -34,7 +41,11 @@ final class ViewAdmin
         {
             $content = $this->render($contentTemplatePath, $data);
         }
-        extract($data);
+        $exportData = $data['export'] ?? [];
+        if (empty($exportData)) {
+            // для админки
+            extract($data);
+        }
         require $this->viewsRootPath . '/' . $layoutTemplatePath;
     }
     
@@ -52,5 +63,13 @@ final class ViewAdmin
     public function renderAdmin(string $contentView, array $data = []): void
     {
         $this->renderWithLayout($contentView, $this->adminLayoutPath, $data);
+    }
+
+    /**
+     * Renders an client page using the client layout.
+     */
+    public function renderClient(string $contentView, array $data = []): void
+    {
+        $this->renderWithLayout($contentView, $this->clientLayoutPath, $data);
     }
 }

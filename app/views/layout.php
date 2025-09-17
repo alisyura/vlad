@@ -4,12 +4,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title itemprop="headline"><?= htmlspecialchars($structuredData['site_name']) ?></title>
-    <meta itemprop="keywords" name="keywords" content="<?= htmlspecialchars($structuredData['keywords']) ?>">
-    <meta itemprop="description" name="description" content="<?= htmlspecialchars($structuredData['description']) ?>">
+    <title itemprop="headline"><?= htmlspecialchars($exportData['site_name']) ?></title>
+    <meta itemprop="keywords" name="keywords" content="<?= htmlspecialchars($exportData['keywords']) ?>">
+    <meta itemprop="description" name="description" content="<?= htmlspecialchars($exportData['description']) ?>">
     <meta name="csrf-token" content="<?= CSRF::getToken() ?>">
     
-    <?= generateStructuredData($structuredData); ?>
+    <?= generateStructuredData($exportData); ?>
 
     <link rel="stylesheet" href="/assets/css/common.css">
     <link rel="stylesheet" href="/assets/css/styles.css">
@@ -18,7 +18,7 @@
     <link rel="stylesheet" href="/assets/css/react.css">
     <link rel="stylesheet" href="/assets/css/modal.css">
     <?php
-        switch ($structuredData['page_type']) {
+        switch ($exportData['page_type']) {
             case 'post':
                 $style = 'detail';
                 break;
@@ -36,6 +36,13 @@
         }
     ?>
     <link rel="stylesheet" href="/assets/css/<?= $style ?>.css">
+
+    <?php if (!empty($exportData['styles']) && is_array($exportData['styles'])): ?>
+        <?php foreach ($exportData['styles'] as $style): ?>
+            <link rel="stylesheet" href="<?= asset("css/{$style}") ?>">
+        <?php endforeach; ?>
+    <?php endif; ?>
+
     <meta name="robots" content="noindex, follow">
 </head>
 
@@ -266,11 +273,11 @@
     </div>
 
     <!-- Скрипты -->
-    <script src="/assets/js/menu.js" defer></script>
-    <script src="/assets/js/common.js" defer></script>
-    <script src="/assets/js/new_pub.js" defer></script>
-    <!-- <script src="/assets/js/react.js" defer></script> -->
-    <script src="/assets/js/main.js" defer></script>
+    <script src="<?= asset("js/menu.js") ?>" defer></script>
+    <script src="<?= asset("js/common.js") ?>" defer></script>
+    <script src="<?= asset("js/new_pub.js") ?>" defer></script>
+    <!-- <script src="<?= asset("js/react.js") ?>" defer></script> -->
+    <script src="<?= asset("js/main.js") ?>" defer></script>
     <?php
         switch ($structuredData['page_type']) {
             case 'kontakty':
@@ -284,6 +291,13 @@
                 break;
         }
     ?>
+
+    <?php if (!empty($exportData['jss']) && is_array($exportData['jss'])): ?>
+        <?php foreach ($exportData['jss'] as $js): ?>
+            <link rel="stylesheet" href="<?= asset("js/{$js}") ?>">
+        <?php endforeach; ?>
+    <?php endif; ?>
+
 
     <!-- === Всплывающее уведомление о куках === -->
     <div id="cookie-consent" class="cookie-consent">

@@ -3,9 +3,9 @@
 class PostModel {
     private $db;
     
-    public function __construct() {
+    public function __construct(PDO $pdo) {
         // Инициализация подключения к БД
-        $this->db = Database::getConnection();
+        $this->db = $pdo;
     }
     
     public function countAllPosts() {
