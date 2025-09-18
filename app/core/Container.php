@@ -3,6 +3,7 @@
 class Container
 {
     protected array $bindings = [];
+    protected array $instances = [];
 
     /**
      * Зарегистрировать "связь" между интерфейсом и его реализацией.
@@ -18,6 +19,20 @@ class Container
     }
 
     /**
+     * Зарегистрировать класс как синглтон (единственный экземпляр на запрос).
+     *
+     * @param string $abstract
+     * @param mixed $concrete
+     * @return void
+     */
+    public function singleton(string $abstract, $concrete = null): void
+    {
+        $this->bind($abstract, $concrete);
+        // Используем null, чтобы отличить от обычного биндинга
+        $this->instances[$abstract] = null;
+    }
+
+    /**
      * Разрешить (создать) экземпляр класса.
      *
      * @param string $abstract
@@ -26,28 +41,45 @@ class Container
      */
     public function make(string $abstract): mixed
     {
-        // Проверяем, есть ли зарегистрированный "бинд"
+        // 1. Проверяем, существует ли уже синглтон.
+        // Это первая и самая важная проверка.
+        if (array_key_exists($abstract, $this->instances) && $this->instances[$abstract] !== null) {
+            return $this->instances[$abstract];
+        }
+
+        // 2. Ищем зарегистрированный "бинд".
         if (isset($this->bindings[$abstract])) {
             $concrete = $this->bindings[$abstract];
             if ($concrete instanceof Closure) {
-                return $concrete($this);
+                // Если это замыкание, вызываем его для создания объекта.
+                $instance = $concrete($this);
+            } else {
+                // Если это имя класса, используем его для рефлексии.
+                $abstract = $concrete;
             }
-            $abstract = $concrete;
+        }
+        
+        // 3. Используем Reflection для создания нового экземпляра.
+        if (!isset($instance)) {
+            $reflector = new ReflectionClass($abstract);
+            
+            // Если у класса нет конструктора или он не имеет зависимостей, просто создаем его.
+            if (!$reflector->isInstantiable() || ($constructor = $reflector->getConstructor()) === null) {
+                $instance = new $abstract;
+            } else {
+                // Получаем зависимости из конструктора.
+                $dependencies = $this->getDependencies($constructor->getParameters());
+                // Создаём экземпляр класса, передавая зависимости.
+                $instance = $reflector->newInstanceArgs($dependencies);
+            }
         }
 
-        // Используем Reflection для анализа класса и его зависимостей
-        $reflector = new ReflectionClass($abstract);
-
-        // Если класс не имеет конструктора или он не имеет зависимостей, просто создаём его
-        if (!$reflector->isInstantiable() || ($constructor = $reflector->getConstructor()) === null) {
-            return new $abstract;
+        // 4. Сохраняем экземпляр, если он был зарегистрирован как синглтон.
+        if (array_key_exists($abstract, $this->instances)) {
+            $this->instances[$abstract] = $instance;
         }
 
-        // Получаем зависимости из конструктора
-        $dependencies = $this->getDependencies($constructor->getParameters());
-
-        // Создаём новый экземпляр класса, передавая зависимости
-        return $reflector->newInstanceArgs($dependencies);
+        return $instance;
     }
 
     /**
@@ -65,12 +97,11 @@ class Container
             if ($type instanceof ReflectionNamedType && !$type->isBuiltin()) {
                 $dependencies[] = $this->make($type->getName());
             } else {
-                // Если зависимость не является классом (например, строка или число),
-                // и у нее есть значение по умолчанию, используем его.
+                // Если зависимость не является классом, используем значение по умолчанию, если оно есть.
                 if ($parameter->isDefaultValueAvailable()) {
                     $dependencies[] = $parameter->getDefaultValue();
                 } else {
-                    // Если нет значения по умолчанию, выбрасываем исключение
+                    // Если нет значения по умолчанию, выбрасываем исключение.
                     throw new Exception("Невозможно разрешить зависимость '{$parameter->getName()}'");
                 }
             }

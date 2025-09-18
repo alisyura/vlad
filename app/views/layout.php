@@ -7,7 +7,6 @@
     <title itemprop="headline"><?= htmlspecialchars($exportData['site_name']) ?></title>
     <meta itemprop="keywords" name="keywords" content="<?= htmlspecialchars($exportData['keywords']) ?>">
     <meta itemprop="description" name="description" content="<?= htmlspecialchars($exportData['description']) ?>">
-    <meta name="csrf-token" content="<?= CSRF::getToken() ?>">
     
     <?= generateStructuredData($exportData); ?>
 
@@ -17,25 +16,6 @@
     <link rel="stylesheet" href="/assets/css/new_pub.css">
     <link rel="stylesheet" href="/assets/css/react.css">
     <link rel="stylesheet" href="/assets/css/modal.css">
-    <?php
-        switch ($exportData['page_type']) {
-            case 'post':
-                $style = 'detail';
-                break;
-            case 'kontakty':
-                $style = 'kontakty';
-                break;
-            case 'sitemap':
-                $style = 'sitemap';
-                break;
-            case 'tegi':
-                $style = 'tegi';
-                break;
-            default:
-                $style = 'list';
-        }
-    ?>
-    <link rel="stylesheet" href="/assets/css/<?= $style ?>.css">
 
     <?php if (!empty($exportData['styles']) && is_array($exportData['styles'])): ?>
         <?php foreach ($exportData['styles'] as $style): ?>
@@ -278,26 +258,12 @@
     <script src="<?= asset("js/new_pub.js") ?>" defer></script>
     <!-- <script src="<?= asset("js/react.js") ?>" defer></script> -->
     <script src="<?= asset("js/main.js") ?>" defer></script>
-    <?php
-        switch ($structuredData['page_type']) {
-            case 'kontakty':
-                echo '<script src="/assets/js/kontakty.js" defer></script>'."\n";
-                break;
-            case 'tegi':
-                echo '<script src="/assets/js/tegi.js" defer></script>'."\n";
-                break;
-            case 'sitemap':
-                echo '<script src="/assets/js/sitemap.js" defer></script>'."\n";
-                break;
-        }
-    ?>
 
     <?php if (!empty($exportData['jss']) && is_array($exportData['jss'])): ?>
         <?php foreach ($exportData['jss'] as $js): ?>
-            <link rel="stylesheet" href="<?= asset("js/{$js}") ?>">
+            <script src='<?= asset("js/{$js}") ?>' defer></script>
         <?php endforeach; ?>
     <?php endif; ?>
-
 
     <!-- === Всплывающее уведомление о куках === -->
     <div id="cookie-consent" class="cookie-consent">

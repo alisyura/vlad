@@ -1,211 +1,322 @@
-document.addEventListener("DOMContentLoaded", function () {
-    // === 2. Drag & Drop загрузка файла ===
-    const contactUploadArea = document.getElementById('contactUploadArea');
-    const contactFileInput = document.getElementById('contact-file-upload');
-    const contactUploadTitle = document.getElementById('contactUploadTitle');
-    const contactFormError = document.getElementById('contactFormError');
+/**
+ * Класс для управления счетчиком символов в текстовом поле.
+ */
+class CharCounter {
+    constructor(textareaId, counterSelector, maxLength = 5000) {
+        this.textarea = document.getElementById(textareaId);
+        this.counter = document.querySelector(counterSelector);
+        this.maxLength = maxLength;
 
-    const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/gif'];
-    const maxSizeInBytes = 20 * 1024 * 1024; // 20 MB
-
-    // === Клик по области открывает выбор файла ===
-    if (contactUploadArea && contactFileInput) {
-        contactUploadArea.addEventListener('click', function () {
-            contactFileInput.click();
-        });
-
-        contactUploadArea.addEventListener('dragover', function (e) {
-            e.preventDefault(); // Разрешаем drop
-            contactUploadArea.style.backgroundColor = '#ececec';
-        });
-
-        contactUploadArea.addEventListener('dragleave', function (e) {
-            e.preventDefault();
-            contactUploadArea.style.backgroundColor = '';
-        });
-
-        contactUploadArea.addEventListener('drop', function (e) {
-            e.preventDefault();
-            contactUploadArea.style.backgroundColor = '';
-
-            const files = e.dataTransfer.files;
-            if (files.length > 0) {
-                contactHandleFile(files[0]);
-            }
-        });
+        if (this.textarea && this.counter) {
+            this.init();
+        }
     }
 
-    // === При выборе файла через клик обновляем заголовок ===
-    if (contactFileInput) {
-        contactFileInput.addEventListener('change', function () {
-            const file = this.files[0];
-            if (file) {
-                contactHandleFile(file);
-            }
-        });
+    init() {
+        this.updateCounter();
+        this.textarea.addEventListener('input', () => this.updateCounter());
     }
 
-    function contactHandleFile(file) {
-        if (!contactIsValidFileType(file)) {
-            contactShowError('Формат файла не поддерживается. Используйте: png, jpeg, jpg, gif');
+    updateCounter() {
+        this.counter.textContent = `${this.textarea.value.length} / ${this.maxLength}`;
+    }
+}
+
+/**
+ * Класс для обработки Drag & Drop загрузки файлов.
+ */
+class DragAndDropHandler {
+    constructor(uploadAreaId, fileInputId, uploadTitleId, errorElementId, allowedTypes = [], maxSizeInBytes = 20 * 1024 * 1024) {
+        this.uploadArea = document.getElementById(uploadAreaId);
+        this.fileInput = document.getElementById(fileInputId);
+        this.uploadTitle = document.getElementById(uploadTitleId);
+        this.errorElement = document.getElementById(errorElementId);
+        this.allowedTypes = allowedTypes;
+        this.maxSizeInBytes = maxSizeInBytes;
+
+        if (this.uploadArea && this.fileInput) {
+            this.init();
+        }
+    }
+
+    init() {
+        this.uploadArea.addEventListener('click', () => this.fileInput.click());
+        this.uploadArea.addEventListener('dragover', (e) => this.handleDragOver(e));
+        this.uploadArea.addEventListener('dragleave', (e) => this.handleDragLeave(e));
+        this.uploadArea.addEventListener('drop', (e) => this.handleDrop(e));
+        this.fileInput.addEventListener('change', (e) => this.handleChange(e));
+    }
+
+    handleDragOver(e) {
+        e.preventDefault();
+        this.uploadArea.style.backgroundColor = '#ececec';
+        this.hideError();
+    }
+
+    handleDragLeave(e) {
+        e.preventDefault();
+        this.uploadArea.style.backgroundColor = '';
+    }
+
+    handleDrop(e) {
+        e.preventDefault();
+        this.uploadArea.style.backgroundColor = '';
+        const files = e.dataTransfer.files;
+        if (files.length > 0) {
+            this.handleFile(files[0]);
+        }
+    }
+
+    handleChange() {
+        const file = this.fileInput.files[0];
+        if (file) {
+            this.handleFile(file);
+        }
+    }
+
+    handleFile(file) {
+        if (!this.isValidFileType(file)) {
+            this.showError('Формат файла не поддерживается. Используйте: png, jpeg, jpg, gif');
             return;
         }
 
-        if (!contactIsValidFileSize(file)) {
-            contactShowError('Файл слишком большой. Максимальный размер — 20 MB');
+        if (!this.isValidFileSize(file)) {
+            this.showError(`Файл слишком большой. Максимальный размер — ${this.maxSizeInBytes/1024/1024} MB`);
             return;
         }
 
         const dataTransfer = new DataTransfer();
         dataTransfer.items.add(file);
-        contactFileInput.files = dataTransfer.files;
+        this.fileInput.files = dataTransfer.files;
 
-        contactUpdateFileName(file);
-        contactHideError();
+        this.updateFileName(file);
+        this.hideError();
     }
 
-    function contactUpdateFileName(file) {
-        if (contactUploadTitle) {
-            contactUploadTitle.textContent = 'Выбран файл: ' + file.name;
+    isValidFileType(file) {
+        return this.allowedTypes.includes(file.type);
+    }
+
+    isValidFileSize(file) {
+        return file.size <= this.maxSizeInBytes;
+    }
+
+    updateFileName(file) {
+        if (this.uploadTitle) {
+            this.uploadTitle.textContent = `Выбран файл: ${file.name}`;
         }
     }
 
-    function contactIsValidFileType(file) {
-        return allowedTypes.includes(file.type);
-    }
-
-    function contactIsValidFileSize(file) {
-        return file.size <= maxSizeInBytes;
-    }
-
-    function contactShowError(message) {
-        if (contactFormError) {
-            contactFormError.textContent = message;
-            contactFormError.style.display = 'block';
+    showError(message) {
+        if (this.errorElement) {
+            this.errorElement.textContent = message;
+            this.errorElement.style.display = 'block';
         }
     }
 
-    function contactHideError() {
-        if (contactFormError) {
-            contactFormError.textContent = '';
-            contactFormError.style.display = 'none';
+    hideError() {
+        if (this.errorElement) {
+            this.errorElement.textContent = '';
+            this.errorElement.style.display = 'none';
         }
     }
 
+    reset() {
+        if (this.fileInput) {
+            this.fileInput.value = '';
+        }
+        if (this.uploadTitle) {
+            this.uploadTitle.textContent = 'Загрузка файла';
+        }
+        this.hideError();
+    }
+}
 
-    // === 3. Счетчик символов для textarea ===
-    const postText = document.getElementById('kontaktMsgText');
-    const charCounter = document.querySelector('.contact-char-counter');
+/**
+ * Главный класс, управляющий всей контактной формой.
+ */
+class ContactFormManager {
+    constructor(formConfig) {
+        this.config = formConfig;
+        this.form = document.getElementById(this.config.formId);
+        this.sendBtn = document.getElementById(this.config.sendBtnId);
+        this.errorElement = document.getElementById(this.config.errorElementId);
 
-    if (postText && charCounter) {
-        charCounter.textContent = `${postText.value.length} / 5000`;
+        this.dragAndDropHandler = new DragAndDropHandler(
+            this.config.uploadAreaId,
+            this.config.fileInputId,
+            this.config.uploadTitleId,
+            this.config.errorElementId,
+            this.config.allowedFileTypes,
+            this.config.maxFileSize
+        );
 
-        postText.addEventListener('input', function () {
-            const currentLength = this.value.length;
-            charCounter.textContent = `${currentLength} / 5000`;
-        });
+        this.charCounter = new CharCounter(this.config.textareaId, this.config.charCounterSelector);
+
+        if (this.sendBtn) {
+            this.init();
+        }
     }
 
-    // === 4. Отправка формы ===
-    const sendBtn = document.getElementById('sendBtn');
+    init() {
+        this.sendBtn.addEventListener('click', (e) => this.handleFormSubmit(e));
+    }
 
-    if (sendBtn) {
-        sendBtn.addEventListener('click', async () => {
-            const kontaktMsgName = document.getElementById('kontaktMsgName').value.trim();
-            const kontaktMsgEmail = document.getElementById('kontaktMsgEmail').value.trim();
-            const kontaktMsgTitle = document.getElementById('kontaktMsgTitle').value.trim();
-            const kontaktMsgText = document.getElementById('kontaktMsgText').value.trim();
+    async handleFormSubmit(e) {
+        e.preventDefault();
+        this.hideError();
 
-            const contactFile = contactFileInput?.files[0] || null;
+        const formData = this.collectFormData();
 
-            // Валидация
-            if (!validateEmail(kontaktMsgEmail)) {
-                contactShowError('Введите корректный email');
+        if (!this.validateFormData(formData)) {
+            return;
+        }
+
+        try {
+            const csrfToken = await getFreshCsrfToken();
+            if (!csrfToken) {
+                showToast('Не удалось получить токен, попробуйте снова.');
                 return;
             }
-
-            if (kontaktMsgName.length === 0) {
-                contactShowError('Введите имя');
-                return;
-            }
-
-            if (kontaktMsgText.length < 10 || kontaktMsgText.length > 5000) {
-                contactShowError('Текст должен быть от 10 до 5000 символов');
-                return;
-            }
-
-            if (kontaktMsgTitle.length === 0) {
-                contactShowError('Введите тему сообщения');
-                return;
-            }
-
-            if (contactFile && !contactIsValidFileType(contactFile)) {
-                contactShowError('Формат файла не поддерживается. Используйте: png, jpeg, jpg, gif');
-                return;
-            }
-
-            if (contactFile && !contactIsValidFileSize(contactFile)) {
-                contactShowError('Файл слишком большой. Максимальный размер — 20 MB');
-                return;
-            }
-
-            // Подготовка данных
-            const formData = new FormData();
-            formData.append('name', kontaktMsgName);
-            formData.append('email', kontaktMsgEmail);
-            formData.append('title', kontaktMsgTitle);
-            formData.append('text', kontaktMsgText);
-            if (contactFile) formData.append('image', contactFile);
-
-            getFormData(formData);
             
-            try {
-                //console.error('Вызов сервера /api/send_msg');
-                const response = await fetch('/api/send_msg', {
-                    method: 'POST',
-                    body: formData,
-                });
+            const response = await fetch(this.config.apiUrl, {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest', // Часто используется для определения AJAX-запроса
+                    'X-CSRF-TOKEN': csrfToken // Добавляем токен
+                },
+                body: formData,
+            });
 
-                if (!response.ok) throw new Error('Ошибка сети');
-                const result = await response.json();
+            // if (!response.ok) {
+            //     throw new Error('Ошибка сети');
+            // }
 
-                if (result.success) {
-                    //console.error('Ответ сервера:\n' + JSON.stringify(result, null, 2));
-                    showToast('Ваше сообщение успешно отправлено!');
-                    resetContactForm();
-                } else {
-                    // Формируем текст ошибок из массива `message`
-                    let errorMessages = [];
+            const result = await response.json();
 
-                    if (Array.isArray(result.message)) {
-                        errorMessages = result.message;
-                    } else if (typeof result.message === 'string') {
-                        errorMessages = [result.message];
-                    } else {
-                        errorMessages = ['Неизвестная ошибка'];
-                    }
-
-                    const errorMessage = 'Сообщение не отправлено\n\n' + errorMessages.join('\n');
-                    showToast(errorMessage);
-                }
-
-            } catch (error) {
-                console.error('Ошибка:', error);
-                contactShowError('Произошла ошибка при отправке. Попробуйте позже.');
+            if (result.success) {
+                showToast('Ваше сообщение успешно отправлено!');
+                this.resetForm();
+            } else {
+                let errorMessages = Array.isArray(result.message) ? result.message : [result.message || 'Неизвестная ошибка'];
+                const errorMessage = 'Сообщение не отправлено\n\n' + errorMessages.join('\n');
+                showToast(errorMessage);
             }
-        });
+
+        } catch (error) {
+            console.error('Ошибка:', error);
+            this.showError('Произошла ошибка при отправке. Попробуйте позже.');
+        }
     }
+
+    collectFormData() {
+        const formData = new FormData();
+        const kontaktMsgName = document.getElementById('kontaktMsgName').value.trim();
+        const kontaktMsgEmail = document.getElementById('kontaktMsgEmail').value.trim();
+        const kontaktMsgTitle = document.getElementById('kontaktMsgTitle').value.trim();
+        const kontaktMsgText = document.getElementById('kontaktMsgText').value.trim();
+        const contactFile = this.dragAndDropHandler.fileInput?.files[0] || null;
+
+        formData.append('name', kontaktMsgName);
+        formData.append('email', kontaktMsgEmail);
+        formData.append('title', kontaktMsgTitle);
+        formData.append('text', kontaktMsgText);
+        if (contactFile) {
+            formData.append('image', contactFile);
+        }
+
+        return formData;
+    }
+
+    validateFormData(formData) {
+        const name = formData.get('name');
+        const email = formData.get('email');
+        const text = formData.get('text');
+        const title = formData.get('title');
+        const file = this.dragAndDropHandler.fileInput?.files[0] || null;
+
+        if (!this.validateEmail(email)) {
+            this.showError('Введите корректный email');
+            return false;
+        }
+
+        if (name.length === 0) {
+            this.showError('Введите имя');
+            return false;
+        }
+
+        if (text.length < 10 || text.length > 5000) {
+            this.showError('Текст должен быть от 10 до 5000 символов');
+            return false;
+        }
+
+        if (title.length === 0) {
+            this.showError('Введите тему сообщения');
+            return false;
+        }
+
+        if (file && !this.dragAndDropHandler.isValidFileType(file)) {
+            this.showError('Формат файла не поддерживается. Используйте: png, jpeg, jpg, gif');
+            return false;
+        }
+
+        if (file && !this.dragAndDropHandler.isValidFileSize(file)) {
+            this.showError(`Файл слишком большой. Максимальный размер — ${this.config.maxFileSize/1024/1024} MB`);
+            return false;
+        }
+
+        return true;
+    }
+
+    validateEmail(email) {
+        const re = /\S+@\S+\.\S+/;
+        return re.test(email);
+    }
+
+    showError(message) {
+        if (this.errorElement) {
+            this.errorElement.textContent = message;
+            this.errorElement.style.display = 'block';
+        }
+    }
+
+    hideError() {
+        if (this.errorElement) {
+            this.errorElement.textContent = '';
+            this.errorElement.style.display = 'none';
+        }
+    }
+
+    resetForm() {
+        document.getElementById('kontaktMsgName').value = '';
+        document.getElementById('kontaktMsgEmail').value = '';
+        document.getElementById('kontaktMsgTitle').value = '';
+        document.getElementById('kontaktMsgText').value = '';
+        this.dragAndDropHandler.reset();
+        this.charCounter.updateCounter();
+        this.hideError();
+    }
+}
+
+// Инициализация
+document.addEventListener("DOMContentLoaded", function () {
+    const maxFileSizeInput = document.getElementById('contact-file-upload-max_filesize');
+    const maxFileSize = maxFileSizeInput ? parseInt(maxFileSizeInput.value, 10) : 0;
+
+    const config = {
+        formId: 'contact-form',
+        sendBtnId: 'sendBtn',
+        errorElementId: 'contactFormError',
+        uploadAreaId: 'contactUploadArea',
+        fileInputId: 'contact-file-upload',
+        uploadTitleId: 'contactUploadTitle',
+        textareaId: 'kontaktMsgText',
+        charCounterSelector: '.contact-char-counter',
+        apiUrl: '/api/send_msg',
+        allowedFileTypes: ['image/png', 'image/jpeg', 'image/jpg', 'image/gif'],
+        maxFileSize: maxFileSize
+    };
+
+    new ContactFormManager(config);
 });
 
-// === Очистка формы ===
-function resetContactForm() {
-    // document.getElementById('email').value = '';
-    document.getElementById('kontaktMsgName').value = '';
-    document.getElementById('kontaktMsgEmail').value = '';
-    document.getElementById('kontaktMsgTitle').value = '';
-    document.getElementById('kontaktMsgText').value = '';
-    document.getElementById('contact-file-upload').value = '';
-    document.querySelector('.contact-char-counter').textContent = '0 / 5000';
-    document.getElementById('contactUploadTitle').textContent = 'Загрузка файла';
-    document.getElementById('contactFormError').style.display = 'none';
-}

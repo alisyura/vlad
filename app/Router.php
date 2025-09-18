@@ -89,8 +89,16 @@ class Router {
                 }
 
                 // Если все middleware прошли успешно, вызываем основной обработчик
-                //array_unshift($matches, $request); // вставляем первым параметром
-                array_unshift($matches, $container); // вставляем первым параметром
+                if (str_starts_with(strtolower($uri), '/sitemap') || 
+                    str_starts_with(strtolower($uri), strtolower('/'.Config::get('admin.AdminRoute')))) {
+                    // это временно, пока не внедрен service container везде
+                    array_unshift($matches, $request); // вставляем первым параметром
+                    $viewAdmin = $container->make(ViewAdmin::class);
+                    array_splice($matches, 1, 0, [$viewAdmin]);
+                }
+                else {
+                    array_unshift($matches, $container); // вставляем первым параметром
+                }
                 
                 // временное решение. пока не отрефачена клиентская часть. 
                 // впоследствии там тоже будет передавать View

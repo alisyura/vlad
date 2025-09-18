@@ -8,7 +8,7 @@ class PostController {
      */
     private $model;
     /**
-     * Адрес сайта
+     * Адрес сайта (схема и домен)
      */
     private $uri;
     /**
@@ -78,8 +78,7 @@ class PostController {
         try {
             // $URL = rtrim(sprintf("%s/%s", $this->uri, 'page/kontakty'), '/').'.html';
         
-            //используется в layout.php
-            $contentData = [//View::render('../app/views/pages/kontakty.php', [
+            $contentData = [
                 //'post' => $page,
                 'full_url' => $this->requestUrl,
                 'url_id' => 'kontakty',
@@ -103,41 +102,7 @@ class PostController {
                 ]
             ];
 
-            //используется в layout.php
-            // $exportData = [
-            //     'page_type' => 'kontakty',
-            //     'site_name' => Config::get('global.SITE_NAME'),
-            //     'keywords' => Config::get('global.SITE_KEYWORDS'),
-            //     'description' => Config::get('global.SITE_DESCRIPTION'),
-            //     'url' => $this->requestUrl
-            //     //'image' => sprintf("%s%s", $this->uri, $page['image'])
-            // ];
-            
-            // require '../app/views/layout.php';
-
-
-            // $render_params =[
-            //         'post' => $post,
-            //         'full_url' => $URL,
-            //         'tags_baseUrl' => sprintf("%s/tag/", $this->uri),
-            //         //'tags' => $post['tags'],
-            //         'is_post' => true,
-            //         'export' => [
-            //             'page_type' => 'post',
-            //             'site_name' => Config::get('global.SITE_NAME'),
-            //             'keywords' => Config::get('global.SITE_KEYWORDS'),
-            //             'description' => Config::get('global.SITE_DESCRIPTION'),
-            //             'url' => $URL,
-            //             'image' => sprintf("%s%s", $this->uri, $post['image']),
-            //             'styles' => [
-            //                 'detail.css'
-            //             ],
-            //             'jss' => [
-            //             ]
-            //         ]
-            //     ];
-
-                $this->view->renderClient('pages/kontakty.php', $contentData);
+            $this->view->renderClient('pages/kontakty.php', $contentData);
         } catch (Throwable $e) {
             Logger::error("Error in showKontakty: " . $e->getTraceAsString());
             $this->showErrorView('Ошибка', 'Произошла непредвиденная ошибка.');
@@ -190,8 +155,7 @@ class PostController {
                 }
             }
 
-            //используется в layout.php
-            $contentData = [//View::render('../app/views/pages/sitemap.php', [
+            $contentData = [
                 'data' => $result,
                 'full_url' => $this->requestUrl,
                 'tags_baseUrl' => sprintf("%s/tag/", $this->uri),
@@ -214,77 +178,7 @@ class PostController {
                 ]
             ];
 
-            //используется в layout.php
-            // $structuredData = [
-            //     'page_type' => 'sitemap',
-            //     'site_name' => Config::get('global.SITE_NAME'),
-            //     'keywords' => Config::get('global.SITE_KEYWORDS'),
-            //     'description' => Config::get('global.SITE_DESCRIPTION'),
-            //     'url' => $this->requestUrl
-            //     //'image' => sprintf("%s%s", $this->uri, $page['image'])
-            // ];
-            
-            // require '../app/views/layout.php';
-
-            // $contentData = [//View::render('../app/views/pages/kontakty.php', [
-            //     //'post' => $page,
-            //     'full_url' => $this->requestUrl,
-            //     'url_id' => 'kontakty',
-            //     //'tags_baseUrl' => sprintf("%s/tag/", $this->uri),
-            //     //'post_image' => sprintf("%s%s", $this->uri, $page['image']),
-            //     //'tags' => $tags,
-            //     //'is_post' => false
-            //     'export' => [
-            //         'page_type' => 'kontakty',
-            //         'site_name' => Config::get('global.SITE_NAME'),
-            //         'keywords' => Config::get('global.SITE_KEYWORDS'),
-            //         'description' => Config::get('global.SITE_DESCRIPTION'),
-            //         'url' => $this->requestUrl,
-            //         //'image' => sprintf("%s%s", $this->uri, $page['image'])
-            //         'styles' => [
-            //             'kontakty.css'
-            //         ],
-            //         'jss' => [
-            //             'kontakty.js'
-            //         ]
-            //     ]
-            // ];
-
-            //используется в layout.php
-            // $exportData = [
-            //     'page_type' => 'kontakty',
-            //     'site_name' => Config::get('global.SITE_NAME'),
-            //     'keywords' => Config::get('global.SITE_KEYWORDS'),
-            //     'description' => Config::get('global.SITE_DESCRIPTION'),
-            //     'url' => $this->requestUrl
-            //     //'image' => sprintf("%s%s", $this->uri, $page['image'])
-            // ];
-            
-            // require '../app/views/layout.php';
-
-
-            // $render_params =[
-            //         'post' => $post,
-            //         'full_url' => $URL,
-            //         'tags_baseUrl' => sprintf("%s/tag/", $this->uri),
-            //         //'tags' => $post['tags'],
-            //         'is_post' => true,
-            //         'export' => [
-            //             'page_type' => 'post',
-            //             'site_name' => Config::get('global.SITE_NAME'),
-            //             'keywords' => Config::get('global.SITE_KEYWORDS'),
-            //             'description' => Config::get('global.SITE_DESCRIPTION'),
-            //             'url' => $URL,
-            //             'image' => sprintf("%s%s", $this->uri, $post['image']),
-            //             'styles' => [
-            //                 'detail.css'
-            //             ],
-            //             'jss' => [
-            //             ]
-            //         ]
-            //     ];
-
-                $this->view->renderClient('pages/sitemap.php', $contentData);
+            $this->view->renderClient('pages/sitemap.php', $contentData);
         } catch (Throwable $e) {
             Logger::error("Error in showSitemap: " . $e->getTraceAsString());
             $this->showErrorView('Ошибка', 'Произошла непредвиденная ошибка.');

@@ -14,14 +14,12 @@ $router->addRoute('/([0-9a-zA-Z-_]+)\.html', function(Container $container, $pos
 
 // Страница контакты
 $router->addRoute('/page/kontakty\.html', function(Container $container) {
-    ///////////////////////////////////
     $controller = $container->make(PostController::class);
     $controller->showKontakty();
 }, ['PageCacheMiddleware']);
 
 // Страница карта сайта
 $router->addRoute('/page/sitemap\.html', function(Container $container) {
-    /////////////////////////////////////////
     $controller = $container->make(PostController::class);
     $controller->showSitemap();
 }, ['PageCacheMiddleware']);
@@ -44,6 +42,7 @@ $router->addRoute('/cat\/(anekdoty|veselaya-rifma|citatnik|istorii|kartinki|vide
         $controller = $container->make(PostController::class);
         if ($cat_url === 'tegi') {
             $controller->showTagFilter();
+            ////////////////////////////////////////////
         }
         else {
             $controller->showSection($cat_url, $cat_url === 'istorii', max(1, (int)$page));
@@ -61,32 +60,32 @@ $router->addRoute('/api/publish', function ($request) {
 });
 
 // Лайк/дислайк
-$router->addRoute('/api/reaction', function ($request) {
-    $controller = new AjaxController($request);
+$router->addRoute('/api/reaction', function (Container $container) {
+    $controller = $container->make(AjaxController::class);
     $controller->reaction();
 }, ['AjaxMiddleware', 'CsrfMiddleware'], ['method' => 'POST']);
 
 // Получение лайков/дислайков постов
-$router->addRoute('/api/post-votes', function ($request) {
-    $controller = new AjaxController($request);
+$router->addRoute('/api/post-votes', function (Container $container) {
+    $controller = $container->make(AjaxController::class);
     $controller->getPostVotes();
 }, ['AjaxMiddleware', 'CsrfMiddleware'], ['method' => 'POST']);
 
 // Отправка сообщения через форму обратной связи
-$router->addRoute('/api/send_msg', function ($request) {
-    $controller = new AjaxController($request);
+$router->addRoute('/api/send_msg', function (Container $container) {
+    $controller = $container->make(AjaxController::class);
     $controller->sendMsg();
-});
+}, ['AjaxMiddleware', 'CsrfMiddleware'], ['method' => 'POST']);
 
 // Получение списка тэгов
-$router->addRoute('/api/search_tags', function ($request) {
-    $controller = new AjaxController($request);
+$router->addRoute('/api/search_tags', function (Container $container) {
+    $controller = $container->make(AjaxController::class);
     $controller->searchTags();
-});
+}, ['AjaxMiddleware']);
 
-// Получение CSRF токена
-$router->addRoute('/api/get-csrf-token', function ($request) {
-    $controller = new AjaxController($request);
+// Получение CSRF токена для клиента
+$router->addRoute('/api/get-csrf-token', function (Container $container) {
+    $controller = $container->make(AjaxController::class);
     $controller->getCsrfToken();
 });
 
@@ -98,7 +97,7 @@ $router->addRoute('/sitemap\.xml', function ($request) {
     $controller->generateSitemapIndexXml();
 });
 
-$router->addRoute('/sitemap-(posts|pages)-(\d+)\.xml', function ($request, $type, $page) {
+$router->addRoute('/sitemap-(posts|pages)-(\d+)\.xml', function ($request, $viewAdmin, $type, $page) {
     $controller = new SitemapController();
     $controller->generateSitemapPartXml($type, $page);
 });

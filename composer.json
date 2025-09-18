@@ -7,5 +7,8 @@
         "classmap": [
             "app/"
         ]
+    },
+    "require": {
+        "phpmailer/phpmailer": "^6.10"
     }
 }

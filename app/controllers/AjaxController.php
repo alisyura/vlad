@@ -1,35 +1,46 @@
 <?php
 //declare(strict_types=1);
+/**
+ * Класс AjaxController отвечает за обработку AJAX-запросов,
+ * связанных с взаимодействием пользователей с контентом,
+ * таким как голосование за посты.
+ *
+ * @property Request $request Объект HTTP-запроса.
+ * @property PostAjaxModel $model Модель для работы с данными постов.
+ * @property ReactionService $reactionService Сервис для обработки логики голосования.
+ */
 class AjaxController
 {
+    use JsonResponseTrait;
+
     private $db;
     private $request;
+    private PostAjaxModel $model;
+    private ReactionService $reactionService;
 
-    public function __construct(Request $request)
+    /**
+     * Конструктор класса AjaxController.
+     *
+     * @param Request $request Объект запроса, внедряется через DI-контейнер.
+     * @param ReactionService $reactionService Сервис для голосования, внедряется через DI-контейнер.
+     * @param PostAjaxModel $model Модель для работы с постами, внедряется через DI-контейнер.
+     */
+    public function __construct(Request $request, ReactionService $reactionService, 
+        PostAjaxModel $model)
     {
         header('Content-Type: application/json');
 
-        $this->db = Database::getConnection();
+        // $this->db = Database::getConnection();
         $this->request = $request;
-    }
-
-    private function getVisitorIdForUUID($uuid)
-    {
-        $stmtVisitor = $this->db->prepare("SELECT id FROM visitors WHERE uuid = :uuid");
-        $stmtVisitor->execute([':uuid' => $uuid]);
-        $visitor = $stmtVisitor->fetch(PDO::FETCH_ASSOC);
-        return $visitor ? $visitor['id'] : null;
+        $this->model = $model;
+        $this->reactionService = $reactionService;
     }
 
     public function getPostVotes()
     {
-        $json_data = file_get_contents('php://input');
-        // Декодируем JSON-строку в ассоциативный массив PHP
-        $post_data = json_decode($json_data, true);
-
-        $posts = $post_data['posts'] ?? '';
+        $posts = $this->request->json('posts') ?? '';
         if (empty($posts)) {
-            echo json_encode(['success' => false, 'message' => 'Нет постов']);
+            $this->sendErrorJsonResponse('Нет постов', 404);
             exit;
         }
 
@@ -37,53 +48,24 @@ class AjaxController
 
             $uuid = getVisitorCookie();
 
-            $visitorId=$this->getVisitorIdForUUID($uuid);
+            $visitorId=$this->model->getVisitorIdForUUID($uuid);
 
             // Убираем дубликаты и пустые значения
             $postUrls = array_unique(array_filter($posts));
 
             if (empty($postUrls)) {
-                echo json_encode([
-                    'success' => false,
-                    'message' => 'Нет корректных постов'
-                ]);
+                $this->sendErrorJsonResponse('Нет корректных постов', 422);
                 exit;
             }
 
-            // Готовим SQL-запрос
-            $placeholders = implode(',', array_fill(0, count($postUrls), '?'));
+            $results = $this->model->findPostsByUrls($postUrls, $visitorId);
 
-            $sql = "
-                SELECT 
-                    p.url AS post_url,
-                    p.likes_count,
-                    p.dislikes_count,
-                    pv.vote_type AS user_vote
-                FROM posts p
-                LEFT JOIN post_votes pv ON p.id = pv.post_id AND pv.visitor_id = ?
-                WHERE p.url IN ($placeholders)
-            ";
+            $this->sendSuccessJsonResponse('Голоса получены', 200, ['votes' => $results]);
 
-            $params = $postUrls;
-            array_unshift($params, $visitorId); // visitor_id первым
-
-            $stmt = $this->db->prepare($sql);
-            $stmt->execute($params);
-            $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-            // Формируем ответ
-            echo json_encode([
-                'success' => true,
-                'votes' => $results
-            ]);
-
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             Logger::error('getPostVotes. Ошибка получения голосов постов. '.$e->getTraceAsString());
-            http_response_code(500);
-            echo json_encode([
-                'success' => false,
-                'message' => 'Ошибка сервера: ' . $e->getMessage()
-            ]);
+            $this->sendErrorJsonResponse('Ошибка получения голосов постов.', 500);
+            exit();
         }
     }
 
@@ -105,121 +87,57 @@ class AjaxController
     }
 
     /**
-     * Голосование за пост
+     * Обрабатывает голосование за пост через AJAX-запрос.
+     *
+     * Метод принимает данные из JSON-запроса, вызывает сервис для обработки
+     * бизнес-логики и отправляет JSON-ответ об успехе или ошибке.
+     *
+     * @return void
      */
-    public function reaction()
+    public function reaction(): void
     {
-        $json_data = file_get_contents('php://input');
-        // Декодируем JSON-строку в ассоциативный массив PHP
-        $post_data = json_decode($json_data, true);
-
-        $postUrl = $post_data['postUrl'] ?? '';
-        $voteType = $post_data['type'] ?? '';
-        $uuid = getVisitorCookie();
+        $postUrl = $this->request->json('postUrl') ?? '';
+        $voteType = $this->request->json('type') ?? '';
 
         Logger::debug("reaction. postUrl=".$postUrl.", voteType=".$voteType);
+        $uuid = getVisitorCookie();
+        Logger::debug("reaction. uuid=".$uuid);
 
         try {
-            $this->db->beginTransaction();
+            $result = $this->reactionService->handleVote($postUrl, $voteType, $uuid);
 
-            // Шаг 1: Получаем или создаём visitor_id
-            $visitorId = $this->getOrCreateVisitorId($uuid);
-
-            Logger::debug("reaction. голосовал ли visitor=".$visitorId." за пост");
-            // Шаг 2: Проверяем, уже голосовал этот visitor за этот пост
-            $stmt = $this->db->prepare("
-                SELECT pv.id 
-                FROM post_votes pv
-                JOIN posts p ON pv.post_id = p.id
-                WHERE p.url = :post_url
-                AND pv.visitor_id = :visitor_id;
-            ");
-            $stmt->execute(
-                [
-                    ':post_url' => $postUrl,
-                    ':visitor_id' => $visitorId
-                ]);
-            $existingVote = $stmt->fetch(PDO::FETCH_ASSOC);
-            Logger::debug("reaction. existingVote=".$existingVote);
-
-            if ($existingVote) {
-                Logger::debug("reaction. голосовал. выход");
-                $this->db->commit();
-                //return ['success' => false, 'message' => 'Вы уже голосовали за этот пост'];
-                echo json_encode([
-                    'success' => false,
-                    'message' => 'Вы уже голосовали за этот пост'
-                ]);
-                exit;
-            }
-
-            Logger::debug("reaction. Получаем post_id по его Url=".$postUrl);
-
-            // Получаем post_id по его Url
-            $stmt = $this->db->prepare("SELECT id FROM posts WHERE url = :post_url");
-            $stmt->execute([':post_url' => $postUrl]);
-            $post = $stmt->fetch(PDO::FETCH_ASSOC);
-            if (!$post) {
-                Logger::debug("reaction. Пост не найден");
-                $this->db->rollBack();
-
-                echo json_encode([
-                    'success' => false,
-                    'message' => 'Пост не найден'
-                ]);
-                exit;
-            }
-            $postId = $post['id'];
-            Logger::debug("reaction. post_id=".$postId);
-
-            // Шаг 3: Добавляем новый голос
-            Logger::debug("reaction. Добавляем новый голос. ".
-                ':post_id='. $postId.':visitor_id='.$visitorId.':vote_type='.$voteType);
-
-            $stmt = $this->db->prepare('INSERT IGNORE INTO post_votes 
-                        (post_id, visitor_id, vote_type, created_at, updated_at)
-                    VALUES (:post_id, :visitor_id, :vote_type, NOW(), NOW())');
-            $stmt->execute(
-                [
-                    ':post_id' => $postId,
-                    ':visitor_id' => $visitorId,
-                    ':vote_type' => $voteType
-                ]);
-
-            // Шаг 4: Возвращаем обновлённые счетчики
-            Logger::debug("reaction. Возвращаем обновлённые счетчики. ".':post_id='.$postId);
-            $stmt = $this->db->prepare("
-                SELECT likes_count, dislikes_count FROM posts WHERE id = :post_id
-            ");
-            $stmt->execute([':post_id' => $postId]);
-            $counts = $stmt->fetch(PDO::FETCH_ASSOC);
-
-            Logger::debug("reaction. commit");
-            $this->db->commit();
-
-            $res = json_encode([
-                'success' => true,
-                'likes' => $counts['likes_count'],
-                'dislikes' => $counts['dislikes_count']
-            ]);
-            Logger::debug("reaction. res=".$res);
-            echo $res;
-        }
-        catch (Throwable $e) {
-            if ($this->db->inTransaction()) {
-                $this->db->rollBack();
-            }
-            
-            $res=json_encode([
+            $resJson = [
+                'likes' => $result['likes_count'],
+                'dislikes' => $result['dislikes_count']
+            ];
+            Logger::debug("reaction. resJson=".json_encode($resJson));
+            $this->sendSuccessJsonResponse('Спасибо за ваш голос', 200, $resJson);
+        } catch (ReactionException $e) {
+            $errorJson = json_encode([
                 'success' => false,
                 'postUrl' => $postUrl,
                 'type' => $voteType,
                 'cookie' => $uuid,
-                'visitorId' => $visitorId,
+                'uuid' => $uuid,
                 'message' => $e->getMessage()
             ]);
-            Logger::error("reaction. Ошибка при голосовании. res=".$res.', '.$e->getTraceAsString());
-            echo $res;
+
+            Logger::error("reaction. {$e->getMessage()}. res={$errorJson}", $e->getTraceAsString());
+
+            $this->sendErrorJsonResponse($e->getMessage(), $e->getCode());
+        } catch (Throwable $e) {
+            $errorJson = json_encode([
+                'success' => false,
+                'postUrl' => $postUrl,
+                'type' => $voteType,
+                'cookie' => $uuid,
+                'uuid' => $uuid,
+                'message' => $e->getMessage()
+            ]);
+
+            Logger::error("reaction. Ошибка при голосовании. res={$errorJson}", $e->getTraceAsString());
+
+            $this->sendErrorJsonResponse('Ошибка при регистрации голоса', 500);
         }
     }
 
@@ -229,17 +147,15 @@ class AjaxController
         $file = $_FILES['image'] ?? null;
 
         
-        $adminIdRow = $this->getAdminId();
+        $adminId = $this->model->getAdminId(Config::get('admin.AdminRoleName'));
 
-        if (!$adminIdRow) {
+        if ($adminId === null) {
             echo json_encode([
                 'success' => false,
                 'message' => 'Администратор не найден'
             ]);
             return;
         }
-
-        $adminId = $adminIdRow['id'];
 
         // === Генерируем заголовок и дату ===
         $currentDate = date('Y-m-d H:i:s');
@@ -359,87 +275,40 @@ class AjaxController
         }
     }
 
-    private function getAdminId()
-    {
-        // === Получаем ID администратора ===
-        $stmt = $this->db->prepare("
-            SELECT u.id 
-            FROM users u
-            JOIN roles r ON u.role_id = r.id
-            WHERE r.name = 'Administrator'
-            ORDER BY u.id ASC
-            LIMIT 1");
-        $stmt->execute();
-        return $stmt->fetch();
-    }
-
     public function sendMsg()
     {
-        $msg_name = trim($_POST['name'] ?? '');
-        $msg_email = trim($_POST['email'] ?? '');
-        $msg_title = trim($_POST['title'] ?? '');
-        $msg_text = trim($_POST['text'] ?? '');
-        $file = $_FILES['image'] ?? null;
+        try 
+        {
+            // 1. Get and Validate Data (using your Validator class)
+            $data = [
+                'name' => trim($this->request->post('name') ?? ''),
+                'email' => trim($this->request->post('email') ?? ''),
+                'title' => trim($this->request->post('title') ?? ''),
+                'text' => trim($this->request->post('text') ?? '')
+            ];
+            $file = $this->request->file('image') ?? null;
 
-        $errors = [];
+            $validator = new ContactFormValidator();
+            $errors = $validator->validate($data, $file);
 
-        // Проверка имени
-        if (empty($msg_name)) {
-            $errors[] = 'Имя не может быть пустым';
-        }
+            if (count($errors) > 0) {
+                $this->sendErrorJsonResponse($errors);
+                return;
+            }
 
-        // Проверка темы
-        if (empty($msg_title)) {
-            $errors[] = 'Тема не может быть пустой';
-        }
+            // 2. Pass to the Mailer Service
+            $mailer = new ContactMailerService();
+            $result = $mailer->sendContactEmail($data, $file);
 
-        // Проверка текста сообщения
-        $text_len = mb_strlen($msg_text, 'UTF-8');
-        if ($text_len < 10) {
-            $errors[] = 'Сообщение должно содержать минимум 10 символов';
-        }
-        if ($text_len > 5000) {
-            $errors[] = 'Сообщение не может превышать 5000 символов';
-        }
-
-        // Проверка email
-        if (!validateEmail($msg_email)) {
-            $errors[] = 'Некорректный адрес электронной почты';
-        }
-        
-        if (count($errors)>0) {
-            echo json_encode([
-                'success' => false,
-                'message' => $errors
-            ]);
-            return;
-        }
-
-         // === Настройки отправки ===
-        $to = Config::get('admin.AdminEmail');
-        $subject = "Сообщение с сайта от пользователя: " . htmlspecialchars($msg_title);
-        $from = "From: $msg_email\r\n";
-        $from .= "Reply-To: $msg_email\r\n";
-        $from .= "Content-Type: text/plain; charset=UTF-8\r\n";
-
-        // === Тело письма ===
-        $message = "Имя: $msg_name\n";
-        $message .= "Email: $msg_email\n";
-        $message .= "Тема: $msg_title\n\n";
-        $message .= "Сообщение:\n$msg_text\n\n";
-        $message .= "-- Конец сообщения --";
-
-        // === Отправка ===
-        if (mail($to, $subject, $message, $from)) {
-            echo json_encode([
-                'success' => true,
-                'message' => 'Ваше сообщение успешно отправлено'
-            ]);
-        } else {
-            echo json_encode([
-                'success' => false,
-                'message' => ['Ошибка при отправке сообщения']
-            ]);
+            if ($result['success']) {
+                $this->sendSuccessJsonResponse('Ваше сообщение успешно отправлено');
+            } else {
+                $this->sendErrorJsonResponse('Ошибка при отправке сообщения');
+            }
+        } catch(Exception $e) {
+            Logger::error("sendMeg. Ошибка при отправке сообщения.", [$e->getTraceAsString()]);
+                
+            $this->sendErrorJsonResponse('При отправке сообщения произошла ошибка');
         }
     }
 
@@ -450,6 +319,7 @@ class AjaxController
         $data = json_decode(file_get_contents('php://input'), true);
         $tagName = $data['name'] ?? '';
 
+        $tagName = $this->request->json('name');
         try
         {
             $stmt = $this->db->prepare("SELECT 
@@ -491,10 +361,11 @@ class AjaxController
 
     public function getCsrfToken()
     {
-        echo json_encode([
-                'success' => true,
-                'csrf_token' => CSRF::getToken()
-            ]);
+        $this->sendSuccessJsonResponse('', 200, ['csrf_token' => CSRF::getToken()]);
+        // echo json_encode([
+        //         'success' => true,
+        //         'csrf_token' => CSRF::getToken()
+        //     ]);
         exit;
     }
 }

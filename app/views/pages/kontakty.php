@@ -58,10 +58,11 @@
                     <div class="contact-upload-description">Нажмите на область или перенесите файл с компьютера</div>
                     <div class="contact-upload-hints">
                         <div>Разрешенные форматы: png, jpeg, jpg, gif</div>
-                        <div>Максимальный размер 20 mb</div>
+                        <div>Максимальный размер <?= Config::get('upload.UploadedMaxFilesize')/1024/1024 ?> mb</div>
                     </div>
                 </div>
                 <!-- Скрытое поле для выбора файла -->
+                <input type="hidden" id="contact-file-upload-max_filesize" value="<?= Config::get('upload.UploadedMaxFilesize') ?>">
                 <input type="file" id="contact-file-upload" accept="image/*" style="display: none;">
             </div>
 
