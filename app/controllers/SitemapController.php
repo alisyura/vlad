@@ -12,8 +12,6 @@ class SitemapController {
     private SitemapModel $model;
 
     public function __construct(Request $request, ViewAdmin $view, SitemapModel $sitemapModel) {
-        header('Content-Type: application/xml; charset=utf-8');
-
         $this->db = Database::getConnection();
 
         $this->request = $request;
@@ -102,6 +100,8 @@ class SitemapController {
 
     public function generateSitemapIndexXml()
     {
+        header('Content-Type: application/xml; charset=utf-8');
+
         // Чанки для постов
         $stmt = $this->db->query("
             SELECT COUNT(*) AS total
@@ -131,6 +131,8 @@ class SitemapController {
 
     public function generateSitemapPartXml($type, $page)
     {
+        header('Content-Type: application/xml; charset=utf-8');
+
         $offset = ($page - 1) * $this->max_urls;
 
         switch ($type) {
