@@ -4,6 +4,8 @@
 
 class AdminAuthenticatedMiddleware implements MiddlewareInterface
 {
+    use JsonResponseTrait;
+
     /**
      * Проверяет авторизацию администратора.
      * @return bool True если авторизован, иначе выполнение скрипта прерывается.
@@ -18,9 +20,7 @@ class AdminAuthenticatedMiddleware implements MiddlewareInterface
                       && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
             
             if ($isAjax) {
-                http_response_code(401);
-                header('Content-Type: application/json');
-                echo json_encode(['success' => false, 'message' => 'Доступ запрещен']);
+                $this->sendErrorJsonResponse('Доступ запрещен', 401);
                 exit; 
             } else {
                 header("Location: /$adminRoute/login");

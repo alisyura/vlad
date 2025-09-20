@@ -1,6 +1,8 @@
 <?php
 
 class Router {
+    use ShowClientErrorViewTrait;
+
     private $routes = [];
     
     public function addRoute($pattern, $handler, $middlewares = [], array $options = []) {
@@ -68,7 +70,7 @@ class Router {
                     
                      // Проверяем, является ли $middleware строкой (именем класса) или объектом/замыканием
                     if (is_string($middleware) && class_exists($middleware)) {
-                        $middlewareInstance = new $middleware();
+                        $middlewareInstance = $container->make($middleware);
                         // Предполагаем, что у middleware есть метод handle, возвращающий true/false или выбрасывающий исключение
                         if ($middlewareInstance instanceof MiddlewareInterface) {
                             $paramToPass = (!empty($params) && !($paramString === '')) ? $params : null;
@@ -89,7 +91,7 @@ class Router {
                 }
 
                 // Если все middleware прошли успешно, вызываем основной обработчик
-                if (str_starts_with(strtolower($uri), '/sitemap') || 
+                if (//str_starts_with(strtolower($uri), '/sitemap') || 
                     str_starts_with(strtolower($uri), strtolower('/'.Config::get('admin.AdminRoute')))) {
                     // это временно, пока не внедрен service container везде
                     array_unshift($matches, $request); // вставляем первым параметром
@@ -100,26 +102,13 @@ class Router {
                     array_unshift($matches, $container); // вставляем первым параметром
                 }
                 
-                // временное решение. пока не отрефачена клиентская часть. 
-                // впоследствии там тоже будет передавать View
-
-                // Если viewAdmin был передан, значит его надо использовать
-                // if ($viewAdmin !== null) {
-                //     // Вставляем строку 'viewadmin' на второй индекс (позиция 1)
-                //     // оборачиваем в массив, чтобы вставился объектом
-                //     array_splice($matches, 1, 0, [$viewAdmin]);
-                // }
                 call_user_func_array($handler, $matches);
                 return;
             }
         }
 
-        // Если маршрут не найден
-        header("HTTP/1.0 404 Not Found");
-        $content = View::render('../app/views/errors/404.php', [
-            'title' => '404'
-        ]);
-        require '../app/views/layout.php';
+        $view = $container->make(ViewAdmin::class);
+        $this->renderErrorView($view, 'Страница не найдена', '', 404);
         return;
     }
 }

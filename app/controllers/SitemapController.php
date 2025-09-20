@@ -1,17 +1,103 @@
 <?php
 
+// app/controllers/SitemapController.php
 class SitemapController {
+    use ShowClientErrorViewTrait;
+    
     private $db;
     private $uri;
     private $max_urls;
+    private Request $request;
+    private ViewAdmin $view;
+    private SitemapModel $model;
 
-    public function __construct() {
+    public function __construct(Request $request, ViewAdmin $view, SitemapModel $sitemapModel) {
         header('Content-Type: application/xml; charset=utf-8');
 
         $this->db = Database::getConnection();
 
-        $this->uri = sprintf("%s://%s", $_SERVER['REQUEST_SCHEME'], $_SERVER['HTTP_HOST']);
+        $this->request = $request;
+        $this->view = $view;
+        $this->model = $sitemapModel;
+
+        $this->uri = $request->getBaseUrl();
         $this->max_urls = Config::get('posts.max_urls_in_sitemap');
+    }
+
+    /*
+    * Страница Карта сайта
+    */
+    public function showSitemap() {
+        try {
+            $posts = $this->model->getSitemapData();
+            if (!$posts) {
+                $this->showErrorView('Страница не найдена', '', 404);
+                return;
+            }
+
+            $result = [
+                'post' => [],
+                'page' => [
+                    'pages' => []
+                ]
+            ];
+            
+            foreach ($posts as $row) {
+                if ($row['type'] === 'post') {
+                    // Это обычный пост с категорией
+                    $categoryUrl = $row['category_url'];
+            
+                    if (!isset($result['post'][$categoryUrl])) {
+                        $result['post'][$categoryUrl] = [
+                            'name' => $row['category_name'],
+                            'url' => $row['category_url'],
+                            'posts' => []
+                        ];
+                    }
+            
+                    $result['post'][$categoryUrl]['posts'][] = [
+                        'title' => $row['post_title'],
+                        'url' => $row['post_url']
+                    ];
+            
+                } elseif ($row['type'] === 'page') {
+                    // Это страница без категории
+                    $result['page']['pages'][] = [
+                        'title' => $row['post_title'],
+                        'url' => $row['post_url']
+                    ];
+                }
+            }
+
+            $contentData = [
+                'data' => $result,
+                'full_url' => $this->request->getRequestUrl(),
+                //'tags_baseUrl' => sprintf("%s/tag/", $this->uri),
+                //'post_image' => sprintf("%s%s", $this->uri, $page['image']),
+                //'tags' => $tags,
+                'is_post' => false,
+                'export' => [
+                    'page_type' => 'sitemap',
+                    'site_name' => Config::get('global.SITE_NAME'),
+                    'keywords' => Config::get('global.SITE_KEYWORDS'),
+                    'description' => Config::get('global.SITE_DESCRIPTION'),
+                    'url' => $this->request->getRequestUrl(),
+                    //'image' => sprintf("%s%s", $this->uri, $page['image'])
+                    //'posts' => $posts,
+                    'styles' => [
+                        'sitemap.css'
+                    ],
+                    'jss' => [
+                        'sitemap.js'
+                    ]
+                ]
+            ];
+
+            $this->view->renderClient('pages/sitemap.php', $contentData);
+        } catch (Throwable $e) {
+            Logger::error("Error in showSitemap: " . $e->getTraceAsString());
+            $this->showErrorView('Ошибка', 'Произошла непредвиденная ошибка.');
+        }
     }
 
     public function generateSitemapIndexXml()

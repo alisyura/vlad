@@ -6,7 +6,7 @@ class PostController {
     /**
      * Экземпляр модели
      */
-    private $model;
+    private PostModel $model;
     /**
      * Адрес сайта (схема и домен)
      */
@@ -67,168 +67,6 @@ class PostController {
             $this->view->renderClient('posts/show.php', $render_params);
         } catch (Throwable $e) {
             Logger::error("Error in listPosts: " . $e->getTraceAsString());
-            $this->showErrorView('Ошибка', 'Произошла непредвиденная ошибка.');
-        }
-    }
-
-    /*
-    * Страница Контакты
-    */
-    public function showKontakty() {
-        try {
-            // $URL = rtrim(sprintf("%s/%s", $this->uri, 'page/kontakty'), '/').'.html';
-        
-            $contentData = [
-                //'post' => $page,
-                'full_url' => $this->requestUrl,
-                'url_id' => 'kontakty',
-                //'tags_baseUrl' => sprintf("%s/tag/", $this->uri),
-                //'post_image' => sprintf("%s%s", $this->uri, $page['image']),
-                //'tags' => $tags,
-                //'is_post' => false
-                'export' => [
-                    'page_type' => 'kontakty',
-                    'site_name' => Config::get('global.SITE_NAME'),
-                    'keywords' => Config::get('global.SITE_KEYWORDS'),
-                    'description' => Config::get('global.SITE_DESCRIPTION'),
-                    'url' => $this->requestUrl,
-                    //'image' => sprintf("%s%s", $this->uri, $page['image'])
-                    'styles' => [
-                        'kontakty.css'
-                    ],
-                    'jss' => [
-                        'kontakty.js'
-                    ]
-                ]
-            ];
-
-            $this->view->renderClient('pages/kontakty.php', $contentData);
-        } catch (Throwable $e) {
-            Logger::error("Error in showKontakty: " . $e->getTraceAsString());
-            $this->showErrorView('Ошибка', 'Произошла непредвиденная ошибка.');
-        }
-        
-    }
-
-    /*
-    * Страница Карта сайта
-    */
-    public function showSitemap() {
-        try {
-            $posts = $this->model->getSitemapData();
-            if (!$posts) {
-                $this->showErrorView('Страница не найдена', '', 404);
-                return;
-            }
-
-            $result = [
-                'post' => [],
-                'page' => [
-                    'pages' => []
-                ]
-            ];
-            
-            foreach ($posts as $row) {
-                if ($row['type'] === 'post') {
-                    // Это обычный пост с категорией
-                    $categoryUrl = $row['category_url'];
-            
-                    if (!isset($result['post'][$categoryUrl])) {
-                        $result['post'][$categoryUrl] = [
-                            'name' => $row['category_name'],
-                            'url' => $row['category_url'],
-                            'posts' => []
-                        ];
-                    }
-            
-                    $result['post'][$categoryUrl]['posts'][] = [
-                        'title' => $row['post_title'],
-                        'url' => $row['post_url']
-                    ];
-            
-                } elseif ($row['type'] === 'page') {
-                    // Это страница без категории
-                    $result['page']['pages'][] = [
-                        'title' => $row['post_title'],
-                        'url' => $row['post_url']
-                    ];
-                }
-            }
-
-            $contentData = [
-                'data' => $result,
-                'full_url' => $this->requestUrl,
-                'tags_baseUrl' => sprintf("%s/tag/", $this->uri),
-                //'post_image' => sprintf("%s%s", $this->uri, $page['image']),
-                //'tags' => $tags,
-                'is_post' => false,
-                'export' => [
-                    'page_type' => 'sitemap',
-                    'site_name' => Config::get('global.SITE_NAME'),
-                    'keywords' => Config::get('global.SITE_KEYWORDS'),
-                    'description' => Config::get('global.SITE_DESCRIPTION'),
-                    'url' => $this->requestUrl,
-                    //'image' => sprintf("%s%s", $this->uri, $page['image'])
-                    'styles' => [
-                        'sitemap.css'
-                    ],
-                    'jss' => [
-                        'sitemap.js'
-                    ]
-                ]
-            ];
-
-            $this->view->renderClient('pages/sitemap.php', $contentData);
-        } catch (Throwable $e) {
-            Logger::error("Error in showSitemap: " . $e->getTraceAsString());
-            $this->showErrorView('Ошибка', 'Произошла непредвиденная ошибка.');
-        }
-    }
-
-    /*
-    * Страница Тэги
-    */
-    public function showTagFilter() {
-        try {
-            //используется в layout.php
-            $contentData = [ //View::render('../app/views/posts/tegi.php', [
-                'show_caption' => true,
-                'full_url' => $this->requestUrl,
-                'tags_baseUrl' => sprintf("%s/tag/", $this->uri),
-                //'post_image' => sprintf("%s%s", $this->uri, $page['image']),
-                //'tags' => $tags,
-                'is_post' => false,
-                'export' => [
-                    'page_type' => 'tegi',
-                    'site_name' => Config::get('global.SITE_NAME'),
-                    'keywords' => Config::get('global.SITE_KEYWORDS'),
-                    'description' => Config::get('global.SITE_DESCRIPTION'),
-                    'url' => $this->requestUrl,
-                    //'image' => sprintf("%s%s", $this->uri, $page['image'])
-                    'styles' => [
-                        'tegi.css'
-                    ],
-                    'jss' => [
-                        'tegi.js'
-                    ]
-                ]
-            ];
-
-            $this->view->renderClient('posts/tegi.php', $contentData);
-
-            //используется в layout.php
-            // $structuredData = [
-            //     'page_type' => 'tegi',
-            //     'site_name' => Config::get('global.SITE_NAME'),
-            //     'keywords' => Config::get('global.SITE_KEYWORDS'),
-            //     'description' => Config::get('global.SITE_DESCRIPTION'),
-            //     'url' => $this->requestUrl
-            //     //'image' => sprintf("%s%s", $this->uri, $page['image'])
-            // ];
-            
-            // require '../app/views/layout.php';
-        } catch (Throwable $e) {
-            Logger::error("Error in showTagFilter: " . $e->getTraceAsString());
             $this->showErrorView('Ошибка', 'Произошла непредвиденная ошибка.');
         }
     }
@@ -337,9 +175,9 @@ class PostController {
     }
 
     /*
-    * Список постов раздела меню
+    * Список постов из раздела меню
     */
-    public function showSection($cat_url, $show_link_next, $page = 1) {
+    public function showBySection($cat_url, $show_link_next, $page = 1) {
         try {
             $posts_per_page = Config::get('posts.posts_per_page');
             $total_posts = $this->model->countAllPostsByCategory($cat_url);
@@ -400,7 +238,7 @@ class PostController {
     /*
     * Список постов по тэгу
     */
-    public function showTag($tag_url, $page = 1) {
+    public function showByTag($tag_url, $page = 1) {
         try {
             $posts_per_page = Config::get('posts.posts_per_page');
             $total_posts = $this->model->countAllPostsByTag($tag_url);

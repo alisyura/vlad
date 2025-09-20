@@ -1,28 +1,28 @@
 <?php
 
-// app/services/ReactionService.php
+// app/services/VotingService.php
 
 /**
- * Класс ReactionService инкапсулирует бизнес-логику, связанную
+ * Класс VotingService инкапсулирует бизнес-логику, связанную
  * с голосованием за посты.
  *
  * Сервис координирует операции с базой данных, управляет транзакциями
  * и отвечает за бизнес-правила (например, проверка повторного голоса).
  */
-class ReactionService
+class VotingService
 {
-    private PostAjaxModel $postAjaxModel;
+    private VotingModel $votingModel;
     private PDO $db;
 
     /**
      * Конструктор класса ReactionService.
      *
-     * @param PostAjaxModel $postAjaxModel Модель для работы с данными постов.
+     * @param VotingModel $postAjaxModel Модель для работы с данными постов.
      * @param PDO $pdo Объект PDO для управления транзакциями.
      */
-    public function __construct(PostAjaxModel $postAjaxModel, PDO $pdo)
+    public function __construct(VotingModel $votingModel, PDO $pdo)
     {
-        $this->postAjaxModel = $postAjaxModel;
+        $this->votingModel = $votingModel;
         $this->db = $pdo;
     }
 
@@ -49,17 +49,17 @@ class ReactionService
         try {
             $this->db->beginTransaction();
 
-            $visitorId = $this->postAjaxModel->getOrCreateVisitorId($uuid);
-            $postId = $this->postAjaxModel->findPostByUrl($postUrl);
+            $visitorId = $this->votingModel->getOrCreateVisitorId($uuid);
+            $postId = $this->votingModel->findPostByUrl($postUrl);
             if ($postId === null) {
                 throw new ReactionException("Пост с урлом {$postUrl} не найден", 404);
             }
-            $hasVoted = $this->postAjaxModel->checkIfVisitorHasAlreadyVoted($visitorId, $postUrl);
+            $hasVoted = $this->votingModel->checkIfVisitorHasAlreadyVoted($visitorId, $postUrl);
             if ($hasVoted) {
                 throw new ReactionException();
             }
-            $this->postAjaxModel->addNewVote($postId, $visitorId, $voteType);
-            $counts = $this->postAjaxModel->getPostLikeDislikeCounters($postId);
+            $this->votingModel->addNewVote($postId, $visitorId, $voteType);
+            $counts = $this->votingModel->getPostLikeDislikeCounters($postId);
             
             $this->db->commit();
 

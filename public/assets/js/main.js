@@ -212,12 +212,6 @@ class PostInteractionManager {
      * Загружает данные о голосах при загрузке страницы.
      */
     async loadInitialVotes() {
-        const csrfToken = await getFreshCsrfToken();
-        if (!csrfToken) {
-            console.error('Не удалось получить CSRF-токен.');
-            return;
-        }
-
         const postElements = document.querySelectorAll('.post_preview, .post_full');
         if (postElements.length === 0) return;
 
@@ -228,12 +222,11 @@ class PostInteractionManager {
         };
 
         try {
-            const response = await fetch('/api/post-votes', { 
+            const response = await fetch('/api/get-post-votes', { 
                 method: 'POST', 
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'X-CSRF-TOKEN': csrfToken
+                    'X-Requested-With': 'XMLHttpRequest'
                 },
                 body: JSON.stringify(requestBody) // Преобразуем объект в JSON-строку
             });

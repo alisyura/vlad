@@ -1,9 +1,9 @@
 <?php
 
-// app/models/PostAjaxModel.php
+// app/models/VotingModel.php
 
 /**
- * Класс PostAjaxModel содержит методы для работы с данными,
+ * Класс VotingModel содержит методы для работы с данными,
  * связанными с постами и голосами (лайками/дизлайками),
  * которые используются в AJAX-запросах.
  *
@@ -12,14 +12,14 @@
  *
  * @property PDO $db Объект подключения к базе данных.
  */
-class PostAjaxModel {
+class VotingModel {
     /**
      * @var PDO Объект подключения к базе данных.
      */
     private $db;
     
     /**
-     * Конструктор класса PostAjaxModel.
+     * Конструктор класса VotingModel.
      *
      * @param PDO $pdo Объект PDO, внедряемый через Service Container.
      */

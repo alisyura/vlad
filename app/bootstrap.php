@@ -32,5 +32,20 @@ $container->singleton(PDO::class, function() {
     }
 });
 $container->bind(PostModel::class, PostModel::class);
-$container->bind(ReactionService::class, ReactionService::class);
-$container->bind(PostAjaxModel::class, PostAjaxModel::class);
+$container->bind(AjaxController::class, AjaxController::class);
+$container->bind(TagsModelClient::class, TagsModelClient::class);
+$container->bind(TagsController::class, TagsController::class);
+$container->bind(ContactController::class, ContactController::class);
+$container->bind(VotingController::class, VotingController::class);
+$container->bind(VotingService::class, VotingService::class);
+$container->bind(VotingModel::class, VotingModel::class);
+$container->bind(SitemapController::class, SitemapController::class);
+$container->bind(SitemapModel::class, SitemapModel::class);
+
+
+$container->bind(ArticleTypeMiddleware::class, ArticleTypeMiddleware::class);
+$container->bind(AdminAuthenticatedMiddleware::class, AdminAuthenticatedMiddleware::class);
+$container->bind(AjaxMiddleware::class, AjaxMiddleware::class);
+$container->bind(CsrfMiddleware::class, CsrfMiddleware::class);
+$container->bind(PageCacheMiddleware::class, PageCacheMiddleware::class);
+$container->bind(UserAuthenticatedMiddleware::class, UserAuthenticatedMiddleware::class);

@@ -3,6 +3,8 @@
 
 class CsrfMiddleware implements MiddlewareInterface
 {
+    use JsonResponseTrait;
+
     public function handle(?array $param = null): bool
     {
         // Методы, которые требуют CSRF-защиты
@@ -30,8 +32,7 @@ class CsrfMiddleware implements MiddlewareInterface
             
             // Если это AJAX-запрос, возвращаем JSON
             if (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest') {
-                header('Content-Type: application/json');
-                echo json_encode(['success' => false, 'message' => 'Неверный CSRF-токен.']);
+                $this->sendErrorJsonResponse('Неверный CSRF-токен.', 403);
             } else {
                 // Иначе делаем редирект или показываем страницу с ошибкой
                 header("Location: /error?code=403");

@@ -160,6 +160,10 @@ function generate_uuid_v4() {
 function generateStructuredData($data)
 {
     $type = $data['page_type'] ?? 'home';
+    if (strtolower($type)=='sitemap')
+    {
+        return '';
+    }
     $site_name = htmlspecialchars($data['site_name'] ?? 'Юморной сайт');
     $description = htmlspecialchars($data['description'] ?? '');
     $url = htmlspecialchars($data['url'] ?? '/');

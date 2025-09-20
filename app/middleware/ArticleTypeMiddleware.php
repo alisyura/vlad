@@ -3,6 +3,15 @@
 
 class ArticleTypeMiddleware implements MiddlewareInterface
 {
+    use ShowAdminErrorViewTrait;
+
+    private ViewAdmin $viewAdmin;
+
+    public function __construct(ViewAdmin $viewAdmin)
+    {
+        $this->viewAdmin = $viewAdmin;
+    }
+
     public function handle(?array $articleTypes = null): bool
     {
         // Если массив пустой или не передан, считаем, что проверка не пройдена
@@ -28,13 +37,11 @@ class ArticleTypeMiddleware implements MiddlewareInterface
         return $res;
     }
 
+    /**
+     * @deprecated
+     */
     private function showError()
     {
-        header("HTTP/1.0 404 Not Found");
-        $content = View::render('../app/views/admin/errors/not_found_view.php', [
-            'adminRoute' => (new Request())->getAdminRoute(),
-            'title' => '404'
-        ]);
-        require '../app/views/admin/admin_layout.php';
+        $this->showAdminErrorView('Ошибка', 'Произошла непредвиденная ошибка.');
     }
 }

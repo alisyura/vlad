@@ -10,7 +10,7 @@ class Config
         ],
         'posts' => [
             'exerpt_len' => 200,
-            'posts_per_page' => 2,
+            'posts_per_page' => 5,
             'max_urls_in_sitemap' => 50000
         ],
         'global' => [
