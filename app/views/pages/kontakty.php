@@ -62,7 +62,6 @@
                     </div>
                 </div>
                 <!-- Скрытое поле для выбора файла -->
-                <input type="hidden" id="contact-file-upload-max_filesize" value="<?= Config::get('upload.UploadedMaxFilesize') ?>">
                 <input type="file" id="contact-file-upload" accept="image/*" style="display: none;">
             </div>
 

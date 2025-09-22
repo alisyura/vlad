@@ -28,7 +28,7 @@ class Config
         ],
         'upload' => [
             'UploadDir' => 'uploads',
-            'UploadedMaxFilesize' => 2 * 1024 * 1024,
+            'UploadedMaxFilesize' => 5 * 1024 * 1024,
             'UploadedMaxHeight' => 600,
             'UploadedMaxWidth' => 840,
             'UploadedMinHeight' => 300,

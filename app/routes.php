@@ -94,11 +94,11 @@ $router->addRoute('/api/get-csrf-token', function (Container $container) {
 
 
 // Добавление пользователем материала через кнопку Добавить из меню
-$router->addRoute('/api/publish', function ($request) {
+$router->addRoute('/api/publish', function (Container $container) {
     /////////////////////////////////////////////
-    $controller = new AjaxController($request);
+    $controller = $container->make(AjaxController::class);
     $controller->publish();
-});
+}, ['AjaxMiddleware', 'CsrfMiddleware'], ['method' => 'POST']);
 
 
 

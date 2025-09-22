@@ -231,6 +231,7 @@
                     </div>
                 </div>
                 <!-- Скрытое поле для выбора файла -->
+                <input type="hidden" id="file-upload-max_filesize" value="<?= Config::get('upload.UploadedMaxFilesize') ?>">
                 <input type="file" id="file-upload" accept="image/*" style="display: none;">
             </div>
 
@@ -252,9 +253,10 @@
     <!-- Скрипты -->
     <script src="<?= asset("js/menu.js") ?>" defer></script>
     <script src="<?= asset("js/common.js") ?>" defer></script>
+    <script src="<?= asset("js/textarea_charcounter.js") ?>" defer></script>
+    <script src="<?= asset("js/drag_n_drop_file.js") ?>" defer></script>
     <script src="<?= asset("js/new_pub.js") ?>" defer></script>
-    <!-- <script src="<?= asset("js/react.js") ?>" defer></script> -->
-    <script src="<?= asset("js/main.js") ?>" defer></script>
+    <script src="<?= asset("js/vote_share.js") ?>" defer></script>
 
     <?php if (!empty($exportData['jss']) && is_array($exportData['jss'])): ?>
         <?php foreach ($exportData['jss'] as $js): ?>
