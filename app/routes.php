@@ -12,10 +12,25 @@ $router->addRoute('/sitemap\.xml', function (Container $container) {
     $controller->generateSitemapIndexXml();
 }, ['PageCacheMiddleware']);
 
-$router->addRoute('/sitemap-(posts|pages)-(\d+)\.xml', function (Container $container, $type, $page) {
+$router->addRoute('/sitemap-(post|page)s-(\d+)\.xml', function (Container $container, $type, $page) {
     $controller = $container->make(SitemapController::class);
     $controller->generateSitemapPartXml($type, $page);
 }, ['PageCacheMiddleware']);
+
+
+
+
+// Страница контакты
+$router->addRoute('/page/kontakty\.html', function(Container $container) {
+    $controller = $container->make(ContactController::class);
+    $controller->showKontakty();
+}, ['PageCacheMiddleware']);
+
+// Отправка сообщения через форму обратной связи
+$router->addRoute('/api/send_msg', function (Container $container) {
+    $controller = $container->make(ContactController::class);
+    $controller->sendMsg();
+}, ['AjaxMiddleware', 'CsrfMiddleware'], ['method' => 'POST']);
 
 
 
@@ -66,19 +81,6 @@ $router->addRoute('/api/search_tags', function (Container $container) {
     $controller->searchTags();
 }, ['AjaxMiddleware']);
 
-
-
-// Страница контакты
-$router->addRoute('/page/kontakty\.html', function(Container $container) {
-    $controller = $container->make(ContactController::class);
-    $controller->showKontakty();
-}, ['PageCacheMiddleware']);
-
-// Отправка сообщения через форму обратной связи
-$router->addRoute('/api/send_msg', function (Container $container) {
-    $controller = $container->make(ContactController::class);
-    $controller->sendMsg();
-}, ['AjaxMiddleware', 'CsrfMiddleware'], ['method' => 'POST']);
 
 
 

@@ -1,31 +1,65 @@
 <?php
 
 // app/controllers/SitemapController.php
+
+/**
+ * Class SitemapController
+ *
+ * Контроллер для работы с картой сайта (sitemap) и соответствующими XML-файлами.
+ */
 class SitemapController {
     use ShowClientErrorViewTrait;
     
-    private $db;
-    private $uri;
-    private $max_urls;
+    /**
+     * @var string Базовый URI приложения.
+     */
+    private string $uri;
+
+    /**
+     * @var int Максимальное количество URL в одном файле карты сайта.
+     */
+    private int $maxUrls;
+    
+    /**
+     * @var Request Объект HTTP запроса.
+     */
     private Request $request;
+    
+    /**
+     * @var ViewAdmin Объект представления для рендеринга.
+     */
     private ViewAdmin $view;
+
+    /**
+     * @var SitemapModel Объект модели для работы с данными карты сайта.
+     */
     private SitemapModel $model;
 
+     /**
+     * Конструктор класса SitemapController.
+     *
+     * @param Request $request Объект HTTP запроса, внедряемый через Dependency Injection.
+     * @param ViewAdmin $view Объект представления, внедряемый через Dependency Injection.
+     * @param SitemapModel $sitemapModel Объект модели, внедряемый через Dependency Injection.
+     */
     public function __construct(Request $request, ViewAdmin $view, SitemapModel $sitemapModel) {
-        $this->db = Database::getConnection();
-
         $this->request = $request;
         $this->view = $view;
         $this->model = $sitemapModel;
 
         $this->uri = $request->getBaseUrl();
-        $this->max_urls = Config::get('posts.max_urls_in_sitemap');
+        $this->maxUrls = Config::get('posts.max_urls_in_sitemap');
     }
 
-    /*
-    * Страница Карта сайта
-    */
-    public function showSitemap() {
+    /**
+     * Отображает HTML-страницу карты сайта.
+     *
+     * Метод получает все данные о постах и страницах и передает их в представление
+     * для отображения в виде читабельной карты сайта.
+     *
+     * @return void
+     */
+    public function showSitemap():void {
         try {
             $posts = $this->model->getSitemapData();
             if (!$posts) {
@@ -98,91 +132,99 @@ class SitemapController {
         }
     }
 
-    public function generateSitemapIndexXml()
+    /**
+     * Генерирует и выводит корневой файл карты сайта (sitemapindex.xml).
+     *
+     * Метод вычисляет количество частей карты сайта для постов и страниц,
+     * а затем передает эти данные в соответствующее представление.
+     *
+     * @return void
+     */
+    public function generateSitemapIndexXml(): void
     {
-        header('Content-Type: application/xml; charset=utf-8');
+        try {
+            // Чанки для постов
+            $total_posts = $this->model->getPostsCount('post');
+            $chunks_posts = ceil($total_posts / $this->maxUrls);
 
-        // Чанки для постов
-        $stmt = $this->db->query("
-            SELECT COUNT(*) AS total
-            FROM posts
-            WHERE status = 'published' AND article_type='post'");
-        $row = $stmt->fetch();
-        $total_posts = $row['total'];
-        $chunks_posts = ceil($total_posts / $this->max_urls);
+            // Чанки для страниц
+            $total_pages = $this->model->getPostsCount('page');
+            $chunks_pages = ceil($total_pages / $this->maxUrls);
 
-        // Чанки для страниц
-        $stmt = $this->db->query("
-            SELECT COUNT(*) AS total
-            FROM posts
-            WHERE status = 'published' AND article_type='page'");
-        $row = $stmt->fetch();
-        $total_pages = $row['total'];
-        $chunks_pages = ceil($total_pages / $this->max_urls);
+            $contentData = [
+                'chunks_posts' => $chunks_posts,
+                'chunks_pages' => $chunks_pages,
+                'url' => $this->uri
+            ];
+            echo $this->view->render(
+                'sitemap/sitemap-index.xml.php', 
+                $contentData, 
+                ['Content-Type: application/xml; charset=utf-8']);
+        } catch (Throwable $e) {
+            Logger::error('Error generating sitemap XML: ', [$e->getTraceAsString()]);
 
-        $content = View::render('../app/views/sitemap/sitemap-index.xml.php', [
-            'chunks_posts' => $chunks_posts,
-            'chunks_pages' => $chunks_pages,
-            'url' => $this->uri
-        ]);
-
-        echo $content;
-    }
-
-    public function generateSitemapPartXml($type, $page)
-    {
-        header('Content-Type: application/xml; charset=utf-8');
-
-        $offset = ($page - 1) * $this->max_urls;
-
-        switch ($type) {
-            case 'posts':
-                $posts = $this->getPostsByOffsetNum($offset, 'post');
-                $render_parts = [
-                    'posts' => $posts,
-                    'posts_priority' => "0.6",
-                    'changefreq_posts' => 'weekly',
-                    'url' => $this->uri,
-                    'pages' => []
-                ];
-                break;
-            case 'pages':
-                $pages = $this->getPostsByOffsetNum($offset, 'page');
-                $render_parts = [
-                    'pages' => $pages,
-                    'pages_priority' => "0.5",
-                    'changefreq_pages' => 'monthly',
-                    'url' => $this->uri,
-                    'posts' => []
-                ];
-                break;
+            $contentData = [
+                'title' => 'Произошла внутренняя ошибка сервера.'
+            ];
+            echo $this->view->render(
+                'errors/error_xml.php', 
+                $contentData, 
+                ['Content-Type: application/xml; charset=utf-8'], 
+                500, true);
         }
-
-        $content = View::render('../app/views/sitemap/sitemap-part.xml.php', $render_parts);
-
-        echo $content;
     }
 
     /**
-     * Получает часть постов/страниц для указанного типа и страницы.
-     * 
-     * @param int $offset Неотрицательное смещение
-     * @param string 'post'|'page' $type Тип записей
-     * @return array Массив URL-ов и дат обновления
+     * Генерирует и выводит часть файла карты сайта в формате XML.
+     *
+     * Метод получает данные постов или страниц, разделяя их на части
+     * для создания отдельных файлов карты сайта.
+     *
+     * @param string $type Тип контента ('post' или 'page').
+     * @param int $page Номер страницы (части) карты сайта.
      */
-    private function getPostsByOffsetNum(int $offset, string $type) : array
+    public function generateSitemapPartXml(string $type, int $page): void
     {
-        $sql = "
-            SELECT url, DATE_FORMAT(updated_at, '%Y-%m-%dT%T+00:00') AS updated_at FROM posts 
-            WHERE status = 'published' AND article_type = :type
-            LIMIT :max_urls OFFSET :offset";
+        try {
+            $offset = ($page - 1) * $this->maxUrls;
+            $items = $this->model->getPostsByOffsetNum($offset, $type, $this->maxUrls);
 
-        $stmt = $this->db->prepare($sql);
-        $stmt->bindValue(':max_urls', $this->max_urls, PDO::PARAM_INT);
-        $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
-        $stmt->bindValue(':type', $type, PDO::PARAM_STR);
-        $stmt->execute();
+            $render_parts = [
+                'url' => $this->uri,
+                'posts' => [],
+                'pages' => []
+            ];
 
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+            switch ($type) {
+                case 'post':
+                    $render_parts['posts'] = $items;
+                    $render_parts['posts_priority'] = "0.6";
+                    $render_parts['changefreq_posts'] = 'weekly';
+                    break;
+                case 'page':
+                    $render_parts['pages'] = $items;
+                    $render_parts['pages_priority'] = "0.5";
+                    $render_parts['changefreq_pages'] = 'monthly';
+                    break;
+            }
+
+            echo $this->view->render(
+                'sitemap/sitemap-part.xml.php',
+                $render_parts,
+                ['Content-Type: application/xml; charset=utf-8']
+            );
+        } catch (Throwable $e) {
+            Logger::error("Error generating sitemap part XML type={$type}, page={$page}: ", 
+                [$e->getTraceAsString()]);
+
+            $contentData = [
+                'title' => 'Произошла внутренняя ошибка сервера.'
+            ];
+            echo $this->view->render(
+                'errors/error_xml.php', 
+                $contentData, 
+                ['Content-Type: application/xml; charset=utf-8'], 
+                500, true);
+        }
     }
 }
