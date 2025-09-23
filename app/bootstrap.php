@@ -28,7 +28,8 @@ $container->singleton(PDO::class, function() {
     try {
         return new PDO($dsn, $user, $pass, $options);
     } catch (PDOException $e) {
-        die("Ошибка подключения к базе данных: " . $e->getMessage());
+        Logger::error("Ошибка подключения к базе данных: " . $e->getTraceAsString());
+        throw new \RuntimeException("Не удалось подключиться к базе данных. Пожалуйста, попробуйте позже.");
     }
 });
 $container->bind(PostModel::class, PostModel::class);
@@ -41,6 +42,9 @@ $container->bind(VotingService::class, VotingService::class);
 $container->bind(VotingModel::class, VotingModel::class);
 $container->bind(SitemapController::class, SitemapController::class);
 $container->bind(SitemapModel::class, SitemapModel::class);
+$container->bind(SubmissionController::class, SubmissionController::class);
+$container->bind(SubmissionModel::class, SubmissionModel::class);
+$container->bind(SubmissionService::class, SubmissionService::class);
 
 
 $container->bind(ArticleTypeMiddleware::class, ArticleTypeMiddleware::class);

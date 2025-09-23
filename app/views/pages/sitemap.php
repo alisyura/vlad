@@ -1,5 +1,5 @@
 <!-- Блок post_preview -->
-<article class="sitemap_full" itemscope='' itemtype="https://schema.org/Article" data-url="<?= htmlspecialchars($full_url) ?>" data-id="<?= htmlspecialchars($full_url) ?>">
+<article class="sitemap_full" itemscope itemtype="https://schema.org/Article" data-url="<?= htmlspecialchars($full_url) ?>" data-id="<?= htmlspecialchars($full_url) ?>">
     <!-- Schema.org внутри блока -->
     <meta itemprop="headline" content="<?= htmlspecialchars($post['title']) ?>">
     <meta itemprop="description" content="Эскимос шёл за тюленем, но попал к чукче. Теперь он не может найти обратную дорогу.">

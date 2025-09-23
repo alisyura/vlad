@@ -63,7 +63,7 @@ $router->addRoute('/tag\/([0-9a-zA-Z-_]+)(?:\/p(\d+))?', function(Container $con
 $router->addRoute('/cat\/(anekdoty|veselaya-rifma|citatnik|istorii|kartinki|video|luchshee)(?:\/p(\d+))?', 
     function(Container $container, $cat_url, $page = 1) {
         $controller = $container->make(PostController::class);
-        $controller->showSection($cat_url, $cat_url === 'istorii', max(1, (int)$page));
+        $controller->showBySection($cat_url, $cat_url === 'istorii', max(1, (int)$page));
 }, ['PageCacheMiddleware']);
 
 
@@ -95,8 +95,7 @@ $router->addRoute('/api/get-csrf-token', function (Container $container) {
 
 // Добавление пользователем материала через кнопку Добавить из меню
 $router->addRoute('/api/publish', function (Container $container) {
-    /////////////////////////////////////////////
-    $controller = $container->make(AjaxController::class);
+    $controller = $container->make(SubmissionController::class);
     $controller->publish();
 }, ['AjaxMiddleware', 'CsrfMiddleware'], ['method' => 'POST']);
 

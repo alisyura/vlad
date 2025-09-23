@@ -198,27 +198,4 @@ class VotingModel {
 
         return $results;
     }
-
-    /**
-     * Возвращает ID первого найденного пользователя с указанной ролью.
-     *
-     * @param string $adminRoleName Имя роли для поиска (например, 'admin').
-     * @return int|null ID пользователя или null, если пользователь с такой ролью не найден.
-     */
-    public function getAdminId(string $adminRoleName): ?int
-    {
-        $stmt = $this->db->prepare("
-            SELECT u.id 
-            FROM users u
-            JOIN roles r ON u.role_id = r.id
-            WHERE r.name = :admin_role_name
-                AND u.built_in = 1
-            ORDER BY u.id ASC
-            LIMIT 1");
-        $stmt->execute([':admin_role_name' => $adminRoleName]);
-        
-        $id = $stmt->fetchColumn();
-
-        return $id !== false ? (int)$id : null;
-    }
 }

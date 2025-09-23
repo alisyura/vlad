@@ -18,7 +18,7 @@ trait JsonResponseTrait
     protected function sendJsonResponse(array $data, int $statusCode = 200): void
     {
         http_response_code($statusCode);
-        header('Content-Type: application/json');
+        header('Content-Type: application/json', true);
         echo json_encode($data);
         exit;
     }
@@ -31,7 +31,8 @@ trait JsonResponseTrait
      * @param array $additionalData Дополнительные данные для включения в ответ.
      * @return void
      */
-    protected function sendErrorJsonResponse(string|array $message, int $statusCode = 400, array $additionalData = []): void
+    protected function sendErrorJsonResponse(string|array $message, int $statusCode = 400, 
+        array $additionalData = []): void
     {
         $response = array_merge(['success' => false, 'message' => $message], $additionalData);
         $this->sendJsonResponse($response, $statusCode);
@@ -45,7 +46,8 @@ trait JsonResponseTrait
      * @param array $additionalData Дополнительные данные для включения в ответ.
      * @return void
      */
-    protected function sendSuccessJsonResponse(string $message, int $statusCode = 200, array $additionalData = []): void
+    protected function sendSuccessJsonResponse(string $message, int $statusCode = 200, 
+        array $additionalData = []): void
     {
         $response = array_merge(['success' => true, 'message' => $message], $additionalData);
         $this->sendJsonResponse($response, $statusCode);

@@ -45,7 +45,7 @@
                 </div>
             </div>
 
-            <div class="menu-block" itemscope='' itemtype="http://schema.org/SiteNavigationElement">
+            <div class="menu-block" itemscope itemtype="http://schema.org/SiteNavigationElement">
                 <div class="menu-item">
                     <img src="/assets/pic/menu/glavnaya.png" alt="Главная" />
                     <a itemprop="url" href="/">Главная</a>

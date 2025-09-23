@@ -318,3 +318,75 @@ function asset(string $path): string {
     
     return $url;
 }
+
+/**
+ * Возвращает MIME-тип для заданного расширения видеофайла.
+ *
+ * @param string $extension Расширение файла без точки (например, 'mp4').
+ * @return string|null Соответствующий MIME-тип или null, если расширение не найдено.
+ */
+function getMimeTypeFromExtension(string $extension): ?string
+{
+    // Приводим расширение к нижнему регистру для корректного поиска.
+    $extension = strtolower($extension);
+
+    // Массив-сопоставление расширений и MIME-типов.
+    $mimeTypes = [
+        'mp4' => 'video/mp4',
+        'm4a' => 'video/mp4',
+        'm4v' => 'video/mp4',
+        'f4p' => 'video/mp4',
+        'f4b' => 'video/mp4',
+        'f4r' => 'video/mp4',
+        'webm' => 'video/webm',
+        'ogv' => 'video/ogg',
+        'mov' => 'video/quicktime',
+        'avi' => 'video/x-msvideo',
+        'flv' => 'video/x-flv',
+        'f4v' => 'video/x-flv',
+        'mkv' => 'video/x-matroska',
+        'mpeg' => 'video/mpeg',
+        'mpg' => 'video/mpeg',
+        'mpe' => 'video/mpeg',
+        'm1v' => 'video/mpeg',
+        'm2v' => 'video/mpeg',
+        '3gp' => 'video/3gpp',
+        'hevc' => 'video/hevc',
+        'h264' => 'video/h264',
+    ];
+
+    // Возвращаем MIME-тип, если он существует в массиве, иначе null.
+    return $mimeTypes[$extension] ?? null;
+}
+
+/**
+ * Получает расширение файла из URL-адреса.
+ *
+ * @param string $filename Адрес файла.
+ * @return string Расширение файла в нижнем регистре, или пустая строка, если расширение не найдено.
+ */
+function getFileExtensionFromUrl(string $filename): string
+{
+    $extension = pathinfo($filename, PATHINFO_EXTENSION);
+    return strtolower($extension);
+}
+
+/**
+ * Извлекает доменное имя из полного URL-адреса.
+ *
+ * @param string $url URL-адрес видео.
+ * @return string|null Доменное имя (например, 'youtube.com') или null, если URL невалиден.
+ */
+function extractDomainFromUrl(string $url): ?string
+{
+    $host = parse_url($url, PHP_URL_HOST);
+
+    if (!$host) {
+        return null; // Возвращаем null, если не удалось распарсить URL
+    }
+
+    // Удаляем 'www.' в начале, если он есть
+    $domain = preg_replace('/^www\./', '', $host);
+
+    return $domain;
+}

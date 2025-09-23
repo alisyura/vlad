@@ -299,40 +299,4 @@ class PostModel {
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
-
-    /**
-     * Сохраняем пост предложенный посетителем
-     * @deprecated Этот метод больше не используется
-     */
-    public function savePost($data, $imagePath = null)
-    {
-        $sql = "
-            INSERT INTO
-                posts (content, user_id, title, created_at, updated_at, status, article_type)
-            VALUES
-                (?, ?, ?, NOW(), NOW(), 'pending', 'post');";
-        $stmt = $this->db->prepare($sql);
-        $stmt->execute([
-            //$data['email'],
-            $data['text'],
-            $data['video_link'] ?? '',
-            $imagePath ?? ''
-        ]);
-
-        return $this->db->lastInsertId();
-    }
-
-    /**
-     * @deprecated Этот метод больше не используется
-     */
-    private function getAdminUserId()
-    {
-        $stmt = $this->db->query("SELECT u.id
-            FROM users u
-            JOIN roles r ON u.role = r.id
-            WHERE r.name = 'Administrator'
-            ORDER BY u.id ASC
-            LIMIT 1");
-        return $stmt->fetch(PDO::FETCH_ASSOC);
-    }
 }
