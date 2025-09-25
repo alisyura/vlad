@@ -93,6 +93,7 @@ class PostModel {
 
         $sql = "
             SELECT 
+                p.id AS id,
                 p.url AS url,
                 p.title AS title,
                 p.content AS content,
@@ -151,7 +152,7 @@ class PostModel {
         INNER JOIN categories c ON pc.category_id = c.id
         LEFT JOIN post_tag pt ON p.id = pt.post_id
         LEFT JOIN tags t ON pt.tag_id = t.id
-        LEFT JOIN media m ON m.post_id = p.id
+        LEFT JOIN media m ON m.id = p.thumbnail_media_id
         WHERE p.url = :url AND p.status = 'published' AND p.article_type = 'post'
         GROUP BY 
             p.id, 

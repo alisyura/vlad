@@ -5,6 +5,28 @@
     padding: 25px; /* Отступы внутри блока */
     margin-top: 20px; /* Отступ сверху от предыдущего элемента */
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Легкая тень для эффекта карточки */
+    position: relative;
+}
+
+.post_preview_bookmark {
+    position: absolute;
+    top: 0px; /* Поднимаем элемент над верхней границей */
+    right: 24px; /* Отступ от правой границы */
+    height: 32px;
+    background-color: #353833; /* Цвет фона */
+    border-bottom-left-radius: 10px; /* Скругление нижнего левого угла */
+    border-bottom-right-radius: 10px; /* Скругление нижнего правого угла */
+    display: flex; /* Горизонтальное выравнивание */
+    align-items: center; /* Вертикальное выравнивание */
+    justify-content: center; /* Центрирование содержимого */
+    padding: 0 10px; /* Отступы для текста */
+    white-space: nowrap; /* Предотвращает перенос строки */
+}
+
+.post_preview_bookmark a {
+    color: #ffffff; /* Цвет текста */
+    font-size: 14px;
+    text-decoration: none; /* Убираем подчеркивание у ссылки */
 }
 
 /* Стиль блока post_date_category */

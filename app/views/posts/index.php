@@ -26,6 +26,10 @@
     <meta itemprop="author" content="<?= htmlspecialchars($post['user_name']) ?>"> -->
     <!-- <meta itemprop="publisher" content="Ваш сайт"> -->
 
+    <div class="post_preview_bookmark">
+        <a href="/<?= htmlspecialchars($post['url']) ?>.html"><?= htmlspecialchars($post['id']) ?></a>
+    </div>
+    
     <!-- Блок post_date_category -->
     <div class="post_preview_date_category">
         <time itemprop="datePublished" datetime="<?= htmlspecialchars($post['updated_at']) ?>" class="post_preview_date"><?= stringDate($post['updated_at']) ?></time>
@@ -36,7 +40,7 @@
     </div>
 
     <!-- Заголовок поста -->
-    <h3 itemprop="headline" class="post_preview_header"><a href="/<?= htmlspecialchars($post['url']) ?>.html"><?= htmlspecialchars($post['title']) ?></a></h3>
+    <h3 itemprop="headline" class="post_preview_header"><?= htmlspecialchars($post['title']) ?></h3>
 
     <!-- Текстовый превью поста -->
     <p class="post_text_preview">
