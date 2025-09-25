@@ -45,6 +45,14 @@ class SubmissionModel {
         return $id !== false ? (int)$id : null;
     }
 
+    /**
+     * Сохраняет ссылку на видео в базу данных.
+     *
+     * @param int $userId ID пользователя, который отправил ссылку.
+     * @param string $url Полная ссылка на видео.
+     * @param string $source Домен видеохостинга (например, 'youtube.com').
+     * @return int ID только что созданной записи в таблице `video_links`.
+     */
     public function saveToVideo(int $userId, string $url, string $source): int
     {
         $stmt = $this->db->prepare("
@@ -64,6 +72,16 @@ class SubmissionModel {
         return (int) $this->db->lastInsertId();
     }
 
+    /**
+     * Сохраняет информацию о загруженном медиафайле в базу данных.
+     *
+     * @param int $userId ID пользователя, который загрузил файл.
+     * @param string $fileUrl Путь к файлу на сервере.
+     * @param int $fileSize Размер файла в байтах.
+     * @param string $mimeType MIME-тип файла.
+     * @param string $altText Альтернативный текст для изображения.
+     * @return int ID только что созданной записи в таблице `media`.
+     */
     public function saveToMedia(int $userId, string $fileUrl, int $fileSize, 
         string $mimeType, string $altText): int
     {

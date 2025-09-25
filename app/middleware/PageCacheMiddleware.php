@@ -1,23 +1,56 @@
 <?php
 // app/Middleware/PageCacheMiddleware.php
 
+/**
+ * Посредник (Middleware) для кэширования полных HTML-страниц.
+ *
+ * Проверяет наличие актуальной кэшированной версии страницы для GET-запросов.
+ * Если кэш найден, он немедленно отправляется клиенту.
+ * Если кэш отсутствует или устарел, буферизирует вывод и сохраняет его
+ * в файл кэша в конце выполнения скрипта.
+ */
 class PageCacheMiddleware implements MiddlewareInterface
 {
+    /** @var string Директория для хранения файлов кэша. */
     private $cacheDir;
+
+    /** @var int Время жизни кэша в секундах. */
     private $cacheLifetime;
+
+    /** @var bool Флаг, указывающий, использовать ли кэш. */
     private $useCache;
 
-    public function __construct()
+    /**
+     * Класс, представляющий HTTP-запрос.
+     *
+     * Предоставляет удобный интерфейс для доступа к данным запроса,
+     * таким как заголовки, параметры, тело запроса и файлы.
+     */
+    private Request $request;
+
+    /**
+     * Конструктор.
+     * Инициализирует свойства из конфигурации.
+     */
+    public function __construct(Request $request)
     {
         $this->cacheDir = Config::get('cache.CacheDir');
         $this->cacheLifetime = Config::get('cache.CacheLifetime');
         $this->useCache = Config::get('cache.UseCache');
+        $this->request = $request;
     }
 
+    /**
+     * Обрабатывает входящий HTTP-запрос.
+     *
+     * @param array|null $param Необязательные параметры, передаваемые в middleware.
+     * @return bool Возвращает true для продолжения выполнения, если кэш не используется
+     * или отсутствует. Если кэш найден, выполнение останавливается.
+     */
     public function handle(?array $param = null): bool
     {
         // Убедимся, что это GET-запрос
-        if (!$this->useCache || $_SERVER['REQUEST_METHOD'] !== 'GET') {
+        if (!$this->useCache || $this->request->server('REQUEST_METHOD') !== 'GET') {
             return true; // Продолжаем выполнение для POST и других
         }
 
@@ -48,17 +81,31 @@ class PageCacheMiddleware implements MiddlewareInterface
         }
     }
 
+    /**
+     * Генерирует уникальный ключ для файла кэша на основе URL запроса.
+     *
+     * @return string Уникальный MD5-хеш для URL.
+     */
     private function getCacheKey(): string
     {
         // Создаем уникальный ключ кэша на основе URI запроса
         // Можно также учитывать query parameters, если они важны
-        $uri = $_SERVER['REQUEST_URI'];
+        $uri = $$this->request->server('REQUEST_URI');
         // Убираем query string для простоты, если она не влияет на содержимое
         $uri = strtok($uri, '?'); 
         // Хешируем, чтобы получить безопасное имя файла
         return md5($uri);
     }
 
+    /**
+     * Сохраняет буферизированный вывод в файл кэша.
+     *
+     * Эта функция вызывается автоматически в конце выполнения скрипта
+     * с помощью `register_shutdown_function`. Она не сохраняет кэш,
+     * если произошла фатальная ошибка.
+     *
+     * @param string $cacheFile Путь к файлу кэша.
+     */
     public function saveCache($cacheFile)
     {
         // Не сохраняем кэш, если была фатальная ошибка

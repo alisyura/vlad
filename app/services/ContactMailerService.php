@@ -4,8 +4,25 @@
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
+/**
+ * Сервис для отправки сообщений по электронной почте.
+ *
+ * Использует библиотеку PHPMailer для отправки писем, полученных
+ * с контактной формы сайта.
+ */
 class ContactMailerService
 {
+    /**
+     * Отправляет электронное письмо на основе данных из контактной формы.
+     *
+     * Настраивает и отправляет email-сообщение администратору сайта.
+     * Включает имя, email, тему и текст сообщения. Поддерживает прикрепление
+     * одного файла.
+     *
+     * @param array $data Массив с данными формы, должен содержать 'name', 'email', 'title' и 'text'.
+     * @param array|null $file Массив с информацией о загруженном файле ($_FILES), или null, если файл отсутствует.
+     * @return array Ассоциативный массив с ключом 'success' (true/false) и, в случае ошибки, 'message' с её описанием.
+     */
     public function sendContactEmail(array $data, ?array $file): array
     {
         $mail = new PHPMailer(true);

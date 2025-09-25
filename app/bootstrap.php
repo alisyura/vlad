@@ -32,11 +32,13 @@ $container->singleton(PDO::class, function() {
         throw new \RuntimeException("Не удалось подключиться к базе данных. Пожалуйста, попробуйте позже.");
     }
 });
+$container->bind(PostController::class, PostController::class);
 $container->bind(PostModel::class, PostModel::class);
 $container->bind(AjaxController::class, AjaxController::class);
 $container->bind(TagsModelClient::class, TagsModelClient::class);
 $container->bind(TagsController::class, TagsController::class);
 $container->bind(ContactController::class, ContactController::class);
+$container->bind(ContactFormValidator::class, ContactFormValidator::class);
 $container->bind(VotingController::class, VotingController::class);
 $container->bind(VotingService::class, VotingService::class);
 $container->bind(VotingModel::class, VotingModel::class);

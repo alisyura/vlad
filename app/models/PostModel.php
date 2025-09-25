@@ -1,13 +1,29 @@
 <?php
 
+/**
+ * Модель для работы с данными постов.
+ *
+ * Предоставляет методы для подсчета, получения и фильтрации
+ * опубликованных постов и страниц из базы данных.
+ */
 class PostModel {
     private $db;
     
+    /**
+     * Конструктор PostModel.
+     *
+     * @param PDO $pdo Объект подключения к базе данных.
+     */
     public function __construct(PDO $pdo) {
         // Инициализация подключения к БД
         $this->db = $pdo;
     }
     
+    /**
+     * Подсчитывает общее количество опубликованных постов.
+     *
+     * @return int Общее количество постов.
+     */
     public function countAllPosts() {
         $stmt = $this->db->query("
             SELECT COUNT(*) as total 
@@ -18,6 +34,12 @@ class PostModel {
         return (int)$row['total'];
     }
 
+    /**
+     * Подсчитывает количество опубликованных постов, связанных с определенным тегом.
+     *
+     * @param string $tag_url URL-адрес тега.
+     * @return int Количество постов, связанных с тегом.
+     */
     public function countAllPostsByTag($tag_url) {
         $stmt = $this->db->prepare("
             SELECT COUNT(*) as total 
@@ -35,6 +57,12 @@ class PostModel {
         return (int)$row['total'];
     }
 
+    /**
+     * Подсчитывает количество опубликованных постов, связанных с определенной категорией.
+     *
+     * @param string $category_url URL-адрес категории.
+     * @return int Количество постов, связанных с категорией.
+     */
     public function countAllPostsByCategory($category_url) {
         $stmt = $this->db->prepare("
             SELECT COUNT(*) as total 
@@ -52,6 +80,13 @@ class PostModel {
         return (int)$row['total'];
     }
 
+    /**
+     * Получает список всех опубликованных постов с поддержкой пагинации.
+     *
+     * @param int $posts_per_page Количество постов на страницу.
+     * @param int $page Номер страницы (по умолчанию 1).
+     * @return array Массив ассоциативных массивов с данными о постах.
+     */
     public function getAllPosts($posts_per_page, $page = 1) {
         // Вычисляем offset
         $offset = ($page - 1) * $posts_per_page;
@@ -91,6 +126,15 @@ class PostModel {
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
     
+    /**
+     * Получает данные одного опубликованного поста по его URL-адресу.
+     *
+     * Включает информацию о категории, тегах и миниатюре. Теги преобразуются
+     * в массив.
+     *
+     * @param string $post_url URL-адрес поста.
+     * @return array|false Ассоциативный массив с данными поста или false, если пост не найден.
+     */
     public function getPostByUrl($post_url) {
         $stmt = $this->db->prepare("
         SELECT 
@@ -128,6 +172,14 @@ class PostModel {
         return $this->fillTags($row);
     }
 
+    /**
+     * Получает данные одной опубликованной страницы по ее URL-адресу.
+     *
+     * Включает информацию о тегах. Теги преобразуются в массив.
+     *
+     * @param string $page_url URL-адрес страницы.
+     * @return array|false Ассоциативный массив с данными страницы или false, если страница не найдена.
+     */
     public function getPageByUrl($page_url) {
         $sql = "
         SELECT 
@@ -157,6 +209,12 @@ class PostModel {
         return $this->fillTags($row);
     }
 
+    /**
+     * Преобразует строку тегов в массив.
+     *
+     * @param array $row Ассоциативный массив с данными поста, содержащий ключ 'tags'.
+     * @return array Обновленный массив с преобразованными данными тегов.
+     */
     private function fillTags($row)
     {
         if (!empty($row['tags'])) {

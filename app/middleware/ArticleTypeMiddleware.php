@@ -1,17 +1,42 @@
 <?php
 // app/middleware/ArticleTypeMiddleware.php
 
+/**
+ * Посредник (Middleware), отвечающий за проверку типов статей.
+ *
+ * Этот класс-посредник гарантирует, что переданные типы статей (например, 'post' или 'page')
+ * соответствуют списку разрешенных типов. Если переданы недопустимые значения,
+ * выполнение прекращается и отображается страница ошибки.
+ */
 class ArticleTypeMiddleware implements MiddlewareInterface
 {
+    /**
+     * Предоставляет метод для отображения страницы ошибки в админке.
+     */
     use ShowAdminErrorViewTrait;
 
+    /**
+     * @var ViewAdmin Объект для работы с представлениями административной панели.
+     */
     private ViewAdmin $viewAdmin;
 
+    /**
+     * Конструктор ArticleTypeMiddleware.
+     *
+     * @param ViewAdmin $viewAdmin Объект представления для админ-панели, внедряемый через DI.
+     */
     public function __construct(ViewAdmin $viewAdmin)
     {
         $this->viewAdmin = $viewAdmin;
     }
 
+    /**
+     * Обрабатывает запрос, проверяя, что переданные типы статей являются допустимыми.
+     *
+     * @param array|null $articleTypes Массив строк с типами статей для проверки.
+     * @return bool Возвращает true, если все типы статей в массиве $articleTypes
+     * являются допустимыми. Возвращает false и отображает ошибку в противном случае.
+     */
     public function handle(?array $articleTypes = null): bool
     {
         // Если массив пустой или не передан, считаем, что проверка не пройдена
@@ -38,7 +63,10 @@ class ArticleTypeMiddleware implements MiddlewareInterface
     }
 
     /**
-     * @deprecated
+     * Отображает страницу с ошибкой для административной панели.
+     *
+     * @deprecated Метод будет удален или заменен в будущих версиях.
+     * Используйте альтернативные способы обработки ошибок.
      */
     private function showError()
     {

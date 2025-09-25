@@ -16,23 +16,32 @@ class ContactController
 
     private $request;
     private ViewAdmin $view;
+    private ContactFormValidator $validator;
 
     /**
      * Конструктор класса AjaxController.
      *
      * @param Request $request Объект запроса, внедряется через DI-контейнер.
      * @param ViewAdmin $view Объект для отображения HTML шаблонов, внедряется через DI-контейнер.
+     * @param ContactFormValidator $validator Валидатор, которые проверяет заполненные поля перед отпраывкой сообщения, внедряется через DI-контейнер.
      */
-    public function __construct(Request $request, ViewAdmin $view)
+    public function __construct(Request $request, ViewAdmin $view, 
+        ContactFormValidator $validator)
     {
         $this->request = $request;
         $this->view = $view;
+        $this->validator = $validator;
     }
 
-    /*
-    * Страница Контакты
-    */
-    public function showKontakty() {
+    /**
+     * Отображает страницу "Контакты".
+     *
+     * Подготавливает данные для шаблона и отображает страницу контактов
+     * с помощью объекта ViewAdmin. Обрабатывает возможные исключения.
+     *
+     * @return void
+     */
+    public function showKontakty(): void {
         try {
             // $URL = rtrim(sprintf("%s/%s", $this->uri, 'page/kontakty'), '/').'.html';
         
@@ -68,7 +77,16 @@ class ContactController
         
     }
 
-    public function sendMsg()
+    /**
+     * Отправляет сообщение из контактной формы.
+     *
+     * Выполняет валидацию данных, полученных из POST-запроса, и отправляет
+     * сообщение с помощью сервиса ContactMailerService. Возвращает JSON-ответ
+     * с результатом операции.
+     *
+     * @return void
+     */
+    public function sendMsg(): void
     {
         try 
         {
@@ -80,8 +98,7 @@ class ContactController
             ];
             $file = $this->request->file('image') ?? null;
 
-            $validator = new ContactFormValidator();
-            $errors = $validator->validate($data, $file);
+            $errors = $this->validator->validate($data, $file);
 
             if (!empty($errors)) {
                 $this->sendErrorJsonResponse($errors);
@@ -97,7 +114,7 @@ class ContactController
             } else {
                 $this->sendErrorJsonResponse('Ошибка при отправке сообщения');
             }
-        } catch(Exception $e) {
+        } catch(Throwable $e) {
             Logger::error("sendMeg. Ошибка при отправке сообщения.", [$e->getTraceAsString()]);
                 
             $this->sendErrorJsonResponse('При отправке сообщения произошла ошибка');

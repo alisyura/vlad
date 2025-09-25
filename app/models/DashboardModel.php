@@ -1,6 +1,21 @@
 <?php
 // app/models/DashboardModel.php
+/**
+ * Модель для работы с данными, отображаемыми на панели управления.
+ *
+ * Предоставляет методы для получения статистики (количество постов, страниц, пользователей)
+ * и последних действий на сайте.
+ */
 class DashboardModel extends BaseModel {
+    /**
+     * Получает список последних действий на сайте за последний месяц.
+     *
+     * Запрос объединяет данные о создании и обновлении постов, страниц,
+     * пользователей и тегов, сортирует их по дате и возвращает 10 последних записей.
+     *
+     * @return array Массив ассоциативных массивов, каждый из которых содержит
+     * информацию о действии, цели, пользователе и дате.
+     */
     public function getRecentActivities()
     {
         try {
@@ -125,25 +140,40 @@ class DashboardModel extends BaseModel {
         }
     }
 
+    /**
+     * Получает общее количество постов на сайте.
+     *
+     * @return int Количество постов или 0 в случае ошибки.
+     */
     public function getPostsCount()
     {
-        try {
-            // Считаем только посты (article_type = 'post')
-            $stmt = $this->db->prepare("SELECT COUNT(*) FROM posts WHERE article_type = 'post'");
-            $stmt->execute();
-            return $stmt->fetchColumn();
-        } catch (PDOException $e) {
-            Logger::error("Database error in DashboardModel::getPostCount: " . $e->getTraceAsString());
-            return 0;
-        }
+        return $this->getPostsPagesCount('post');
     }
 
+    /**
+     * Получает общее количество страниц на сайте.
+     *
+     * @return int Количество страниц или 0 в случае ошибки.
+     */
     public function getPagesCount()
     {
+        return $this->getPostsPagesCount('page');
+    }
+
+    /**
+     * Приватный метод для подсчета количества постов или страниц.
+     *
+     * Используется для избежания дублирования кода в методах getPostsCount()
+     * и getPagesCount().
+     *
+     * @param string $articleType Тип статьи ('post' или 'page').
+     * @return int Количество записей указанного типа или 0 в случае ошибки.
+     */
+    private function getPostsPagesCount($articleType)
+    {
         try {
-            // Считаем только посты (article_type = 'post')
-            $stmt = $this->db->prepare("SELECT COUNT(*) FROM posts WHERE article_type = 'page'");
-            $stmt->execute();
+            $stmt = $this->db->prepare("SELECT COUNT(*) FROM posts WHERE article_type = :article_type");
+            $stmt->execute([':article_type' => $articleType]);
             return $stmt->fetchColumn();
         } catch (PDOException $e) {
             Logger::error("Database error in DashboardModel::getPagesCount: " . $e->getTraceAsString());
@@ -151,6 +181,11 @@ class DashboardModel extends BaseModel {
         }
     }
 
+    /**
+     * Получает общее количество пользователей на сайте.
+     *
+     * @return int Количество пользователей или 0 в случае ошибки.
+     */
     public function getUsersCount()
     {
         try {

@@ -1,12 +1,26 @@
 <?php
 // app/services/SubmissionService.php
 
+/**
+ * Сервис для обработки пользовательских материалов.
+ *
+ * Отвечает за прием, валидацию и сохранение предложенных пользователем
+ * материалов (текста, видео, изображений) в базе данных. Обеспечивает
+ * целостность данных с помощью транзакций и откат в случае ошибок.
+ */
 class SubmissionService
 {
     private MediaUploadService $mediaUploadService;
     private PDO $db;
     private SubmissionModel $model;
 
+    /**
+     * Конструктор SubmissionService.
+     *
+     * @param MediaUploadService $mediaUploadService Сервис для загрузки файлов.
+     * @param SubmissionModel $submissionModel Модель для работы с данными о материалах.
+     * @param PDO $pdo Объект PDO для работы с базой данных.
+     */
     public function __construct(MediaUploadService $mediaUploadService, 
         SubmissionModel $submissionModel, PDO $pdo)
     {
@@ -15,6 +29,21 @@ class SubmissionService
         $this->model = $submissionModel;
     }
 
+    /**
+     * Обрабатывает отправленный пользователем материал.
+     *
+     * Выполняет поиск администратора, базовую валидацию контента,
+     * загрузку и сохранение файлов/ссылок и сохранение поста в базе данных
+     * в рамках одной транзакции.
+     *
+     * @param string $adminRoleName Имя роли администратора, которому назначается пост.
+     * @param string $content Текст материала.
+     * @param string|null $videoLink Ссылка на видео.
+     * @param array|null $file Данные загруженного файла (например, изображения).
+     * @throws SubmissionException Если администратор не найден, текст пуст,
+     * или произошла ошибка при загрузке изображения.
+     * @throws Throwable В случае непредвиденных системных ошибок.
+     */
     public function handleSubmission(string $adminRoleName, string $content, 
         ?string $videoLink, ?array $file): void
     {
@@ -71,6 +100,15 @@ class SubmissionService
 
     }
 
+    /**
+     * Выполняет откат транзакции и удаление загруженного файла в случае ошибки.
+     *
+     * Эта функция-помощник гарантирует, что база данных останется в
+     * консистентном состоянии, а на сервере не останутся лишние файлы.
+     *
+     * @param array|null $uploadedFile Информация о загруженном файле, если он был.
+     * @return void
+     */
     private function rollBack(?array $uploadedFile): void
     {
         if ($this->db->inTransaction()) {
