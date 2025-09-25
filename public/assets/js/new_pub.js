@@ -116,7 +116,18 @@ class PublishFormManager {
             });
 
             if (!response.ok) {
-                throw new Error('Ошибка сети');
+                // Проверяем HTTP-статус
+                if (response.status === 400) {
+                    // Это предсказуемая ошибка, например, связанная с валидацией
+                    // Используем сообщение, полученное от сервера
+                    const result = await response.json();
+                    this.showError(result.message || 'Ошибка валидации');
+                    return;
+                } else {
+                    // Это непредвиденная ошибка (5xx или другие)
+                    // Используем общее сообщение
+                    throw new Error('Произошла ошибка при отправке. Попробуйте позже.');
+                }
             }
 
             const result = await response.json();

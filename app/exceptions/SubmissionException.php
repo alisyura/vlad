@@ -7,6 +7,7 @@ class SubmissionException extends Exception
     // если нужно различать их без использования сообщений.
     const ADMIN_NOT_FOUND = 1;
     const CONTENT_EMPTY = 2;
+    const IMAGE_SIZE_INCORRECT = 3;
 
     /**
      * Конструктор класса SubmissionException.

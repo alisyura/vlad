@@ -45,6 +45,7 @@ $container->bind(SitemapModel::class, SitemapModel::class);
 $container->bind(SubmissionController::class, SubmissionController::class);
 $container->bind(SubmissionModel::class, SubmissionModel::class);
 $container->bind(SubmissionService::class, SubmissionService::class);
+$container->bind(LinkValidator::class, LinkValidator::class);
 
 
 $container->bind(ArticleTypeMiddleware::class, ArticleTypeMiddleware::class);
