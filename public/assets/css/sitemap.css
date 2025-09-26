@@ -8,7 +8,7 @@
 
 h1.sitemap_header {
     font-size: 18px;
-    font-weight: bold;
+    font-weight: var(--font-weight-semibold);
     margin-top: 20px; /* Отступ сверху от предыдущего блока */
     color: #353833;
 }
@@ -31,10 +31,15 @@ div.section-part {
     align-items: center;
 }
 
+.category-link a {
+    font-weight: var(--font-weight-semibold);
+}
+
 .sitemap-link {
     text-decoration: none;
     font-size: 16px;
     color: #706f69;
+    font-weight: var(--font-weight-regular);
 }
 
 .sitemap-link:hover {

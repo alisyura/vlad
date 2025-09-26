@@ -67,14 +67,23 @@
             <?php endforeach ?>
         <?php endif ?>
 
-        <?php if(!empty($data['page']['pages'])): ?>
-            <div class="posts-block">
-            <?php foreach ($data['page']['pages'] as $page): ?>
-                <div class="post-item">
-                    <a href="/page/<?= htmlspecialchars($page['url']) ?>.html" class="sitemap-link"><?= htmlspecialchars($page['title']) ?></a>
-                </div>
-            <?php endforeach ?>
+        <div class="section-part">
+            <div class="category-link">
+                <span class="spacer"></span> <!-- Промежуток 25px -->
+                <img src="/assets/pic/page.png" alt="Страницы" class="icon" />
+                <span class="spacer_small"></span> <!-- Промежуток 10px -->
+                <a href="/" class="sitemap-link">Страницы</a>
             </div>
-        <?php endif ?>
+
+            <?php if(!empty($data['page']['pages'])): ?>
+                <div class="posts-block">
+                <?php foreach ($data['page']['pages'] as $page): ?>
+                    <div class="post-item">
+                        <a href="/page/<?= htmlspecialchars($page['url']) ?>.html" class="sitemap-link"><?= htmlspecialchars($page['title']) ?></a>
+                    </div>
+                <?php endforeach ?>
+                </div>
+            <?php endif ?>
+        </div>
     </p>
 </article>

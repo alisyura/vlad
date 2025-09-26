@@ -79,6 +79,7 @@
 
 .reaction_count {
     font-size: 16px;
+    font-weight: var(--font-weight-semibold);
 }
 
 .like_count {

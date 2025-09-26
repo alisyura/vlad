@@ -16,13 +16,14 @@
     font-size: 16px;
     color: #706f69;
     line-height: 1.5; /* Интервал между строками */
+    font-weight: var(--font-weight-regular);
 }
 
 h1.post_preview_header {
     font-size: 18px;
-    font-weight: bold;
     margin-top: 20px; /* Отступ сверху от предыдущего блока */
     color: #353833;
+    font-weight: var(--font-weight-semibold);
 }
 
 /* Горизонтальный макет с flexbox */
@@ -44,9 +45,9 @@ h1.post_preview_header {
 /* Заголовки */
 .form-column div,
 .form-section div {
-    font-weight: bold;
     color: #353833;
     margin-bottom: 8px;
+    font-weight: var(--font-weight-semibold);
 }
 
 /* Текстовые поля */
@@ -58,6 +59,7 @@ h1.post_preview_header {
     box-sizing: border-box;
     width: 100%;
     height:40px;
+    font-weight: var(--font-weight-regular);
 }
 
 .inp_text:focus {
@@ -95,6 +97,10 @@ textarea.inp_text {
     width: 100%;
 }
 
+.textarea-wrapper div {
+    font-weight: var(--font-weight-medium);
+}
+
 .contact-char-counter {
     position: absolute;
     bottom: 8px; /* Отступ снизу от textarea */
@@ -102,6 +108,7 @@ textarea.inp_text {
     font-size: 14px;
     color: #999;
     pointer-events: none; /* Чтобы не мешал при вводе */
+    
 }
 
 /* === Блок загрузки файла === */
@@ -129,19 +136,21 @@ textarea.inp_text {
     margin-top: 15px;
     font-size: 16px;
     color: #353833;
-    font-weight: bold;
+    font-weight: var(--font-weight-semibold);
 }
 
 .contact-upload-block .contact-upload-description {
     margin-top: 18px;
     font-size: 14px;
     color: #706f69;
+    font-weight: var(--font-weight-regular);
 }
 
 .contact-upload-block .contact-upload-hints {
     margin-top: 18px;
     font-size: 13px;
     color: #a8a7a3;
+    font-weight: var(--font-weight-regular);
 }
 .contact-upload-block .contact-upload-hints div {
     margin-bottom: 15px;
@@ -171,6 +180,7 @@ textarea.inp_text {
     font-size: 16px;
     cursor: pointer;
     transition: background-color 0.3s ease;
+    font-weight: var(--font-weight-semibold);
 }
 
 .send-button button:hover {

@@ -5,6 +5,28 @@
     padding: 25px;
     margin-top: 20px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    position: relative;
+}
+
+.post_full_bookmark {
+    position: absolute;
+    top: 0px; /* Поднимаем элемент над верхней границей */
+    right: 24px; /* Отступ от правой границы */
+    height: 32px;
+    background-color: #353833; /* Цвет фона */
+    border-bottom-left-radius: 10px; /* Скругление нижнего левого угла */
+    border-bottom-right-radius: 10px; /* Скругление нижнего правого угла */
+    display: flex; /* Горизонтальное выравнивание */
+    align-items: center; /* Вертикальное выравнивание */
+    justify-content: center; /* Центрирование содержимого */
+    padding: 0 10px; /* Отступы для текста */
+    white-space: nowrap; /* Предотвращает перенос строки */
+}
+
+.post_full_bookmark span {
+    color: #ffffff; /* Цвет текста */
+    font-size: 14px;
+    font-weight: var(--font-weight-bold);
 }
 
 /* Стиль блока post_date_category */
@@ -21,9 +43,9 @@
 /* Стиль заголовка поста */
 h1.post_preview_header {
     font-size: 18px;
-    font-weight: bold;
     margin-top: 20px; /* Отступ сверху от предыдущего блока */
     color: #353833;
+    font-weight: var(--font-weight-semibold);
 }
 
 /* Стиль текстового превью поста */
@@ -32,6 +54,7 @@ h1.post_preview_header {
     margin-top: 25px; /* Отступ сверху от предыдущего блока */
     color: #706f69;
     line-height: 1.5; /* Интервал между строками */
+    font-weight: var(--font-weight-regular);
 }
 
 .post_preview_oblozhka {
@@ -79,14 +102,15 @@ h1.post_preview_header {
 
 .admin-block-title {
     font-size: 16px;
-    font-weight: bold;
     color: #333;
     margin-bottom: 22px;
+    font-weight: var(--font-weight-semibold);
 }
 
 .admin-block-description {
     font-size: 14px;
     color: #666;
+    font-weight: var(--font-weight-regular);
 }
 
 .tags-container {
@@ -113,6 +137,7 @@ h1.post_preview_header {
     transition: all 0.3s ease;
     white-space: nowrap;
     cursor: pointer;
+    font-weight: var(--font-weight-medium);
 }
 
 .tag:hover {

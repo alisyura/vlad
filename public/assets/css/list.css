@@ -27,6 +27,7 @@
     color: #ffffff; /* Цвет текста */
     font-size: 14px;
     text-decoration: none; /* Убираем подчеркивание у ссылки */
+    font-weight: var(--font-weight-bold);
 }
 
 /* Стиль блока post_date_category */
@@ -38,18 +39,15 @@
 .post_preview_date {
     font-size: 16px;
     color: #706f69;
+    font-weight: var(--font-weight-medium);
 }
 
 /* Стиль заголовка поста */
-h3.post_preview_header a {
+h3.post_preview_header {
     font-size: 18px;
-    font-weight: bold;
+    font-weight: var(--font-weight-semibold);
     margin-top: 20px; /* Отступ сверху от предыдущего блока */
     color: #353833;
-}
-
-h3.post_preview_header a:hover {
-    text-decoration: none;
 }
 
 /* Стиль текстового превью поста */
@@ -58,6 +56,7 @@ h3.post_preview_header a:hover {
     margin-top: 25px; /* Отступ сверху от предыдущего блока */
     color: #706f69;
     line-height: 1.5; /* Интервал между строками */
+    font-weight: var(--font-weight-regular);
 }
 
 .post_preview_oblozhka {

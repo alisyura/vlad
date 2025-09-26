@@ -49,6 +49,7 @@
     margin: 0;
     font-size: 20px;
     color: #333;
+    font-weight: var(--font-weight-semibold);
 }
 
 .modal-open {
@@ -103,14 +104,15 @@
 
 .info-title {
     font-size: 16px;
-    font-weight: bold;
     color: #333;
     margin-bottom: 22px;
+    font-weight: var(--font-weight-semibold);
 }
 
 .info-description {
     font-size: 14px;
     color: #666;
+    font-weight: var(--font-weight-regular);
 }
 
 .email-block {
@@ -119,14 +121,14 @@
 
 .email-label {
     display: block;
-    font-weight: bold;
+    font-weight: var(--font-weight-bold);
     margin-bottom: 15px;
     font-size: 16px;
 }
 
 .required {
     color: red;
-    font-weight: bold;
+    font-weight: var(--font-weight-bold);
 }
 
 input[type="email"],
@@ -163,6 +165,7 @@ input[type="url"]:focus {
     font-size: 14px;
     resize: vertical; /* Позволяем изменять высоту вручную */
     outline: none;
+    font-weight: var(--font-weight-regular);
 }
 
 .text-block textarea:focus {
@@ -176,18 +179,22 @@ input[type="url"]:focus {
     right: 15px;
     font-size: 14px;
     color: #706f69;
-    font-weight: bold;
+    font-weight: var(--font-weight-medium);
 }
 
 .video-block {
     margin-top: 15px;
 }
 
+.video-block input {
+    font-weight: var(--font-weight-regular);
+}
+
 .video-hint {
     margin-top: 15px;
     font-size: 14px;
     color: #797873;
-    font-weight: normal;
+    font-weight: var(--font-weight-regular);
 }
 
 /* === Блок загрузки файла === */
@@ -215,19 +222,21 @@ input[type="url"]:focus {
     margin-top: 15px;
     font-size: 16px;
     color: #353833;
-    font-weight: bold;
+    font-weight: var(--font-weight-semibold);
 }
 
 .upload-block .upload-description {
     margin-top: 18px;
     font-size: 14px;
     color: #706f69;
+    font-weight: var(--font-weight-regular);
 }
 
 .upload-block .upload-hints {
     margin-top: 18px;
     font-size: 13px;
     color: #a8a7a3;
+    font-weight: var(--font-weight-regular);
 }
 .upload-block .upload-hints div {
     margin-bottom: 15px;
@@ -257,6 +266,7 @@ input[type="url"]:focus {
     font-size: 16px;
     cursor: pointer;
     transition: background-color 0.3s ease;
+    font-weight: var(--font-weight-semibold);
 }
 
 .publish-button button:hover {

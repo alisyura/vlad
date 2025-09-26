@@ -7,20 +7,28 @@
     <title itemprop="headline"><?= htmlspecialchars($exportData['site_name']) ?></title>
     <meta itemprop="keywords" name="keywords" content="<?= htmlspecialchars($exportData['keywords']) ?>" />
     <meta itemprop="description" name="description" content="<?= htmlspecialchars($exportData['description']) ?>" />
-    
+    <?php if (!empty($exportData['robots']) && is_string($exportData['robots'])): ?>
+        <meta name="robots" content="<?= htmlspecialchars($exportData['robots']) ?>" />
+    <?php else: ?>
+        <meta name="robots" content="noindex, follow" />
+    <?php endif ?>
+
     <?= generateStructuredData($exportData) ?>
 
-    <link rel="stylesheet" href="/assets/css/common.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700&display=swap" rel="stylesheet">
+
     <link rel="stylesheet" href="/assets/css/styles.css" />
+    <link rel="stylesheet" href="/assets/css/common.css" />
     <link rel="stylesheet" href="/assets/css/menu.css" />
     <link rel="stylesheet" href="/assets/css/new_pub.css" />
     <link rel="stylesheet" href="/assets/css/react.css" />
-    <link rel="stylesheet" href="/assets/css/modal.css" />
     <?php if (!empty($exportData['styles']) && is_array($exportData['styles'])): ?>
         <?php foreach ($exportData['styles'] as $style): ?>
             <link rel="stylesheet" href="<?= asset("css/{$style}") ?>" />
         <?php endforeach ?>
-    <?php endif ?><meta name="robots" content="noindex, follow" />
+    <?php endif ?>
 </head>
 
 <body>

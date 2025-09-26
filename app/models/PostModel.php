@@ -139,6 +139,7 @@ class PostModel {
     public function getPostByUrl($post_url) {
         $stmt = $this->db->prepare("
         SELECT 
+            p.id AS id,
             p.url AS url,
             p.title AS title,
             p.content AS content,
@@ -253,6 +254,7 @@ class PostModel {
 
         $sql = "
             SELECT
+                p.id,
                 p.url AS url,
                 p.title AS title,
                 IF(:show_excerpt, SUBSTRING(p.content, 1, :excerpt_len), p.content) AS content,
@@ -312,6 +314,7 @@ class PostModel {
 
         $sql = "
             SELECT 
+                p.id,
                 p.url AS url,
                 p.title AS title,
                 p.content AS content,

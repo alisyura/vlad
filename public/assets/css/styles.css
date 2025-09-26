@@ -1,9 +1,14 @@
-@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
+:root {
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+}
 
 /* Базовые стили */
 body {
     margin: 0;
-    font-family: 'Roboto', sans-serif;
+    font-family: 'Onest', sans-serif;
     background-color: #c3b08f;
     display: flex;
     justify-content: center; /* Выравнивание по центру */
@@ -111,6 +116,7 @@ body {
     color: #706f69;
     text-align: center; /* Центрирование текста */
     margin: 0; /* Убираем стандартные отступы */
+    font-weight: var(--font-weight-regular);
 }
 
 .mobile-menu .hamburger-button {
@@ -152,6 +158,7 @@ body {
     text-decoration: underline; /* Убираем подчеркивание */
     color: #706f69; /* Цвет текста */
     font-size: 16px;
+    font-weight: var(--font-weight-medium);
 }
 
 /* Эффект при наведении */
@@ -260,6 +267,7 @@ body {
     text-align: center; /* Центрирование текста */
     font-size: 16px;
     cursor: pointer; /* Курсор при наведении */
+    font-weight: var(--font-weight-semibold);
 }
 
 /* Блок меню */
@@ -276,6 +284,7 @@ body {
     display: flex;
     margin-bottom:20px;
     text-decoration: underline;
+    font-weight: var(--font-weight-medium);
 }
 
 .links-block a:hover

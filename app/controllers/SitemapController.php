@@ -116,6 +116,7 @@ class SitemapController {
                     'url' => $this->request->getRequestUrl(),
                     //'image' => sprintf("%s%s", $this->uri, $page['image'])
                     //'posts' => $posts,
+                    'robots' => 'index, follow',
                     'styles' => [
                         'sitemap.css'
                     ],

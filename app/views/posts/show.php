@@ -13,6 +13,10 @@
     <meta itemprop="keywords" content="анекдоты, чукча, охота, юмор">
 
     <?php if ($is_post): ?>
+    <div class="post_full_bookmark">
+        <span><?= htmlspecialchars($post['id']) ?></span>
+    </div>
+
     <!-- Блок post_date_category -->
     <div class="post_preview_date_category" itemprop="datePublished category">
         <time class="post_preview_date" datetime="<?= date('Y-m-d', strtotime($post['updated_at'])) ?>">

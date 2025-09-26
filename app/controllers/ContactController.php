@@ -60,6 +60,7 @@ class ContactController
                     'description' => Config::get('global.SITE_DESCRIPTION'),
                     'url' => $this->request->requestUrl,
                     //'image' => sprintf("%s%s", $this->uri, $page['image'])
+                    'robots' => 'noindex, follow',
                     'styles' => [
                         'kontakty.css'
                     ],

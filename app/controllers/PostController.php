@@ -52,6 +52,7 @@ class PostController {
                     'description' => Config::get('global.SITE_DESCRIPTION'),
                     'url' => $URL,
                     'image' => sprintf("%s%s", $this->uri, $post['image']),
+                    'robots' => 'index, follow',
                     'styles' => [
                         'detail.css'
                     ],
@@ -98,6 +99,7 @@ class PostController {
                     'description' => Config::get('global.SITE_DESCRIPTION'),
                     'url' => $URL,
                     //'image' => sprintf("%s%s", $this->uri, $page['image'])
+                    'robots' => 'index, follow',
                     'styles' => [
                         'detail.css'
                     ],
@@ -159,6 +161,7 @@ class PostController {
                     'url' => $URL,
                     'image' => sprintf("%s/assets/pic/logo.png", $URL),
                     'posts' => $posts,
+                    'robots' => 'noindex, follow',
                     'styles' => [
                         'list.css'
                     ],
@@ -220,6 +223,7 @@ class PostController {
                     'url' => $URL,
                     'image' => sprintf("%s/assets/pic/logo.png", $URL),
                     'posts' => $posts,
+                    'robots' => 'noindex, follow',
                     'styles' => [
                         'list.css'
                     ],
@@ -282,6 +286,7 @@ class PostController {
                     'url' => $this->requestUrl,
                     'image' => sprintf("%s/assets/pic/logo.png", $URL),
                     'posts' => $posts,
+                    'robots' => 'noindex, follow',
                     'styles' => [
                         'list.css'
                     ],

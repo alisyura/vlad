@@ -16,6 +16,7 @@
     font-size: 16px;
     color: #706f69;
     text-decoration: underline;
+    font-weight: var(--font-weight-medium);
 }
 
 .text_link:hover {
