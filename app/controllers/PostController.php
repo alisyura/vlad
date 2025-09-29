@@ -159,7 +159,7 @@ class PostController {
                     'keywords' => Config::get('global.SITE_KEYWORDS'),
                     'description' => Config::get('global.SITE_DESCRIPTION'),
                     'url' => $URL,
-                    'image' => sprintf("%s/assets/pic/logo.png", $URL),
+                    'image' => $URL . asset('pic/logo.png'),
                     'posts' => $posts,
                     'robots' => 'noindex, follow',
                     'styles' => [

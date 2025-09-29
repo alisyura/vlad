@@ -16,15 +16,20 @@
 <!-- Блок post_preview -->
 <div class="post_preview" itemscope itemtype="https://schema.org/Article" data-url="<?= htmlspecialchars($url) ?>/<?= htmlspecialchars($post['url']) ?>.html" data-id="<?= htmlspecialchars($post['url']) ?>">
     <!-- Schema.org внутри блока -->
-    <!-- <meta itemprop="headline" content="<?= htmlspecialchars($post['title']) ?>">
-    <meta itemprop="description" content="<?= htmlspecialchars($post['description']) ?>">
     <meta itemprop="url" content="<?= htmlspecialchars($url) ?>/<?= htmlspecialchars($post['url']) ?>.html"> 
-    <?php if (trim($post['image'] ?? '') !== ''): ?>
-    <meta itemprop="image" content="<?= htmlspecialchars($url) ?><?= htmlspecialchars($post['image']) ?>"> 
-    <?php endif ?>
-    <meta itemprop="datePublished" content="<?= htmlspecialchars($post['updated_at']) ?>">
-    <meta itemprop="author" content="<?= htmlspecialchars($post['user_name']) ?>"> -->
-    <!-- <meta itemprop="publisher" content="Ваш сайт"> -->
+    <meta itemprop="description" content="<?= get_clean_description(create_excerpt($post['content'])) ?>">
+
+    <div itemprop="publisher" itemscope itemtype="https://schema.org/Organization" style="display: none;">
+        <meta itemprop="name" content="<?= htmlspecialchars($export['site_name']) ?>">
+        <div itemprop="logo" itemscope itemtype="https://schema.org/ImageObject">
+            <meta itemprop="url" content="<?= htmlspecialchars($export['image']) ?>"> 
+        </div>
+        <meta itemprop="url" content="<?= htmlspecialchars($url) ?>"> 
+    </div>
+
+    <div itemprop="author" itemscope itemtype="https://schema.org/Organization" style="display: none;">
+        <meta itemprop="name" content="<?= htmlspecialchars($export['site_name']) ?>"> 
+    </div>
 
     <div class="post_preview_bookmark">
         <a href="/<?= htmlspecialchars($post['url']) ?>.html"><?= htmlspecialchars($post['id']) ?></a>
@@ -45,10 +50,10 @@
     <!-- Текстовый превью поста -->
     <p class="post_text_preview">
         <?php if ($show_read_next): ?>
-        <div itemprop="description"><?= htmlspecialchars(create_excerpt($post['content'])) ?></div>
+        <div itemprop="description"><?= get_clean_description(create_excerpt($post['content'])) ?></div>
         <a href="/<?= $post['url'] ?>.html" class="text_link">Читать ></a>
         <?php else: ?>
-        <div itemprop="articleBody"><?= htmlspecialchars($post['content']) ?></div>
+        <div itemprop="articleBody"><?= strip_and_allow_tags($post['content']) ?></div>
         <?php endif ?>
     </p>
 

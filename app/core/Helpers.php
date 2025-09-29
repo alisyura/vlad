@@ -150,6 +150,73 @@ function generate_uuid_v4() {
 }
 
 /**
+ * Очищает текстовую строку от HTML-тегов и HTML-сущностей
+ * для использования в полях микроразметки (например, description, name).
+ *
+ * Функция выполняет декодирование HTML-сущностей, чтобы сделать замаскированные
+ * теги (вроде &lt;p&gt;) видимыми, а затем полностью удаляет все теги с помощью strip_tags().
+ * Это предотвращает попадание нежелательного HTML-кода в JSON-LD или атрибуты
+ * микроданных, что критично для корректного отображения сниппетов.
+ *
+ * @param string $text Исходная строка, содержащая потенциально HTML-теги и сущности.
+ * @return string Очищенная строка, содержащая только чистый текст.
+ */
+function get_clean_description($text) {
+    // 1. Декодируем ВСЕ HTML-сущности (например, &lt;p&gt; становится <p>, &amp;nbsp; становится символом пробела)
+    $text = html_entity_decode($text, ENT_QUOTES | ENT_HTML5);
+
+    // 2. Удаляем все оставшиеся HTML-теги (<p>, <div> и т.д.)
+    $text = strip_tags($text);
+
+    // 3. Удаляем потенциальные лишние пробелы в начале и конце
+    $text = trim($text);
+
+    return $text;
+}
+
+/**
+ * Очищает HTML-контент, оставляя только разрешенные теги.
+ * Подходит для вывода в HTML-тело страницы.
+ *
+ * @param string $html Исходный HTML-контент.
+ * @param ?string $allowed_tags Строка с разрешенными тегами (например, '<a><p><b>').
+ * @return string Очищенный HTML-контент.
+ */
+function strip_and_allow_tags(string $html, ?string $allowed_tags = null): string {
+    // Декодируем сущности
+    $html = html_entity_decode($html, ENT_QUOTES | ENT_HTML5);
+    
+    // УДАЛЕНИЕ ОПАСНЫХ ПРОТОКОЛОВ (href, src)
+    // 
+    // Захватывает:
+    // 1. Атрибут (href|src)
+    // 2. Кавычку (['"])
+    // 3. Опасный протокол (javascript|data|vbscript)
+    // 4. Все до следующей кавычки
+    //
+    // Заменяет: весь опасный атрибут на безопасный $1="#"
+    $html = preg_replace(
+        '/(href|src)\s*=\s*([\'"])(javascript|data|vbscript):.*?\2/i', 
+        '$1="#"', 
+        $html
+    );
+
+    // УДАЛЕНИЕ ОБРАБОТЧИКОВ СОБЫТИЙ (например, onclick, onerror)
+    // Это выражение ищет любые атрибуты, начинающиеся с "on", за которыми следует любое
+    // количество символов до знака "=" и удаляет их, что является надежным решением.
+    $html = preg_replace(
+        '/(on[a-z]+)\s*=\s*([\'"]).*?\2/is', 
+        '', 
+        $html
+    );
+    
+    // Удаляем все теги, КРОМЕ разрешенных
+    $html = strip_tags($html, $allowed_tags); 
+    
+    return $html;
+}
+
+/**
  * Создает описание микроразметки
  * 
  * @param $data['page_type'] string 'home', 'post', 'category', 'tag'
@@ -164,8 +231,8 @@ function generateStructuredData($data)
     {
         return '';
     }
-    $site_name = htmlspecialchars($data['site_name'] ?? 'Юморной сайт');
-    $description = htmlspecialchars($data['description'] ?? '');
+    $site_name = htmlspecialchars($data['site_name'] ?? '');
+    $description = htmlspecialchars(get_clean_description($data['description'] ?? ''));
     $url = htmlspecialchars($data['url'] ?? '/');
     $image = htmlspecialchars($data['image'] ?? '/assets/pic/logo.png');
 
@@ -180,12 +247,13 @@ function generateStructuredData($data)
 
     // === JSON-LD Schema.org ===
     if ($type === 'post') {
+        $title = get_clean_description($data['title'] ?? '');
         // Если это страница поста
         $structured_data = [
             '@context' => 'https://schema.org', 
             '@type' => 'NewsArticle',
-            'headline' => $data['title'] ?? '',
-            'description' => $data['description'] ?? '',
+            'headline' => $title,
+            'description' => $description,
             'datePublished' => $data['datePublished'] ?? date('c'),
             'dateModified' => $data['dateModified'] ?? date('c'),
             'author' => [
@@ -234,8 +302,8 @@ function generateStructuredData($data)
                     '@type' => 'ListItem',
                     'position' => $i + 1,
                     'url' => rtrim($data['url'], '/') . '/' . $post['url'] . '.html',
-                    'name' => $post['title'],
-                    'description' => create_excerpt($post['content']),
+                    'name' => get_clean_description($post['title']),
+                    'description' => get_clean_description(create_excerpt($post['content'])),
                 ];
 
                 if (!empty($post['image'])) {

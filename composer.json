@@ -9,6 +9,7 @@
         ]
     },
     "require": {
-        "phpmailer/phpmailer": "^6.10"
+        "phpmailer/phpmailer": "^6.10",
+        "matthiasmullie/minify": "^1.3"
     }
 }

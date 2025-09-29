@@ -11,10 +11,11 @@ class Config
         'posts' => [
             'exerpt_len' => 200,
             'posts_per_page' => 5,
-            'max_urls_in_sitemap' => 50000
+            'max_urls_in_sitemap' => 50000,
+            'allowed_tags' => '<p><b><i><strong><em><a><img><br><span><s><ul><li><ol><div>'
         ],
         'global' => [
-            'SITE_NAME' => 'Мой блог',
+            'SITE_NAME' => 'Смехbook',
             'SITE_KEYWORDS' => 'Ключевые слова...',
             'SITE_DESCRIPTION' => 'Описание...',
             'ViewsRootPath' => 'C:\\Users\\kriya\\Projects\\web\\vlad.local\\app\\views'
