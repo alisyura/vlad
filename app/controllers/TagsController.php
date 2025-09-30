@@ -15,8 +15,19 @@ class TagsController
     use JsonResponseTrait;
     use ShowClientErrorViewTrait;
 
-    private $request;
+    /**
+     * @var Request Объект HTTP-запроса.
+     */
+    private Request $request;
+
+    /**
+     * @var TagsModelClient Модель для работы с данными тэгов.
+     */
     private TagsModelClient $model;
+
+    /**
+     * @var ViewAdmin Объект для отображения HTML-шаблонов.
+     */
     private ViewAdmin $view;
 
     /**
@@ -33,6 +44,14 @@ class TagsController
         $this->view = $view;
     }
 
+    /**
+     * Обрабатывает AJAX-запрос на поиск опубликованных тэгов по имени.
+     *
+     * Получает имя тэга из `$this->request->name`.
+     * Возвращает JSON-ответ с результатом поиска или ошибкой.
+     *
+     * @return void
+     */
     public function searchTags()
     {
         $tagName = $this->request->name;
@@ -50,15 +69,78 @@ class TagsController
         }
     }
 
-    /*
-    * Страница Тэги
-    */
+    /**
+     * Отображает страницу с результатами поиска тэгов.
+     *
+     * Получает строку запроса из `$this->request->q`.
+     * Если строка запроса не пуста, выполняет поиск тэгов.
+     * Рендерит клиентский шаблон 'posts/tegi-seo.php' с данными результатов.
+     *
+     * @return void
+     */
+    public function showTagsResults()
+    {
+        $tagName = $this->request->q;
+
+        try
+        {
+            if (empty($tagName)) {
+                $tags = [];
+            }
+            else {
+                $tags = $this->model->findPublishedPostTagsByName($tagName);
+            }
+
+            $URL = rtrim(sprintf("%s", $this->request->getBaseUrl()), '/');
+
+            $contentData = [
+                'show_caption' => true,
+                'full_url' => $this->request->getRequestUrl(),
+                'tags_baseUrl' => sprintf("%s/tag/", $URL),
+                //'post_image' => sprintf("%s%s", $this->uri, $page['image']),
+                'tags' => $tags,
+                'search_tag' => $tagName,
+                'is_post' => false,
+                'export' => [
+                    'page_type' => 'tegi',
+                    'site_name' => Config::get('global.SITE_NAME'),
+                    'keywords' => Config::get('global.SITE_KEYWORDS'),
+                    'description' => Config::get('global.SITE_DESCRIPTION'),
+                    'url' => $URL . $this->request->getUri(),
+                    'image' => $URL . asset('pic/logo.png'),
+                    'urlTemplate' => sprintf('%s/cat/tegi-results.html?q={search_term_string}', $URL),
+                    'robots' => 'noindex, follow',
+                    'styles' => [
+                        'tegi.css'
+                    ],
+                    'jss' => [
+                    ]
+                ]
+            ];
+
+            $this->view->renderClient('posts/tegi-seo.php', $contentData);
+        }
+        catch(Exception $e)
+        {
+            Logger::error('Ошибка при поиске тэгов: ' . $e->getTraceAsString());
+            $this->sendErrorJsonResponse('Ошибка при поиске тэгов');
+        }
+    }
+
+    /**
+     * Отображает страницу с фильтром (формой) для поиска тэгов.
+     *
+     * Рендерит клиентский шаблон 'posts/tegi.php'.
+     *
+     * @throws Throwable В случае непредвиденной ошибки во время отображения.
+     * @return void
+     */
     public function showTagFilter() {
         try {
             $contentData = [
                 'show_caption' => true,
-                'full_url' => $this->request->requestUrl,
-                'tags_baseUrl' => sprintf("%s/tag/", $this->request->uri),
+                'full_url' => $this->request->getRequestUrl(),
+                'tags_baseUrl' => sprintf("%s/tag/", $this->request->getBaseUrl()),
                 //'post_image' => sprintf("%s%s", $this->uri, $page['image']),
                 //'tags' => $tags,
                 'is_post' => false,
@@ -67,8 +149,8 @@ class TagsController
                     'site_name' => Config::get('global.SITE_NAME'),
                     'keywords' => Config::get('global.SITE_KEYWORDS'),
                     'description' => Config::get('global.SITE_DESCRIPTION'),
-                    'url' => $this->request->requestUrl,
-                    //'image' => sprintf("%s%s", $this->uri, $page['image'])
+                    'url' => $this->request->getRequestUrl(),
+                    'urlTemplate' => sprintf('%s/cat/tegi-results.html?q={search_term_string}', $this->request->getBaseUrl()),
                     'robots' => 'noindex, follow',
                     'styles' => [
                         'tegi.css'

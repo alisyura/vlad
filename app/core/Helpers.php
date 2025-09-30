@@ -293,6 +293,22 @@ function generateStructuredData($data)
             ];
         }
 
+    } elseif ($type === 'tegi') {
+
+        $structured_data = [
+            '@context' => 'https://schema.org', 
+            '@type' => 'WebSite',
+            'name' => $site_name,
+            'url' => $url,
+            "potentialAction" => [
+                "@type" => "SearchAction",
+                "target" => [
+                    "@type" => "EntryPoint",
+                    "urlTemplate" => $data['urlTemplate']
+                ],
+                "query-input" => "required name=search_term_string"
+            ]
+        ];
     } else {
         // Для главной, категорий, тегов — ItemList
         $items = [];

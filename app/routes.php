@@ -75,6 +75,12 @@ $router->addRoute('/cat\/tegi',
         $controller->showTagFilter();
 }, ['PageCacheMiddleware']);
 
+// Получение списка тэгов (для seo)
+$router->addRoute('/cat\/tegi-results\.html', function (Container $container) {
+    $controller = $container->make(TagsController::class);
+    $controller->showTagsResults();
+});
+
 // Получение списка тэгов
 $router->addRoute('/api/search_tags', function (Container $container) {
     $controller = $container->make(TagsController::class);

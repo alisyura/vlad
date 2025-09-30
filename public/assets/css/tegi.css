@@ -34,6 +34,10 @@ h1.tegi_header {
     width: 100%;
 }
 
+form.form-tegi-search-input {
+    width: 100%;
+    box-sizing: border-box; 
+}
 /* Стили для поля ввода */
 .tegi-search-input {
     width: 100%;
@@ -44,6 +48,7 @@ h1.tegi_header {
     color: #353833;
     outline: none;
     transition: border-color 0.3s ease;
+    box-sizing: border-box; 
 }
 
 .tegi-search-input:focus {
