@@ -43,23 +43,18 @@ class ContactController
      */
     public function showKontakty(): void {
         try {
-            // $URL = rtrim(sprintf("%s/%s", $this->uri, 'page/kontakty'), '/').'.html';
-        
+            $URL = rtrim(sprintf("%s", $this->request->getBaseUrl()), '/');
+
             $contentData = [
-                //'post' => $page,
-                'full_url' => $this->request->requestUrl,
+                'full_url' => $this->request->getRequestUrl(),
                 'url_id' => 'kontakty',
-                //'tags_baseUrl' => sprintf("%s/tag/", $this->uri),
-                //'post_image' => sprintf("%s%s", $this->uri, $page['image']),
-                //'tags' => $tags,
-                //'is_post' => false
                 'export' => [
                     'page_type' => 'kontakty',
                     'site_name' => Config::get('global.SITE_NAME'),
                     'keywords' => Config::get('global.SITE_KEYWORDS'),
                     'description' => Config::get('global.SITE_DESCRIPTION'),
-                    'url' => $this->request->requestUrl,
-                    //'image' => sprintf("%s%s", $this->uri, $page['image'])
+                    'url' => $this->request->getBaseUrl(),
+                    'image' => $URL . asset('pic/logo.png'),
                     'robots' => 'noindex, follow',
                     'styles' => [
                         'kontakty.css'

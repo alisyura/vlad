@@ -1,5 +1,5 @@
 <!-- Блок post_preview -->
-<div class="tegi_full">
+<div class="tegi_full" itemscope itemtype="https://schema.org/WebPage">
     <!-- Заголовок поста -->
     <h1 class="tegi_header">Теги</h1>
 

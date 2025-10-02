@@ -309,6 +309,15 @@ function generateStructuredData($data)
                 "query-input" => "required name=search_term_string"
             ]
         ];
+    } elseif ($type === 'kontakty') {
+
+        $structured_data = [
+            '@context' => 'https://schema.org', 
+            '@type' => 'Organization',
+            'name' => $site_name,
+            'url' => $url,
+            "logo" => $data['image']
+        ];
     } else {
         // Для главной, категорий, тегов — ItemList
         $items = [];

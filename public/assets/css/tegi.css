@@ -24,6 +24,7 @@ h1.tegi_header {
     margin-top: 20px; /* Отступ сверху от предыдущего блока */
     color: #706f69;
     line-height: 1.5; /* Интервал между строками */
+    font-weight: var(--font-weight-regular);
 }
 
 /* Стили для контейнера поиска */
