@@ -1,16 +1,16 @@
 <!-- Блок post_preview -->
 <article class="post_full" itemscope itemtype="https://schema.org/Article" data-url="<?= htmlspecialchars($full_url) ?>" data-id="<?= htmlspecialchars($post['url']) ?>">
     <!-- Schema.org внутри блока -->
-    <meta itemprop="headline" content="<?= htmlspecialchars($post['title']) ?>">
-    <meta itemprop="description" content="Эскимос шёл за тюленем, но попал к чукче. Теперь он не может найти обратную дорогу.">
+    <meta itemprop="description" content="<?= get_clean_description(create_excerpt($post['content'])) ?>">
     <meta itemprop="url" content="<?= htmlspecialchars($full_url) ?>"> 
     <?php if ($is_post && isset($post_image)): ?>
-    <meta itemprop="image" content="<?= $post_image ?>"> 
+    <meta itemprop="image" content="<?= htmlspecialchars($post_image) ?>"> 
     <?php endif ?>
-    <meta itemprop="datePublished" content="2023-10-12T12:00:00+03:00">
-    <meta itemprop="author" content="Автор поста">
-    <meta itemprop="publisher" content="Ваш сайт">
     <meta itemprop="keywords" content="анекдоты, чукча, охота, юмор">
+
+    <div itemprop="author" itemscope itemtype="https://schema.org/Person" style="display: none;">
+        <meta itemprop="name" content="Автор не указан"> 
+    </div>
 
     <?php if ($is_post): ?>
     <div class="post_full_bookmark">
@@ -18,14 +18,14 @@
     </div>
 
     <!-- Блок post_date_category -->
-    <div class="post_preview_date_category" itemprop="datePublished category">
-        <time class="post_preview_date" datetime="<?= date('Y-m-d', strtotime($post['updated_at'])) ?>">
+    <div class="post_preview_date_category">
+        <time itemprop="datePublished" class="post_preview_date" datetime="<?= date('Y-m-d', strtotime($post['updated_at'])) ?>">
             <?= date('d.m.Y', strtotime($post['updated_at'])) ?>
         </time>        
         <span class="spacer"></span> <!-- Промежуток 25px -->
         <img src="/assets/pic/menu/anekdoty.png" alt="<?= htmlspecialchars($post['category_name']) ?>" class="icon">
         <span class="spacer_small"></span> <!-- Промежуток 10px -->
-        <a href="/cat/<?= htmlspecialchars($post['category_url']) ?>" class="text_link"><?= htmlspecialchars($post['category_name']) ?></a>
+        <a href="/cat/<?= htmlspecialchars($post['category_url']) ?>" class="text_link" itemprop="articleSection"><?= htmlspecialchars($post['category_name']) ?></a>
     </div>
     <?php endif ?>
 
@@ -33,12 +33,12 @@
     <h1 class="post_preview_header" itemprop="headline"><?= htmlspecialchars($post['title']) ?></h1>
 
     <!-- Текст поста -->
-    <p class="post_full_text" itemprop="articleBody">
-        <?= nl2br($post['content']) ?>
-    </p>
+    <div class="post_full_text" itemprop="articleBody">
+        <?= strip_tags_from_html($post['content']) ?>
+    </div>
 
     <?php if ($is_post && isset($post_image)): ?>
-    <img class="post_preview_oblozhka" alt="Обложка поста" src="<?= $post_image ?>" itemprop="image">
+    <img class="post_preview_oblozhka" alt="Обложка поста" src="<?= htmlspecialchars($post_image) ?>" itemprop="image">
     <?php endif ?>
 
     <?php  if (isset($post['tags'])): ?>

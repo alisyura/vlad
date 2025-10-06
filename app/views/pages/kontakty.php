@@ -1,5 +1,5 @@
 <!-- Блок post_preview -->
-<div class="contact_full" itemscope itemtype="https://schema.org/WebPage">
+<div class="contact_full" itemscope itemtype="https://schema.org/ContactPage">
     <!-- Schema.org внутри блока -->
     <meta itemprop="url" content="<?= htmlspecialchars($full_url) ?>"> 
     

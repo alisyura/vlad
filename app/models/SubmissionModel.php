@@ -87,11 +87,11 @@ class SubmissionModel {
     {
         $stmt = $this->db->prepare("
             INSERT INTO media (
-                user_id, file_name, file_path, file_type, 
+                user_id, file_name, file_path, 
                 mime_type, file_size, alt_text, uploaded_at, updated_at
             )
             VALUES (
-                :user_id, :file_name, :file_path, 'image', 
+                :user_id, :file_name, :file_path, 
                 :mime_type, :file_size, :alt_text, NOW(), NOW()
             )
         ");

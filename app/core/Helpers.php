@@ -109,6 +109,12 @@ function stringDate($date)
     return $formattedDate;
 }
 
+function dateISO8601($date)
+{
+    $specificDate = new DateTime($date);
+    return $specificDate->format('c');
+}
+
 function DateYYYYmmdd($value): string
 {
     // Если значение NULL или пустая строка — возвращаем пустую строку
@@ -171,6 +177,9 @@ function get_clean_description($text) {
     // 3. Удаляем потенциальные лишние пробелы в начале и конце
     $text = trim($text);
 
+    // 4. Убираем переводы строк
+    $text = preg_replace('/\s+/', ' ', $text);
+
     return $text;
 }
 
@@ -216,6 +225,10 @@ function strip_and_allow_tags(string $html, ?string $allowed_tags = null): strin
     return $html;
 }
 
+function strip_tags_from_html(string $html): string {
+    return strip_and_allow_tags($html, Config::get('posts.allowed_tags'));
+}
+
 /**
  * Создает описание микроразметки
  * 
@@ -251,7 +264,7 @@ function generateStructuredData($data)
         // Если это страница поста
         $structured_data = [
             '@context' => 'https://schema.org', 
-            '@type' => 'NewsArticle',
+            '@type' => 'Article',
             'headline' => $title,
             'description' => $description,
             'datePublished' => $data['datePublished'] ?? date('c'),

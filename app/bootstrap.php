@@ -3,7 +3,7 @@
 // app/bootstrap.php
 
 $container = new Container();
-$container->bind(Request::class, fn($c) => RequestFactory::createFromGlobals());
+$container->bind(Request::class, fn($c) => RequestFactory::getInstance());
 
 $container->bind(ViewAdmin::class, function() {
     $viewsRootPath = Config::get('global.ViewsRootPath');

@@ -25,11 +25,11 @@ class AdminMediaModel extends BaseModel {
     {
         $stmt = $this->db->prepare("
                 INSERT INTO media (
-                    post_id, user_id, file_name, file_path, file_type, 
+                    post_id, user_id, file_name, file_path,  
                     mime_type, file_size, alt_text, uploaded_at, updated_at
                 )
                 VALUES (
-                    NULL, :user_id, :file_name, :file_path, 'image', 
+                    NULL, :user_id, :file_name, :file_path, 
                     :mime_type, :file_size, :alt_text, NOW(), NOW()
                 )
             ");

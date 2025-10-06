@@ -35,23 +35,71 @@ class Request
      * Получить базовый URL (домен + порт если нужно)
      * Базовый URI (Uniform Resource Identifier) текущего запроса.
      * Адрес домена, включая схему. Пример: http://vlad.local
+     * Если в конце есть завершающий слэш / он убирается
      */
     public function getBaseUrl()
     {
         $host = $this->server['HTTP_HOST'] ?? 'localhost';
-        return $this->scheme . '://' . $host;
+        $baseUrl = $this->scheme . '://' . $host;
+        return rtrim(sprintf("%s", $baseUrl), '/');
     }
 
     /**
-     * URL (Uniform Resource Locator) текущего запроса,
-     * включая параметры запроса (query string).
+     * Получает полный URL текущего запроса, включая параметры запроса
+     * 
+     * Метод формирует абсолютный URL текущего запроса, объединяя базовый URL приложения
+     * с путем запроса и параметрами. Автоматически корректирует слэши для избежания
+     * дублирования или отсутствия разделителей.
+     * 
+     * @example
+     * // При базовом URL: https://example.com и REQUEST_URI: /products?page=2
+     * // Вернет: https://example.com/products?page=2
+     * 
+     * // При базовом URL: https://example.com/shop/ и REQUEST_URI: /categories
+     * // Вернет: https://example.com/shop/categories
+     * 
+     * // При базовом URL: https://example.com и REQUEST_URI: /
+     * // Вернет: https://example.com/
+     * 
+     * @return string Полный URL текущего запроса включая схему, домен, путь и параметры
+     * 
+     * @uses self::getBaseUrl() Для получения базового URL приложения
+     * @uses self::server() Для получения значения из $_SERVER суперглобального массива
+     * @uses rtrim() Удаляет завершающий слэш из базового URL
+     * @uses ltrim() Удаляет начальный слэш из REQUEST_URI
+     * @uses sprintf() Форматирует итоговый URL
+     * 
+     * @see self::getBaseUrl() Базовый метод для получения корневого URL приложения
+     * @see self::server() Безопасное получение данных из $_SERVER
      */
-    public function getRequestUrl()
+    public function getRequestUrl(): string
     {
         return sprintf("%s/%s", rtrim($this->getBaseUrl(), '/'), ltrim($this->server('REQUEST_URI'), '/'));
     }
 
-    public function getBasePageUrl()
+    /**
+     * Получает базовый URL страницы без сегмента пагинации
+     * 
+     * Метод извлекает текущий URL-путь из глобальной переменной $_SERVER['REQUEST_URI']
+     * и удаляет сегмент пагинации в формате "/p{число}" с конца пути.
+     * 
+     * @example
+     * // Для URL: /category/products/p2
+     * // Вернет: /category/products
+     * 
+     * // Для URL: /blog/posts/p15
+     * // Вернет: /blog/posts
+     * 
+     * // Для URL: /about
+     * // Вернет: /about (без изменений)
+     * 
+     * @return string Базовый URL-путь без сегмента пагинации
+     * 
+     * @uses $_SERVER['REQUEST_URI'] Для получения текущего URL
+     * @uses parse_url() Для разбора URL на компоненты
+     * @uses preg_replace() Для удаления сегмента пагинации через регулярное выражение
+     */
+    public function getBasePageUrl(): string
     {
         // Получаем полный URL-путь с параметрами
         $fullUrl = $_SERVER['REQUEST_URI'];

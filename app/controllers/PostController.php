@@ -7,14 +7,7 @@ class PostController {
      * Экземпляр модели
      */
     private PostModel $model;
-    /**
-     * Адрес сайта (схема и домен)
-     */
-    private $uri;
-    /**
-     * Url с которого пришел запрос
-     */
-    private $requestUrl;
+
     private Request $request;
     private ViewAdmin $view;
 
@@ -22,8 +15,6 @@ class PostController {
         $this->model = $postModel;
         $this->request = $request;
         $this->view = $view;
-        $this->uri = $this->request->getBaseUrl();
-        $this->requestUrl = $this->request->getRequestUrl();
     }
 
     /*
@@ -37,21 +28,22 @@ class PostController {
                 return;
             }
 
-            $URL = rtrim(sprintf("%s/%s", $this->uri, $post['url']), '/').'.html';
+            $baseUrl= $this->request->getBaseUrl();
+            $URL = sprintf("%s/%s", $baseUrl, $post['url']).'.html';
         
             $render_params =[
                 'post' => $post,
                 'full_url' => $URL,
-                'tags_baseUrl' => sprintf("%s/tag/", $this->uri),
-                //'tags' => $post['tags'],
+                'tags_baseUrl' => sprintf("%s/tag/", $baseUrl),
                 'is_post' => true,
                 'export' => [
                     'page_type' => 'post',
                     'site_name' => Config::get('global.SITE_NAME'),
-                    'keywords' => Config::get('global.SITE_KEYWORDS'),
-                    'description' => Config::get('global.SITE_DESCRIPTION'),
-                    'url' => $URL,
-                    'image' => sprintf("%s%s", $this->uri, $post['image']),
+                    'title' => $post['meta_title'] . ' | ' . Config::get('global.SITE_NAME'),
+                    'keywords' => $post['meta_keywords'],
+                    'description' => $post['meta_description'],
+                    'url' => $baseUrl,
+                    'image' => sprintf("%s%s", $baseUrl, asset('pic/logo.png')),
                     'robots' => 'index, follow',
                     'styles' => [
                         'detail.css'
@@ -62,7 +54,7 @@ class PostController {
             ];
 
             if (isset($post['image'])) {
-                $render_params['post_image'] = sprintf("%s%s", $this->uri, $post['image']);
+                $render_params['post_image'] = sprintf("%s%s", $baseUrl, $post['image']);
             }
 
             $this->view->renderClient('posts/show.php', $render_params);
@@ -83,22 +75,22 @@ class PostController {
                 return;
             }
 
-            $URL = rtrim(sprintf("%s/%s", $this->uri, $page['url']), '/').'.html';
+            $baseUrl= $this->request->getBaseUrl();
+            $URL = sprintf("%s/%s", $baseUrl, $page['url']).'.html';
         
             $contentData = [
                 'post' => $page,
                 'full_url' => $URL,
-                'tags_baseUrl' => sprintf("%s/tag/", $this->uri),
-                //'post_image' => sprintf("%s%s", $this->uri, $page['image']),
-                //'tags' => $tags,
+                'tags_baseUrl' => sprintf("%s/tag/", $baseUrl),
                 'is_post' => false,
                 'export' => [
                     'page_type' => 'post',
                     'site_name' => Config::get('global.SITE_NAME'),
-                    'keywords' => Config::get('global.SITE_KEYWORDS'),
-                    'description' => Config::get('global.SITE_DESCRIPTION'),
-                    'url' => $URL,
-                    //'image' => sprintf("%s%s", $this->uri, $page['image'])
+                    'title' => $page['meta_title'] . ' | ' . Config::get('global.SITE_NAME'),
+                    'keywords' => $page['meta_keywords'],
+                    'description' => $page['meta_description'],
+                    'url' => $baseUrl,
+                    'image' => sprintf("%s%s", $baseUrl, asset('pic/logo.png')),
                     'robots' => 'index, follow',
                     'styles' => [
                         'detail.css'
@@ -138,12 +130,12 @@ class PostController {
 
             $posts = $this->model->getAllPosts($posts_per_page, $page);
 
-            $URL = rtrim(sprintf("%s", $this->uri), '/');
+            $baseUrl = $this->request->getBaseUrl();
             
             $contentData = [
                 'posts' => $posts,
                 'show_caption' => false,
-                'url' => $URL,
+                'url' => $baseUrl,
                 'show_read_next' => false,
                 'pagination' => [
                     'current_page' => $page,
@@ -155,11 +147,12 @@ class PostController {
                 'base_page_url' => $base_page_url,
                 'export' => [
                     'page_type' => 'home',
+                    'title' => Config::get('global.SITE_NAME'),
                     'site_name' => Config::get('global.SITE_NAME'),
                     'keywords' => Config::get('global.SITE_KEYWORDS'),
                     'description' => Config::get('global.SITE_DESCRIPTION'),
-                    'url' => $URL,
-                    'image' => $URL . asset('pic/logo.png'),
+                    'url' => $baseUrl,
+                    'image' => $baseUrl . asset('pic/logo.png'),
                     'posts' => $posts,
                     'robots' => 'noindex, follow',
                     'styles' => [
@@ -198,14 +191,16 @@ class PostController {
 
             $posts = $this->model->getAllPostsByCategory($cat_url, $show_link_next, $posts_per_page, $page);
 
-            $URL = rtrim(sprintf("%s", $this->uri), '/');
+            $baseUrl = $this->request->getBaseUrl();
 
+            // здесь категория одна у всех постов, поэтому берем из 1го элемента
+            $category_name = (!empty($posts) ? ($posts[0]['category_name'] ?? '') : '');
             $contentData = [
                 'posts' => $posts,
                 'show_caption' => true,
-                'caption' => 'Рубрика: ' . (!empty($posts) ? ($posts[0]['category_name'] ?? '') : ''),
+                'caption' => 'Рубрика: ' . $category_name,
                 'caption_desc' => null,
-                'url' => $URL,
+                'url' => $baseUrl,
                 'show_read_next' => $show_link_next,
                 'pagination' => [
                     'current_page' => $page,
@@ -218,10 +213,11 @@ class PostController {
                 'export' => [
                     'page_type' => 'home',
                     'site_name' => Config::get('global.SITE_NAME'),
+                    'title' => "$category_name | " . Config::get('global.SITE_NAME'),
                     'keywords' => Config::get('global.SITE_KEYWORDS'),
                     'description' => Config::get('global.SITE_DESCRIPTION'),
-                    'url' => $URL,
-                    'image' => sprintf("%s/assets/pic/logo.png", $URL),
+                    'url' => $baseUrl,
+                    'image' => sprintf("%s/assets/pic/logo.png", $baseUrl),
                     'posts' => $posts,
                     'robots' => 'noindex, follow',
                     'styles' => [
@@ -260,7 +256,7 @@ class PostController {
 
             $posts = $this->model->getAllPostsByTag($tag_url, $posts_per_page, $page);
 
-            $URL = rtrim(sprintf("%s", $this->uri), '/');
+            $baseUrl = $this->request->getBaseUrl();
             $caption = 'Тэг: ' . (!empty($posts) ? ($posts[0]['tag_name'] ?? '') : '');
 
             $contentData = [
@@ -268,7 +264,7 @@ class PostController {
                 'show_caption' => true,
                 'caption' => $caption,
                 'caption_desc' => null,
-                'url' => $URL,
+                'url' => $baseUrl,
                 'show_read_next' => false,
                 'pagination' => [
                     'current_page' => $page,
@@ -280,11 +276,12 @@ class PostController {
                 'base_page_url' => $base_page_url,
                 'export' => [
                     'page_type' => 'home',
-                    'site_name' => "$caption | " . Config::get('global.SITE_NAME'),
+                    'site_name' => Config::get('global.SITE_NAME'),
+                    'title' => "$caption | " . Config::get('global.SITE_NAME'),
                     'keywords' => Config::get('global.SITE_KEYWORDS'),
                     'description' => Config::get('global.SITE_DESCRIPTION'),
-                    'url' => $this->requestUrl,
-                    'image' => sprintf("%s/assets/pic/logo.png", $URL),
+                    'url' => $this->request->getRequestUrl(),
+                    'image' => sprintf("%s/assets/pic/logo.png", $baseUrl),
                     'posts' => $posts,
                     'robots' => 'noindex, follow',
                     'styles' => [

@@ -147,6 +147,9 @@ class PostModel {
             c.url AS category_url,
             c.name AS category_name,
             m.file_path AS image,
+            p.meta_title AS meta_title,
+            p.meta_keywords AS meta_keywords,
+            p.meta_description AS meta_description,
             GROUP_CONCAT(CONCAT(t.name, '|', t.url)) AS tags
         FROM posts p
         INNER JOIN post_category pc ON pc.post_id = p.id
@@ -189,6 +192,9 @@ class PostModel {
             p.title AS title,
             p.content AS content,
             p.updated_at AS updated_at,
+            p.meta_title AS meta_title,
+            p.meta_keywords AS meta_keywords,
+            p.meta_description AS meta_description,
             GROUP_CONCAT(CONCAT(t.name, '|', t.url)) AS tags
         FROM posts p
         LEFT JOIN post_tag pt ON p.id = pt.post_id
