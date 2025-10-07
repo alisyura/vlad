@@ -43,13 +43,14 @@ class ContactController
      */
     public function showKontakty(): void {
         try {
-            $URL = rtrim(sprintf("%s", $this->request->getBaseUrl()), '/');
+            $URL = $this->request->getBaseUrl();
 
             $contentData = [
                 'full_url' => $this->request->getRequestUrl(),
                 'url_id' => 'kontakty',
                 'export' => [
                     'page_type' => 'kontakty',
+                    'title' => 'Обратная связь | ' . Config::get('global.SITE_NAME'),
                     'site_name' => Config::get('global.SITE_NAME'),
                     'keywords' => Config::get('global.SITE_KEYWORDS'),
                     'description' => Config::get('global.SITE_DESCRIPTION'),

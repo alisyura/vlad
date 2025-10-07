@@ -13,8 +13,6 @@
         <meta name="robots" content="noindex, follow" />
     <?php endif ?>
 
-   
-
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -91,7 +89,7 @@
                 </div>
                 <div class="menu-item">
                     <img src="/assets/pic/menu/tegi.png" alt="Тэги" />
-                    <a itemprop="url" href="/cat/tegi">Тэги</a>
+                    <a itemprop="url" href="/cat/tegi-results.html">Тэги</a>
                 </div>
                 <div class="menu-item">
                     <img src="/assets/pic/menu/luchshee.png" alt="Лучшее" />
@@ -168,7 +166,7 @@
                     </div>
                     <div class="menu-item">
                         <img src="/assets/pic/menu/tegi.png" alt="Тэги" />
-                        <a itemprop="url" href="/cat/tegi">Тэги</a>
+                        <a itemprop="url" href="/cat/tegi-results.html">Тэги</a>
                     </div>
                     <div class="menu-item">
                         <img src="/assets/pic/menu/luchshee.png" alt="Лучшее" />

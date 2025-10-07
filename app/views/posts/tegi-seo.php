@@ -10,11 +10,14 @@
                 itemtype="http://schema.org/SearchAction">
                 <input type="text" id="tegi-search-input" class="tegi-search-input" 
                     placeholder="Поиск тэгов..." name="q" value='<?= htmlspecialchars($search_tag) ?>'>
-                <input itemprop="query-input" type="hidden" name="query">
+                <input itemprop="query-input" type="hidden">
                 <span class="search-icon icon" aria-hidden="true">
                     <img src="/assets/pic/poisk.png" alt="Лупа" width="20" height="20">
                 </span>
             </form>
+            <button onclick="clearTagInputSearch()" type="button" class="clear-icon icon" aria-label="Очистить поле поиска">
+                <img src="/assets/pic/sbros-poiska.png" alt="Очистить" width="20" height="20">
+            </button>
         </div>
 
         <div class="tegi-search-result">
@@ -29,3 +32,4 @@
     </p>
 
 </div>
+

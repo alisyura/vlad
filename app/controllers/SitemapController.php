@@ -101,21 +101,20 @@ class SitemapController {
                 }
             }
 
+            $URL = $this->request->getBaseUrl();
+
             $contentData = [
                 'data' => $result,
                 'full_url' => $this->request->getRequestUrl(),
-                //'tags_baseUrl' => sprintf("%s/tag/", $this->uri),
-                //'post_image' => sprintf("%s%s", $this->uri, $page['image']),
-                //'tags' => $tags,
                 'is_post' => false,
                 'export' => [
                     'page_type' => 'sitemap',
+                    'title' => 'Карта сайта | ' . Config::get('global.SITE_NAME'),
                     'site_name' => Config::get('global.SITE_NAME'),
                     'keywords' => Config::get('global.SITE_KEYWORDS'),
                     'description' => Config::get('global.SITE_DESCRIPTION'),
-                    'url' => $this->request->getRequestUrl(),
-                    //'image' => sprintf("%s%s", $this->uri, $page['image'])
-                    //'posts' => $posts,
+                    'url' => $this->request->getBaseUrl(),
+                    'image' => $URL . asset('pic/logo.png'),
                     'robots' => 'index, follow',
                     'styles' => [
                         'sitemap.css'

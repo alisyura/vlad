@@ -85,7 +85,8 @@ class TagsController
         try
         {
             if (empty($tagName)) {
-                $tags = [];
+                $tags = $this->model->findPublishedPostTagsByName('');
+                $tags = array_slice($tags, 0, 10);
             }
             else {
                 $tags = $this->model->findPublishedPostTagsByName($tagName);
@@ -103,6 +104,7 @@ class TagsController
                 'is_post' => false,
                 'export' => [
                     'page_type' => 'tegi',
+                    'title' => 'Поиск тэгов | ' . Config::get('global.SITE_NAME'),
                     'site_name' => Config::get('global.SITE_NAME'),
                     'keywords' => Config::get('global.SITE_KEYWORDS'),
                     'description' => Config::get('global.SITE_DESCRIPTION'),
@@ -114,6 +116,7 @@ class TagsController
                         'tegi.css'
                     ],
                     'jss' => [
+                        'tegi-seo.js'
                     ]
                 ]
             ];
