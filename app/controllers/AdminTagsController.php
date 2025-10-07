@@ -5,7 +5,7 @@ class AdminTagsController extends BaseController
 {
     private TagsModel $tagsModel;
 
-    public function __construct(Request $request, ViewAdmin $view)
+    public function __construct(Request $request, View $view)
     {
         parent::__construct($request, $view);
         $this->tagsModel = new TagsModel();
@@ -44,7 +44,7 @@ class AdminTagsController extends BaseController
             $data['styles'] = ['tags.css'];
             $data['jss'] = ['tags.js'];
             
-            $this->viewAdmin->renderAdmin('admin/tags/list.php', $data);
+            $this->view->renderAdmin('admin/tags/list.php', $data);
         } catch(Throwable $e) {
             Logger::error("Error in tags list: " . $e->getTraceAsString());
             $this->showAdminError('Ошибка', 'Произошла непредвиденная ошибка.');
@@ -72,7 +72,7 @@ class AdminTagsController extends BaseController
             }
             
             $data['tag_to_edit'] = $tag;
-            $this->viewAdmin->renderAdmin('admin/tags/edit.php', $data);
+            $this->view->renderAdmin('admin/tags/edit.php', $data);
         } catch(Throwable $e) {
             Logger::error("Error in edit tag (show form): " . $e->getTraceAsString());
             $this->showAdminError('Ошибка', 'Произошла непредвиденная ошибка.');

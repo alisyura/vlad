@@ -11,7 +11,7 @@ class AdminLoginController extends BaseController
                 // После неудачной проверки желательно обновить токен
                 CSRF::refreshToken(); // Можно добавить
                 $error='Ошибка CSRF-токена. Попробуйте ещё раз.';
-                $this->viewAdmin->renderLogin(['error' => $error]);
+                $this->view->renderLogin(['error' => $error]);
                 return;
             }
 
@@ -42,7 +42,7 @@ class AdminLoginController extends BaseController
         {
             $data = ['error' => 'Неверный логин или пароль'];
         }
-        $this->viewAdmin->renderLogin($data);
+        $this->view->renderLogin($data);
     }
 
     public function logout() {

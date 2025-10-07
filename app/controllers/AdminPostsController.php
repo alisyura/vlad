@@ -150,7 +150,7 @@ class AdminPostsController extends BaseController
                 ]
             ];
             
-            $this->viewAdmin->renderAdmin('admin/posts/list.php', $data);
+            $this->view->renderAdmin('admin/posts/list.php', $data);
 
         } catch (PDOException $e) {
             Logger::error("Database error in listPosts: " . $e->getTraceAsString());
@@ -226,7 +226,7 @@ class AdminPostsController extends BaseController
 
             Logger::debug("$logHeader. data", $data);
         
-            $this->viewAdmin->renderAdmin('admin/posts/edit_create.php', $data);
+            $this->view->renderAdmin('admin/posts/edit_create.php', $data);
             
         } catch (Throwable $e) {
             Logger::error("$logHeader. An unexpected error occurred: " . $e->getTraceAsString());
@@ -237,7 +237,7 @@ class AdminPostsController extends BaseController
                 'title' => 'Ошибка',
                 'error_message' => 'Не удалось загрузить посты. Пожалуйста, попробуйте позже.'
             ];
-            $this->viewAdmin->renderAdmin('admin/errors/error_view.php', $data);
+            $this->view->renderAdmin('admin/errors/error_view.php', $data);
         }   
     }
 
@@ -295,7 +295,7 @@ class AdminPostsController extends BaseController
                     'error_message' => 'Запись не найдена.'
                 ];
                 
-                $this->viewAdmin->renderAdmin('admin/errors/not_found_view.php', $data);
+                $this->view->renderAdmin('admin/errors/not_found_view.php', $data);
                 return; // Ранний выход
             }
             $addModel = new AdditionalModel();
@@ -331,7 +331,7 @@ class AdminPostsController extends BaseController
             // Устанавливаем заголовок
             $data['pageTitle'] .= htmlspecialchars($data['post']['title'] ?? '');
 
-            $this->viewAdmin->renderAdmin('admin/posts/edit_create.php', $data);
+            $this->view->renderAdmin('admin/posts/edit_create.php', $data);
         }
         catch(Throwable $e)
         {
@@ -344,7 +344,7 @@ class AdminPostsController extends BaseController
                 'error_message' => 'Не удалось загрузить данные. Пожалуйста, попробуйте позже.'
             ];
 
-            $this->viewAdmin->renderAdmin('admin/errors/error_view.php', $data);
+            $this->view->renderAdmin('admin/errors/error_view.php', $data);
         }
     }
 }

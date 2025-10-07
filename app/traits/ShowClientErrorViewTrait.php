@@ -11,7 +11,7 @@ trait ShowClientErrorViewTrait
     /**
      * Для прямых вызовов
      */
-    protected function renderErrorView(ViewAdmin $view, $title, $errMsg, $httpCode = 500)
+    protected function renderErrorView(View $view, $title, $errMsg, $httpCode = 500)
     {
         if (!headers_sent()) {
             header("HTTP/1.0 $httpCode Server Error");
@@ -29,7 +29,7 @@ trait ShowClientErrorViewTrait
         ];
         if ($view === null)
         {
-            throw new Exception('ViewAdmin null');
+            throw new Exception('View is null');
         }
         $view->renderClient('errors/error_view.php', $data);
         exit();

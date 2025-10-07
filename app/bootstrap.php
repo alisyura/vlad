@@ -5,12 +5,12 @@
 $container = new Container();
 $container->bind(Request::class, fn($c) => RequestFactory::getInstance());
 
-$container->bind(ViewAdmin::class, function() {
+$container->bind(View::class, function() {
     $viewsRootPath = Config::get('global.ViewsRootPath');
     $loginLayoutPath = 'admin/login.php';
     $adminLayoutPath = 'admin/admin_layout.php';
     $clientLayoutPath = 'layout.php';
-    return new ViewAdmin($viewsRootPath, $loginLayoutPath, $adminLayoutPath, $clientLayoutPath);
+    return new View($viewsRootPath, $loginLayoutPath, $adminLayoutPath, $clientLayoutPath);
 });
 $container->singleton(PDO::class, function() {
     $host = Config::get('db.DB_HOST');

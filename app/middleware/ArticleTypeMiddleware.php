@@ -16,21 +16,6 @@ class ArticleTypeMiddleware implements MiddlewareInterface
     use ShowAdminErrorViewTrait;
 
     /**
-     * @var ViewAdmin Объект для работы с представлениями административной панели.
-     */
-    private ViewAdmin $viewAdmin;
-
-    /**
-     * Конструктор ArticleTypeMiddleware.
-     *
-     * @param ViewAdmin $viewAdmin Объект представления для админ-панели, внедряемый через DI.
-     */
-    public function __construct(ViewAdmin $viewAdmin)
-    {
-        $this->viewAdmin = $viewAdmin;
-    }
-
-    /**
      * Обрабатывает запрос, проверяя, что переданные типы статей являются допустимыми.
      *
      * @param array|null $articleTypes Массив строк с типами статей для проверки.

@@ -10,15 +10,15 @@
  */
 abstract class BaseController {
     /**
-     * Объект ViewAdmin для отображения view административной панели.
+     * Объект View для отображения view административной панели.
      *
-     * @var ViewAdmin
+     * @var View
      */
-    protected $viewAdmin;
+    protected $view;
     /**
      * Объект Request для получения данных из запроса.
      *
-     * @var ViewAdmin
+     * @var Request
      */
     protected $request;
     /**
@@ -43,9 +43,9 @@ abstract class BaseController {
      */
     protected $requestUrl;
 
-    public function __construct(Request $request, ?ViewAdmin $viewAdmin = null)
+    public function __construct(Request $request, ?View $view = null)
     {
-        $this->viewAdmin = $viewAdmin;
+        $this->view = $view;
         $this->request = $request;
         $this->adminRoute = Config::get('admin.AdminRoute');
         $this->uri = sprintf("%s://%s", $_SERVER['REQUEST_SCHEME'], $_SERVER['HTTP_HOST']);
@@ -100,11 +100,11 @@ abstract class BaseController {
             'title' => $title,
             'error_message' => $errMsg
         ];
-        if ($this->viewAdmin === null)
+        if ($this->view === null)
         {
-            throw new Exception('ViewAdmin null');
+            throw new Exception('View is null');
         }
-        $this->viewAdmin->renderAdmin('admin/errors/error_view.php', $data);
+        $this->view->renderAdmin('admin/errors/error_view.php', $data);
     }
 
     /**

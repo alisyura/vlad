@@ -11,7 +11,7 @@ trait ShowAdminErrorViewTrait
     /**
      * Для прямых вызовов
      */
-    protected function renderAdminErrorView(ViewAdmin $viewAdmin, $title, $errMsg, $httpCode)
+    protected function renderAdminErrorView(View $viewAdmin, $title, $errMsg, $httpCode)
     {
         if (!headers_sent()) {
             header("HTTP/1.0 $httpCode Server Error");
@@ -24,7 +24,7 @@ trait ShowAdminErrorViewTrait
         ];
         if ($viewAdmin === null)
         {
-            throw new Exception('ViewAdmin null');
+            throw new Exception('View is null');
         }
         $viewAdmin->renderAdmin('admin/errors/error_view.php', $data);
         exit();

@@ -5,7 +5,7 @@ class AdminTagsApiController extends BaseController
 {
     private TagsModel $tagsModel;
 
-    public function __construct(Request $request, ?ViewAdmin $view = null)
+    public function __construct(Request $request, ?View $view = null)
     {
         parent::__construct($request, $view);
         $this->tagsModel = new TagsModel();

@@ -95,7 +95,7 @@ class Router {
                     str_starts_with(strtolower($uri), strtolower('/'.Config::get('admin.AdminRoute')))) {
                     // это временно, пока не внедрен service container везде
                     array_unshift($matches, $request); // вставляем первым параметром
-                    $viewAdmin = $container->make(ViewAdmin::class);
+                    $viewAdmin = $container->make(View::class);
                     array_splice($matches, 1, 0, [$viewAdmin]);
                 }
                 else {
@@ -107,7 +107,7 @@ class Router {
             }
         }
 
-        $view = $container->make(ViewAdmin::class);
+        $view = $container->make(View::class);
         $this->renderErrorView($view, 'Страница не найдена', '', 404);
         return;
     }

@@ -12,7 +12,9 @@ class Config
             'exerpt_len' => 200,
             'posts_per_page' => 5,
             'max_urls_in_sitemap' => 50000,
-            'allowed_tags' => '<p><b><i><strong><em><a><img><br><span><s><ul><li><ol><div>'
+            'allowed_tags' => '<p><b><i><strong><em><a><img><br><span><s><ul><li><ol><div>',
+            // кол-во тэгов на странице поиска тэгов, когда ее тока открыли. без поиска
+            'count_tags_without_query' => 10
         ],
         'global' => [
             'SITE_NAME' => 'Смехbook',

@@ -18,23 +18,7 @@ ErrorHandler::register();
 
 require_once __DIR__ . '/../app/bootstrap.php';
 
-// $request = RequestFactory::createFromGlobals();
-// // временно. пока не отрефачена клиентская часть. 
-// // впоследствии там тоже будет передавать View
-// $uri = $request->getUri();
-// $viewAdmin = null;
-// $adminRoute = Config::get('admin.AdminRoute');
-// if (str_starts_with($uri, "/{$adminRoute}")) {
-//     $viewsRootPath = Config::get('global.ViewsRootPath');
-//     $viewAdmin = new ViewAdmin(
-//         $viewsRootPath,
-//         'admin/login.php',
-//         'admin/admin_layout.php'
-//     );
-// }
-
 // --- Роутинг ---
 $router = new Router();
 require_once __DIR__ . '/../app/routes.php';
-// $router->dispatch($request, $viewAdmin);
 $router->dispatch($container);

@@ -9,9 +9,9 @@ class PostController {
     private PostModel $model;
 
     private Request $request;
-    private ViewAdmin $view;
+    private View $view;
 
-    public function __construct(Request $request, ViewAdmin $view, PostModel $postModel) {
+    public function __construct(Request $request, View $view, PostModel $postModel) {
         $this->model = $postModel;
         $this->request = $request;
         $this->view = $view;

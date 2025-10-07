@@ -5,7 +5,7 @@ class AdminUsersController extends BaseController
     private UserService $userService;
     private UserModel $userModel;
 
-    public function __construct(Request $request, ViewAdmin $view)
+    public function __construct(Request $request, View $view)
     {
         parent::__construct($request, $view);
         $this->userService = new UserService();
@@ -24,7 +24,7 @@ class AdminUsersController extends BaseController
             $data['styles'] = ['users.css'];
             $data['jss'] = ['users.js'];
             
-            $this->viewAdmin->renderAdmin('admin/users/list.php', $data);
+            $this->view->renderAdmin('admin/users/list.php', $data);
         } catch(Throwable $e) {
             Logger::error("Error in users list: " . $e->getTraceAsString());
             $this->showAdminError('Ошибка', 'Произошла непредвиденная ошибка.');
@@ -58,7 +58,7 @@ class AdminUsersController extends BaseController
             }
             
             $data['user_to_edit'] = $user;
-            $this->viewAdmin->renderAdmin('admin/users/edit.php', $data);
+            $this->view->renderAdmin('admin/users/edit.php', $data);
         } catch(Throwable $e) {
             Logger::error("Error in edit user (show form): " . $e->getTraceAsString());
             $this->showAdminError('Ошибка', 'Произошла непредвиденная ошибка.');

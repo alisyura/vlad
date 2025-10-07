@@ -26,9 +26,9 @@ class SitemapController {
     private Request $request;
     
     /**
-     * @var ViewAdmin Объект представления для рендеринга.
+     * @var View Объект представления для рендеринга.
      */
-    private ViewAdmin $view;
+    private View $view;
 
     /**
      * @var SitemapModel Объект модели для работы с данными карты сайта.
@@ -39,10 +39,10 @@ class SitemapController {
      * Конструктор класса SitemapController.
      *
      * @param Request $request Объект HTTP запроса, внедряемый через Dependency Injection.
-     * @param ViewAdmin $view Объект представления, внедряемый через Dependency Injection.
+     * @param View $view Объект представления, внедряемый через Dependency Injection.
      * @param SitemapModel $sitemapModel Объект модели, внедряемый через Dependency Injection.
      */
-    public function __construct(Request $request, ViewAdmin $view, SitemapModel $sitemapModel) {
+    public function __construct(Request $request, View $view, SitemapModel $sitemapModel) {
         $this->request = $request;
         $this->view = $view;
         $this->model = $sitemapModel;

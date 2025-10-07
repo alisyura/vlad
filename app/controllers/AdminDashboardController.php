@@ -22,6 +22,6 @@ class AdminDashboardController extends BaseController
         ];
         
         // Здесь загружаем данные для админ-панели
-        $this->viewAdmin->renderAdmin('admin/dashboard.php', $data);
+        $this->view->renderAdmin('admin/dashboard.php', $data);
     }
 }

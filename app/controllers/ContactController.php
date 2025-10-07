@@ -15,17 +15,17 @@ class ContactController
     use ShowClientErrorViewTrait;
 
     private $request;
-    private ViewAdmin $view;
+    private View $view;
     private ContactFormValidator $validator;
 
     /**
      * Конструктор класса AjaxController.
      *
      * @param Request $request Объект запроса, внедряется через DI-контейнер.
-     * @param ViewAdmin $view Объект для отображения HTML шаблонов, внедряется через DI-контейнер.
+     * @param View $view Объект для отображения HTML шаблонов, внедряется через DI-контейнер.
      * @param ContactFormValidator $validator Валидатор, которые проверяет заполненные поля перед отпраывкой сообщения, внедряется через DI-контейнер.
      */
-    public function __construct(Request $request, ViewAdmin $view, 
+    public function __construct(Request $request, View $view, 
         ContactFormValidator $validator)
     {
         $this->request = $request;

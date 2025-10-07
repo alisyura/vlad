@@ -26,18 +26,18 @@ class TagsController
     private TagsModelClient $model;
 
     /**
-     * @var ViewAdmin Объект для отображения HTML-шаблонов.
+     * @var View Объект для отображения HTML-шаблонов.
      */
-    private ViewAdmin $view;
+    private View $view;
 
     /**
      * Конструктор класса AjaxController.
      *
      * @param Request $request Объект запроса, внедряется через DI-контейнер.
-     * @param ViewAdmin $view Объект для отображения HTML шаблонов, внедряется через DI-контейнер.
+     * @param View $view Объект для отображения HTML шаблонов, внедряется через DI-контейнер.
      * @param TagsModelClient $reactionService Модель для работы с данными тэгов, внедряется через DI-контейнер.
      */
-    public function __construct(Request $request, ViewAdmin $view, TagsModelClient $тagsModelClient)
+    public function __construct(Request $request, View $view, TagsModelClient $тagsModelClient)
     {
         $this->request = $request;
         $this->model = $тagsModelClient;
@@ -86,13 +86,14 @@ class TagsController
         {
             if (empty($tagName)) {
                 $tags = $this->model->findPublishedPostTagsByName('');
-                $tags = array_slice($tags, 0, 10);
+                $countTagsToShow = Config::get('posts.count_tags_without_query');
+                $tags = array_slice($tags, 0, $countTagsToShow);
             }
             else {
                 $tags = $this->model->findPublishedPostTagsByName($tagName);
             }
 
-            $URL = rtrim(sprintf("%s", $this->request->getBaseUrl()), '/');
+            $URL = $this->request->getBaseUrl();
 
             $contentData = [
                 'show_caption' => true,
