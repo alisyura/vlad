@@ -128,25 +128,30 @@ $router->addRoute('/api/get-post-votes', function (Container $container) {
 
 $adminRoute = Config::get('admin.AdminRoute');
 
-$router->addRoute("/$adminRoute/login", function($request, $viewAdmin) {
-    (new AdminLoginController($request, $viewAdmin))->login();
+$router->addRoute("/$adminRoute/login", function(Container $container) {
+    $controller = $container->make(AdminLoginController::class);
+    $controller->login();
 }, [], ['method' => 'GET, POST']);
 
-$router->addRoute("/$adminRoute/dashboard", function($request,$viewAdmin) {
-    (new AdminDashboardController($request, $viewAdmin))->dashboard();
+$router->addRoute("/$adminRoute/dashboard", function(Container $container) {
+    $controller = $container->make(AdminDashboardController::class);
+    $controller->dashboard();
 }, ['UserAuthenticatedMiddleware']);
 
-$router->addRoute("/$adminRoute/logout", function($request, $viewAdmin) {
-    (new AdminLoginController($request, $viewAdmin))->logout();
+$router->addRoute("/$adminRoute/logout", function(Container $container) {
+    $controller = $container->make(AdminLoginController::class);
+    $controller->logout();
 }, ['UserAuthenticatedMiddleware']);
 
 
 // Формы GET
 
 // Список постов/страниц с пагинацией
-$router->addRoute("/$adminRoute/(post|page)s(?:/p(\d+))?", function($request, $viewAdmin, $articleType, $page = 1) {
+$router->addRoute("/$adminRoute/(post|page)s(?:/p(\d+))?", function(Container $container, $articleType, $page = 1) {
     // Передаем номер страницы в контроллер
-    (new AdminPostsController($request, $viewAdmin))->list($page, $articleType);
+    // (new AdminPostsController($request, $viewAdmin))->list($page, $articleType);
+    $controller = $container->make(AdminPostsController::class);
+    $controller->list($page, $articleType);
 }, ['UserAuthenticatedMiddleware', 'ArticleTypeMiddleware:post,page']);
 
 // Форма создание нового поста/страницы

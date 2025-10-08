@@ -7,6 +7,10 @@
  * и последних действий на сайте.
  */
 class DashboardModel extends BaseModel {
+    public function __construct(PDO $db)
+    {
+        parent::__construct($db);
+    }
     /**
      * Получает список последних действий на сайте за последний месяц.
      *

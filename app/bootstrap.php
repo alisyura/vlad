@@ -32,8 +32,9 @@ $container->singleton(PDO::class, function() {
         throw new \RuntimeException("Не удалось подключиться к базе данных. Пожалуйста, попробуйте позже.");
     }
 });
+$container->bind(PaginationService::class, PaginationService::class);
 $container->bind(PostController::class, PostController::class);
-$container->bind(PostModel::class, PostModel::class);
+$container->bind(PostModelClient::class, PostModelClient::class);
 $container->bind(AjaxController::class, AjaxController::class);
 $container->bind(TagsModelClient::class, TagsModelClient::class);
 $container->bind(TagsController::class, TagsController::class);
@@ -56,3 +57,14 @@ $container->bind(AjaxMiddleware::class, AjaxMiddleware::class);
 $container->bind(CsrfMiddleware::class, CsrfMiddleware::class);
 $container->bind(PageCacheMiddleware::class, PageCacheMiddleware::class);
 $container->bind(UserAuthenticatedMiddleware::class, UserAuthenticatedMiddleware::class);
+
+
+$container->bind(AdminLoginController::class, AdminLoginController::class);
+$container->bind(AuthService::class, AuthService::class);
+$container->bind(UserModel::class, UserModel::class);
+$container->bind(Session::class, Session::class);
+$container->bind(AdminDashboardController::class, AdminDashboardController::class);
+$container->bind(DashboardModel::class, DashboardModel::class);
+$container->bind(AdminPostsController::class, AdminPostsController::class);
+$container->bind(PostModel::class, PostModel::class);
+$container->bind(ListModel::class, ListModel::class);

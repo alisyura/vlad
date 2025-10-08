@@ -6,15 +6,20 @@ class PostController {
     /**
      * Экземпляр модели
      */
-    private PostModel $model;
+    private PostModelClient $model;
 
     private Request $request;
     private View $view;
 
-    public function __construct(Request $request, View $view, PostModel $postModel) {
+    public function __construct(Request $request, View $view, PostModelClient $postModel) {
         $this->model = $postModel;
         $this->request = $request;
         $this->view = $view;
+    }
+
+    protected function getView(): View
+    {
+        return $this->view;
     }
 
     /*

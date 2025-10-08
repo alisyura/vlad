@@ -1,10 +1,19 @@
 <?php
+// app/services/AuthService.php
 
-/**
- * @deprecated
- */
-class Auth {
-    private function __construct(){}
+
+class AuthService
+{
+    private UserModel $userModel;
+    private Session $session;
+    private Request $request;
+
+    public function __construct(UserModel $userModel, Session $session, Request $request)
+    {
+        $this->userModel = $userModel;
+        $this->session = $session;
+        $this->request = $request;
+    }
 
     /**
      * Метод для входа в систему, теперь с защитой от перебора паролей
@@ -12,26 +21,26 @@ class Auth {
      * @param string $password
      * @return bool
      */
-    public static function login($login, $password) {
+    public function login($login, $password) {
         // Здесь нужно добавить проверку на количество попыток входа
         // Например, с помощью Redis, Memcached или отдельной таблицы в базе данных.
         // Если попыток слишком много, возвращаем false.
 
-        $user = (new UserModel())->getUser(login: $login, onlyActive: true);
+        $user = $this->userModel->getUser(login: $login, onlyActive: true);
         
         if ($user && password_verify($password, $user['password'])) {
-            session_regenerate_id(true);
+            $this->session->regenerateId(true);
 
             // Обновляем CSRF-токен после входа
             CSRF::refreshToken(); // или generateToken() — чтобы старый стал недействителен
 
             // Сохраняем дополнительные данные для защиты от угона сессии
-            $_SESSION['user_id'] = (int)$user['id']; // Приводим к целому числу
-            $_SESSION['is_admin'] = (bool)($user['role_name'] === Config::get('admin.AdminRoleName')); // Приводим к булевому типу
-            $_SESSION['user_login'] = (string)$user['login']; // Приводим к строковому типу
-            $_SESSION['user_ip'] = $_SERVER['REMOTE_ADDR'];
-            $_SESSION['user_agent'] = $_SERVER['HTTP_USER_AGENT'];
-            $_SESSION['user_name'] = (string)$user['name'];
+            $this->session->set('user_id', (int)$user['id']); // Приводим к целому числу
+            $this->session->set('is_admin', (bool)($user['role_name'] === Config::get('admin.AdminRoleName'))); // Приводим к булевому типу
+            $this->session->set('user_login', (string)$user['login']); // Приводим к строковому типу
+            $this->session->set('user_ip', $_SERVER['REMOTE_ADDR']);
+            $this->session->set('user_agent', $_SERVER['HTTP_USER_AGENT']);
+            $this->session->set('user_name', (string)$user['name']);
 
             return true;
         }
@@ -47,17 +56,23 @@ class Auth {
      * Не проверяет права администратора.
      * @return bool
      */
-    public static function check() {
+    public function check() {
         // Проверка наличия, типа и содержимого всех необходимых данных в сессии
+        $userId = $this->session->get('user_id');
+        $userLogin = $this->session->get('user_login');
+        $userName = $this->session->get('user_name');
+
         if (
-            isset($_SESSION['user_id']) && is_int($_SESSION['user_id']) && $_SESSION['user_id'] > 0 &&
-            isset($_SESSION['user_login']) && is_string($_SESSION['user_login']) && !empty($_SESSION['user_login']) &&
-            isset($_SESSION['user_name']) && is_string($_SESSION['user_name']) && !empty($_SESSION['user_name'])
+            null !== $userId && is_int($userId) && $userId > 0 &&
+            null !== $userLogin && is_string($userLogin) && !empty($userLogin) &&
+            null !== $userName && is_string($userName) && !empty($userName)
         ) {
+            $userIp = $this->session->get('user_ip');
+            $userAgent = $this->session->get('user_agent');
             // Проверка IP-адреса и User-Agent для защиты от угона сессии
             if (
-                isset($_SESSION['user_ip']) && $_SESSION['user_ip'] === $_SERVER['REMOTE_ADDR'] &&
-                isset($_SESSION['user_agent']) && $_SESSION['user_agent'] === $_SERVER['HTTP_USER_AGENT']
+                null !== $userIp && $userIp === $this->request->getClientIp() &&
+                null !== $userAgent && $userAgent === $this->request->getUserAgent()
             ) {
                 return true;
             }
@@ -71,37 +86,29 @@ class Auth {
      * Проверяет, является ли залогиненный пользователь администратором.
      * @return bool
      */
-    public static function isUserAdmin() {
+    public function isUserAdmin() {
+        $isAdmin = $this->session->get('user_login');
         return self::check() && // Сначала убеждаемся, что пользователь залогинен
-               isset($_SESSION['is_admin']) && 
-               $_SESSION['is_admin'] === true;
+               null !== $isAdmin && 
+               $isAdmin === true;
     }
 
-    public static function logout() {
+    public function logout() {
         // Очищаем все данные сессии
-        $_SESSION = [];
+        $this->session->clear();
         // Удаляем куку сессии в браузере
-        if (ini_get("session.use_cookies")) {
-            $params = session_get_cookie_params();
-            // Важно: передаём те же параметры (path, domain, secure, httponly),
-            // с которыми кука была создана, иначе браузер её не удалит
-            setcookie(session_name(), '', time() - 42000,
-                $params["path"], $params["domain"],
-                $params["secure"], $params["httponly"]
-            );
-        }
-        session_destroy();
+        $this->session->destroy();
     }
 
-    public static function getUserId() {
-        return $_SESSION['user_id'] ?? null;
+    public function getUserId() {
+        return $this->session->get('user_id') ?? null;
     }
 
-    public static function getUserLogin() {
-        return $_SESSION['user_login'] ?? null;
+    public function getUserLogin() {
+        return $this->session->get('user_login') ?? null;
     }
 
-    public static function getUserName() {
-        return $_SESSION['user_name'] ?? null;
+    public function getUserName() {
+        return $this->session->get('user_name') ?? null;
     }
 }

@@ -12,15 +12,15 @@ abstract class BaseController {
     /**
      * Объект View для отображения view административной панели.
      *
-     * @var View
+     * @var ?View
      */
-    protected $view;
+    protected ?View $view;
     /**
      * Объект Request для получения данных из запроса.
      *
-     * @var Request
+     * @var ?Request
      */
-    protected $request;
+    protected ?Request $request;
     /**
      * Базовый маршрут (route) для доступа к административной панели.
      * Используется для формирования правильных URL.
@@ -33,6 +33,7 @@ abstract class BaseController {
      * Адрес домена, включая схему. Пример: http://vlad.local
      *
      * @var string
+     * @deprecated
      */
     protected $uri;
     /**
@@ -40,10 +41,11 @@ abstract class BaseController {
      * включая параметры запроса (query string).
      *
      * @var string
+     * @deprecated
      */
     protected $requestUrl;
 
-    public function __construct(Request $request, ?View $view = null)
+    public function __construct(?Request $request, ?View $view = null)
     {
         $this->view = $view;
         $this->request = $request;
@@ -52,6 +54,9 @@ abstract class BaseController {
         $this->requestUrl = sprintf("%s/%s", rtrim($this->uri, '/'), ltrim($_SERVER['REQUEST_URI'], '/'));
     }
 
+    protected function getView(): View {
+        return $this->view;
+    }
     protected function getAdminRoute()
     {
         return $this->adminRoute;
@@ -65,6 +70,7 @@ abstract class BaseController {
      * сохранения состояния страницы или перенаправлений.
      *
      * @return string
+     * @deprecated
      */
     protected function getBasePageUrl()
     {
@@ -91,6 +97,7 @@ abstract class BaseController {
      * @param string $title Заголовок страницы с ошибкой.
      * @param string $errMsg Сообщение об ошибке для отображения пользователю.
      * @return void
+     * @deprecated
      */
     protected function showAdminError($title, $errMsg)
     {
@@ -113,6 +120,7 @@ abstract class BaseController {
      * @param array $data Данные для отправки в виде ассоциативного массива.
      * @param int $statusCode Код HTTP-ответа.
      * @return void
+     * @deprecated
      */
     protected function sendJsonResponse(array $data, int $statusCode = 200): void
     {
@@ -129,6 +137,7 @@ abstract class BaseController {
      * @param int $statusCode Код HTTP-ответа.
      * @param array $additionalData Дополнительные данные для включения в ответ.
      * @return void
+     * @deprecated
      */
     protected function sendErrorJsonResponse(string $message, int $statusCode = 400, array $additionalData = []): void
     {
@@ -143,6 +152,7 @@ abstract class BaseController {
      * @param int $statusCode Код HTTP-ответа.
      * @param array $additionalData Дополнительные данные для включения в ответ.
      * @return void
+     * @deprecated
      */
     protected function sendSuccessJsonResponse(string $message, int $statusCode = 200, array $additionalData = []): void
     {

@@ -4,10 +4,18 @@
 
 class AdminDashboardController extends BaseController
 {
-    public function dashboard() {
-        $dm = new DashboardModel();
+    private DashboardModel $model;
+    private AuthService $authService;
 
-        $user_name = Auth::getUserName();
+    public function __construct(View $view, DashboardModel $model, AuthService $authService)
+    {
+        parent::__construct(null, $view);
+        $this->model = $model;
+        $this->authService = $authService;
+    }
+
+    public function dashboard() {
+        $user_name = $this->authService->getUserName();
 
         // Получаем данные для dashboard
         $data = [
@@ -15,10 +23,10 @@ class AdminDashboardController extends BaseController
             'user_name' => $user_name,
             'title' => 'Dashboard',
             'active' => 'dashboard', // для подсветки в меню
-            'posts_count' => $dm->getPostsCount(),
-            'pages_count' => $dm->getPagesCount(),
-            'users_count' => $dm->getUsersCount(),
-            'recent_activities' => $dm->getRecentActivities()
+            'posts_count' => $this->model->getPostsCount(),
+            'pages_count' => $this->model->getPagesCount(),
+            'users_count' => $this->model->getUsersCount(),
+            'recent_activities' => $this->model->getRecentActivities()
         ];
         
         // Здесь загружаем данные для админ-панели

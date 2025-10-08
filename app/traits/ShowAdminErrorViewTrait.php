@@ -8,33 +8,37 @@
  */
 trait ShowAdminErrorViewTrait
 {
+    abstract protected function getView(): View;
+
     /**
      * Для прямых вызовов
      */
-    protected function renderAdminErrorView(View $viewAdmin, $title, $errMsg, $httpCode)
+    protected function renderAdminErrorView(View $view, string $title, 
+        string $errMsg, int $httpCode, string $userName): void
     {
         if (!headers_sent()) {
             header("HTTP/1.0 $httpCode Server Error");
         }
         $data = [
             'adminRoute' => Config::get('admin.AdminRoute'),
-            'user_name' => Auth::getUserName(),
+            'user_name' => $userName,
             'title' => $title,
             'error_message' => $errMsg
         ];
-        if ($viewAdmin === null)
+        if ($view === null)
         {
             throw new Exception('View is null');
         }
-        $viewAdmin->renderAdmin('admin/errors/error_view.php', $data);
+        $view->renderAdmin('admin/errors/error_view.php', $data);
         exit();
     }
 
     /**
      * Для вызовов из методов контроллера
      */
-    protected function showAdminErrorView($title, $errMsg, $httpCode = 500)
+    protected function showAdminErrorView(string $title, string $errMsg, 
+        string $userName, int $httpCode = 500): void
     {
-        $this->renderAdminErrorView($this->viewAdmin, $title, $errMsg, $httpCode);
+        $this->renderAdminErrorView($this->getView(), $title, $errMsg, $httpCode, $userName);
     }
 }

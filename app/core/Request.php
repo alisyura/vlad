@@ -102,7 +102,7 @@ class Request
     public function getBasePageUrl(): string
     {
         // Получаем полный URL-путь с параметрами
-        $fullUrl = $_SERVER['REQUEST_URI'];
+        $fullUrl = $this->server('REQUEST_URI');
         
         // Разбиваем URL на части: путь и параметры запроса
         $urlParts = parse_url($fullUrl);
@@ -232,10 +232,7 @@ class Request
      */
     public function getClientIp()
     {
-        return $this->server['HTTP_CLIENT_IP'] 
-            ?? $this->server['HTTP_X_FORWARDED_FOR'] 
-            ?? $this->server['REMOTE_ADDR'] 
-            ?? '127.0.0.1';
+        return $this->server['REMOTE_ADDR'] ?? '127.0.0.1';
     }
 
     /**

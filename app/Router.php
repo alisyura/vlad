@@ -4,6 +4,17 @@ class Router {
     use ShowClientErrorViewTrait;
 
     private $routes = [];
+    private View $view;
+
+    public function __construct(View $view)
+    {
+        $this->view = $view;
+    }
+
+    protected function getView(): View
+    {
+        return $this->view;
+    }
     
     public function addRoute($pattern, $handler, $middlewares = [], array $options = []) {
         $this->routes[] = [
@@ -91,24 +102,23 @@ class Router {
                 }
 
                 // Если все middleware прошли успешно, вызываем основной обработчик
-                if (//str_starts_with(strtolower($uri), '/sitemap') || 
-                    str_starts_with(strtolower($uri), strtolower('/'.Config::get('admin.AdminRoute')))) {
-                    // это временно, пока не внедрен service container везде
-                    array_unshift($matches, $request); // вставляем первым параметром
-                    $viewAdmin = $container->make(View::class);
-                    array_splice($matches, 1, 0, [$viewAdmin]);
-                }
-                else {
+                // if (//str_starts_with(strtolower($uri), '/sitemap') || 
+                //     str_starts_with(strtolower($uri), strtolower('/'.Config::get('admin.AdminRoute')))) {
+                //     // это временно, пока не внедрен service container везде
+                //     array_unshift($matches, $request); // вставляем первым параметром
+                //     $viewAdmin = $container->make(View::class);
+                //     array_splice($matches, 1, 0, [$viewAdmin]);
+                // }
+                // else {
                     array_unshift($matches, $container); // вставляем первым параметром
-                }
+                // }
                 
                 call_user_func_array($handler, $matches);
                 return;
             }
         }
 
-        $view = $container->make(View::class);
-        $this->renderErrorView($view, 'Страница не найдена', '', 404);
+        $this->showErrorView('Страница не найдена', '', 404);
         return;
     }
 }

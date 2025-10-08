@@ -3,10 +3,18 @@
 
 class AdminLoginController extends BaseController
 {
+    private AuthService $authService;
+
+    public function __construct(Request $request, View $view, AuthService $authService)
+    {
+        parent::__construct($request, $view);
+        $this->authService = $authService;
+    }
+
     public function login() {
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        if ($this->request->getMethod() === 'POST') {
             // --- Проверка и обработка POST ---
-            $token = $_POST['csrf_token'] ?? '';
+            $token = $this->request->post('csrf_token') ?? '';
             if (!CSRF::validateToken($token)) {
                 // После неудачной проверки желательно обновить токен
                 CSRF::refreshToken(); // Можно добавить
@@ -15,7 +23,8 @@ class AdminLoginController extends BaseController
                 return;
             }
 
-            if (Auth::login($_POST['login'], $_POST['password'])) {
+            if ($this->authService->login(
+                $this->request->post('login'), $this->request->post('password'))) {
                  // После успешного логина обновляем токен (хорошая практика)
                 CSRF::refreshToken();
                 $adminRoute = Config::get('admin.AdminRoute');
@@ -25,7 +34,7 @@ class AdminLoginController extends BaseController
             $error = 'Неверный логин или пароль';
             // Если логин неудачен, токен остаётся тем же, что и в форме
         }
-        elseif (($_SERVER['REQUEST_METHOD'] === 'GET') && (Auth::check())) {
+        elseif (($this->request->getMethod() === 'GET') && ($this->authService->check())) {
             CSRF::refreshToken();
             $adminRoute = Config::get('admin.AdminRoute');
             header("Location: /$adminRoute/dashboard");
@@ -46,7 +55,7 @@ class AdminLoginController extends BaseController
     }
 
     public function logout() {
-        Auth::logout();
+        $this->authService->logout();
         // После логаута тоже стоит обновить токен или очистить его
         // CSRF::refreshToken(); // Можно добавить
         $adminRoute = Config::get('admin.AdminRoute');

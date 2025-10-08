@@ -3,9 +3,9 @@
 
 abstract class BaseModel
 {
-    protected $db;
+    protected PDO $db;
 
-    public function __construct() {
-        $this->db = Database::getConnection();
+    public function __construct(PDO $db) {
+        $this->db = $db;
     }
 }

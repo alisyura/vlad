@@ -4,7 +4,27 @@
 class AdminPostsController extends BaseController
 {
     use UrlHelperTrait;
+    use ShowAdminErrorViewTrait;
 
+    private PostModel $model;
+    private ListModel $listmodel;
+    private AuthService $authService;
+    private PaginationService $pageinationService;
+
+    public function __construct(
+        Request $request, 
+        View $view, 
+        PostModel $model,
+        ListModel $listmodel, 
+        AuthService $authService, 
+        PaginationService $pageinationService)
+    {
+        parent::__construct($request, $view);
+        $this->model = $model;
+        $this->listmodel = $listmodel;
+        $this->authService = $authService;
+        $this->pageinationService = $pageinationService;
+    }
     /**
      * Отображает список постов/страниц в админ-панели с пагинацией.
      * @param int $currentPage Номер текущей страницы (из URL, по умолчанию 1).
@@ -22,11 +42,11 @@ class AdminPostsController extends BaseController
      */
     private function processList($currentPage = 1, $articleType = 'post') {
         // $adminRoute = $this->getAdminRoute();
-        $userName = Auth::getUserName();
+        $userName = $this->authService->getUserName();
         try {
             // --- Получение и валидация параметров сортировки ---
-            $sortBy = $_GET['sort'] ?? 'updated_at';
-            $sortOrder = $_GET['order'] ?? 'DESC';
+            $sortBy = $this->request->sort ?? 'updated_at';
+            $sortOrder = $this->request->order ?? 'DESC';
 
             $allowedSorts = ['id', 
                 'title', 
@@ -47,19 +67,18 @@ class AdminPostsController extends BaseController
             // --- Конец обработки параметров сортировки ---
 
             // Базовый URL для админки
-            $basePageUrl=$this->getBasePageUrl();
+            $basePageUrl=$this->request->getBasePageUrl();
             $isTrash = $this->hasThrash($basePageUrl);
 
             // Определяем параметры пагинации
             $postsPerPage = Config::get('admin.PostsPerPage'); // Количество постов на страницу
 
-            $postsListModel = new PostsListModel();
             // Получаем общее количество постов
-            $totalPosts = $postsListModel->getTotalPostsCount($articleType, $isTrash);
+            $totalPosts = $this->model->getTotalPostsCount($articleType, $isTrash);
     
             // Генерируем массив ссылок для умной пагинации
-            $ps = new PaginationService();
-            $paginParams = $ps->calculatePaginationParams(Config::get('admin.PostsPerPage'), $currentPage, 
+            $paginParams = $this->pageinationService->calculatePaginationParams(
+                Config::get('admin.PostsPerPage'), $currentPage, 
                 $totalPosts, $basePageUrl);
 
             ['totalPages' => $totalPages, 
@@ -69,7 +88,7 @@ class AdminPostsController extends BaseController
             
 
             // Получаем посты для текущей страницы
-            $posts = $postsListModel->getPostsList($articleType, $postsPerPage, $offset,
+            $posts = $this->model->getPostsList($articleType, $postsPerPage, $offset,
                 $sortBy, $sortOrder, $isTrash);
             
             // Обрабатываем каждый пост для форматирования и подготовки к выводу
@@ -131,7 +150,7 @@ class AdminPostsController extends BaseController
                 'active' => "{$articleType}s", // для подсветки в левом меню
                 'posts' => $posts,
                 'articleType' => $articleType,
-                'allowDelete' => Auth::isUserAdmin(),
+                'allowDelete' => $this->authService->isUserAdmin(),
                 'pagination' => [ // Передаем данные для пагинации в представление
                     'current_page' => $currentPage,
                     'total_pages' => $totalPages
@@ -140,7 +159,6 @@ class AdminPostsController extends BaseController
                 'base_page_url' => $basePageUrl,
                 'current_sort_by' => $sortBy,
                 'current_sort_order' => $sortOrder,
-                // 'thrash_link' => '/' . $this->getAdminRoute() . "/thrashbox/{$articleType}s",
                 'isTrash' => $isTrash,
                 'styles' => [
                     'posts_list.css'
@@ -149,15 +167,15 @@ class AdminPostsController extends BaseController
                     'posts_list.js'                    
                 ]
             ];
-            
+            $r=5/0;
             $this->view->renderAdmin('admin/posts/list.php', $data);
 
         } catch (PDOException $e) {
             Logger::error("Database error in listPosts: " . $e->getTraceAsString());
-            $this->showAdminError('Ошибка', 'Не удалось загрузить данные. Пожалуйста, попробуйте позже.');
+            $this->showAdminErrorView('Ошибка', 'Не удалось загрузить данные. Пожалуйста, попробуйте позже.', $userName);
         } catch (Throwable $e) {
             Logger::error("Error in listPosts: " . $e->getTraceAsString());
-            $this->showAdminError('Ошибка', 'Произошла непредвиденная ошибка.');
+            $this->showAdminErrorView('Ошибка', 'Произошла непредвиденная ошибка.', $userName);
         }
     }
 
@@ -183,8 +201,6 @@ class AdminPostsController extends BaseController
         try {
             Logger::debug("$logHeader. begin");
 
-            $adminPostsModel = new AdditionalModel();
-
             Logger::debug("$logHeader. adminRoute $adminRoute");
 
             $pageTitle = ($articleType==='post') ? 'Создать новый пост' : 'Создать новую страницу';
@@ -205,8 +221,8 @@ class AdminPostsController extends BaseController
                 'tags' => [],
                 // 'errors' => [],
                 'is_new_post' => true,
-                'categories' => $adminPostsModel->getAllCategories(),
-                'tags' => $adminPostsModel->getAllTags(),
+                'categories' => $this->listmodel->getAllCategories(),
+                'tags' => $this->listmodel->getAllTags(),
                 'returnToListUrl' => [
                     'url' => $returnToListUrl,
                     'title' => $returnToListTitle
@@ -298,7 +314,7 @@ class AdminPostsController extends BaseController
                 $this->view->renderAdmin('admin/errors/not_found_view.php', $data);
                 return; // Ранний выход
             }
-            $addModel = new AdditionalModel();
+
             $data = [
                 'adminRoute' => $adminRoute,
                 'articleType' => $articleType,
@@ -307,8 +323,8 @@ class AdminPostsController extends BaseController
                 'publishButtonTitle' => $publishButtonTitle,
                 'active' => "{$articleType}s", // для подсветки в левом меню
                 'post' => $postData,
-                'categories' => $addModel->getAllCategories(),
-                'tags' => $addModel->getAllTags(),
+                'categories' => $this->listmodel->getAllCategories(),
+                'tags' => $this->listmodel->getAllTags(),
                 // 'errors' => [],
                 'is_new_post' => false,
                 'formAction' => $formAction,

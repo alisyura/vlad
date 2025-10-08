@@ -18,7 +18,8 @@ ErrorHandler::register();
 
 require_once __DIR__ . '/../app/bootstrap.php';
 
+$view = $container->make(View::class);
 // --- Роутинг ---
-$router = new Router();
+$router = new Router($view);
 require_once __DIR__ . '/../app/routes.php';
 $router->dispatch($container);

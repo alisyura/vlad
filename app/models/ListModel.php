@@ -1,7 +1,12 @@
 <?php
-// app/models/AdditionalModel.php
+// app/models/ListModel.php
 
-class AdditionalModel extends BaseModel {
+class ListModel extends BaseModel {
+    public function __construct(PDO $db)
+    {
+        parent::__construct($db);
+    }
+    
     /**
      * Получает все категории из базы данных.
      * @return array Список категорий.

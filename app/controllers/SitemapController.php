@@ -51,6 +51,10 @@ class SitemapController {
         $this->maxUrls = Config::get('posts.max_urls_in_sitemap');
     }
 
+    protected function getView():View
+    {
+        return $this->view;
+    }
     /**
      * Отображает HTML-страницу карты сайта.
      *

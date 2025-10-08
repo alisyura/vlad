@@ -1,6 +1,10 @@
 <?php
 
 class UserModel extends BaseModel {
+    public function __construct(PDO $db)
+    {
+        parent::__construct($db);
+    }
     /**
      * Получает данные пользователя по ID или логину.
      *

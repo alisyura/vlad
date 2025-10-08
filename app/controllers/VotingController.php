@@ -13,7 +13,6 @@
 class VotingController
 {
     use JsonResponseTrait;
-    use ShowClientErrorViewTrait;
 
     private $request;
     private VotingModel $model;

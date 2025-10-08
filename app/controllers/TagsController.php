@@ -44,6 +44,11 @@ class TagsController
         $this->view = $view;
     }
 
+    protected function getView():View
+    {
+        return $this->view;
+    }
+
     /**
      * Обрабатывает AJAX-запрос на поиск опубликованных тэгов по имени.
      *

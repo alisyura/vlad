@@ -33,6 +33,11 @@ class ContactController
         $this->validator = $validator;
     }
 
+    protected function getView():View
+    {
+        return $this->view;
+    }
+
     /**
      * Отображает страницу "Контакты".
      *

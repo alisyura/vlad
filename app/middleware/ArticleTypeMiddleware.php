@@ -15,6 +15,19 @@ class ArticleTypeMiddleware implements MiddlewareInterface
      */
     use ShowAdminErrorViewTrait;
 
+    private AuthService $authService;
+    private View $view;
+
+    public function __construct(AuthService $authService, View $view)
+    {
+        $this->authService = $authService;
+        $this->view = $view;
+    }
+
+    protected function getView(): View 
+    {
+        return $this->view;
+    }
     /**
      * Обрабатывает запрос, проверяя, что переданные типы статей являются допустимыми.
      *
@@ -26,7 +39,7 @@ class ArticleTypeMiddleware implements MiddlewareInterface
     {
         // Если массив пустой или не передан, считаем, что проверка не пройдена
         if (empty($articleTypes)) {
-            $this->showError();
+            $this->showError($this->authService->getUserName());
             return false;
         }
 
@@ -41,7 +54,7 @@ class ArticleTypeMiddleware implements MiddlewareInterface
         $res = empty($unallowedTypes);
         if (!$res)
         {
-            $this->showError();
+            $this->showError($this->authService->getUserName());
         }
 
         return $res;
@@ -53,8 +66,8 @@ class ArticleTypeMiddleware implements MiddlewareInterface
      * @deprecated Метод будет удален или заменен в будущих версиях.
      * Используйте альтернативные способы обработки ошибок.
      */
-    private function showError()
+    private function showError(string $userName): void
     {
-        $this->showAdminErrorView('Ошибка', 'Произошла непредвиденная ошибка.');
+        $this->showAdminErrorView('Ошибка', 'Произошла непредвиденная ошибка.', $userName);
     }
 }

@@ -1,370 +1,253 @@
 <?php
+// app/models/PostModel.php
 
-/**
- * Модель для работы с данными постов.
- *
- * Предоставляет методы для подсчета, получения и фильтрации
- * опубликованных постов и страниц из базы данных.
- */
-class PostModel {
-    private $db;
-    
-    /**
-     * Конструктор PostModel.
-     *
-     * @param PDO $pdo Объект подключения к базе данных.
-     */
-    public function __construct(PDO $pdo) {
-        // Инициализация подключения к БД
-        $this->db = $pdo;
+class PostModel extends BaseModel {
+    public function __construct(PDO $db)
+    {
+        parent::__construct($db);
     }
     
     /**
-     * Подсчитывает общее количество опубликованных постов.
+     * Получает общее количество постов. Необходимо для пагинации.
      *
+     * @param string $article_type Тип статьи. post или page
+     * @param bool $showThrash Получить список удаленных или активных постов.
      * @return int Общее количество постов.
      */
-    public function countAllPosts() {
-        $stmt = $this->db->query("
-            SELECT COUNT(*) as total 
-            FROM posts 
-            WHERE status = 'published' AND article_type = 'post'
-        ");
-        $row = $stmt->fetch(PDO::FETCH_ASSOC);
-        return (int)$row['total'];
-    }
-
-    /**
-     * Подсчитывает количество опубликованных постов, связанных с определенным тегом.
-     *
-     * @param string $tag_url URL-адрес тега.
-     * @return int Количество постов, связанных с тегом.
-     */
-    public function countAllPostsByTag($tag_url) {
-        $stmt = $this->db->prepare("
-            SELECT COUNT(*) as total 
-            FROM posts p
-            INNER JOIN post_tag pt ON p.id = pt.post_id
-            INNER JOIN tags t ON pt.tag_id = t.id
-            WHERE p.status = 'published' 
-              AND p.article_type = 'post'
-              AND t.url = :tag_url
-        ");
+    public function getTotalPostsCount(string $article_type, bool $showThrash = false) {
+        [$excludeCondition, $excludeUrls] = $this->getExcludeConditionAndUrls($article_type);
         
-        $stmt->execute([':tag_url' => $tag_url]);
-        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        // Создаем массив для всех условий WHERE
+        $conditions = [
+            'p.article_type = :article_type'
+        ];
         
-        return (int)$row['total'];
-    }
-
-    /**
-     * Подсчитывает количество опубликованных постов, связанных с определенной категорией.
-     *
-     * @param string $category_url URL-адрес категории.
-     * @return int Количество постов, связанных с категорией.
-     */
-    public function countAllPostsByCategory($category_url) {
-        $stmt = $this->db->prepare("
-            SELECT COUNT(*) as total 
-            FROM posts p
-            INNER JOIN post_category pc ON p.id = pc.post_id
-            INNER JOIN categories c ON pc.category_id = c.id
-            WHERE p.status = 'published' 
-              AND p.article_type = 'post'
-              AND c.url = :category_url
-        ");
-    
-        $stmt->execute([':category_url' => $category_url]);
-        $row = $stmt->fetch(PDO::FETCH_ASSOC);
-    
-        return (int)$row['total'];
-    }
-
-    /**
-     * Получает список всех опубликованных постов с поддержкой пагинации.
-     *
-     * @param int $posts_per_page Количество постов на страницу.
-     * @param int $page Номер страницы (по умолчанию 1).
-     * @return array Массив ассоциативных массивов с данными о постах.
-     */
-    public function getAllPosts($posts_per_page, $page = 1) {
-        // Вычисляем offset
-        $offset = ($page - 1) * $posts_per_page;
-
-        $sql = "
-            SELECT 
-                p.id AS id,
-                p.url AS url,
-                p.title AS title,
-                p.content AS content,
-                p.updated_at AS updated_at,
-                c.url AS category_url,
-                c.name AS category_name,
-                m.file_path AS image,
-                p.likes_count AS likes,
-                p.dislikes_count AS dislikes
-            FROM
-                posts AS p
-            INNER JOIN
-                post_category AS pc ON pc.post_id = p.id
-            INNER JOIN
-                categories AS c ON c.id = pc.category_id
-            LEFT JOIN
-                media AS m ON m.id = p.thumbnail_media_id
-            WHERE
-                p.status = 'published' AND
-                p.article_type = 'post'
-            ORDER BY
-                p.updated_at DESC
-            LIMIT :limit OFFSET :offset";
+        // Добавляем условие по статусу
+        $conditions[] = $showThrash ? "p.status = 'deleted'" : "p.status <> 'deleted'";
         
-             //echo debugPDO($sql, ['limit' => $posts_per_page, 'offset' => $offset]);
-        $stmt = $this->db->prepare($sql);
-        $stmt->bindValue(':limit', $posts_per_page, PDO::PARAM_INT);
-        $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
-        $stmt->execute();
-
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
-    }
-    
-    /**
-     * Получает данные одного опубликованного поста по его URL-адресу.
-     *
-     * Включает информацию о категории, тегах и миниатюре. Теги преобразуются
-     * в массив.
-     *
-     * @param string $post_url URL-адрес поста.
-     * @return array|false Ассоциативный массив с данными поста или false, если пост не найден.
-     */
-    public function getPostByUrl($post_url) {
-        $stmt = $this->db->prepare("
-        SELECT 
-            p.id AS id,
-            p.url AS url,
-            p.title AS title,
-            p.content AS content,
-            p.updated_at AS updated_at,
-            c.url AS category_url,
-            c.name AS category_name,
-            m.file_path AS image,
-            p.meta_title AS meta_title,
-            p.meta_keywords AS meta_keywords,
-            p.meta_description AS meta_description,
-            GROUP_CONCAT(CONCAT(t.name, '|', t.url)) AS tags
-        FROM posts p
-        INNER JOIN post_category pc ON pc.post_id = p.id
-        INNER JOIN categories c ON pc.category_id = c.id
-        LEFT JOIN post_tag pt ON p.id = pt.post_id
-        LEFT JOIN tags t ON pt.tag_id = t.id
-        LEFT JOIN media m ON m.id = p.thumbnail_media_id
-        WHERE p.url = :url AND p.status = 'published' AND p.article_type = 'post'
-        GROUP BY 
-            p.id, 
-            p.url, 
-            p.title, 
-            p.content, 
-            p.updated_at,
-            c.url,
-            c.name,
-            m.file_path");
-
-        $stmt->execute([':url' => $post_url]);
-        $row = $stmt->fetch(PDO::FETCH_ASSOC);
-        if (!$row) {
-            return false;
+        // Добавляем условие исключения URL, если оно есть
+        if (!empty($excludeCondition)) {
+            $conditions[] = $excludeCondition;
         }
 
-        return $this->fillTags($row);
+        // Собираем запрос
+        $sql = "SELECT COUNT(p.id) AS total_posts 
+                FROM posts AS p
+                WHERE " . implode(' AND ', $conditions);
+
+        try {
+            $stmt = $this->db->prepare($sql);
+            $stmt->bindParam(':article_type', $article_type, PDO::PARAM_STR);
+            
+            // Связываем параметры URL, если они есть
+            if (!empty($excludeUrls)) {
+                foreach ($excludeUrls as $index => $url) {
+                    $stmt->bindParam(":url{$index}", $excludeUrls[$index], PDO::PARAM_STR);
+                }
+            }
+            
+            $stmt->execute();
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+            
+            return (int) $result['total_posts'];
+            
+        } catch (PDOException $e) {
+            Logger::error("Error fetching total posts count: " . $e->getTraceAsString());
+            throw $e;
+        }
     }
 
     /**
-     * Получает данные одной опубликованной страницы по ее URL-адресу.
+     * Получает список постов для админ-панели с пагинацией.
+     * Включает данные об авторе, связанных категориях и тегах.
      *
-     * Включает информацию о тегах. Теги преобразуются в массив.
-     *
-     * @param string $page_url URL-адрес страницы.
-     * @return array|false Ассоциативный массив с данными страницы или false, если страница не найдена.
+     * @param string $article_type Тип статьи. post или page
+     * @param int $limit Количество постов на страницу.
+     * @param int $offset Смещение (сколько постов пропустить).
+     * @param string $sortBy Колонка для сортировки (например, 'title', 'created_at').
+     * @param string $sortOrder Направление сортировки ('ASC' или 'DESC').
+     * @param bool $showThrash Получить список удаленных или активных постов.
+     * @return array Список постов, каждый из которых содержит массив категорий и массив тегов.
      */
-    public function getPageByUrl($page_url) {
-        $sql = "
-        SELECT 
-            p.url AS url,
-            p.title AS title,
-            p.content AS content,
-            p.updated_at AS updated_at,
-            p.meta_title AS meta_title,
-            p.meta_keywords AS meta_keywords,
-            p.meta_description AS meta_description,
-            GROUP_CONCAT(CONCAT(t.name, '|', t.url)) AS tags
-        FROM posts p
-        LEFT JOIN post_tag pt ON p.id = pt.post_id
-        LEFT JOIN tags t ON pt.tag_id = t.id
-        WHERE p.url = :url AND p.status = 'published' AND p.article_type = 'page'
-        GROUP BY 
-            p.id, 
-            p.url, 
-            p.title, 
-            p.content, 
-            p.updated_at";
+    public function getPostsList(string $article_type, int $limit, int $offset,
+                             string $sortBy = 'updated_at', string $sortOrder = 'DESC',
+                             bool $showThrash = false) {
+        // Получаем условие исключения и URL-адреса, используя существующий метод
+        [$excludeCondition, $excludeUrls] = $this->getExcludeConditionAndUrls($article_type);
 
-        $stmt = $this->db->prepare($sql);
-        $stmt->execute([':url' => $page_url]);
-        $row = $stmt->fetch(PDO::FETCH_ASSOC);
-        if (!$row) {
-            return false;
+        // Допустимые поля для сортировки и их соответствие в базе данных
+        $allowedSortColumns = [
+            'id' => 'p.id',
+            'title' => 'p.title',
+            'author' => 'u.name',
+            'categories' => 'category_names_concat', // Сортируем по конкатенированному списку категорий
+            'tags' => 'tag_names_concat', // Сортируем по конкатенированному списку тегов
+            'status' => 'p.status',
+            'updated_at' => 'p.updated_at'
+        ];
+
+        // Проверяем, что $sortBy является допустимой колонкой
+        $orderByColumn = $allowedSortColumns['updated_at']; // По умолчанию
+        if (array_key_exists($sortBy, $allowedSortColumns)) {
+            $orderByColumn = $allowedSortColumns[$sortBy];
         }
 
-        return $this->fillTags($row);
+        // Проверяем, что $sortOrder является допустимым направлением
+        $sortOrder = strtoupper($sortOrder); // Приводим к верхнему регистру
+        if (!in_array($sortOrder, ['ASC', 'DESC'])) {
+            $sortOrder = 'DESC'; // По умолчанию DESC
+        }
+
+        // Собираем массив условий для части WHERE
+        $conditions = [
+            'p.article_type = :article_type',
+            $showThrash ? "p.status = 'deleted'" : "p.status <> 'deleted'"
+        ];
+
+        // Добавляем условие исключения, если оно есть
+        if (!empty($excludeCondition)) {
+            $conditions[] = $excludeCondition;
+        }
+
+        $sql = "SELECT
+                     p.id,
+                     p.title,
+                     p.url,
+                     p.status,
+                     p.created_at,
+                     p.updated_at,
+                     p.article_type,
+                     u.name AS author_name,
+                     GROUP_CONCAT(DISTINCT c.name ORDER BY c.name SEPARATOR ', ') AS category_names_concat,
+                     GROUP_CONCAT(DISTINCT t.name ORDER BY t.name SEPARATOR ', ') AS tag_names_concat,
+                     GROUP_CONCAT(DISTINCT c.name, '||', c.url ORDER BY c.name SEPARATOR ';;') AS category_data,
+                     GROUP_CONCAT(DISTINCT t.name, '||', t.url ORDER BY t.name SEPARATOR ';;') AS tag_data
+                 FROM
+                     posts p
+                 JOIN
+                     users u ON p.user_id = u.id
+                 LEFT JOIN
+                     post_category pc ON p.id = pc.post_id
+                 LEFT JOIN
+                     categories c ON pc.category_id = c.id
+                 LEFT JOIN
+                     post_tag pt ON p.id = pt.post_id
+                 LEFT JOIN
+                     tags t ON pt.tag_id = t.id
+                 WHERE
+                     " . implode(' AND ', $conditions) . "
+                 GROUP BY
+                     p.id
+                 ORDER BY
+                     {$orderByColumn} {$sortOrder}
+                 LIMIT :limit OFFSET :offset";
+
+        try {
+
+            Logger::debug("getPosts. $article_type, $limit, $offset,
+                             $sortBy, $sortOrder. $sql");
+            $stmt = $this->db->prepare($sql);
+            $stmt->bindParam(':article_type', $article_type, PDO::PARAM_STR);
+            $stmt->bindParam(':limit', $limit, PDO::PARAM_INT);
+            $stmt->bindParam(':offset', $offset, PDO::PARAM_INT);
+
+            // Связываем параметры URL, если они есть, для исключения постов/страниц
+            if (!empty($excludeUrls)) {
+                foreach ($excludeUrls as $index => $url) {
+                    $stmt->bindParam(":url{$index}", $excludeUrls[$index], PDO::PARAM_STR);
+                }
+            }
+            
+            $stmt->execute();
+            $rawPosts = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            // Вызываем вспомогательный метод для парсинга данных
+            return $this->parsePostData($rawPosts);
+
+        } catch (PDOException $e) {
+            Logger::error("Error fetching paginated posts in AdminPostsModel: " . $e->getTraceAsString());
+            throw $e;
+        }
     }
 
     /**
-     * Преобразует строку тегов в массив.
+     * Обрабатывает данные, полученные из запроса к базе данных,
+     * разделяя объединенные строки категорий и тегов.
      *
-     * @param array $row Ассоциативный массив с данными поста, содержащий ключ 'tags'.
-     * @return array Обновленный массив с преобразованными данными тегов.
+     * @param array $rawPosts Массив необработанных данных постов.
+     * @return array Массив обработанных данных постов.
      */
-    private function fillTags($row)
+    private function parsePostData(array $rawPosts): array
     {
-        if (!empty($row['tags'])) {
-            $tags = array_map(function($pair) {
-                list($name, $url) = explode('|', trim($pair));
-                return [
-                    'name' => $name,
-                    'url' => $url
-                ];
-            }, explode(',', $row['tags']));
-            $row['tags'] = $tags;
-        }
-        else
-        {
-            unset($row['tags']);
-        }
+        $posts = [];
+        foreach ($rawPosts as $post) {
+            $post['categories'] = $this->parseGroupedData($post['category_data']);
+            unset($post['category_data']);
+            unset($post['category_names_concat']);
 
-        return $row;
+            $post['tags'] = $this->parseGroupedData($post['tag_data']);
+            unset($post['tag_data']);
+            unset($post['tag_names_concat']);
+
+            $posts[] = $post;
+        }
+        return $posts;
     }
 
     /**
-     * Извлекает список опубликованных постов для указанной категории с поддержкой пагинации.
+     * Разделяет строку объединенных данных на массив объектов.
      *
-     * @param string $cat_url URL-адрес категории.
-     * @param bool $show_link_next Определяет, возвращать полный контент или отрывок.
-     * @param int $posts_per_page Количество постов на страницу.
-     * @param int $page Номер страницы (по умолчанию 1).
-     * @return array Массив ассоциативных массивов с данными о постах.
+     * @param string|null $data Строка объединенных данных.
+     * @return array Массив объектов.
      */
-    public function getAllPostsByCategory(string $cat_url, bool $show_link_next,
-        int $posts_per_page, int $page = 1): array
+    private function parseGroupedData(?string $data): array
     {
-        $excerpt_len = Config::get('posts.exerpt_len') + 50;
-        $offset = ($page - 1) * $posts_per_page;
+        if (empty($data)) {
+            return [];
+        }
 
-        $sql = "
-            SELECT
-                p.id,
-                p.url AS url,
-                p.title AS title,
-                IF(:show_excerpt, SUBSTRING(p.content, 1, :excerpt_len), p.content) AS content,
-                p.updated_at AS updated_at,
-                c.url AS category_url,
-                c.name AS category_name,
-                m.file_path AS image,
-                p.likes_count AS likes,
-                p.dislikes_count AS dislikes
-            FROM
-                posts AS p
-            INNER JOIN
-                post_category AS pc ON pc.post_id = p.id
-            INNER JOIN
-                categories AS c ON c.id = pc.category_id
-            LEFT JOIN
-                media AS m ON m.id = p.thumbnail_media_id
-            WHERE
-                p.status = 'published' AND
-                p.article_type = 'post' AND
-                c.url = :cat_url
-            ORDER BY
-                p.updated_at DESC
-            LIMIT :limit OFFSET :offset";
-
-        Logger::debug(debugPDO($sql, [
-            ':cat_url' => $cat_url,
-            ':limit' => $posts_per_page,
-            ':offset' => $offset,
-            ':show_excerpt' => (int) $show_link_next,
-            ':excerpt_len' => $excerpt_len
-        ]));
-
-        $stmt = $this->db->prepare($sql);
-        $stmt->execute([
-            ':cat_url' => $cat_url,
-            ':limit' => $posts_per_page,
-            ':offset' => $offset,
-            ':show_excerpt' => $show_link_next,
-            ':excerpt_len' => $excerpt_len
-        ]);
-
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $items = [];
+        $pairs = explode(';;', $data);
+        foreach ($pairs as $pair) {
+             if (strpos($pair, '||') !== false) {
+                 list($name, $url) = explode('||', $pair, 2);
+                 $items[] = ['name' => $name, 'url' => $url];
+             }
+        }
+        return $items;
     }
 
     /**
-     * Извлекает список опубликованных постов для указанного тега с поддержкой пагинации.
+     * Получает SQL-условие и URL-адреса для исключения.
      *
-     * @param string $tag_url URL-адрес тега.
-     * @param int $posts_per_page Количество постов на страницу.
-     * @param int $page Номер страницы (по умолчанию 1).
-     * @return array Массив ассоциативных массивов с данными о постах.
+     * @param string $article_type Тип статьи ('post' или 'page').
+     * @return array Массив, содержащий строку условия и массив URL-адресов.
      */
-    public function getAllPostsByTag(string $tag_url, int $posts_per_page, int $page = 1): array
+    private function getExcludeConditionAndUrls(string $article_type): array
     {
-        $offset = ($page - 1) * $posts_per_page;
-
-        $sql = "
-            SELECT 
-                p.id,
-                p.url AS url,
-                p.title AS title,
-                p.content AS content,
-                DATE_FORMAT(p.updated_at, '%Y-%m-%d') AS updated_at,
-                p.meta_description AS description,
-                t.url AS tag_url,
-                t.name AS tag_name,
-                c.url AS category_url,
-                c.name AS category_name,
-                m.file_path AS image,
-                p.likes_count AS likes,
-                p.dislikes_count AS dislikes,
-                u.name AS user_name
-            FROM
-                posts AS p
-            INNER JOIN
-                post_tag AS pt ON pt.post_id = p.id
-            INNER JOIN
-                tags AS t ON t.id = pt.tag_id
-            INNER JOIN
-                post_category AS pc ON pc.post_id = p.id
-            INNER JOIN
-                categories AS c ON c.id = pc.category_id
-            LEFT JOIN
-                media AS m ON m.id = p.thumbnail_media_id
-            LEFT JOIN
-                users AS u ON u.id = p.user_id
-            WHERE
-                p.status = 'published' AND
-                p.article_type = 'post' AND
-                t.url = :tag_url
-            ORDER BY
-                p.updated_at DESC
-            LIMIT :limit OFFSET :offset";
-
-        $stmt = $this->db->prepare($sql);
-        
-        // Передаем все параметры одним массивом в метод execute()
-        $stmt->execute([
-            ':tag_url' => $tag_url,
-            ':limit' => $posts_per_page,
-            ':offset' => $offset
-        ]);
-
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $configKey = null;
+        if ($article_type === 'page') {
+            $configKey = 'admin.PagesToExclude';
+        } elseif ($article_type === 'post') {
+            $configKey = 'admin.PostsToExclude';
+        }
+    
+        $excludeUrls = [];
+        $excludeCondition = '';
+    
+        if ($configKey) {
+            $rawExcludeUrls = \Config::get($configKey);
+            $excludeUrls = array_filter($rawExcludeUrls, 'strlen');
+    
+            if (!empty($excludeUrls)) {
+                $placeholders = array_map(function($index) {
+                    return ":url{$index}";
+                }, array_keys($excludeUrls));
+                
+                $excludeCondition = " p.url NOT IN (" . implode(', ', $placeholders) . ")";
+            }
+        }
+    
+        return [$excludeCondition, $excludeUrls];
     }
 }
