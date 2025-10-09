@@ -6,7 +6,7 @@ class AdminPostsController extends BaseController
     use UrlHelperTrait;
     use ShowAdminErrorViewTrait;
 
-    private PostModel $model;
+    private PostModelAdmin $model;
     private ListModel $listmodel;
     private AuthService $authService;
     private PaginationService $pageinationService;
@@ -14,7 +14,7 @@ class AdminPostsController extends BaseController
     public function __construct(
         Request $request, 
         View $view, 
-        PostModel $model,
+        PostModelAdmin $model,
         ListModel $listmodel, 
         AuthService $authService, 
         PaginationService $pageinationService)
@@ -167,7 +167,7 @@ class AdminPostsController extends BaseController
                     'posts_list.js'                    
                 ]
             ];
-            $r=5/0;
+
             $this->view->renderAdmin('admin/posts/list.php', $data);
 
         } catch (PDOException $e) {
@@ -195,6 +195,7 @@ class AdminPostsController extends BaseController
      */
     private function showCreateArticleForm(string $articleType) {
         $adminRoute = Config::get('admin.AdminRoute');
+        $userName = $this->authService->getUserName();
 
         $logHeader = ($articleType === 'post') ? 'createPostGet' : 'createPageGet';
 
@@ -211,7 +212,7 @@ class AdminPostsController extends BaseController
             $data = [
                 'adminRoute' => $adminRoute,
                 'articleType' => $articleType,
-                'user_name' => Auth::getUserName(),
+                'user_name' => $userName,
                 'title' => '', //тк создаем новый пост
                 'active' => "{$articleType}s", // для подсветки в левом меню
                 'pageTitle' => $pageTitle,
@@ -219,7 +220,6 @@ class AdminPostsController extends BaseController
                 'post' => null,
                 'categories' => [],
                 'tags' => [],
-                // 'errors' => [],
                 'is_new_post' => true,
                 'categories' => $this->listmodel->getAllCategories(),
                 'tags' => $this->listmodel->getAllTags(),
@@ -247,13 +247,8 @@ class AdminPostsController extends BaseController
         } catch (Throwable $e) {
             Logger::error("$logHeader. An unexpected error occurred: " . $e->getTraceAsString());
 
-            $data = [
-                'adminRoute' => $adminRoute,
-                'user_name' => Auth::getUserName(),
-                'title' => 'Ошибка',
-                'error_message' => 'Не удалось загрузить посты. Пожалуйста, попробуйте позже.'
-            ];
-            $this->view->renderAdmin('admin/errors/error_view.php', $data);
+            $this->showAdminErrorView('Ошибка', 
+                'Не удалось загрузить посты. Пожалуйста, попробуйте позже.', $userName);
         }   
     }
 
@@ -277,7 +272,7 @@ class AdminPostsController extends BaseController
     private function showEditArticleForm($postId, $articleType)
     {
         $adminRoute = Config::get('admin.AdminRoute');
-        $user_name = Auth::getUserName();
+        $userName = $this->authService->getUserName();
         $logHeader = ($articleType === 'post') ? 'editPostGet' : 'editPageGet';
         try
         {
@@ -302,30 +297,26 @@ class AdminPostsController extends BaseController
             $returnToListUrl = $config[$articleType]['listUrl'];
             $publishButtonTitle = 'Обновить ' . ($articleType == 'post' ? 'пост' : 'страницу');
     
-            $postData = (new AdminPostsModel())->getPostById($postId, $articleType);
+            $postData = $this->model->getPostById($postId, $articleType);
             if ($postData === null) {
                 // Если пост не найден, рендерим специальный view и выходим
-                $data = [
-                    'adminRoute' => $adminRoute,
-                    'user_name' => $user_name,
-                    'error_message' => 'Запись не найдена.'
-                ];
-                
-                $this->view->renderAdmin('admin/errors/not_found_view.php', $data);
+                $this->showAdminErrorView('Запись не найдена.', 
+                    'Не удалось загрузить данные поста/страницы. Пожалуйста, попробуйте позже.', 
+                    $userName);
+
                 return; // Ранний выход
             }
 
             $data = [
                 'adminRoute' => $adminRoute,
                 'articleType' => $articleType,
-                'user_name' => $user_name,
+                'user_name' => $userName,
                 'pageTitle' => $pageTitle,
                 'publishButtonTitle' => $publishButtonTitle,
                 'active' => "{$articleType}s", // для подсветки в левом меню
                 'post' => $postData,
                 'categories' => $this->listmodel->getAllCategories(),
                 'tags' => $this->listmodel->getAllTags(),
-                // 'errors' => [],
                 'is_new_post' => false,
                 'formAction' => $formAction,
                 'returnToListUrl' => [
@@ -353,14 +344,9 @@ class AdminPostsController extends BaseController
         {
             Logger::error("$logHeader. An unexpected error occurred: " . $e->getTraceAsString());
 
-            $data = [
-                'adminRoute' => $adminRoute,
-                'user_name' => $user_name,
-                'title' => 'Ошибка',
-                'error_message' => 'Не удалось загрузить данные. Пожалуйста, попробуйте позже.'
-            ];
-
-            $this->view->renderAdmin('admin/errors/error_view.php', $data);
+            $this->showAdminErrorView('Ошибка', 
+                'Не удалось загрузить данные поста/страницы. Пожалуйста, попробуйте позже.', 
+                $userName);
         }
     }
 }

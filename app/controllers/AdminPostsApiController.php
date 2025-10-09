@@ -3,6 +3,18 @@
 
 class AdminPostsApiController extends BaseController
 {
+    use JsonResponseTrait;
+
+    private PostModelAdmin $model;
+    private AdminPostsApiService $postsApiService;
+
+    public function __construct(Request $request, PostModelAdmin $model, 
+        AdminPostsApiService $postsApiService)
+    {
+        parent::__construct($request, null);
+        $this->model = $model;
+        $this->postsApiService = $postsApiService;
+    }
     /**
      * Выполняет полное удаление поста по ID из БД.
      * Ожидает DELETE-запрос с JSON: { post_id: 123 }
@@ -164,84 +176,29 @@ class AdminPostsApiController extends BaseController
      * Вызывается по AJAX POST
      */
     private function createArticle($articleType) {
-        header('Content-Type: application/json');
-
-
-        Logger::debug("createPostPost. Начало");
+        Logger::debug("createArticle. Начало");
         
-        $json_data = file_get_contents('php://input');
-        // Декодируем JSON-строку в ассоциативный массив PHP
-        $post_data = json_decode($json_data, true);
+        $postData=$this->request->getJson();
 
-            
-        $adminPostsModel = new AdminPostsModel();
-        
-        $title = trim($post_data['title'] ?? '');
-        $content = $post_data['content'] ?? '';
-        $url = transliterate($post_data['url'] ?? '');
-        $status = $post_data['status'] ?? 'draft';
-        $meta_title = trim($post_data['meta_title'] ?? '');
-        $meta_description = trim($post_data['meta_description'] ?? '');
-        $meta_keywords = trim($post_data['meta_keywords'] ?? '');
-        $excerpt = trim($post_data['excerpt'] ?? '');
-        $selectedCategories = $post_data['categories'] ?? [];
+        try {
+            $newPostId = $this->postsApiService->createArticle($postData, $articleType);
 
-        $selectedTags = $post_data['tags'] ?? [];
-        $tagsString = is_array($selectedTags) ? implode(',', $selectedTags) : $selectedTags;
-
-        $thumbnailUrl = trim($post_data['post_image_url'] ?? ''); 
-
-        if (empty($title)) {
-            Logger::debug("createPostPost. title empty");
-            $data['errors'][] = 'Заголовок поста обязателен.';
-        }
-        if (empty($url)) {
-            Logger::debug("createPostPost. url empty");
-            $data['errors'][] = 'URL поста обязателен.';
-        } else if ($adminPostsModel->postExists(null, $url)) {
-            Logger::debug("createPostPost. url exists");
-            $data['errors'][] = 'Указанный URL уже занят.';
+            if ($newPostId) {
+                $adminRoute = Config::get('admin.AdminRoute');
+                $msgText = ($articleType == 'post' ? 'Пост успешно создан' : 'Страница успешно создана');
+                $this->sendSuccessJsonResponse($msgText, 200, ['redirect' => "/$adminRoute/{$articleType}s"]);
+            } else {
+                $this->sendErrorJsonResponse('Произошла ошибка при создании поста.', 500);
+            }
+        } catch (UserDataException $e) {
+            Logger::error("createArticle. ошибки заполнены. выход");
+            $this->sendErrorJsonResponse($e->getMessage(), $e->getCode(), $e->getValidationErrors());
+        } catch (Throwable $e) {
+            Logger::error("createArticle. сбой при создании поста/страницы", ['articleType' => $articleType]);
+            $this->sendErrorJsonResponse('Сбой при создании поста/страницы.', 500);
         }
 
-        if (!empty($data['errors'])) {
-            Logger::debug("createPostPost. ошибки заполнены. выход");
-            http_response_code(500);
-            echo json_encode(['success' => false, 
-                'message' => 'Неверно заполнены поля.',
-                'errors' => $data['errors']]);
-            exit;
-        }
-
-            
-        $user_id = Auth::getUserId();
-        $postData = [
-            'user_id' => $user_id,
-            'article_type' => $articleType,
-            'status' => $status,
-            'title' => $title,
-            'content' => $content,
-            'url' => $url,
-            'meta_title' => $meta_title,
-            'meta_description' => $meta_description,
-            'meta_keywords' => $meta_keywords,
-            'excerpt' => $excerpt,
-            'thumbnail_url' => $thumbnailUrl,
-        ];
-
-        $postId = $adminPostsModel->createPost($postData, $selectedCategories, $tagsString);
-        
-        if ($postId) {
-            $adminRoute = Config::get('admin.AdminRoute');
-            $msgText = ($articleType == 'post' ? 'Пост успешно создан' : 'Страница успешно создана');
-            echo json_encode(['success' => true, 
-                'redirect' => "/$adminRoute/{$articleType}s",
-                'message' => $msgText]);
-        } else {
-            http_response_code(500);
-            echo json_encode(['success' => false, 
-                'message' => 'Произошла ошибка при создании поста.']);
-        }
-
+        exit;
     }
 
     /**

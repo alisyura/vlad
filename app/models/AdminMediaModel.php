@@ -2,6 +2,11 @@
 // app/models/AdminMediaModel.php
 
 class AdminMediaModel extends BaseModel {
+    public function __construct(PDO $db)
+    {
+        parent::__construct($db);
+    }
+    
     /**
      * Запрос к базе данных для получения всех изображений
      */

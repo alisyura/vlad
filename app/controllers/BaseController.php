@@ -122,7 +122,7 @@ abstract class BaseController {
      * @return void
      * @deprecated
      */
-    protected function sendJsonResponse(array $data, int $statusCode = 200): void
+    protected function sendJsonResponse1(array $data, int $statusCode = 200): void
     {
         http_response_code($statusCode);
         header('Content-Type: application/json');

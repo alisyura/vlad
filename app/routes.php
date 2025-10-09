@@ -149,19 +149,20 @@ $router->addRoute("/$adminRoute/logout", function(Container $container) {
 // Список постов/страниц с пагинацией
 $router->addRoute("/$adminRoute/(post|page)s(?:/p(\d+))?", function(Container $container, $articleType, $page = 1) {
     // Передаем номер страницы в контроллер
-    // (new AdminPostsController($request, $viewAdmin))->list($page, $articleType);
     $controller = $container->make(AdminPostsController::class);
     $controller->list($page, $articleType);
 }, ['UserAuthenticatedMiddleware', 'ArticleTypeMiddleware:post,page']);
 
 // Форма создание нового поста/страницы
-$router->addRoute("/$adminRoute/(post|page)s/create", function($request, $viewAdmin, $articleType) {
-    (new AdminPostsController($request, $viewAdmin))->create($articleType);
+$router->addRoute("/$adminRoute/(post|page)s/create", function(Container $container, $articleType) {
+    $controller = $container->make(AdminPostsController::class);
+    $controller->create($articleType);
 }, ['UserAuthenticatedMiddleware', 'ArticleTypeMiddleware:post,page']);
 
 // Форма редактирования существующего поста/страницы
-$router->addRoute("/$adminRoute/(post|page)s/edit/(\d+)", function($request, $viewAdmin, $articleType, $postId) {
-    (new AdminPostsController($request, $viewAdmin))->edit($postId, $articleType);
+$router->addRoute("/$adminRoute/(post|page)s/edit/(\d+)", function(Container $container, $articleType, $postId) {
+    $controller = $container->make(AdminPostsController::class);
+    $controller->edit($postId, $articleType);
 }, ['UserAuthenticatedMiddleware', 'ArticleTypeMiddleware:post,page']);
 
 
@@ -169,8 +170,10 @@ $router->addRoute("/$adminRoute/(post|page)s/edit/(\d+)", function($request, $vi
 // Вызовы API работы с постами/страницами
 
 // Вызов api создания нового поста из формы создания нового поста по кнопке "опубликовать"
-$router->addRoute("/$adminRoute/(post|page)s/api/create", function($request, $viewAdmin, $articleType) {
-    (new AdminPostsApiController($request))->create($articleType);
+$router->addRoute("/$adminRoute/(post|page)s/api/create", function(Container $container, $articleType) {
+    // (new AdminPostsApiController($request))->create($articleType);
+    $controller = $container->make(AdminPostsApiController::class);
+    $controller->create($articleType);
 }, ['UserAuthenticatedMiddleware', 'AjaxMiddleware', 'CsrfMiddleware'], ['method' => 'POST']);
 
 // Вызов api изменения поста из формы изменения поста по кнопке "обновить"
