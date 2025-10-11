@@ -101,17 +101,31 @@ class Router {
                     // Можно добавить другие типы middleware по необходимости
                 }
 
+                // костыль, пока не все контроллеры на сервис контейнер переведены.
+                $adminRoute = Config::get('admin.AdminRoute');
+                $oldRoutes = [
+                    "/$adminRoute/media/api",
+                    "/$adminRoute/tags",
+                    "/$adminRoute/users"
+                ];
+                $lowerUri = strtolower($uri);
+                $routeMatches = array_filter($oldRoutes, function ($routePrefix) use ($lowerUri) {
+                    // Проверяем, начинается ли запрашиваемый URI ($lowerUri) 
+                    // с одного из элементов массива ($routePrefix).
+                    return str_starts_with($lowerUri, $routePrefix);
+                });
+                $isMatchFound = !empty($routeMatches);
+
                 // Если все middleware прошли успешно, вызываем основной обработчик
-                // if (//str_starts_with(strtolower($uri), '/sitemap') || 
-                //     str_starts_with(strtolower($uri), strtolower('/'.Config::get('admin.AdminRoute')))) {
-                //     // это временно, пока не внедрен service container везде
-                //     array_unshift($matches, $request); // вставляем первым параметром
-                //     $viewAdmin = $container->make(View::class);
-                //     array_splice($matches, 1, 0, [$viewAdmin]);
-                // }
-                // else {
+                if ($isMatchFound) {
+                    // это временно, пока не внедрен service container везде
+                    array_unshift($matches, $request); // вставляем первым параметром
+                    $viewAdmin = $container->make(View::class);
+                    array_splice($matches, 1, 0, [$viewAdmin]);
+                }
+                else {
                     array_unshift($matches, $container); // вставляем первым параметром
-                // }
+                }
                 
                 call_user_func_array($handler, $matches);
                 return;

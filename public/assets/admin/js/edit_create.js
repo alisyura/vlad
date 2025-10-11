@@ -243,8 +243,11 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
+        const contentType = getContentTypeFromUrlRegex(window.location.pathname,
+                `${adminRoute}`);
+
         try {
-            const response = await fetch(`/${adminRoute}/posts/api/check-url`, {
+            const response = await fetch(`/${adminRoute}/${contentType}s/api/check-url`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -252,8 +255,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     'X-CSRF-TOKEN': csrfToken
                 },
                 body: JSON.stringify({
-                    url: slug,
-                    csrf_token: csrfToken
+                    url: slug
                 })
             });
 
@@ -265,6 +267,12 @@ document.addEventListener('DOMContentLoaded', function() {
                     setSlugStatus(false, 'Этот URL уже занят.');
                 }
             } else {
+                if (response.status === 401)
+                {
+                    // Пользователь не авторизован, перенаправляем на страницу логина
+                    window.location.href = `/${adminRoute}/login`;
+                    return;
+                }
                 setSlugStatus(false, result.message || 'Ошибка на сервере.');
             }
         } catch (error) {
@@ -380,7 +388,7 @@ function getContentIdAndTypeFromUrl(url, adminRoute) {
 /**
  * Преобразует объект FormData в простой JavaScript-объект, 
  * корректно обрабатывая поля-массивы (с суффиксом '[]').
- * * @param {FormData} formData Объект FormData, собранный из HTML-формы.
+ * @param {FormData} formData Объект FormData, собранный из HTML-формы.
  * @returns {Object} Возвращает JavaScript-объект с данными формы.
  */
 function parseFormData(formData)

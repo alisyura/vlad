@@ -15,6 +15,12 @@ class AdminPostsApiService
 
     private function parseUserData(array $postData): array
     {
+        $postId = $postData['id'] ?? null;
+        if (null !== $postId) {
+            $postId = filter_var($postId, FILTER_VALIDATE_INT);
+            $postId = (false === $postId) ? null : $postId;
+        }
+        
         $title = trim($postData['title'] ?? '');
         $content = $postData['content'] ?? '';
         $url = transliterate($postData['url'] ?? '');
@@ -31,7 +37,7 @@ class AdminPostsApiService
         $thumbnailUrl = trim($postData['post_image_url'] ?? ''); 
 
         return [
-            'title' => $title, 
+            'postId' => $postId, 'title' => $title, 
             'content' => $content, 'url' => $url, 'status' => $status,
             'metaTitle' => $metaTitle, 'metaDescription' => $metaDescription,
             'metaKeywords' => $metaKeywords, 'excerpt' => $excerpt, 
@@ -55,20 +61,15 @@ class AdminPostsApiService
 
         $errors=[];
         if (empty($title)) {
-            Logger::debug("createPostPost. title empty");
             $errors[] = 'Заголовок поста обязателен.';
         }
         if (empty($url)) {
-            Logger::debug("createPostPost. url empty");
             $errors[] = 'URL поста обязателен.';
-        } else if ($this->model->postExists(null, $url)) {
-            Logger::debug("createPostPost. url exists");
+        } else if ($this->model->postExists(null, $url, $articleType)) {
             $errors[] = 'Указанный URL уже занят.';
         }
 
         if (!empty($errors)) {
-            Logger::debug("createPostPost. ошибки заполнены. выход");
-
             throw new UserDataException('Неверно заполнены поля.', $errors, 400);
         }
 
@@ -91,5 +92,100 @@ class AdminPostsApiService
         $postId = $this->model->createPost($dataForModel, $selectedCategories, $tagsString);
         
         return $postId;
+    }
+
+    public function editArticle(array $postData, string $articleType): array
+    {
+        if (empty($postData))
+        {
+            throw new UserDataException('Данные не переданы', [], 400);
+        }
+
+        ['postId' => $postId, 'title' => $title, 
+        'content' => $content, 'status' => $status,
+        'metaTitle' => $metaTitle, 'metaDescription' => $metaDescription,
+        'metaKeywords' => $metaKeywords, 'excerpt' => $excerpt, 
+        'selectedCategories' => $selectedCategories,
+        'tagsString' => $tagsString, 'thumbnailUrl' => $thumbnailUrl] = $this->parseUserData($postData);
+
+        if (null === $postId)
+        {
+            throw new UserDataException('Не передан или неверного формата id поста', [], 400);
+        }
+
+        $errors=[];
+        if (!$this->model->postExists($postId, null, $articleType)) {
+            $errors[] = 'Пост не найден.';
+        } else if (empty($title)) {
+            $errors[] = 'Заголовок поста обязателен.';
+        }
+
+        if (!empty($errors)) {
+            throw new UserDataException('Неверно заполнены поля.', $errors, 400);
+        }
+
+        $userId = $this->authService->getUserId();
+        $dataForModel = [
+            'user_id' => $userId,
+            'article_type' => $articleType,
+            'status' => $status,
+            'title' => $title,
+            'content' => $content,
+            'meta_title' => $metaTitle,
+            'meta_description' => $metaDescription,
+            'meta_keywords' => $metaKeywords,
+            'excerpt' => $excerpt,
+            'thumbnail_url' => $thumbnailUrl,
+        ];
+
+        return [
+            'updateResult' => $this->model->updatePost($postId, 
+                    $dataForModel, $selectedCategories, $tagsString),
+            'postId' => $postId
+        ];
+    }
+
+    public function deleteArticle(array $postData, string $articleType): bool
+    {
+        if (empty($postData))
+        {
+            throw new UserDataException('Данные не переданы', [], 400);
+        }
+
+        ['postId' => $postId] = $this->parseUserData($postData);
+
+        if (null === $postId)
+        {
+            throw new UserDataException('Не передан или неверного формата id поста', [], 400);
+        }
+
+        $errors=[];
+        if (!$this->model->postExists($postId, null, $articleType)) {
+            $errors[] = 'Пост не найден.';
+        }
+
+        if (!empty($errors)) {
+            throw new UserDataException('Неверно заполнены поля.', $errors, 400);
+        }
+
+        return $this->model->setPostStatus($postId, PostModelAdmin::STATUS_DELETED, 
+            $articleType);
+    }
+
+    public function checkUrl(array $postData, string $articleType): bool
+    {
+        if (empty($postData))
+        {
+            throw new UserDataException('Данные не переданы', [], 400);
+        }
+
+        ['url' => $url] = $this->parseUserData($postData);
+
+        if (null === $url)
+        {
+            throw new UserDataException('Не передан или неверного формата урл', [], 400);
+        }
+
+        return !$this->model->postExists(null, $url, $articleType);
     }
 }

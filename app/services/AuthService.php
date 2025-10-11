@@ -87,7 +87,7 @@ class AuthService
      * @return bool
      */
     public function isUserAdmin() {
-        $isAdmin = $this->session->get('user_login');
+        $isAdmin = $this->session->get('is_admin');
         return self::check() && // Сначала убеждаемся, что пользователь залогинен
                null !== $isAdmin && 
                $isAdmin === true;

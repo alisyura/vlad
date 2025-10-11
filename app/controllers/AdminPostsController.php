@@ -164,7 +164,8 @@ class AdminPostsController extends BaseController
                     'posts_list.css'
                 ],
                 'jss' => [
-                    'posts_list.js'                    
+                    'posts_list.js',
+                    'common.js'
                 ]
             ];
 
@@ -236,7 +237,8 @@ class AdminPostsController extends BaseController
                     'absolute' => 'tinymce/tinymce.min.js',
                     'edit_create_tag_selector.js',
                     'edit_create_mediateka.js',
-                    'edit_create.js'
+                    'edit_create.js',
+                    'common.js'
                 ]
             ];
 
@@ -331,7 +333,8 @@ class AdminPostsController extends BaseController
                     'absolute' => 'tinymce/tinymce.min.js',
                     'edit_create_tag_selector.js',
                     'edit_create_mediateka.js',
-                    'edit_create.js'                    
+                    'edit_create.js',
+                    'common.js'
                 ]
             ];
 

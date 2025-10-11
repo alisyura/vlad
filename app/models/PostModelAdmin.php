@@ -252,10 +252,12 @@ class PostModelAdmin extends BaseModel {
      *
      * @param int|null $postId ID поста.
      * @param string|null $url URL поста.
+     * @param string|null $articleType Тип статьи (post/page).
      * @param string|null $status Статус поста.
      * @return bool True, если пост существует, false в противном случае.
      */
-    public function postExists(?int $postId = null, ?string $url = null, ?string $status = null): bool
+    public function postExists(?int $postId = null, ?string $url = null, 
+        ?string $articleType = null, ?string $status = null): bool
     {
         if (is_null($url) && is_null($postId)) {
             return false;
@@ -277,6 +279,11 @@ class PostModelAdmin extends BaseModel {
         if (!is_null($status)) {
             $whereClauses[] = "status = :status";
             $params[':status'] = $status;
+        }
+
+         if (!is_null($articleType)) {
+            $whereClauses[] = "article_type = :article_type";
+            $params[':article_type'] = $articleType;
         }
 
         $sql = "SELECT COUNT(*) FROM posts WHERE " . implode(" AND ", $whereClauses);
@@ -417,22 +424,25 @@ class PostModelAdmin extends BaseModel {
      * @param string $status Статус поста. См. константы в начале класса.
      * @return bool true в случае успеха, false — если произошла ошибка или пост не найден.
      */
-    public function setPostStatus(int $postId, string $status): bool
+    public function setPostStatus(int $postId, string $status, string $articleType): bool
     {
-        $sql = "UPDATE posts SET status = :status, updated_at = :updated_at WHERE id = :id";
+        $sql = "UPDATE posts 
+                SET status = :status, updated_at = :updated_at 
+                WHERE id = :id AND article_type = :article_type";
         try {
             $stmt = $this->db->prepare($sql);
             $result = $stmt->execute([
                 ':id' => $postId,
                 ':status' => $status,
+                ':article_type' => $articleType,
                 ':updated_at' => date('Y-m-d H:i:s')
             ]);
             
             // Возвращаем true, только если хотя бы одна строка была обновлена
             return $stmt->rowCount() > 0;
         } catch (PDOException $e) {
-            Logger::error("Ошибка при установке посту ID {$postId} статуса {$status} : " . $e->getTraceAsString());
-            return false;
+            Logger::error("setPostStatus. Ошибка при установке посту ID {$postId} статуса {$status} : ", [$e->getTraceAsString()]);
+            throw $e;
         }
     }
 

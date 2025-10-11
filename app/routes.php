@@ -171,24 +171,26 @@ $router->addRoute("/$adminRoute/(post|page)s/edit/(\d+)", function(Container $co
 
 // Вызов api создания нового поста из формы создания нового поста по кнопке "опубликовать"
 $router->addRoute("/$adminRoute/(post|page)s/api/create", function(Container $container, $articleType) {
-    // (new AdminPostsApiController($request))->create($articleType);
     $controller = $container->make(AdminPostsApiController::class);
     $controller->create($articleType);
 }, ['UserAuthenticatedMiddleware', 'AjaxMiddleware', 'CsrfMiddleware'], ['method' => 'POST']);
 
 // Вызов api изменения поста из формы изменения поста по кнопке "обновить"
-$router->addRoute("/$adminRoute/(post|page)s/api/edit", function($request, $viewAdmin, $articleType) {
-    (new AdminPostsApiController($request))->edit($articleType);
+$router->addRoute("/$adminRoute/(post|page)s/api/edit", function(Container $container, $articleType) {
+    $controller = $container->make(AdminPostsApiController::class);
+    $controller->edit($articleType);
 }, ['UserAuthenticatedMiddleware', 'AjaxMiddleware', 'CsrfMiddleware'], ['method' => 'PUT']);
 
 // Мягкое удаление поста/страницы. Простановка статуса "удален"
-$router->addRoute("/$adminRoute/posts/api/delete", function($request, $viewAdmin) {
-    (new AdminPostsApiController($request))->deletePost();
+$router->addRoute("/$adminRoute/(post|page)s/api/delete", function(Container $container, $articleType) {
+    $controller = $container->make(AdminPostsApiController::class);
+    $controller->delete($articleType);
 }, ['UserAuthenticatedMiddleware', 'AjaxMiddleware', 'CsrfMiddleware'], ['method' => 'PATCH']);
 
 // Проверка урла при создании поста/страницы
-$router->addRoute("/$adminRoute/posts/api/check-url", function($request, $viewAdmin) {
-    (new AdminPostsApiController($request))->checkUrl();
+$router->addRoute("/$adminRoute/(post|page)s/api/check-url", function(Container $container, $articleType) {
+    $controller = $container->make(AdminPostsApiController::class);
+    $controller->checkUrl($articleType);
 }, ['UserAuthenticatedMiddleware', 'AjaxMiddleware', 'CsrfMiddleware'], ['method' => 'POST']);
 
 

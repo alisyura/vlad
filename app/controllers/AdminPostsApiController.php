@@ -92,73 +92,68 @@ class AdminPostsApiController extends BaseController
         }
     }
 
+     /**
+     * Точка входа на удаление поста/страницы (AJAX PATCH запрос)
+     * 
+     * @param string $articleType Тип статьи (post/page).
+     */
+    public function delete($articleType)
+    {
+        $this->deleteArticle($articleType);
+    }
+
     /**
      * Выполняет мягкое удаление поста/страницы по ID (через AJAX).
      * Ожидает PATCH-запрос с JSON: { post_id: 123, csrf_token: "..." }
      */
-    public function deletePost()
+    private function deleteArticle($articleType)
     {
-        // Считываем JSON
-        $input = json_decode(file_get_contents('php://input'), true);
-        $postId = filter_var($input['post_id'] ?? null, FILTER_VALIDATE_INT);
-
-        // Проверка ID
-        if (!is_numeric($postId)) {
-            $this->sendErrorJsonResponse('Неверный ID поста.');
-            return;
-        }
+        Logger::debug("deleteArticle. Начало");
+        
+        $postData=$this->request->getJson();
 
         try {
-            $adminPostsModel = new AdminPostsModel();
-            $post = $adminPostsModel->postExists((int)$postId);
+            $deleteResult = $this->postsApiService->deleteArticle($postData, $articleType);
 
-            if (!$post) {
-                $this->sendErrorJsonResponse('Пост не найден', 404);
-                return;
+            if ($deleteResult) {
+                $this->sendSuccessJsonResponse('Пост перемещен на удаление в корзину.');
+            } else {
+                $this->sendErrorJsonResponse('Произошла ошибка при удалении поста.', 500);
             }
-
-            // Помечаем пост как удалённый
-            $admPostsModel = new AdminPostsModel();
-            $admPostsModel->setPostStatus($postId, AdminPostsModel::STATUS_DELETED);
-
-            $this->sendSuccessJsonResponse('Пост успешно удалён.');
-        } catch (Exception $e) {
-            Logger::error("Ошибка при удалении поста $postId: " . $e->getTraceAsString());
-            $this->sendErrorJsonResponse('Ошибка при удалении поста', 500);
+        } catch (UserDataException $e) {
+            Logger::error("deleteArticle. ошибки заполнены. выход");
+            $this->sendErrorJsonResponse($e->getMessage(), $e->getCode(), $e->getValidationErrors());
+        } catch (Throwable $e) {
+            Logger::error("deleteArticle. сбой при удалении поста/страницы", ['articleType' => $articleType, $e->getTraceAsString()]);
+            $this->sendErrorJsonResponse('Сбой при удалении поста/страницы.', 500);
         }
+
+        exit;
     }
 
     /**
      * Проверяет что поста/страницы с переданным урлом нет, чтобы создать новый пост/страницу
      * (AJAX POST запрос)
      */
-    public function checkUrl()
+    public function checkUrl($articleType)
     {
-        try
-        {
-            header('Content-Type: application/json');
+        Logger::debug("checkUrl. Начало");
+        
+        $postData=$this->request->getJson();
 
-            // Получаем данные из тела POST-запроса
-            $input = json_decode(file_get_contents('php://input'), true);
-            $url = $input['url'] ?? '';
-
-            if (empty($url)) {
-                $this->sendSuccessJsonResponse('Урл доступен', 200, ['is_unique' => false]);
-                return;
-            }
-
-            $postModel = new AdminPostsModel();
-            // В данном случае мы не передаём ID, так как пост создаётся
-            $isUnique = !$postModel->postExists(null, $url); 
+        try {
+            $isUnique = $this->postsApiService->checkUrl($postData, $articleType);
 
             $this->sendSuccessJsonResponse('Урл доступен', 200, ['is_unique' => $isUnique]);
+        } catch (UserDataException $e) {
+            Logger::error("checkUrl. ошибки заполнены. выход");
+            $this->sendErrorJsonResponse($e->getMessage(), $e->getCode(), $e->getValidationErrors());
+        } catch (Throwable $e) {
+            Logger::error("checkUrl. сбой при проверке урла", ['articleType' => $articleType, $e->getTraceAsString()]);
+            $this->sendErrorJsonResponse('Сбой при проверке урла.', 500);
         }
-        catch(Exception $e)
-        {
-            Logger::error("Ошибка при проверке URL $url" . $e->getTraceAsString());
-            $this->sendErrorJsonResponse('Ошибка при проверке URL', 403);
-            exit;
-        }
+
+        exit;
     }
 
     /**
@@ -217,78 +212,28 @@ class AdminPostsApiController extends BaseController
      */
     private function editArticle($articleType)
     {
-        header('Content-Type: application/json');
+        $postData=$this->request->getJson();
 
+        try {
+            $updateResultArr = $this->postsApiService->editArticle($postData, $articleType);
+            $updateResult = $updateResultArr['updateResult'];
+            $postId = $updateResultArr['postId'];
 
-        Logger::debug("editArticle. Начало");
-
-
-        $json_data = file_get_contents('php://input');
-        $decodedData = json_decode($json_data, true);
-
-        $postId = filter_var($decodedData['id'] ?? null, FILTER_VALIDATE_INT);
-        $title = trim($decodedData['title'] ?? '');
-        $content = $decodedData['content'] ?? '';
-        $status = $decodedData['status'] ?? 'draft';
-        $meta_title = trim($decodedData['meta_title'] ?? '');
-        $meta_description = trim($decodedData['meta_description'] ?? '');
-        $meta_keywords = trim($decodedData['meta_keywords'] ?? '');
-        $excerpt = trim($decodedData['excerpt'] ?? '');
-        $selectedCategories = $decodedData['categories'] ?? [];
-
-        $selectedTags = $decodedData['tags'] ?? [];
-        $tagsString = is_array($selectedTags) ? implode(',', $selectedTags) : $selectedTags;
-
-        $thumbnailUrl = trim($decodedData['post_image_url'] ?? '');
-
-        $adminPostsModel = new AdminPostsModel();
-        if (!$adminPostsModel->postExists($postId))
-        {
-            Logger::debug("editArticle. post does not exists. postId={$postId}");
-            $data['errors'][] = 'Пост не найден.';
-        }
-        if (empty($title)) {
-            Logger::debug("editArticle. title empty");
-            $data['errors'][] = 'Заголовок поста обязателен.';
+            if ($updateResult) {
+                $adminRoute = Config::get('admin.AdminRoute');
+                $msgText = ($articleType == 'post' ? 'Пост успешно обновлен' : 'Страница успешно обновлена');
+                $this->sendSuccessJsonResponse($msgText, 200, ['redirect' => "/$adminRoute/{$articleType}s/edit/{$postId}"]);
+            } else {
+                $this->sendErrorJsonResponse('Произошла ошибка при обновлении поста.', 500);
+            }
+        } catch (UserDataException $e) {
+            Logger::error("editArticle. ошибки заполнены. выход", [$e->getTraceAsString()]);
+            $this->sendErrorJsonResponse($e->getMessage(), $e->getCode(), $e->getValidationErrors());
+        } catch (Throwable $e) {
+            Logger::error("editArticle. сбой при создании поста/страницы", ['articleType' => $articleType, $e->getTraceAsString()]);
+            $this->sendErrorJsonResponse('Сбой при создании поста/страницы.', 500);
         }
 
-        if (!empty($data['errors'])) {
-            Logger::debug("editArticle. ошибки заполнены. выход");
-            http_response_code(500);
-            echo json_encode(['success' => false, 
-                'message' => 'Неверно заполнены поля.',
-                'errors' => $data['errors']]);
-            exit;
-        }
-
-
-        $user_id = Auth::getUserId();
-        $postData = [
-            'user_id' => $user_id,
-            'article_type' => $articleType,
-            'status' => $status,
-            'title' => $title,
-            'content' => $content,
-            'meta_title' => $meta_title,
-            'meta_description' => $meta_description,
-            'meta_keywords' => $meta_keywords,
-            'excerpt' => $excerpt,
-            'thumbnail_url' => $thumbnailUrl,
-        ];
-
-        $updateResult = $adminPostsModel->updatePost($postId, $postData, $selectedCategories, $tagsString);
-        
-        if ($updateResult) {
-            $adminRoute = Config::get('admin.AdminRoute');
-            $msgText = ($articleType == 'post' ? 'Пост успешно обновлен' : 'Страница успешно обновлена');
-            echo json_encode(['success' => true, 
-                'redirect' => "/$adminRoute/{$articleType}s/edit/{$postId}",
-                'message' => $msgText]);
-        } else {
-            http_response_code(500);
-            echo json_encode(['success' => false, 
-                'message' => 'Произошла ошибка при создании поста.']);
-        }
-
+        exit;
     }
 }

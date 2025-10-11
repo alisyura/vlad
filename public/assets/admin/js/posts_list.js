@@ -78,10 +78,13 @@ class PostActionsModal {
         let url;
         let method = 'PATCH';
 
+        const contentType = getContentTypeFromUrlRegex(window.location.pathname,
+                `${adminRoute}`);
+
         // Выбор URL в зависимости от действия
         switch (this.currentAction) {
             case 'delete':
-                url = `/${adminRoute}/posts/api/delete`;
+                url = `/${adminRoute}/${contentType}s/api/delete`;
                 break;
             case 'delete-forever':
                 url = `/${adminRoute}/thrash/api/delete-forever`;
@@ -109,7 +112,7 @@ class PostActionsModal {
                     'X-Requested-With': 'XMLHttpRequest',
                     'X-CSRF-TOKEN': csrfToken
                 },
-                body: JSON.stringify({ post_id: this.currentPostId })
+                body: JSON.stringify({ id: this.currentPostId })
             });
 
             if (this.bsModal) {
