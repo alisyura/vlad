@@ -88,7 +88,7 @@ class PostModelAdmin extends BaseModel {
             
             return $post;
         } catch (PDOException $e) {
-            Logger::error("Error fetching post by ID with categories and tags: " . $e->getMessage());
+            Logger::error("getPostById. Error fetching post by ID with categories and tags.", ['postId' => $id, 'articleType' => $articleType], $e);
             return null;
         }
     }
@@ -122,7 +122,7 @@ class PostModelAdmin extends BaseModel {
                         meta_keywords = :meta_keywords,
                         thumbnail_media_id = :thumbnail_media_id,
                         updated_at = :updated_at
-                    WHERE id = :id";
+                    WHERE id = :id AND article_type = :article_type";
             
             $stmt = $this->db->prepare($sql);
             $stmt->execute([
@@ -135,7 +135,8 @@ class PostModelAdmin extends BaseModel {
                 ':meta_description' => $postData['meta_description'],
                 ':meta_keywords' => $postData['meta_keywords'],
                 ':thumbnail_media_id' => $thumbnailMediaId,
-                ':updated_at' => date('Y-m-d H:i:s')
+                ':updated_at' => date('Y-m-d H:i:s'),
+                ':article_type' => $postData['article_type']
             ]);
 
             // Удаляем старые связи перед добавлением новых
@@ -154,7 +155,7 @@ class PostModelAdmin extends BaseModel {
             return true;
         } catch (PDOException $e) {
             $this->db->rollBack();
-            Logger::error("Error updating post with ID $postId: " . $e->getMessage());
+            Logger::error("updatePost. Error updating post with ID: " . $postId, $postData, $e);
             return false;
         }
     }
@@ -177,7 +178,7 @@ class PostModelAdmin extends BaseModel {
             
             return true;
         } catch (PDOException $e) {
-            Logger::error("Error deleting post links for post ID $postId: " . $e->getMessage());
+            Logger::error("deletePostLinks. Error deleting post links", ['postId' => $postId], $e);
             throw $e;
         }
     }
@@ -240,7 +241,9 @@ class PostModelAdmin extends BaseModel {
             return $postId;
         } catch (PDOException $e) {
             $this->db->rollBack();
-            Logger::error("Error creating post: " . $e->getTraceAsString());
+            $mergedForLog = [...$postData, 'categoriesIds' => $categories];
+            $mergedForLog['tagsString'] = $tagsString;
+            Logger::error("createPost. Error creating post", $mergedForLog, $e);
             return false;
         }
     }
@@ -441,7 +444,7 @@ class PostModelAdmin extends BaseModel {
             // Возвращаем true, только если хотя бы одна строка была обновлена
             return $stmt->rowCount() > 0;
         } catch (PDOException $e) {
-            Logger::error("setPostStatus. Ошибка при установке посту ID {$postId} статуса {$status} : ", [$e->getTraceAsString()]);
+            Logger::error("setPostStatus. Ошибка при установке посту статуса.", ['postId' => $postId, 'status' => $status, 'articleType' => $articleType], $e);
             throw $e;
         }
     }
@@ -452,32 +455,43 @@ class PostModelAdmin extends BaseModel {
      * @param int $postId ID поста.
      * @return bool true в случае успеха, false — если произошла ошибка или пост не найден.
      */
-    public function hardDeletePost(int $postId): bool
+    public function hardDeletePost(int $postId, string $articleType): bool
     {
-        // Запрос на полное удаление записи
-        $sql = "DELETE FROM posts WHERE id = :id";
+        // Усиленный запрос: удаляет только если ID совпадает И статус 'trash'
+        $sql = "DELETE FROM posts 
+                WHERE id = :id 
+                AND status = :trash_status 
+                AND article_type = :article_type";
+        
         try {
             $stmt = $this->db->prepare($sql);
-            $stmt->execute([':id' => $postId]);
-            
+            $stmt->execute([
+                ':id' => $postId,
+                ':trash_status' => PostModelAdmin::STATUS_DELETED,
+                ':article_type' => $articleType
+            ]);
+
             // Возвращаем true, если удалена хотя бы одна строка
             return $stmt->rowCount() > 0;
         } catch (PDOException $e) {
-            // Логирование ошибки и возврат false
-            Logger::error("Ошибка при полном удалении поста ID {$postId}: " . $e->getTraceAsString());
-            return false;
+            // Логирование и переброс исключения
+            Logger::error("hardDeletePost. Ошибка при полном удалении поста: ", [
+                'postId' => $postId,
+                'articleType' => $articleType
+            ], $e);
+            throw $e; 
         }
     }
 
     /**
      * Получает общее количество постов. Необходимо для пагинации.
      *
-     * @param string $article_type Тип статьи. post или page
+     * @param string $articleType Тип статьи. post или page
      * @param bool $showThrash Получить список удаленных или активных постов.
      * @return int Общее количество постов.
      */
-    public function getTotalPostsCount(string $article_type, bool $showThrash = false) {
-        [$excludeCondition, $excludeUrls] = $this->getExcludeConditionAndUrls($article_type);
+    public function getTotalPostsCount(string $articleType, bool $showThrash = false) {
+        [$excludeCondition, $excludeUrls] = $this->getExcludeConditionAndUrls($articleType);
         
         // Создаем массив для всех условий WHERE
         $conditions = [
@@ -499,7 +513,7 @@ class PostModelAdmin extends BaseModel {
 
         try {
             $stmt = $this->db->prepare($sql);
-            $stmt->bindParam(':article_type', $article_type, PDO::PARAM_STR);
+            $stmt->bindParam(':article_type', $articleType, PDO::PARAM_STR);
             
             // Связываем параметры URL, если они есть
             if (!empty($excludeUrls)) {
@@ -514,7 +528,7 @@ class PostModelAdmin extends BaseModel {
             return (int) $result['total_posts'];
             
         } catch (PDOException $e) {
-            Logger::error("Error fetching total posts count: " . $e->getTraceAsString());
+            Logger::error("getTotalPostsCount. Error fetching total posts count", ['articleType' => $articleType, 'showThrash' => $showThrash], $e);
             throw $e;
         }
     }
@@ -523,7 +537,7 @@ class PostModelAdmin extends BaseModel {
      * Получает список постов для админ-панели с пагинацией.
      * Включает данные об авторе, связанных категориях и тегах.
      *
-     * @param string $article_type Тип статьи. post или page
+     * @param string $articleType Тип статьи. post или page
      * @param int $limit Количество постов на страницу.
      * @param int $offset Смещение (сколько постов пропустить).
      * @param string $sortBy Колонка для сортировки (например, 'title', 'created_at').
@@ -531,11 +545,11 @@ class PostModelAdmin extends BaseModel {
      * @param bool $showThrash Получить список удаленных или активных постов.
      * @return array Список постов, каждый из которых содержит массив категорий и массив тегов.
      */
-    public function getPostsList(string $article_type, int $limit, int $offset,
+    public function getPostsList(string $articleType, int $limit, int $offset,
                              string $sortBy = 'updated_at', string $sortOrder = 'DESC',
                              bool $showThrash = false) {
         // Получаем условие исключения и URL-адреса, используя существующий метод
-        [$excludeCondition, $excludeUrls] = $this->getExcludeConditionAndUrls($article_type);
+        [$excludeCondition, $excludeUrls] = $this->getExcludeConditionAndUrls($articleType);
 
         // Допустимые поля для сортировки и их соответствие в базе данных
         $allowedSortColumns = [
@@ -606,10 +620,10 @@ class PostModelAdmin extends BaseModel {
 
         try {
 
-            Logger::debug("getPosts. $article_type, $limit, $offset,
+            Logger::debug("getPosts. $articleType, $limit, $offset,
                              $sortBy, $sortOrder. $sql");
             $stmt = $this->db->prepare($sql);
-            $stmt->bindParam(':article_type', $article_type, PDO::PARAM_STR);
+            $stmt->bindParam(':article_type', $articleType, PDO::PARAM_STR);
             $stmt->bindParam(':limit', $limit, PDO::PARAM_INT);
             $stmt->bindParam(':offset', $offset, PDO::PARAM_INT);
 
@@ -627,7 +641,15 @@ class PostModelAdmin extends BaseModel {
             return $this->parsePostData($rawPosts);
 
         } catch (PDOException $e) {
-            Logger::error("Error fetching paginated posts in AdminPostsModel: " . $e->getTraceAsString());
+            Logger::error("getPostsList. Error fetching paginated posts in AdminPostsModel.", 
+                [
+                    'articleType' => $articleType, 
+                    'limit' => $limit,
+                    'offset' => $offset,
+                    'sortBy' => $sortBy,
+                    'sortOrder' => $sortOrder,
+                    'showThrash' => $showThrash
+                ], $e);
             throw $e;
         }
     }

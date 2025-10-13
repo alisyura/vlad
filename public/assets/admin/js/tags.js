@@ -62,7 +62,7 @@ class TagsDashboard {
         }
     }
 
-    // Создание нового пользователя. Обработка отправки формы
+    // Создание нового тэга. Обработка отправки формы
     async handleCreateTagSubmit(e) {
         e.preventDefault();
 
@@ -121,7 +121,7 @@ class TagsDashboard {
             }
         } catch (error) {
             console.error('Ошибка:', error);
-            alert('Произошла ошибка при создании пользователя.');
+            alert('Произошла ошибка при создании тэга.');
         }
     }
 
@@ -176,7 +176,7 @@ class TagsDashboard {
     
         } catch (error) {
             console.error('Ошибка:', error);
-            alert('Произошла ошибка при обновлении пользователя.');
+            alert('Произошла ошибка при обновлении тэга.');
         }
     }
 

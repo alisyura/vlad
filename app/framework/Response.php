@@ -127,4 +127,45 @@ class Response
     {
         echo $this->content;
     }
+
+    /**
+     * Устанавливает перенаправление (заголовок Location).
+     *
+     * @param string $url URL, на который нужно перенаправить.
+     * @param int $statusCode Код статуса перенаправления (302 по умолчанию).
+     * @return self
+     */
+    public function redirect(string $url, int $statusCode = 302): self
+    {
+        // 1. Устанавливаем статус перенаправления
+        $this->setStatusCode($statusCode); 
+        
+        // 2. Устанавливаем заголовок Location
+        $this->addHeader('Location', $url);
+        
+        // 3. Очищаем контент (перенаправление не должно иметь тела)
+        $this->setContent('');
+        
+        return $this;
+    }
+
+    /**
+     * Устанавливает ответ как JSON.
+     *
+     * @param array $data Данные для кодирования в JSON.
+     * @param int $statusCode HTTP-код статуса.
+     * @return self
+     */
+    public function json(array $data, int $statusCode = 200): self
+    {
+        $this->setStatusCode($statusCode);
+        
+        // Устанавливаем заголовок Content-Type
+        $this->addHeader('Content-Type', 'application/json; charset=UTF-8');
+        
+        // Кодируем данные в строку JSON
+        $this->setContent(json_encode($data)); 
+        
+        return $this;
+    }
 }

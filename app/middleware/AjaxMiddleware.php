@@ -42,10 +42,7 @@ class AjaxMiddleware implements MiddlewareInterface
      */
     public function handle(?array $param = null): bool
     {
-        // Если метод запроса верный, проверяем наличие AJAX-заголовка
-        $http_requested_with = $this->request->server('HTTP_X_REQUESTED_WITH') ?? '';
-        
-        if (empty($http_requested_with) || strtolower($http_requested_with) !== 'xmlhttprequest') {
+        if (!$this->request->isAjax()) {
             $this->sendErrorJsonResponse('Неверный формат запроса.', 403);
             exit;
         }

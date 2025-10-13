@@ -243,11 +243,11 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        const contentType = getContentTypeFromUrlRegex(window.location.pathname,
-                `${adminRoute}`);
+        const contentType = getContentTypeFromUrlRegex(`${adminRoute}`);
+        const url=`/${adminRoute}/${contentType}s/api/check-url`;
 
         try {
-            const response = await fetch(`/${adminRoute}/${contentType}s/api/check-url`, {
+            const response = await fetch(url, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

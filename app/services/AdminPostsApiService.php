@@ -21,6 +21,7 @@ class AdminPostsApiService
             $postId = (false === $postId) ? null : $postId;
         }
         
+        $articleType = $postData['articleType'] ?? '';
         $title = trim($postData['title'] ?? '');
         $content = $postData['content'] ?? '';
         $url = transliterate($postData['url'] ?? '');
@@ -37,7 +38,7 @@ class AdminPostsApiService
         $thumbnailUrl = trim($postData['post_image_url'] ?? ''); 
 
         return [
-            'postId' => $postId, 'title' => $title, 
+            'postId' => $postId, 'articleType' => $articleType, 'title' => $title, 
             'content' => $content, 'url' => $url, 'status' => $status,
             'metaTitle' => $metaTitle, 'metaDescription' => $metaDescription,
             'metaKeywords' => $metaKeywords, 'excerpt' => $excerpt, 
@@ -187,5 +188,73 @@ class AdminPostsApiService
         }
 
         return !$this->model->postExists(null, $url, $articleType);
+    }
+
+    /**
+     * Восстанавливает пост из корзины в статус черновик
+     */
+    public function restore($postData): bool
+    {
+        if (empty($postData))
+        {
+            throw new UserDataException('Данные не переданы', [], 400);
+        }
+
+        ['postId' => $postId, 'articleType' => $articleType] = $this->parseUserData($postData);
+
+        $errors = [];
+        if (null === $postId)
+        {
+            $errors[] = 'Не передан или неверного формата id поста';
+        }
+        if (empty($articleType))
+        {
+            $errors[] = 'Не указан тип статьи';
+        }
+        if (empty($errors)) {
+            if (!$this->model->postExists($postId, null, $articleType, PostModelAdmin::STATUS_DELETED)) {
+                $errors[] = 'Пост не найден.';
+            }
+        }
+
+        if (!empty($errors)) {
+            throw new UserDataException('Неверно заполнены поля.', $errors, 400);
+        }
+
+        return $this->model->setPostStatus($postId, PostModelAdmin::STATUS_DRAFT, $articleType);
+    }
+
+    /**
+     * Полностью удаляет пост из БД
+     */
+    public function hardDelete($postData): bool
+    {
+        if (empty($postData))
+        {
+            throw new UserDataException('Данные не переданы', [], 400);
+        }
+
+        ['postId' => $postId, 'articleType' => $articleType] = $this->parseUserData($postData);
+
+        $errors = [];
+        if (null === $postId)
+        {
+            $errors[] = 'Не передан или неверного формата id поста';
+        }
+        if (empty($articleType))
+        {
+            $errors[] = 'Не указан тип статьи';
+        }
+        if (empty($errors)) {
+            if (!$this->model->postExists($postId, null, $articleType, PostModelAdmin::STATUS_DELETED)) {
+                $errors[] = 'Пост не найден.';
+            }
+        }
+
+        if (!empty($errors)) {
+            throw new UserDataException('Неверно заполнены поля.', $errors, 400);
+        }
+
+        return $this->model->hardDeletePost($postId, $articleType);
     }
 }

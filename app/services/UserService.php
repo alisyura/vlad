@@ -6,7 +6,8 @@ class UserService
 
     public function __construct()
     {
-        $this->userModel = new UserModel();
+        $pdo = Database::getConnection();
+        $this->userModel = new UserModel($pdo);
     }
 
     /**

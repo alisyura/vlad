@@ -127,15 +127,46 @@ class TagsModel extends BaseModel {
     }
 
     /**
-     * Проверяет, существует ли Урл в базе данных
-     * @param string $url
-     * @return bool
+     * Проверяет, заняты ли указанное имя тега и/или URL.
+     *
+     * @param string $name Имя тега для проверки.
+     * @param string $url URL (слаг) тега для проверки.
+     * @return array Возвращает массив с результатами проверки:
+     * ['name_exists' => bool, 'url_exists' => bool]
+     * @throws \PDOException Если происходит ошибка выполнения запроса к базе данных.
      */
-    public function isUrlExists(string $url)
+    public function checkTagUniqueness(string $name, string $url): array
     {
-        $stmt = $this->db->prepare("SELECT COUNT(*) FROM tags WHERE url = :url");
-        $stmt->execute([':url' => $url]);
-        return $stmt->fetchColumn() > 0;
+        $sql = "
+            SELECT 
+                -- Если SUM вернет NULL (нет совпадений), IFNULL заменит его на 0.
+                IFNULL(SUM(CASE WHEN name = :name_sum THEN 1 ELSE 0 END), 0) AS name_count,
+                IFNULL(SUM(CASE WHEN url = :url_sum THEN 1 ELSE 0 END), 0) AS url_count
+            FROM tags
+            -- WHERE по-прежнему нужен, чтобы ограничить выборку.
+            WHERE name = :name_where OR url = :url_where
+        ";
+
+        $stmt = $this->db->prepare($sql);
+        
+        // Передаем 4 уникально именованных параметра, чтобы избежать ошибки "Invalid parameter number".
+        $stmt->execute([
+            ':name_sum' => $name, 
+            ':url_sum' => $url,
+            ':name_where' => $name, 
+            ':url_where' => $url
+        ]);
+        
+        $result = $stmt->fetch(\PDO::FETCH_ASSOC);
+
+        if ($result === false) {
+            throw new \PDOException("Ошибка при выполнении запроса проверки уникальности тега.");
+        }
+        
+        return [
+            'name_exists' => (int)$result['name_count'] > 0,
+            'url_exists' => (int)$result['url_count'] > 0
+        ];
     }
 
     /**

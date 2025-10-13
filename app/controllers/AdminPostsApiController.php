@@ -21,38 +21,29 @@ class AdminPostsApiController extends BaseController
      */
     public function hardDelete()
     {
-        // 1. Считываем и проверяем ID
-        $input = json_decode(file_get_contents('php://input'), true);
-        $postId = filter_var($input['post_id'] ?? null, FILTER_VALIDATE_INT);
-        if (!is_numeric($postId)) {
-            $this->sendErrorJsonResponse('Неверный ID поста.');
-            return;
-        }
+        $postData=$this->request->getJson();
+
+        // для логгирования в catch
+        $postId = $postData['id'] ?? 'null';
+        $articleType = $postData['articleType'] ?? '';
 
         try {
-            // 2. Создаем экземпляр модели
-            $adminPostsModel = new AdminPostsModel();
+            $hardDeleteResult = $this->postsApiService->hardDelete($postData);
 
-            // 3. Проверяем, существует ли пост, который нужно удалить.
-            // Здесь нужно проверять, что пост имеет статус 'deleted' перед окончательным удалением
-            $postExists = $adminPostsModel->postExists(postId: $postId, status: AdminPostsModel::STATUS_DELETED);
-            if (!$postExists) {
-                $this->sendErrorJsonResponse('Пост не найден или не имеет статуса "удалён".', 404);
-                return;
-            }
-
-            // 4. Вызываем метод полного удаления
-            $isDeleted = $adminPostsModel->hardDeletePost($postId);
-
-            if ($isDeleted) {
-                $this->sendSuccessJsonResponse('Пост полностью удален.');
+            if ($hardDeleteResult) {
+                $this->sendSuccessJsonResponse('Пост/страница успешно удален.');
             } else {
-                $this->sendErrorJsonResponse('Пост не найден или произошла ошибка при удалении.', 500);
+                $this->sendErrorJsonResponse('Произошла ошибка при удалении поста/страницы.', 409);
             }
-        } catch (Exception $e) {
-            Logger::error("Ошибка при полном удалении поста $postId: " . $e->getTraceAsString());
-            $this->sendErrorJsonResponse('Ошибка сервера при удалении поста.', 500);
+        } catch (UserDataException $e) {
+            Logger::error("hardDelete. ошибки заполнены. выход", ['postId' => $postId, 'articleType' => $articleType], $e);
+            $this->sendErrorJsonResponse($e->getMessage(), $e->getCode(), $e->getValidationErrors());
+        } catch (Throwable $e) {
+            Logger::error("hardDelete. сбой при удалении поста/страницы", ['postId' => $postId, 'articleType' => $articleType], $e);
+            $this->sendErrorJsonResponse('Сбой при восстановлении поста/страницы.', 500);
         }
+
+        exit;
     }
 
 
@@ -62,34 +53,31 @@ class AdminPostsApiController extends BaseController
      */
     public function restore()
     {
-        // Считываем JSON
-        $input = json_decode(file_get_contents('php://input'), true);
-        $postId = filter_var($input['post_id'] ?? null, FILTER_VALIDATE_INT);
+        Logger::debug("restore. Начало");
+        
+        $postData=$this->request->getJson();
 
-        // Проверка ID
-        if (!is_numeric($postId)) {
-            $this->sendErrorJsonResponse('Неверный ID поста.');
-            return;
-        }
+        // для логгирования в catch
+        $postId = $postData['id'] ?? 'null';
+        $articleType = $postData['articleType'] ?? '';
 
         try {
-            $adminPostsModel = new AdminPostsModel();
-            $post = $adminPostsModel->postExists(postId: (int)$postId, status: AdminPostsModel::STATUS_DELETED);
+            $restoreResult = $this->postsApiService->restore($postData);
 
-            if (!$post) {
-                $this->sendErrorJsonResponse('Пост не найден', 404);
-                return;
+            if ($restoreResult) {
+                $this->sendSuccessJsonResponse('Пост воостановлен.');
+            } else {
+                $this->sendErrorJsonResponse('Произошла ошибка при восстановлении поста/страницы.', 409);
             }
-
-            // Помечаем пост как черновик
-            $admPostsModel = new AdminPostsModel();
-            $admPostsModel->setPostStatus($postId, AdminPostsModel::STATUS_DRAFT);
-
-            $this->sendSuccessJsonResponse('Пост успешно восстановлен.');
-        } catch (Exception $e) {
-            Logger::error("Ошибка при восстановлении поста $postId: " . $e->getTraceAsString());
-            $this->sendErrorJsonResponse('Ошибка при восстановлении поста', 500);
+        } catch (UserDataException $e) {
+            Logger::error("restore. ошибки заполнены. выход", ['postId' => $postId, 'articleType' => $articleType], $e);
+            $this->sendErrorJsonResponse($e->getMessage(), $e->getCode(), $e->getValidationErrors());
+        } catch (Throwable $e) {
+            Logger::error("restore. сбой при удалении поста/страницы", ['postId' => $postId, 'articleType' => $articleType], $e);
+            $this->sendErrorJsonResponse('Сбой при восстановлении поста/страницы.', 500);
         }
+
+        exit;
     }
 
      /**
@@ -112,6 +100,9 @@ class AdminPostsApiController extends BaseController
         
         $postData=$this->request->getJson();
 
+        // для логгирования в catch
+        $postId = $postData['id'] ?? 'null';
+
         try {
             $deleteResult = $this->postsApiService->deleteArticle($postData, $articleType);
 
@@ -121,10 +112,10 @@ class AdminPostsApiController extends BaseController
                 $this->sendErrorJsonResponse('Произошла ошибка при удалении поста.', 500);
             }
         } catch (UserDataException $e) {
-            Logger::error("deleteArticle. ошибки заполнены. выход");
+            Logger::error("deleteArticle. ошибки заполнены. выход", ['postId' => $postId, 'articleType' => $articleType], $e);
             $this->sendErrorJsonResponse($e->getMessage(), $e->getCode(), $e->getValidationErrors());
         } catch (Throwable $e) {
-            Logger::error("deleteArticle. сбой при удалении поста/страницы", ['articleType' => $articleType, $e->getTraceAsString()]);
+            Logger::error("deleteArticle. сбой при удалении поста/страницы", ['postId' => $postId,'articleType' => $articleType], $e);
             $this->sendErrorJsonResponse('Сбой при удалении поста/страницы.', 500);
         }
 
@@ -141,15 +132,18 @@ class AdminPostsApiController extends BaseController
         
         $postData=$this->request->getJson();
 
+        // для логгирования в catch
+        $url = $postData['url'] ?? 'null';
+
         try {
             $isUnique = $this->postsApiService->checkUrl($postData, $articleType);
 
             $this->sendSuccessJsonResponse('Урл доступен', 200, ['is_unique' => $isUnique]);
         } catch (UserDataException $e) {
-            Logger::error("checkUrl. ошибки заполнены. выход");
+            Logger::error("checkUrl. ошибки заполнены. выход", ['url' => $url, 'articleType' => $articleType], $e);
             $this->sendErrorJsonResponse($e->getMessage(), $e->getCode(), $e->getValidationErrors());
         } catch (Throwable $e) {
-            Logger::error("checkUrl. сбой при проверке урла", ['articleType' => $articleType, $e->getTraceAsString()]);
+            Logger::error("checkUrl. сбой при проверке урла", ['url' =>$url, 'articleType' => $articleType], $e);
             $this->sendErrorJsonResponse('Сбой при проверке урла.', 500);
         }
 
@@ -175,6 +169,9 @@ class AdminPostsApiController extends BaseController
         
         $postData=$this->request->getJson();
 
+        // для логгирования в catch
+        $url = $postData['url'] ?? 'null';
+
         try {
             $newPostId = $this->postsApiService->createArticle($postData, $articleType);
 
@@ -186,10 +183,10 @@ class AdminPostsApiController extends BaseController
                 $this->sendErrorJsonResponse('Произошла ошибка при создании поста.', 500);
             }
         } catch (UserDataException $e) {
-            Logger::error("createArticle. ошибки заполнены. выход");
+            Logger::error("createArticle. ошибки заполнены. выход", ['url' => $url, 'articleType' => $articleType], $e);
             $this->sendErrorJsonResponse($e->getMessage(), $e->getCode(), $e->getValidationErrors());
         } catch (Throwable $e) {
-            Logger::error("createArticle. сбой при создании поста/страницы", ['articleType' => $articleType]);
+            Logger::error("createArticle. сбой при создании поста/страницы", ['url' => $url, 'articleType' => $articleType], $e);
             $this->sendErrorJsonResponse('Сбой при создании поста/страницы.', 500);
         }
 
@@ -214,6 +211,9 @@ class AdminPostsApiController extends BaseController
     {
         $postData=$this->request->getJson();
 
+        // для логгирования в catch
+        $postId = $postData['id'] ?? 'null';
+
         try {
             $updateResultArr = $this->postsApiService->editArticle($postData, $articleType);
             $updateResult = $updateResultArr['updateResult'];
@@ -227,10 +227,10 @@ class AdminPostsApiController extends BaseController
                 $this->sendErrorJsonResponse('Произошла ошибка при обновлении поста.', 500);
             }
         } catch (UserDataException $e) {
-            Logger::error("editArticle. ошибки заполнены. выход", [$e->getTraceAsString()]);
+            Logger::error("editArticle. ошибки заполнены. выход", ['postId' => $postId, 'articleType' => $articleType], $e);
             $this->sendErrorJsonResponse($e->getMessage(), $e->getCode(), $e->getValidationErrors());
         } catch (Throwable $e) {
-            Logger::error("editArticle. сбой при создании поста/страницы", ['articleType' => $articleType, $e->getTraceAsString()]);
+            Logger::error("editArticle. сбой при создании поста/страницы", ['postId' => $postId, 'articleType' => $articleType], $e);
             $this->sendErrorJsonResponse('Сбой при создании поста/страницы.', 500);
         }
 

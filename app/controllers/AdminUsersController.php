@@ -2,6 +2,8 @@
 // app/controllers/AdminUsersController.php
 class AdminUsersController extends BaseController
 {
+    use ShowAdminErrorViewTrait;
+
     private UserService $userService;
     private UserModel $userModel;
 
@@ -9,17 +11,19 @@ class AdminUsersController extends BaseController
     {
         parent::__construct($request, $view);
         $this->userService = new UserService();
-        $this->userModel = new UserModel();
+        $pdo = Database::getConnection();
+        $this->userModel = new UserModel($pdo);
     }
-    
+
     public function list()
     {
+        $userName = Auth::getUserName();
         try {
             $data = $this->userService->getUsersAndRolesData();
 
             // Добавляем данные для шаблона
             $data['adminRoute'] = $this->getAdminRoute();
-            $data['user_name'] = Auth::getUserName();
+            $data['user_name'] = $userName;
             $data['active'] = "users"; // подсветка вкладки левого меню
             $data['styles'] = ['users.css'];
             $data['jss'] = ['users.js'];
@@ -27,18 +31,20 @@ class AdminUsersController extends BaseController
             $this->view->renderAdmin('admin/users/list.php', $data);
         } catch(Throwable $e) {
             Logger::error("Error in users list: " . $e->getTraceAsString());
-            $this->showAdminError('Ошибка', 'Произошла непредвиденная ошибка.');
+            $this->showAdminErrorView('Ошибка', 'Произошла непредвиденная ошибка.', $userName);
         }
     }
 
     public function edit(int $userId)
     {
+        $userName = Auth::getUserName();
+
         try {
             $data = $this->userService->getUsersAndRolesData();
 
             // Добавляем данные для шаблона
             $data['adminRoute'] = $this->getAdminRoute();
-            $data['user_name'] = Auth::getUserName();
+            $data['user_name'] = $userName;
             $data['active'] = "users"; // подсветка вкладки левого меню
             $data['styles'] = ['users.css'];
             $data['jss'] = ['users.js'];
@@ -47,13 +53,13 @@ class AdminUsersController extends BaseController
             $user = $this->userModel->getUser(id: $userId);
             if (empty($user))
             {
-                $this->showAdminError('Ошибка', 'Пользователь не найден.');
+                $this->showAdminErrorView('Ошибка', 'Пользователь не найден.', $userName);
                 return;
             }
             
             // Проверяем, существует ли пользователь и имеет ли текущий админ права на его редактирование
             if (!$data['isUserAdmin'] && $user['id'] != Auth::getUserId()) {
-                $this->showAdminError('Ошибка', 'Недостаточно прав для редактирования этого пользователя.');
+                $this->showAdminErrorView('Ошибка', 'Недостаточно прав для редактирования этого пользователя.', $userName);
                 return;
             }
             
@@ -61,7 +67,7 @@ class AdminUsersController extends BaseController
             $this->view->renderAdmin('admin/users/edit.php', $data);
         } catch(Throwable $e) {
             Logger::error("Error in edit user (show form): " . $e->getTraceAsString());
-            $this->showAdminError('Ошибка', 'Произошла непредвиденная ошибка.');
+            $this->showAdminErrorView('Ошибка', 'Произошла непредвиденная ошибка.', $userName);
         }
     }
 }

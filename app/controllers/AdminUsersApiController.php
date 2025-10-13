@@ -4,12 +4,15 @@
 
 class AdminUsersApiController extends BaseController
 {
+    use JsonResponseTrait;
+    
     private UserModel $userModel;
 
     public function __construct(Request $request, ?View $view = null)
     {
         parent::__construct($request, $view);
-        $this->userModel = new UserModel();
+        $pdo = Database::getConnection();
+        $this->userModel = new UserModel($pdo);
     }
 
     /**

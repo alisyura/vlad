@@ -7,7 +7,8 @@ class AdminMediaApiController extends BaseController
 {
     public function list()
     {
-        $amm = new AdminMediaModel();
+        $pdo = Database::getConnection();
+        $amm = new AdminMediaModel($pdo);
         $media = $amm->getMedialist();
 
         $mediaStruct = print_r($media, true);
@@ -34,7 +35,8 @@ class AdminMediaApiController extends BaseController
             
 
             // Получаем модель и сохраняем данные в БД
-            $amm = new AdminMediaModel();
+            $pdo = Database::getConnection();
+            $amm = new AdminMediaModel($pdo);
             $amm->saveImgToMedia(
                 Auth::getUserId(),
                 $uploadedFile['url'],

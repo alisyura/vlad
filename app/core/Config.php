@@ -28,6 +28,7 @@ class Config
             'UseWarningLogger' => true,
             'UseErrorLogger' => true,
             'UseCriticalLogger' => true,
+            'LogPath' => 'C:\\Users\\kriya\\Projects\\web\\vlad.local\\logs'
         ],
         'upload' => [
             'UploadDir' => 'uploads',

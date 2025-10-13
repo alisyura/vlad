@@ -66,8 +66,7 @@ class CsrfMiddleware implements MiddlewareInterface
             http_response_code(403);
             
             // Если это AJAX-запрос, возвращаем JSON
-            if ((null !== $this->request->server('HTTP_X_REQUESTED_WITH')) && 
-                strtolower($this->request->server('HTTP_X_REQUESTED_WITH')) === 'xmlhttprequest') {
+            if ($this->request->isAjax()) {
                 $this->sendErrorJsonResponse('Неверный CSRF-токен.', 403);
             } else {
                 // Иначе делаем редирект или показываем страницу с ошибкой

@@ -4,6 +4,9 @@
 
 $container = new Container();
 $container->bind(Request::class, fn($c) => RequestFactory::getInstance());
+// $container->singleton(ResponseFactory::class, ResponseFactory::class); 
+// //Класс Response здесь не регистрируется, так как его экземпляры 
+// // всегда создаются через $container->make(ResponseFactory::class)->createResponse(...)
 
 $container->bind(View::class, function() {
     $viewsRootPath = Config::get('global.ViewsRootPath');
@@ -51,7 +54,6 @@ $container->bind(SubmissionService::class, SubmissionService::class);
 $container->bind(LinkValidator::class, LinkValidator::class);
 
 
-$container->bind(ArticleTypeMiddleware::class, ArticleTypeMiddleware::class);
 $container->bind(AdminAuthenticatedMiddleware::class, AdminAuthenticatedMiddleware::class);
 $container->bind(AjaxMiddleware::class, AjaxMiddleware::class);
 $container->bind(CsrfMiddleware::class, CsrfMiddleware::class);

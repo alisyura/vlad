@@ -151,19 +151,19 @@ $router->addRoute("/$adminRoute/(post|page)s(?:/p(\d+))?", function(Container $c
     // Передаем номер страницы в контроллер
     $controller = $container->make(AdminPostsController::class);
     $controller->list($page, $articleType);
-}, ['UserAuthenticatedMiddleware', 'ArticleTypeMiddleware:post,page']);
+}, ['UserAuthenticatedMiddleware']);
 
 // Форма создание нового поста/страницы
 $router->addRoute("/$adminRoute/(post|page)s/create", function(Container $container, $articleType) {
     $controller = $container->make(AdminPostsController::class);
     $controller->create($articleType);
-}, ['UserAuthenticatedMiddleware', 'ArticleTypeMiddleware:post,page']);
+}, ['UserAuthenticatedMiddleware']);
 
 // Форма редактирования существующего поста/страницы
 $router->addRoute("/$adminRoute/(post|page)s/edit/(\d+)", function(Container $container, $articleType, $postId) {
     $controller = $container->make(AdminPostsController::class);
     $controller->edit($postId, $articleType);
-}, ['UserAuthenticatedMiddleware', 'ArticleTypeMiddleware:post,page']);
+}, ['UserAuthenticatedMiddleware']);
 
 
 
@@ -291,20 +291,24 @@ $router->addRoute("/$adminRoute/users/api/delete/(\d+)", function($request, $vie
 // Формы для работы с корзиной удаленных постов/страниц
 
 // Форма списка удаленных постов/страниц с пагинацией
-$router->addRoute("/$adminRoute/thrash/(post|page)s(?:/p(\d+))?", function($request, $viewAdmin, $articleType, $page = 1) {
+$router->addRoute("/$adminRoute/thrash/(post|page)s(?:/p(\d+))?", function(Container $container, $articleType, $page = 1) {
     // Передаем номер страницы в контроллер
-    (new AdminPostsController($request, $viewAdmin))->list($page, $articleType);
-}, ['UserAuthenticatedMiddleware', 'ArticleTypeMiddleware:post,page']);
+    $controller = $container->make(AdminPostsController::class);
+    $controller->list($page, $articleType);
+}, ['UserAuthenticatedMiddleware']);
 
 
 // Операции над корзиной
 
 // Восстановление поста/страницы из корзины. Простановка статуса "черновик"
-$router->addRoute("/$adminRoute/thrash/api/restore", function($request, $viewAdmin) {
-    (new AdminPostsApiController($request))->restore();
+$router->addRoute("/$adminRoute/thrash/api/restore", function(Container $container) {
+    $controller = $container->make(AdminPostsApiController::class);
+    $controller->restore();
 }, ['UserAuthenticatedMiddleware', 'AjaxMiddleware', 'CsrfMiddleware'], ['method' => 'PATCH']);
 
 // Физическое удаление поста/страницы из БД.
-$router->addRoute("/$adminRoute/thrash/api/delete-forever", function($request, $viewAdmin) {
-    (new AdminPostsApiController($request))->hardDelete();
+$router->addRoute("/$adminRoute/thrash/api/delete-forever", function(Container $container) {
+    // (new AdminPostsApiController($request))->hardDelete();
+    $controller = $container->make(AdminPostsApiController::class);
+    $controller->hardDelete();
 }, ['AdminAuthenticatedMiddleware', 'AjaxMiddleware', 'CsrfMiddleware'], ['method' => 'DELETE']);

@@ -26,30 +26,39 @@ class AdminMediaModel extends BaseModel {
         }
     }
 
-    public function saveImgToMedia($userId, $fileUrl, $fileSize, $imageType, $altText)
+
+    /**
+     * Сохраняет информацию об изображении в таблице 'media'.
+     *
+     * @param int $userId Идентификатор пользователя, загрузившего файл.
+     * @param string $fileUrl Путь к сохраненному файлу изображения. /assets/uploads...
+     * @param int $fileSize Размер файла в байтах.
+     * @param string $imageType MIME-тип изображения (например, 'image/jpeg', 'image/png').
+     * @param string $altText Альтернативный текст для изображения (для SEO/доступности).
+     * @return void
+     * @throws \PDOException Если происходит ошибка выполнения запроса к базе данных.
+     */
+    public function saveImgToMedia(int $userId, string $fileUrl, int $fileSize, 
+        string $imageType, string $altText): void
     {
         $stmt = $this->db->prepare("
-                INSERT INTO media (
-                    post_id, user_id, file_name, file_path,  
-                    mime_type, file_size, alt_text, uploaded_at, updated_at
-                )
-                VALUES (
-                    NULL, :user_id, :file_name, :file_path, 
-                    :mime_type, :file_size, :alt_text, NOW(), NOW()
-                )
-            ");
-            $stmt->execute([
-                //':post_id' => $newPostId,
-                ':user_id' => $userId,
-                ':file_name' => basename($fileUrl),
-                ':file_path' => $fileUrl,
-                ':mime_type' => $imageType,
-                ':file_size' => $fileSize,
-                ':alt_text' =>  $altText 
-            ]);
-        
-
-        //$this->db->commit(); // Сохраняем всё
+            INSERT INTO media (
+                user_id, file_name, file_path,  
+                mime_type, file_size, alt_text, uploaded_at, updated_at
+            )
+            VALUES (
+                :user_id, :file_name, :file_path, 
+                :mime_type, :file_size, :alt_text, NOW(), NOW()
+            )
+        ");
+        $stmt->execute([
+            ':user_id' => $userId,
+            ':file_name' => basename($fileUrl),
+            ':file_path' => $fileUrl,
+            ':mime_type' => $imageType,
+            ':file_size' => $fileSize,
+            ':alt_text' =>  $altText 
+        ]);
     }
     
     /**

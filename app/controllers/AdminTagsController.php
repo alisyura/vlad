@@ -8,7 +8,8 @@ class AdminTagsController extends BaseController
     public function __construct(Request $request, View $view)
     {
         parent::__construct($request, $view);
-        $this->tagsModel = new TagsModel();
+        $pdo = Database::getConnection();
+        $this->tagsModel = new TagsModel($pdo);
     }
 
     public function list($currentPage = 1)

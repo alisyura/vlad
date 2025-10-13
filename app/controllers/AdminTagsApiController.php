@@ -3,12 +3,15 @@
 
 class AdminTagsApiController extends BaseController
 {
+    use JsonResponseTrait;
+
     private TagsModel $tagsModel;
 
     public function __construct(Request $request, ?View $view = null)
     {
         parent::__construct($request, $view);
-        $this->tagsModel = new TagsModel();
+        $pdo = Database::getConnection();
+        $this->tagsModel = new TagsModel($pdo);
     }
 
     /**
@@ -61,8 +64,14 @@ class AdminTagsApiController extends BaseController
         }
 
         // // Проверка уникальности урла
-        if ($this->tagsModel->isUrlExists($data['url'])) {
-            $this->sendErrorJsonResponse('Урл уже занят.', 409);
+        //if ($this->tagsModel->isUrlExists($data['url'])) {
+        $checkUniqnessResult = $this->tagsModel->checkTagUniqueness($data['name'], $data['url']);
+        if ($checkUniqnessResult['name_exists'] > 0) {
+            $this->sendErrorJsonResponse('Имя тэга занято.', 409);
+            return;
+        }
+        if ($checkUniqnessResult['url_exists'] > 0) {
+            $this->sendErrorJsonResponse('Урл тэга занят.', 409);
             return;
         }
 

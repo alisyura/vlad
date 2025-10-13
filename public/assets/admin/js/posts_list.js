@@ -77,20 +77,21 @@ class PostActionsModal {
 
         let url;
         let method = 'PATCH';
-
-        const contentType = getContentTypeFromUrlRegex(window.location.pathname,
-                `${adminRoute}`);
+        let articleType;
 
         // Выбор URL в зависимости от действия
         switch (this.currentAction) {
             case 'delete':
-                url = `/${adminRoute}/${contentType}s/api/delete`;
+                articleType = getContentTypeFromUrlRegex(`${adminRoute}`);
+                url = `/${adminRoute}/${articleType}s/api/delete`;
                 break;
             case 'delete-forever':
+                articleType = getThrashContentTypeFromUrlRegex(`${adminRoute}`);
                 url = `/${adminRoute}/thrash/api/delete-forever`;
                 method = 'DELETE';
                 break;
             case 'restore':
+                articleType = getThrashContentTypeFromUrlRegex(`${adminRoute}`);
                 url = `/${adminRoute}/thrash/api/restore`;
                 break;
             default:
@@ -98,6 +99,8 @@ class PostActionsModal {
                 return;
         }
 
+        const bodyJson = { id: this.currentPostId, articleType: articleType };
+        
         const csrfToken = document.querySelector('meta[name="csrf_token"]')?.content;
         if (!csrfToken) {
             alert('Ошибка: CSRF-токен не найден.');
@@ -112,7 +115,7 @@ class PostActionsModal {
                     'X-Requested-With': 'XMLHttpRequest',
                     'X-CSRF-TOKEN': csrfToken
                 },
-                body: JSON.stringify({ id: this.currentPostId })
+                body: JSON.stringify(bodyJson)
             });
 
             if (this.bsModal) {
