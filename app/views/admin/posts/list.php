@@ -11,9 +11,54 @@
     </div>
 </div>
 
-<div>
-    <label for="thrashbox">Показать удаленные</label>
-    <input type="checkbox" id="thrashbox" name="thrashbox">
+<div class="d-flex justify-content-between align-items-center mb-4 p-3 border rounded bg-light">
+    <div class="form-check m-0 flex-shrink-0">
+        <input class="form-check-input" type="checkbox" id="thrashbox" name="thrashbox">
+        <label class="form-check-label" for="thrashbox">Показать удаленные</label>
+    </div>
+
+    <div class="flex-grow-1 ms-4">
+        <form class="row g-2 align-items-center justify-content-end" action='/adm/posts/p5' method="GET">
+            
+            <div class="col-12 col-md-auto">
+                <select class="form-select form-select-sm" name="category_id">
+                    <option value="">— Все рубрики —</option>
+                    <?php if (!empty($filter) && !empty($filter['categories'] ?? [])): ?>
+                        <?php foreach ($filter['categories'] as $category): ?>
+                            <?php $selected = ($category['id'] == $filter['selectedCategory'] ? 'selected' : '') ?>
+                            <option <?= htmlspecialchars($selected) ?> value="<?= htmlspecialchars($category['id']) ?>"><?= htmlspecialchars($category['name']) ?></option>
+                        <?php endforeach ?>
+                    <?php endif ?>
+                </select>
+            </div>
+
+            <div class="col-12 col-md-auto">
+                <select class="form-select form-select-sm" name="status">
+                    <option value="">— Все статусы —</option>
+                    <?php if (!empty($filter) && !empty($filter['statuses'] ?? [])): ?>
+                        <?php foreach ($filter['statuses'] as $statusName => $statusCode): ?>
+                            <?php $selected = ($statusCode === $filter['selectedStatus'] ? 'selected' : '') ?>
+                            <option <?= htmlspecialchars($selected) ?> value="<?= htmlspecialchars($statusCode) ?>"><?= htmlspecialchars($statusName) ?></option>
+                        <?php endforeach ?>
+                    <?php endif ?>
+                </select>
+            </div>
+
+            <div class="col-12 col-md-auto">
+                <input value="<?= htmlspecialchars($filter['selectedPostDate'] ?? '') ?>" type="text" id="post_date" name="post_date" class="form-control form-control-sm" placeholder="Дата">
+            </div>
+
+            <div class="col-12 col-md-3">
+                <input value="<?= htmlspecialchars($filter['selectedSearchQuery'] ?? '') ?>" type="text" id="searchquery" name="searchquery" class="form-control form-control-sm" placeholder="Поиск по заголовку и тексту">
+            </div>
+
+            <div class="col-12 col-md-auto">
+                <button type="submit" class="btn btn-primary btn-sm w-100">
+                    <i class="bi bi-search"></i> Искать
+                </button>
+            </div>
+        </form>
+    </div>
 </div>
 
 <div class="table-responsive">

@@ -8,8 +8,12 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link rel="stylesheet" href="<?= asset('admin/css/admin.css') ?>">
     <?php if (!empty($styles) && is_array($styles)): ?>
-        <?php foreach ($styles as $style): ?>
-            <link rel="stylesheet" href="<?= asset("admin/css/{$style}") ?>">
+        <?php foreach ($styles as $key => $style): ?>
+            <?php if (strtolower($key) === 'http'): ?>
+                <link rel="stylesheet" href="<?= $style ?>">
+            <?php else: ?>
+                <link rel="stylesheet" href="<?= asset("admin/css/{$style}") ?>">
+            <?php endif ?>
         <?php endforeach; ?>
     <?php endif; ?>
     <meta name="csrf_token" content="<?= htmlspecialchars(CSRF::getToken()) ?>">
@@ -108,10 +112,12 @@
     </script>
     <?php if (!empty($jss) && is_array($jss)): ?>
         <?php foreach ($jss as $key => $js_file): ?>
-            <?php if (strtolower($key) !== 'absolute'): ?>
-                <script src="<?= asset("admin/js/$js_file") ?>" defer></script>
-            <?php else: ?>
+            <?php if (str_starts_with(strtolower($js_file), 'http')): ?>
+                <script src="<?= $js_file ?>" defer></script>
+            <?php elseif (strtolower($key) === 'absolute'): ?>
                 <script src="<?= asset("$js_file") ?>" defer></script>
+            <?php else: ?>
+                <script src="<?= asset("admin/js/$js_file") ?>" defer></script>
             <?php endif ?>
         <?php endforeach; ?>
     <?php endif; ?>

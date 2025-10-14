@@ -302,6 +302,57 @@ class PostDetailsToggle {
     }
 }
 
+class InitFilters {
+    constructor() {
+        this.initCalendar();
+    }
+
+    initCalendar() {
+        flatpickr("#post_date", {
+            // Использование плагина для удобного выбора месяца и года
+            
+            // Локализация на русский язык
+            locale: "ru", 
+            
+            // Формат даты для передачи на сервер (YYYY-MM-DD)
+            dateFormat: "d-m-Y", 
+
+            onOpen: (selectedDates, dateStr, instance) => {
+                
+                // Проверяем, существует ли уже кнопка "Сегодня"
+                if (!instance.calendarContainer.querySelector('.flatpickr-today-button')) {
+                    
+                    const todayBtn = document.createElement('button');
+                    // Стилизация Bootstrap
+                    todayBtn.innerHTML = 'Сегодня';
+                    todayBtn.className = 'flatpickr-today-button btn btn-sm btn-outline-primary w-100 mt-2';
+                    
+                    // Добавляем обработчик клика
+                    todayBtn.addEventListener('click', (e) => {
+                        e.preventDefault(); // Предотвращаем любые действия по умолчанию
+                        
+                        // используем instance.changeMonth()
+                        
+                        // 1. Устанавливаем отображаемый месяц/год на текущий
+                        instance.changeMonth(new Date().getMonth() - instance.currentMonth, instance.currentYear);
+                        instance.changeYear(new Date().getFullYear());
+                        
+                        // 2. Устанавливаем фокус на сегодняшнем дне (без выбора)
+                        // При этом календарь остается открытым!
+                    });
+
+                    // Находим контейнер календаря (необходимый элемент для добавления футера)
+                    const wrapper = instance.calendarContainer;
+                    if (wrapper) {
+                        wrapper.appendChild(todayBtn);
+                    }
+                }
+            }
+       
+        });
+    }
+
+}
 /**
  * Инициализируем классы, когда DOM-дерево полностью загружено.
  */
@@ -309,4 +360,5 @@ document.addEventListener('DOMContentLoaded', () => {
     new PostSelection();
     new PostDetailsToggle();
     new PostActionsModal();
+    new InitFilters();
 });

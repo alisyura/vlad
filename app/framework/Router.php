@@ -104,7 +104,6 @@ class Router {
                 // костыль, пока не все контроллеры на сервис контейнер переведены.
                 $adminRoute = Config::get('admin.AdminRoute');
                 $oldRoutes = [
-                    //"/$adminRoute/media/api",
                     "/$adminRoute/tags",
                     "/$adminRoute/users"
                 ];

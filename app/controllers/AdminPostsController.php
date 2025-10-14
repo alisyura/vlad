@@ -160,10 +160,27 @@ class AdminPostsController extends BaseController
                 'current_sort_by' => $sortBy,
                 'current_sort_order' => $sortOrder,
                 'isTrash' => $isTrash,
+                'filter' => [
+                    'categories' => $this->listmodel->getAllCategories(),
+                    'selectedCategory' => $this->request->category_id,
+                    'statuses' => [
+                        'Ожидание' => PostModelAdmin::STATUS_PENDING,
+                        'Опубликован' => PostModelAdmin::STATUS_PUBLISHED,
+                        'Удален' => PostModelAdmin::STATUS_DELETED,
+                        'Черновик' => PostModelAdmin::STATUS_DRAFT
+                    ],
+                    'selectedStatus' => $this->request->status,
+                    'selectedPostDate' => $this->request->post_date,
+                    'selectedSearchQuery' => $this->request->searchquery
+                ],
                 'styles' => [
-                    'posts_list.css'
+                    'posts_list.css',
+                    'http' => 'https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.css'
                 ],
                 'jss' => [
+                    'https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.js',
+                    'https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/l10n/ru.js',
+                    'https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/plugins/monthSelect/index.js',
                     'posts_list.js',
                     'common.js'
                 ]
