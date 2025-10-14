@@ -52,6 +52,7 @@ $container->bind(SubmissionController::class, SubmissionController::class);
 $container->bind(SubmissionModel::class, SubmissionModel::class);
 $container->bind(SubmissionService::class, SubmissionService::class);
 $container->bind(LinkValidator::class, LinkValidator::class);
+$container->bind(MediaService::class, MediaService::class);
 
 
 $container->bind(AdminAuthenticatedMiddleware::class, AdminAuthenticatedMiddleware::class);

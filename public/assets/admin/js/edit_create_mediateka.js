@@ -50,7 +50,6 @@ document.addEventListener('DOMContentLoaded', function() {
         const url = `/${adminRoute}/media/api/list`;
 
         try {
-            //console.log('loadMediaItems fetch');
             const response = await fetch(url, {
                 method: 'GET',
                 headers: {
@@ -58,11 +57,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             });
 
-            // console.log('loadMediaItems await response.text');
             // Получаем текст ответа, чтобы избежать ошибки парсинга JSON
             const responseText = await response.text();
 
-            // console.log('loadMediaItems Пытаемся распарсить как JSON responseText='+responseText);
             // Пытаемся распарсить как JSON
             let data;
             try {
@@ -72,21 +69,22 @@ document.addEventListener('DOMContentLoaded', function() {
                 throw new Error(`Сервер вернул ошибку: ${response.status} ${response.statusText}`);
             }
 
-            // console.log('loadMediaItems !response.ok');
             // Теперь проверяем: если статус не ok, но пришёл JSON — возможно, это наш структурированный ответ об ошибке
             if (!response.ok) {
-                // console.log(`loadMediaItems data.success=${data.success}, data.message=${data.message}, response.status=${response.status}`);
-                // Если сервер прислал { success: false, message: "..." }
-                if (!data.success && data.message) {
-                    throw new Error(data.message);
-                } else {
-                    // Или хотя бы используем что-то из данных
-                    throw new Error(data.message || `HTTP error! status: ${response.status}`);
+                if (response.status === 401)
+                {
+                    // Пользователь не авторизован, перенаправляем на страницу логина
+                    window.location.href = `/${adminRoute}/login`;
                 }
             }
 
+            // Если сервер прислал { success: false, message: "..." }
+            if (!data.success) {
+                throw new Error(data.message);
+            }
+
             mediaGallery.innerHTML = '';
-            data.forEach(item => {
+            data.mediaList.forEach(item => {
                 const itemElement = document.createElement('div');
                 itemElement.className = 'col media-item';
                 itemElement.innerHTML = `

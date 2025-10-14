@@ -199,13 +199,15 @@ $router->addRoute("/$adminRoute/(post|page)s/api/check-url", function(Container 
 // Маршруты для работы с медиа изображениями
 
 // Получение списка картинок
-$router->addRoute("/$adminRoute/media/api/list", function($request, $viewAdmin) {
-    (new AdminMediaApiController($request))->list();
+$router->addRoute("/$adminRoute/media/api/list", function(Container $container) {
+    $controller = $container->make(AdminMediaApiController::class);
+    $controller->list();
 }, ['UserAuthenticatedMiddleware', 'AjaxMiddleware']);
 
 // Загрузка новой картинки
-$router->addRoute("/$adminRoute/media/api/upload", function($request, $viewAdmin) {
-    (new AdminMediaApiController($request))->upload();
+$router->addRoute("/$adminRoute/media/api/upload", function(Container $container) {
+    $controller = $container->make(AdminMediaApiController::class);
+    $controller->upload();
 }, ['UserAuthenticatedMiddleware', 'AjaxMiddleware', 'CsrfMiddleware'], ['method' => 'POST']);
 
 

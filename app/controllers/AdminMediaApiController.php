@@ -5,68 +5,54 @@
 
 class AdminMediaApiController extends BaseController
 {
+    use JsonResponseTrait;
+
+    private MediaService $mediaService;
+
+    public function __construct(MediaService $mediaService, Request $request)
+    {
+        parent::__construct($request, null);
+        $this->mediaService = $mediaService;
+    }
+
     public function list()
     {
-        $pdo = Database::getConnection();
-        $amm = new AdminMediaModel($pdo);
-        $media = $amm->getMedialist();
+        try {
+            $media = $this->mediaService->list();
 
-        $mediaStruct = print_r($media, true);
-        Logger::debug($mediaStruct);
+            $this->sendSuccessJsonResponse('', 200, ['mediaList' => $media]);
+        } catch (Throwable $e) {
+            Logger::error('AdminMediaApiController.list. Сбой при получении списка картинок', [], $e);
+            $this->sendErrorJsonResponse('Сбой при получении списка картинок', 500);
+        }
 
-        header('Content-Type: application/json');
-        echo json_encode($media);
         exit;
     }
 
     public function upload()
     {
-        // Устанавливаем заголовок JSON
-        header('Content-Type: application/json');
-        // Переменная для хранения пути к файлу
-        $targetFile = null;
+        $file = [];
+        $alt = '';
         
         try {
-            // Создаем сервис для загрузки
-            $mediaUploadService = new MediaUploadService();
-            
-            // Передаём ему файл для обработки
-            $uploadedFile = $mediaUploadService->handleUpload($_FILES['file']);
-            
+            $file = $this->request->file('file', []);
+            $alt = $this->request->post('alt', '');
 
-            // Получаем модель и сохраняем данные в БД
-            $pdo = Database::getConnection();
-            $amm = new AdminMediaModel($pdo);
-            $amm->saveImgToMedia(
-                Auth::getUserId(),
-                $uploadedFile['url'],
-                $uploadedFile['size'],
-                $uploadedFile['mime'],
-                trim($_POST['alt'] ?? '')
-            );
-
+            $this->mediaService->upload($file, $alt);
             
-            echo json_encode(['success' => true, 'message' => 'Файл успешно загружен!']);
-            
+            $this->sendSuccessJsonResponse('Файл успешно загружен!');
         } catch (MediaException $e) {
             // Обработка ошибок, связанных только с загрузкой медиа
-            Logger::error($e->getTraceAsString());
-            http_response_code(400); // Bad Request
-            echo json_encode(['success' => false, 'message' => 'Ошибка: ' . $e->getMessage()]);
+            Logger::error('AdminMediaApiController.Ошибка при загрузке картинки.', ['file' => $file, 'alt' => $alt], $e);
+            $this->sendErrorJsonResponse('Ошибка при загрузке: ' . $e->getMessage(), 400);
         } catch (PDOException $e) {
             // Удаляем файл, если не удалось сохранить в БД
-            $targetFile = $uploadedFile['targetFile'];
-            if (file_exists($targetFile)) {
-                unlink($targetFile);
-            }
-            Logger::error("Ошибка при сохранении в БД: " . $e->getTraceAsString());
-            http_response_code(500);
-            echo json_encode(['success' => false, 'message' => 'Ошибка при сохранении данных.']);
-        } catch (Exception $e) {
+            Logger::error("AdminMediaApiController.Ошибка при сохранении в БД", ['file' => $file, 'alt' => $alt], $e);
+            $this->sendErrorJsonResponse('Ошибка при сохранении данных.', 500);
+        } catch (Throwable $e) {
             // Логируем ошибку и возвращаем ответ
-            Logger::error($e->getTraceAsString());
-            http_response_code(500);
-            echo json_encode(['success' => false, 'message' => 'Произошла непредвиденная ошибка']);
+            Logger::error("AdminMediaApiController.Сбой при загрузке файла", ['file' => $file, 'alt' => $alt], $e);
+            $this->sendErrorJsonResponse('Произошел сбой при загрузке файла.', 500);
         } 
         exit;
     }

@@ -10,21 +10,21 @@
  */
 class SubmissionService
 {
-    private MediaUploadService $mediaUploadService;
+    private MediaService $mediaService;
     private PDO $db;
     private SubmissionModel $model;
 
     /**
      * Конструктор SubmissionService.
      *
-     * @param MediaUploadService $mediaUploadService Сервис для загрузки файлов.
+     * @param MediaService $mediaService Сервис для загрузки файлов.
      * @param SubmissionModel $submissionModel Модель для работы с данными о материалах.
      * @param PDO $pdo Объект PDO для работы с базой данных.
      */
-    public function __construct(MediaUploadService $mediaUploadService, 
+    public function __construct(MediaService $mediaService, 
         SubmissionModel $submissionModel, PDO $pdo)
     {
-        $this->mediaUploadService = $mediaUploadService;
+        $this->mediaService = $mediaService;
         $this->db = $pdo;
         $this->model = $submissionModel;
     }
@@ -63,7 +63,7 @@ class SubmissionService
             $uploadedFile = null;
             $imgId = null;
             if (!empty($file)) {
-                $uploadedFile = $this->mediaUploadService->handleUpload($file);
+                $uploadedFile = $this->mediaService->handleUpload($file);
                 $imgId = $this->model->saveToMedia(
                     $adminId, 
                     $uploadedFile['url'],

@@ -1,8 +1,48 @@
 <?php
 // app/services/MediaUploadService.php
 
-class MediaUploadService
+class MediaService
 {
+    private AdminMediaModel $model;
+    private AuthService $authService;
+
+    public function __construct(AdminMediaModel $model, AuthService $authService)
+    {
+        $this->model = $model;
+        $this->authService = $authService;
+    }
+
+    public function list()
+    {
+        return $this->model->getMedialist();
+    }
+
+    public function upload(array $file, string $alt): array
+    {
+        if (empty($file)) {
+            throw new MediaException('Файл не получен', MediaException::FILE_NOT_UPLOADED_OR_NOT_FOUND);
+        }
+        try {
+            $uploadedFile = $this->handleUpload($file);
+
+            $this->model->saveImgToMedia(
+                $this->authService->getUserId(),
+                $uploadedFile['url'],
+                $uploadedFile['size'],
+                $uploadedFile['mime'],
+                trim($alt)
+            );
+
+            return $uploadedFile;
+        } catch (PDOException $e) {
+            $targetFile = $uploadedFile['targetFile'] ?? '';
+            if (!empty($targetFile) && file_exists($targetFile)) {
+                unlink($targetFile);
+            }
+            throw $e;
+        }
+    }
+
     /**
      * Обрабатывает загруженный файл и сохраняет его.
      * @param array $file Массив $_FILES['...']

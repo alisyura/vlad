@@ -159,15 +159,16 @@ document.addEventListener('DOMContentLoaded', function() {
             
             savePostBtn.disabled = true;
 
-            const postIdAndType = getContentIdAndTypeFromUrl(window.location.pathname,
-                `${adminRoute}`);
+            const postIdAndType = getContentIdAndTypeFromUrl(`${adminRoute}`);
             if (postIdAndType !== null)
             {
+                // редактирование
                 method = 'PUT';
                 dataObject.id = postIdAndType.id;
             }
             else
             {
+                // создание
                 method = 'POST';
             }
 
@@ -345,11 +346,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
 /**
  * Извлекает ID и тип контента из URL редактирования.
- * @param {string} url - Полный URL, например '/adm/posts/edit/358' или '/adm/pages/edit/123'
  * @param {string} adminRoute - Префикс админ-маршрута, например 'adm'
  * @returns {{type: string, id: number}|null} Возвращает объект с типом и ID, или null если не найдено.
  */
-function getContentIdAndTypeFromUrl(url, adminRoute) {
+function getContentIdAndTypeFromUrl(adminRoute) {
+    // Полный URL, например '/adm/posts/edit/358' или '/adm/pages/edit/123'
+    const url = window.location.pathname;
     const adminPath = `/${adminRoute}/`;
     const parts = url.split(adminPath);
 
