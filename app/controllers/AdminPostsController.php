@@ -44,6 +44,14 @@ class AdminPostsController extends BaseController
         // $adminRoute = $this->getAdminRoute();
         $userName = $this->authService->getUserName();
         try {
+            // получение фильтров
+            $filterData = [
+                'selectedStatus' => $this->request->status ?? '',
+                'selectedPostDate' => $this->request->post_date ?? '',
+                'selectedSearchQuery' => $this->request->searchquery ?? '',
+                'selectedCategory' => $this->request->category_id ?? '',
+            ];
+
             // --- Получение и валидация параметров сортировки ---
             $sortBy = $this->request->sort ?? 'updated_at';
             $sortOrder = $this->request->order ?? 'DESC';
@@ -74,7 +82,7 @@ class AdminPostsController extends BaseController
             $postsPerPage = Config::get('admin.PostsPerPage'); // Количество постов на страницу
 
             // Получаем общее количество постов
-            $totalPosts = $this->model->getTotalPostsCount($articleType, $isTrash);
+            $totalPosts = $this->model->getTotalPostsCount($articleType, $isTrash, $filterData);
     
             // Генерируем массив ссылок для умной пагинации
             $paginParams = $this->pageinationService->calculatePaginationParams(
@@ -85,11 +93,12 @@ class AdminPostsController extends BaseController
                 'offset' => $offset, 
                 'paginationLinks' => $paginationLinks] = $paginParams;
             
-            
+            $queryPagingParams = buildQueryString($filterData, $sortBy, $sortOrder, true);
+            $querySortingParams = buildQueryString($filterData, $sortBy, $sortOrder, false);
 
             // Получаем посты для текущей страницы
             $posts = $this->model->getPostsList($articleType, $postsPerPage, $offset,
-                $sortBy, $sortOrder, $isTrash);
+                $sortBy, $sortOrder, $isTrash, $filterData);
             
             // Обрабатываем каждый пост для форматирования и подготовки к выводу
             foreach ($posts as &$post) {
@@ -159,19 +168,20 @@ class AdminPostsController extends BaseController
                 'base_page_url' => $basePageUrl,
                 'current_sort_by' => $sortBy,
                 'current_sort_order' => $sortOrder,
+                'queryPagingParams' => $queryPagingParams,
+                'querySortingParams' => $querySortingParams,
                 'isTrash' => $isTrash,
                 'filter' => [
                     'categories' => $this->listmodel->getAllCategories(),
-                    'selectedCategory' => $this->request->category_id,
                     'statuses' => [
                         'Ожидание' => PostModelAdmin::STATUS_PENDING,
                         'Опубликован' => PostModelAdmin::STATUS_PUBLISHED,
                         'Удален' => PostModelAdmin::STATUS_DELETED,
                         'Черновик' => PostModelAdmin::STATUS_DRAFT
                     ],
-                    'selectedStatus' => $this->request->status,
-                    'selectedPostDate' => $this->request->post_date,
-                    'selectedSearchQuery' => $this->request->searchquery
+                    ...($filterData),
+                    // При установке фильтра сбрасываем все сортировки и предыдущие фильтры
+                    'formAction' => $basePageUrl
                 ],
                 'styles' => [
                     'posts_list.css',

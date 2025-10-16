@@ -496,3 +496,45 @@ function extractDomainFromUrl(string $url): ?string
 
     return $domain;
 }
+
+/**
+ * Формирует строку параметров запроса, объединяя фильтры и сортировку.
+ *
+ * @param array $filterData Массив данных фильтрации с внутренними ключами (selectedStatus и т.д.).
+ * @param string $sortBy Поле сортировки (например, 'updated_at').
+ * @param string $sortOrder Направление сортировки (например, 'DESC').
+ * @param bool $includeSort Флаг: включать ли параметры sort и order в конечную строку.
+ * @return string Строка параметров запроса, начинающаяся с '&' (например, '&sort=id&status=pub').
+ */
+function buildQueryString(array $filterData, string $sortBy, string $sortOrder, bool $includeSort = true): string {
+    $params = [];
+    
+    // 1. КАРТА СООТВЕТСТВИЯ: [URL_ПАРАМЕТР => КЛЮЧ В $filterData]
+    $filterMap = [
+        'category_id' => 'selectedCategory',
+        'status'      => 'selectedStatus',
+        'post_date'   => 'selectedPostDate',
+        'searchquery' => 'selectedSearchQuery',
+    ];
+    
+    // 2. Добавляем параметры фильтра, используя карту соответствия
+    foreach ($filterMap as $urlKey => $dataKey) {
+        // Проверяем существование ключа и его непустое обрезанное значение
+        if (isset($filterData[$dataKey]) && !empty(trim((string)$filterData[$dataKey]))) {
+            $params[$urlKey] = $filterData[$dataKey];
+        }
+    }
+
+    // 3. УСЛОВНО ДОБАВЛЯЕМ параметры сортировки
+    if ($includeSort) {
+        $params['sort'] = $sortBy;
+        $params['order'] = $sortOrder;
+    }
+    
+    // 4. Собираем строку запроса
+    $queryString = http_build_query($params);
+    
+    // 5. Возвращаем строку, начинающуюся с '?'
+    $queryParamsSeparator = $includeSort ? '?' : '&';
+    return !empty($queryString) ? $queryParamsSeparator . $queryString : '';
+}

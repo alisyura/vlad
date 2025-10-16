@@ -309,50 +309,70 @@ class InitFilters {
 
     initCalendar() {
         flatpickr("#post_date", {
-            // Использование плагина для удобного выбора месяца и года
-            
-            // Локализация на русский язык
+            // настройки flatpickr
             locale: "ru", 
-            
-            // Формат даты для передачи на сервер (YYYY-MM-DD)
             dateFormat: "d-m-Y", 
 
             onOpen: (selectedDates, dateStr, instance) => {
                 
-                // Проверяем, существует ли уже кнопка "Сегодня"
-                if (!instance.calendarContainer.querySelector('.flatpickr-today-button')) {
+                // Проверяем, существует ли уже контейнер для кнопок
+                if (!instance.calendarContainer.querySelector('.flatpickr-footer-buttons')) {
                     
+                    // 1. Создаем общий контейнер для кнопок
+                    const footerContainer = document.createElement('div');
+                    footerContainer.className = 'flatpickr-footer-buttons d-flex mt-2 gap-2';
+                    
+                    // 2. Создаем кнопку "СЕГОДНЯ"
                     const todayBtn = document.createElement('button');
-                    // Стилизация Bootstrap
                     todayBtn.innerHTML = 'Сегодня';
-                    todayBtn.className = 'flatpickr-today-button btn btn-sm btn-outline-primary w-100 mt-2';
+                    // w-50 делает кнопку в половину ширины, bg-light выделяет ее
+                    todayBtn.className = 'flatpickr-today-button btn btn-sm btn-outline-primary w-50';
                     
-                    // Добавляем обработчик клика
                     todayBtn.addEventListener('click', (e) => {
-                        e.preventDefault(); // Предотвращаем любые действия по умолчанию
+                        e.preventDefault();
                         
-                        // используем instance.changeMonth()
+                        // Установка на текущий месяц/год (используем setDate, чтобы выбрать дату)
+                        instance.setDate(new Date(), true, instance.config.dateFormat);
                         
-                        // 1. Устанавливаем отображаемый месяц/год на текущий
-                        instance.changeMonth(new Date().getMonth() - instance.currentMonth, instance.currentYear);
-                        instance.changeYear(new Date().getFullYear());
-                        
-                        // 2. Устанавливаем фокус на сегодняшнем дне (без выбора)
-                        // При этом календарь остается открытым!
+                        // NOTE: В отличие от предыдущего кода, setDate с параметром true
+                        // автоматически перемещает календарь на нужный месяц
+                        // и выбирает дату. 
                     });
+                    
+                    // 3. Создаем кнопку "СБРОСИТЬ"
+                    const clearBtn = document.createElement('button');
+                    clearBtn.innerHTML = 'Сбросить';
+                    // w-50 делает кнопку в половину ширины, btn-secondary для нейтрального цвета
+                    clearBtn.className = 'flatpickr-clear-button btn btn-sm btn-outline-secondary w-50';
+                    
+                    clearBtn.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        
+                        // Метод flatpickr.clear() очищает поле и закрывает календарь
+                        instance.clear(); 
+                    });
+                    
+                    // 4. Добавляем кнопки в контейнер
+                    footerContainer.appendChild(todayBtn);
+                    footerContainer.appendChild(clearBtn);
 
-                    // Находим контейнер календаря (необходимый элемент для добавления футера)
+                    // 5. Находим корневой контейнер календаря и добавляем футер
                     const wrapper = instance.calendarContainer;
                     if (wrapper) {
-                        wrapper.appendChild(todayBtn);
+                        wrapper.appendChild(footerContainer);
                     }
                 }
+            },
+            
+            // NOTE: Добавление onClose может быть полезно для сброса фокуса или других действий
+            onClose: (selectedDates, dateStr, instance) => {
+                // Можно добавить здесь логику, которая срабатывает после выбора даты
             }
-       
         });
     }
 
 }
+
 /**
  * Инициализируем классы, когда DOM-дерево полностью загружено.
  */

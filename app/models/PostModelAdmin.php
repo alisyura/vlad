@@ -488,37 +488,92 @@ class PostModelAdmin extends BaseModel {
      *
      * @param string $articleType Тип статьи. post или page
      * @param bool $showThrash Получить список удаленных или активных постов.
+     * @param array $filter Список параметров для фильра.
      * @return int Общее количество постов.
      */
-    public function getTotalPostsCount(string $articleType, bool $showThrash = false) {
+    public function getTotalPostsCount(string $articleType, bool $showThrash = false, 
+        $filter = []) 
+    {
+        // Получение условий исключения
         [$excludeCondition, $excludeUrls] = $this->getExcludeConditionAndUrls($articleType);
         
-        // Создаем массив для всех условий WHERE
+        // --- 1. Инициализация переменных ---
         $conditions = [
             'p.article_type = :article_type'
         ];
+        $params = [
+            ':article_type' => $articleType
+        ];
+        $joins = '';
         
-        // Добавляем условие по статусу
-        $conditions[] = $showThrash ? "p.status = 'deleted'" : "p.status <> 'deleted'";
+        // --- 2. Условие по статусу (стандартное и из фильтра) ---
+        if (isset($filter['selectedStatus']) && 
+            in_array($filter['selectedStatus'], ['draft', 'pending', 'published', 'deleted'])) {
+            
+                $conditions[] = "p.status = :status";
+            $params[':status'] = $filter['selectedStatus'];
+        } else {
+            $conditions[] = $showThrash ? "p.status = 'deleted'" : "p.status <> 'deleted'";
+        }
+
+        // --- 3. Добавление фильтров из $filterData ---
+
+        // 3.1. Фильтр по категории (selectedCategory)
+        if (!empty($filter['selectedCategory'])) {
+            $joins .= ' INNER JOIN post_category AS pc ON p.id = pc.post_id';
+            $conditions[] = 'pc.category_id = :category_id';
+            $params[':category_id'] = (int) $filter['selectedCategory'];
+        }
         
-        // Добавляем условие исключения URL, если оно есть
+        // 3.2. ФИЛЬТР ПО ДАТЕ (selectedPostDate) - С УЧЕТОМ ФОРМАТА d-m-Y
+        if (!empty($filter['selectedPostDate'])) {
+            $dateInput = $filter['selectedPostDate'];
+            
+            // Преобразование даты из d-m-Y в Y-m-d
+            $dateObject = \DateTime::createFromFormat('d-m-Y', $dateInput);
+            
+            if ($dateObject !== false) {
+                $mysqlDate = $dateObject->format('Y-m-d'); 
+                
+                $conditions[] = "DATE(p.created_at) = :post_date";
+                $params[':post_date'] = $mysqlDate;
+            } 
+            // Если формат не совпадает, фильтр по дате игнорируется
+        }
+        
+        // 3.3. Фильтр по поисковому запросу (selectedSearchQuery)
+        if (!empty($filter['selectedSearchQuery'])) {
+            $searchQuery = '%' . $filter['selectedSearchQuery'] . '%';
+            $conditions[] = '(p.title LIKE :search_query_title OR p.content LIKE :search_query_content)';
+            $params[':search_query_title'] = $searchQuery;
+            $params[':search_query_content'] = $searchQuery;
+        }
+
+        // --- 4. Условие исключения URL (стандартное) ---
         if (!empty($excludeCondition)) {
             $conditions[] = $excludeCondition;
         }
 
-        // Собираем запрос
+        // --- 5. Сборка и выполнение запроса ---
         $sql = "SELECT COUNT(p.id) AS total_posts 
                 FROM posts AS p
+                {$joins} 
                 WHERE " . implode(' AND ', $conditions);
 
         try {
             $stmt = $this->db->prepare($sql);
-            $stmt->bindParam(':article_type', $articleType, PDO::PARAM_STR);
             
-            // Связываем параметры URL, если они есть
+            // Связываем все параметры из $params
+            foreach ($params as $key => &$value) {
+                $type = is_int($value) ? PDO::PARAM_INT : PDO::PARAM_STR;
+                $stmt->bindParam($key, $value, $type);
+            }
+
+            // Связываем параметры URL (если они есть)
             if (!empty($excludeUrls)) {
-                foreach ($excludeUrls as $index => $url) {
-                    $stmt->bindParam(":url{$index}", $excludeUrls[$index], PDO::PARAM_STR);
+                foreach ($excludeUrls as $index => &$url) {
+                    // Важно: использование & для корректного bindParam в цикле
+                    $stmt->bindParam(":url{$index}", $url, PDO::PARAM_STR);
                 }
             }
             
@@ -528,7 +583,7 @@ class PostModelAdmin extends BaseModel {
             return (int) $result['total_posts'];
             
         } catch (PDOException $e) {
-            Logger::error("getTotalPostsCount. Error fetching total posts count", ['articleType' => $articleType, 'showThrash' => $showThrash], $e);
+            Logger::error("getTotalPostsCount. Error fetching total posts count", ['sql' => $sql, 'params' => $params], $e);
             throw $e;
         }
     }
@@ -543,15 +598,18 @@ class PostModelAdmin extends BaseModel {
      * @param string $sortBy Колонка для сортировки (например, 'title', 'created_at').
      * @param string $sortOrder Направление сортировки ('ASC' или 'DESC').
      * @param bool $showThrash Получить список удаленных или активных постов.
+     * @param array $filter Список параметров для фильра.
      * @return array Список постов, каждый из которых содержит массив категорий и массив тегов.
      */
     public function getPostsList(string $articleType, int $limit, int $offset,
                              string $sortBy = 'updated_at', string $sortOrder = 'DESC',
-                             bool $showThrash = false) {
-        // Получаем условие исключения и URL-адреса, используя существующий метод
+                             bool $showThrash = false, $filter = []) 
+    {
+    
+        // Получаем условие исключения и URL-адреса
         [$excludeCondition, $excludeUrls] = $this->getExcludeConditionAndUrls($articleType);
 
-        // Допустимые поля для сортировки и их соответствие в базе данных
+        // ... (Оставшаяся часть кода для allowedSortColumns, проверки $sortBy и $sortOrder) ...
         $allowedSortColumns = [
             'id' => 'p.id',
             'title' => 'p.title',
@@ -561,94 +619,134 @@ class PostModelAdmin extends BaseModel {
             'status' => 'p.status',
             'updated_at' => 'p.updated_at'
         ];
+        $orderByColumn = array_key_exists($sortBy, $allowedSortColumns) ? $allowedSortColumns[$sortBy] : $allowedSortColumns['updated_at'];
+        $sortOrder = (in_array(strtoupper($sortOrder), ['ASC', 'DESC'])) ? strtoupper($sortOrder) : 'DESC';
 
-        // Проверяем, что $sortBy является допустимой колонкой
-        $orderByColumn = $allowedSortColumns['updated_at']; // По умолчанию
-        if (array_key_exists($sortBy, $allowedSortColumns)) {
-            $orderByColumn = $allowedSortColumns[$sortBy];
-        }
 
-        // Проверяем, что $sortOrder является допустимым направлением
-        $sortOrder = strtoupper($sortOrder); // Приводим к верхнему регистру
-        if (!in_array($sortOrder, ['ASC', 'DESC'])) {
-            $sortOrder = 'DESC'; // По умолчанию DESC
-        }
-
-        // Собираем массив условий для части WHERE
+        // --- 1. Инициализация параметров и условий ---
         $conditions = [
             'p.article_type = :article_type',
-            $showThrash ? "p.status = 'deleted'" : "p.status <> 'deleted'"
+        ];
+        $params = [
+            ':article_type' => $articleType
         ];
 
-        // Добавляем условие исключения, если оно есть
+        // --- 2. Обработка фильтров (аналогично getTotalPostsCount) ---
+
+        // 2.1. Фильтр по статусу (selectedStatus)
+        if (isset($filter['selectedStatus']) && in_array($filter['selectedStatus'], ['draft', 'pending', 'published', 'deleted'])) {
+            $conditions[] = "p.status = :status";
+            $params[':status'] = $filter['selectedStatus'];
+        } else {
+            // Стандартная логика: либо мусор, либо всё остальное
+            $conditions[] = $showThrash ? "p.status = 'deleted'" : "p.status <> 'deleted'";
+        }
+
+        // 2.2. Фильтр по категории (selectedCategory)
+        if (!empty($filter['selectedCategory'])) {
+            // Поскольку JOIN уже есть, просто добавляем условие WHERE
+            $conditions[] = 'pc.category_id = :category_id';
+            $params[':category_id'] = (int) $filter['selectedCategory'];
+        }
+        
+        // 2.3. Фильтр по дате (selectedPostDate) - d-m-Y
+        if (!empty($filter['selectedPostDate'])) {
+            $dateObject = \DateTime::createFromFormat('d-m-Y', $filter['selectedPostDate']);
+            if ($dateObject !== false) {
+                $mysqlDate = $dateObject->format('Y-m-d'); 
+                
+                $conditions[] = "DATE(p.created_at) = :post_date";
+                $params[':post_date'] = $mysqlDate;
+            } 
+        }
+        
+        // 2.4. Фильтр по поисковому запросу (selectedSearchQuery)
+        if (!empty($filter['selectedSearchQuery'])) {
+            $searchQuery = '%' . $filter['selectedSearchQuery'] . '%';
+            // Поиск по заголовку и/или содержимому
+            $conditions[] = '(p.title LIKE :search_query_title OR p.content LIKE :search_query_content)';
+            $params[':search_query_title'] = $searchQuery;
+            $params[':search_query_content'] = $searchQuery;
+        }
+
+        // --- 3. Добавляем условие исключения URL (стандартное) ---
         if (!empty($excludeCondition)) {
             $conditions[] = $excludeCondition;
         }
 
+        // --- 4. Собираем запрос ---
         $sql = "SELECT
-                     p.id,
-                     p.title,
-                     p.url,
-                     p.status,
-                     p.created_at,
-                     p.updated_at,
-                     p.article_type,
-                     u.name AS author_name,
-                     GROUP_CONCAT(DISTINCT c.name ORDER BY c.name SEPARATOR ', ') AS category_names_concat,
-                     GROUP_CONCAT(DISTINCT t.name ORDER BY t.name SEPARATOR ', ') AS tag_names_concat,
-                     GROUP_CONCAT(DISTINCT c.name, '||', c.url ORDER BY c.name SEPARATOR ';;') AS category_data,
-                     GROUP_CONCAT(DISTINCT t.name, '||', t.url ORDER BY t.name SEPARATOR ';;') AS tag_data
-                 FROM
-                     posts p
-                 JOIN
-                     users u ON p.user_id = u.id
-                 LEFT JOIN
-                     post_category pc ON p.id = pc.post_id
-                 LEFT JOIN
-                     categories c ON pc.category_id = c.id
-                 LEFT JOIN
-                     post_tag pt ON p.id = pt.post_id
-                 LEFT JOIN
-                     tags t ON pt.tag_id = t.id
-                 WHERE
-                     " . implode(' AND ', $conditions) . "
-                 GROUP BY
-                     p.id
-                 ORDER BY
-                     {$orderByColumn} {$sortOrder}
-                 LIMIT :limit OFFSET :offset";
+                        p.id,
+                        p.title,
+                        p.url,
+                        p.status,
+                        p.created_at,
+                        p.updated_at,
+                        p.article_type,
+                        u.name AS author_name,
+                        -- ... (остальные GROUP_CONCAT выражения) ...
+                        GROUP_CONCAT(DISTINCT c.name ORDER BY c.name SEPARATOR ', ') AS category_names_concat,
+                        GROUP_CONCAT(DISTINCT t.name ORDER BY t.name SEPARATOR ', ') AS tag_names_concat,
+                        GROUP_CONCAT(DISTINCT c.name, '||', c.url ORDER BY c.name SEPARATOR ';;') AS category_data,
+                        GROUP_CONCAT(DISTINCT t.name, '||', t.url ORDER BY t.name SEPARATOR ';;') AS tag_data
+                    FROM
+                        posts p
+                    JOIN
+                        users u ON p.user_id = u.id
+                    LEFT JOIN
+                        post_category pc ON p.id = pc.post_id
+                    LEFT JOIN
+                        categories c ON pc.category_id = c.id
+                    LEFT JOIN
+                        post_tag pt ON p.id = pt.post_id
+                    LEFT JOIN
+                        tags t ON pt.tag_id = t.id
+                    WHERE
+                        " . implode(' AND ', $conditions) . "
+                    GROUP BY
+                        p.id
+                    ORDER BY
+                        {$orderByColumn} {$sortOrder}
+                    LIMIT :limit OFFSET :offset";
 
         try {
-
-            Logger::debug("getPosts. $articleType, $limit, $offset,
-                             $sortBy, $sortOrder. $sql");
+            Logger::debug("getPosts. $articleType, $limit, $offset, $sortBy, $sortOrder. SQL with filters: " . $sql);
             $stmt = $this->db->prepare($sql);
-            $stmt->bindParam(':article_type', $articleType, PDO::PARAM_STR);
+            
+            // --- 5. Связываем все параметры ---
+
+            // Связываем лимиты (всегда INT)
             $stmt->bindParam(':limit', $limit, PDO::PARAM_INT);
             $stmt->bindParam(':offset', $offset, PDO::PARAM_INT);
+            
+            // Связываем динамические параметры из $params
+            // &$value по ссылке, иначе при вызове execute все параметры 
+            // получат последнее значение $value
+            foreach ($params as $key => &$value) {
+                $type = is_int($value) ? PDO::PARAM_INT : PDO::PARAM_STR;
+                $stmt->bindParam($key, $value, $type);
+            }
 
-            // Связываем параметры URL, если они есть, для исключения постов/страниц
+            // Связываем параметры URL, если они есть
             if (!empty($excludeUrls)) {
-                foreach ($excludeUrls as $index => $url) {
-                    $stmt->bindParam(":url{$index}", $excludeUrls[$index], PDO::PARAM_STR);
+                foreach ($excludeUrls as $index => &$url) {
+                    $stmt->bindParam(":url{$index}", $url, PDO::PARAM_STR);
                 }
             }
             
             $stmt->execute();
             $rawPosts = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-            // Вызываем вспомогательный метод для парсинга данных
             return $this->parsePostData($rawPosts);
 
         } catch (PDOException $e) {
+            // ... (логирование ошибки) ...
             Logger::error("getPostsList. Error fetching paginated posts in AdminPostsModel.", 
                 [
                     'articleType' => $articleType, 
                     'limit' => $limit,
                     'offset' => $offset,
-                    'sortBy' => $sortBy,
-                    'sortOrder' => $sortOrder,
-                    'showThrash' => $showThrash
+                    'filter' => $filter, // Добавляем фильтры в лог для отладки
                 ], $e);
             throw $e;
         }

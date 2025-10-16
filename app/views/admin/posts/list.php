@@ -18,7 +18,7 @@
     </div>
 
     <div class="flex-grow-1 ms-4">
-        <form class="row g-2 align-items-center justify-content-end" action='/adm/posts/p5' method="GET">
+        <form class="row g-2 align-items-center justify-content-end" action='<?= htmlspecialchars($filter['formAction'] ?? '') ?>' method="GET">
             
             <div class="col-12 col-md-auto">
                 <select class="form-select form-select-sm" name="category_id">
@@ -71,8 +71,8 @@
                 <th scope="col">
                     Заголовок
                     <?php 
-                    $sortTitleUrlAsc = $base_page_url . '/p1?sort=title&order=asc';
-                    $sortTitleUrlDesc = $base_page_url . '/p1?sort=title&order=desc';
+                    $sortTitleUrlAsc = $base_page_url . '/p1?sort=title&order=asc' . $querySortingParams;
+                    $sortTitleUrlDesc = $base_page_url . '/p1?sort=title&order=desc' . $querySortingParams;
                     ?>
                     <a href="<?= htmlspecialchars($sortTitleUrlAsc) ?>" 
                        class="sort-link <?= (strtolower($current_sort_by) === 'title' && strtolower($current_sort_order) === 'asc') ? 'active' : '' ?>">▲</a>
@@ -82,8 +82,8 @@
                 <th scope="col">
                     Автор
                     <?php 
-                    $sortAuthorUrlAsc = $base_page_url . '/p1?sort=author&order=asc';
-                    $sortAuthorUrlDesc = $base_page_url . '/p1?sort=author&order=desc';
+                    $sortAuthorUrlAsc = $base_page_url . '/p1?sort=author&order=asc' . $querySortingParams;
+                    $sortAuthorUrlDesc = $base_page_url . '/p1?sort=author&order=desc' . $querySortingParams;
                     ?>
                     <a href="<?= htmlspecialchars($sortAuthorUrlAsc) ?>" 
                        class="sort-link <?= (strtolower($current_sort_by) === 'author' && strtolower($current_sort_order) === 'asc') ? 'active' : '' ?>">▲</a>
@@ -95,8 +95,8 @@
                 <th scope="col" class="status-col">
                     Статус
                     <?php 
-                    $sortStatusUrlAsc = $base_page_url . '/p1?sort=status&order=asc';
-                    $sortStatusUrlDesc = $base_page_url . '/p1?sort=status&order=desc';
+                    $sortStatusUrlAsc = $base_page_url . '/p1?sort=status&order=asc' . $querySortingParams;
+                    $sortStatusUrlDesc = $base_page_url . '/p1?sort=status&order=desc' . $querySortingParams;
                     ?>
                     <a href="<?= htmlspecialchars($sortStatusUrlAsc) ?>" 
                        class="sort-link <?= (strtolower($current_sort_by) === 'status' && strtolower($current_sort_order) === 'asc') ? 'active' : '' ?>">▲</a>
@@ -106,8 +106,8 @@
                 <th scope="col">
                     Дата
                     <?php 
-                    $sortDateUrlAsc = $base_page_url . '/p1?sort=updated_at&order=asc';
-                    $sortDateUrlDesc = $base_page_url . '/p1?sort=updated_at&order=desc';
+                    $sortDateUrlAsc = $base_page_url . '/p1?sort=updated_at&order=asc' . $querySortingParams;
+                    $sortDateUrlDesc = $base_page_url . '/p1?sort=updated_at&order=desc' . $querySortingParams;
                     ?>
                     <a href="<?= htmlspecialchars($sortDateUrlAsc) ?>" 
                        class="sort-link <?= (strtolower($current_sort_by) === 'updated_at' && strtolower($current_sort_order) === 'asc') ? 'active' : '' ?>">▲</a>
@@ -277,7 +277,7 @@ else
     <ul class="pagination justify-content-center">
         <!-- Кнопка "Предыдущая" -->
         <li class="page-item <?= ($pagination['current_page'] <= 1) ? 'disabled' : '' ?>">
-            <a class="page-link" href="<?= htmlspecialchars($base_page_url . '/p' . ($pagination['current_page'] - 1)) . $sort_string ?>">&laquo;</a>
+            <a class="page-link" href="<?= htmlspecialchars($base_page_url . '/p' . ($pagination['current_page'] - 1)) . $queryPagingParams ?>">&laquo;</a>
         </li>
     
         <!-- Ссылки на страницы -->
@@ -288,7 +288,7 @@ else
                 </li>
             <?php else: ?>
                 <li class="page-item<?= $num == $pagination['current_page'] ? ' active' : '' ?>">
-                    <a class="page-link" href="<?= htmlspecialchars($link) . $sort_string?>">
+                    <a class="page-link" href="<?= htmlspecialchars($link) . $queryPagingParams?>">
                         <?= $num ?>
                     </a>
                 </li>
@@ -297,7 +297,7 @@ else
     
         <!-- Кнопка "Следующая" -->
         <li class="page-item <?= ($pagination['current_page'] >= $pagination['total_pages']) ? 'disabled' : '' ?>">
-            <a class="page-link" href="<?= htmlspecialchars($base_page_url . '/p' . ($pagination['current_page'] + 1)) . $sort_string ?>">&raquo;</a>
+            <a class="page-link" href="<?= htmlspecialchars($base_page_url . '/p' . ($pagination['current_page'] + 1)) . $queryPagingParams ?>">&raquo;</a>
         </li>
     </ul>
 </nav>
