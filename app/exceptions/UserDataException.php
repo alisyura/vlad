@@ -6,7 +6,7 @@ class UserDataException extends Exception
     private array $errors = [];
 
     /**
-     * Конструктор класса SessionException.
+     * Конструктор класса UserDataException.
      * @param string $message Сообщение об ошибке (которое покажем пользователю).
      * @param array $errors Массив ошибок пользовательских данных.
      * @param int $code Код ошибки

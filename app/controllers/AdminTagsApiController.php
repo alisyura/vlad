@@ -7,11 +7,10 @@ class AdminTagsApiController extends BaseController
 
     private TagsModel $tagsModel;
 
-    public function __construct(Request $request, ?View $view = null)
+    public function __construct(Request $request, TagsModel $tagsModel, ?View $view = null)
     {
         parent::__construct($request, $view);
-        $pdo = Database::getConnection();
-        $this->tagsModel = new TagsModel($pdo);
+        $this->tagsModel = $tagsModel;
     }
 
     /**
@@ -19,27 +18,23 @@ class AdminTagsApiController extends BaseController
      */
     public function searchTags()
     {
-        header('Content-Type: application/json');
+        $query = $this->request->json('q', '');
 
-        // Считываем JSON из тела запроса
-        $input = file_get_contents('php://input');
-        $data = json_decode($input, true);
-        
-        $query = $data['q'] ?? '';
-        
         if (mb_strlen($query) < 2) {
-            echo json_encode([]);
+            $this->sendSuccessJsonResponse('');
             return;
         }
 
         try {
             $tags = $this->tagsModel->searchTagsByName($query);
-            
-            echo json_encode($tags);
-        } catch (Exception $e) {
-            echo json_encode([]);
-            Logger::error('Ошибка при поиске меток: ' . $e->getTraceAsString());
+            $this->sendSuccessJsonResponse('', 200, ['tags' => $tags]);
+        } catch (Throwable $e) {
+            $inputJson = $this->request->getJson() ?? [];
+            Logger::error('Ошибка при поиске меток: ', $inputJson, $e);
+            $this->sendErrorJsonResponse('');
         }
+
+        exit;
     }
 
     /**
@@ -47,41 +42,41 @@ class AdminTagsApiController extends BaseController
      */
     public function create()
     {
-        // Устанавливаем заголовок, чтобы браузер знал, что это JSON
-        header('Content-Type: application/json');
-
-        // Получаем JSON-тело запроса
-        $input = file_get_contents('php://input');
-        $data = json_decode($input, true);
+        $inputJson = $this->request->getJson();
 
         // Проверяем наличие необходимых данных
         $requiredFields = ['name', 'url'];
         foreach ($requiredFields as $field) {
-            if (empty($data[$field])) {
+            if (empty($inputJson[$field])) {
                 $this->sendErrorJsonResponse('Все поля обязательны для заполнения.');
                 return;
             }
         }
 
-        // // Проверка уникальности урла
-        //if ($this->tagsModel->isUrlExists($data['url'])) {
-        $checkUniqnessResult = $this->tagsModel->checkTagUniqueness($data['name'], $data['url']);
-        if ($checkUniqnessResult['name_exists'] > 0) {
-            $this->sendErrorJsonResponse('Имя тэга занято.', 409);
-            return;
-        }
-        if ($checkUniqnessResult['url_exists'] > 0) {
-            $this->sendErrorJsonResponse('Урл тэга занят.', 409);
-            return;
+        try {
+            // Проверка уникальности урла
+            $checkUniqnessResult = $this->tagsModel->checkTagUniqueness($inputJson['name'], $inputJson['url']);
+            if ($checkUniqnessResult['name_exists']) {
+                $this->sendErrorJsonResponse('Имя тэга занято.', 409);
+                return;
+            }
+            if ($checkUniqnessResult['url_exists']) {
+                $this->sendErrorJsonResponse('Урл тэга занят.', 409);
+                return;
+            }
+
+            // Попытка создать тэг
+            if ($this->tagsModel->createTags([$inputJson])) {
+                $this->sendSuccessJsonResponse('Тэг успешно создан.');
+            } else {
+                $this->sendErrorJsonResponse('Не удалось создать тэг.', 500);
+            }
+        } catch(Throwable $e) {
+            Logger::error('Ошибка при создании тэга: ', $inputJson, $e);
+            $this->sendErrorJsonResponse('Сбой при создании тэга', 500);
         }
 
-        // Попытка создать тэг
-        if ($this->tagsModel->createTags([$data])) {
-            $this->sendSuccessJsonResponse('Тэг успешно создан.');
-        } else {
-            $this->sendErrorJsonResponse('Не удалось создать тэг.', 500);
-            
-        }
+        exit;
     }
 
     /**
@@ -89,41 +84,40 @@ class AdminTagsApiController extends BaseController
      */
     public function edit($tagId)
     {
-        // Устанавливаем заголовок, чтобы браузер знал, что это JSON
-        header('Content-Type: application/json');
+        $inputJson = $this->request->getJson();
 
-        // Получаем JSON-тело запроса
-        $input = file_get_contents('php://input');
-        $data = json_decode($input, true);
-
-        $tag = $this->tagsModel->getTag($tagId);
-        if (empty($tag))
-        {
-            $this->sendErrorJsonResponse('Тэг не найден.', 404);
-        }
-
-        // Проверяем наличие необходимых данных
-        $requiredFields = ['name'];
-        foreach ($requiredFields as $field) {
-            if (empty($data[$field])) {
-                $this->sendErrorJsonResponse('Все поля обязательны для заполнения.');
+        try {
+            $tag = $this->tagsModel->getTag($tagId);
+            if (empty($tag))
+            {
+                $this->sendErrorJsonResponse('Тэг не найден.', 404);
             }
-        }
 
-        // Подготовка данных для обновления
-        $updateData = [
-            'id' => $tagId,
-            'name' => $data['name']        
-        ];
+            // Проверяем наличие необходимых данных
+            $requiredFields = ['name'];
+            foreach ($requiredFields as $field) {
+                if (empty($inputJson[$field])) {
+                    $this->sendErrorJsonResponse('Все поля обязательны для заполнения.');
+                    return;
+                }
+            }
 
-        // Обновляем данные пользователя в базе данных
-        $result = $this->tagsModel->updateTags([$updateData]);
+            // Подготовка данных для обновления
+            $updateData = [
+                'id' => $tagId,
+                'name' => $inputJson['name']        
+            ];
 
-        if ($result) {
+            // Обновляем данные пользователя в базе данных
+            $this->tagsModel->updateTags([$updateData]);
+
             $this->sendSuccessJsonResponse('Тэг успешно обновлен.');
-        } else {
-            $this->sendErrorJsonResponse('Не удалось обновить тэг.', 500);
+        } catch(Throwable $e) {
+            Logger::error('Ошибка при редактировании тэга: ', $inputJson, $e);
+            $this->sendErrorJsonResponse('Сбой при редактировании тэга', 500);
         }
+
+        exit;
     }
 
     /**
@@ -131,17 +125,16 @@ class AdminTagsApiController extends BaseController
      */
     public function delete($tagId)
     {
-        // Устанавливаем заголовок, чтобы браузер знал, что это JSON
-        header('Content-Type: application/json');
-        
-        // Обновляем статус пользователя в базе данных
-        $result = $this->tagsModel->deleteTags([$tagId]);
+        try {
+            // Обновляем статус пользователя в базе данных
+            $this->tagsModel->deleteTags([$tagId]);
 
-        if ($result) {
             $this->sendSuccessJsonResponse('Тэг успешно удален.');
-        } else {
-            $this->sendErrorJsonResponse('При удалении тэга произошла ошибка.', 500);
+        } catch(Throwable $e) {
+            Logger::error('Ошибка при удалении тэга: ', ['tagId' => $tagId], $e);
+            $this->sendErrorJsonResponse('Сбой при удалении тэга', 500);
         }
+
         exit;
     }
 }

@@ -3,13 +3,19 @@
 
 class AdminTagsController extends BaseController
 {
-    private TagsModel $tagsModel;
+    use ShowAdminErrorViewTrait;
 
-    public function __construct(Request $request, View $view)
+    private TagsModel $tagsModel;
+    private string $userName;
+    private PaginationService $paginService;
+
+    public function __construct(Request $request, View $view, AuthService $authService, 
+        TagsModel $tagsModel, PaginationService $paginService)
     {
         parent::__construct($request, $view);
-        $pdo = Database::getConnection();
-        $this->tagsModel = new TagsModel($pdo);
+        $this->tagsModel = $tagsModel;
+        $this->paginService = $paginService;
+        $this->userName = $authService->getUserName();
     }
 
     public function list($currentPage = 1)
@@ -19,10 +25,9 @@ class AdminTagsController extends BaseController
             $tagsPerPage = Config::get('admin.TagsPerPage'); // Количество постов на страницу
 
             // Базовый URL для админки
-            $basePageUrl=$this->getBasePageUrl();
+            $basePageUrl=$this->request->getBasePageUrl();
 
-            $ps = new PaginationService();
-            $paginParams = $ps->calculatePaginationParams($tagsPerPage, $currentPage,
+            $paginParams = $this->paginService->calculatePaginationParams($tagsPerPage, $currentPage,
                 $this->tagsModel->getTotalTagsCount(), $basePageUrl);
             
             ['totalPages' => $totalPages, 
@@ -34,7 +39,7 @@ class AdminTagsController extends BaseController
 
             // Добавляем данные для шаблона
             $data['adminRoute'] = $this->getAdminRoute();
-            $data['user_name'] = Auth::getUserName();
+            $data['user_name'] = $this->userName;
             $data['active'] = "tags"; // подсветка вкладки левого меню
             $data['pagination'] = [ // Передаем данные для пагинации в представление
                     'current_page' => $currentPage,
@@ -44,22 +49,20 @@ class AdminTagsController extends BaseController
             $data['base_page_url'] = $basePageUrl;
             $data['styles'] = ['tags.css'];
             $data['jss'] = ['tags.js'];
-            
+
             $this->view->renderAdmin('admin/tags/list.php', $data);
         } catch(Throwable $e) {
-            Logger::error("Error in tags list: " . $e->getTraceAsString());
-            $this->showAdminError('Ошибка', 'Произошла непредвиденная ошибка.');
+            Logger::error("Error in tags list: ", ['currentPage' => $currentPage], $e);
+            $this->showAdminErrorView('Ошибка', 'Произошла непредвиденная ошибка.', $this->userName);
         }
     }
 
     public function edit(int $tagId)
     {
         try {
-            // $data = $this->userService->getUsersAndRolesData();
-
             // Добавляем данные для шаблона
             $data['adminRoute'] = $this->getAdminRoute();
-            $data['user_name'] = Auth::getUserName();
+            $data['user_name'] = $this->userName;
             $data['active'] = "tags"; // подсветка вкладки левого меню
             $data['styles'] = ['tags.css'];
             $data['jss'] = ['tags.js'];
@@ -68,7 +71,7 @@ class AdminTagsController extends BaseController
             $tag = $this->tagsModel->getTag(id: $tagId);
             if (empty($tag))
             {
-                $this->showAdminError('Ошибка', 'Тэг не найден.');
+                $this->showAdminErrorView('Ошибка', 'Тэг не найден.',$this->userName);
                 return;
             }
             
@@ -76,7 +79,7 @@ class AdminTagsController extends BaseController
             $this->view->renderAdmin('admin/tags/edit.php', $data);
         } catch(Throwable $e) {
             Logger::error("Error in edit tag (show form): " . $e->getTraceAsString());
-            $this->showAdminError('Ошибка', 'Произошла непредвиденная ошибка.');
+            $this->showAdminErrorView('Ошибка', 'Произошла непредвиденная ошибка.', $this->userName);
         }
     }
 }

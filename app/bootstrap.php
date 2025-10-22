@@ -74,3 +74,5 @@ $container->bind(ListModel::class, ListModel::class);
 $container->bind(AdminMediaModel::class, AdminMediaModel::class);
 $container->bind(AdminPostsApiController::class, AdminPostsApiController::class);
 $container->bind(AdminPostsApiService::class, AdminPostsApiService::class);
+$container->bind(AdminTagsController::class, AdminTagsController::class);
+$container->bind(AdminTagsApiController::class, AdminTagsApiController::class);

@@ -21,7 +21,7 @@ class AuthService
      * @param string $password
      * @return bool
      */
-    public function login($login, $password) {
+    public function login($login, $password):bool {
         // Здесь нужно добавить проверку на количество попыток входа
         // Например, с помощью Redis, Memcached или отдельной таблицы в базе данных.
         // Если попыток слишком много, возвращаем false.
@@ -56,7 +56,7 @@ class AuthService
      * Не проверяет права администратора.
      * @return bool
      */
-    public function check() {
+    public function check(): bool {
         // Проверка наличия, типа и содержимого всех необходимых данных в сессии
         $userId = $this->session->get('user_id');
         $userLogin = $this->session->get('user_login');
@@ -86,7 +86,7 @@ class AuthService
      * Проверяет, является ли залогиненный пользователь администратором.
      * @return bool
      */
-    public function isUserAdmin() {
+    public function isUserAdmin(): bool {
         $isAdmin = $this->session->get('is_admin');
         return self::check() && // Сначала убеждаемся, что пользователь залогинен
                null !== $isAdmin && 
@@ -100,15 +100,15 @@ class AuthService
         $this->session->destroy();
     }
 
-    public function getUserId() {
+    public function getUserId(): int|null {
         return $this->session->get('user_id') ?? null;
     }
 
-    public function getUserLogin() {
+    public function getUserLogin(): string|null {
         return $this->session->get('user_login') ?? null;
     }
 
-    public function getUserName() {
+    public function getUserName(): string|null {
         return $this->session->get('user_name') ?? null;
     }
 }

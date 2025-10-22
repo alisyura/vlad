@@ -3,11 +3,14 @@
 class UserService
 {
     private UserModel $userModel;
+    private bool $isUserAdmin;
+    private bool $currentUserId;
 
-    public function __construct()
+    public function __construct(AuthService $authService, UserModel $userModel)
     {
-        $pdo = Database::getConnection();
-        $this->userModel = new UserModel($pdo);
+        $this->userModel = $userModel;
+        $this->isUserAdmin = $authService->isUserAdmin();
+        $this->currentUserId = $authService->getUserId();
     }
 
     /**
@@ -16,22 +19,22 @@ class UserService
      */
     public function getUsersAndRolesData(): array
     {
-        $isUserAdmin = Auth::isUserAdmin();
-        $currentUserId = Auth::getUserId();
+        // $isUserAdmin = Auth::isUserAdmin();
+        // $currentUserId = Auth::getUserId();
 
         // Получаем список пользователей в зависимости от роли
-        $users = $isUserAdmin 
+        $users = $this->isUserAdmin 
             ? $this->userModel->getAllUsersList() 
-            : [$this->userModel->getUser(id: $currentUserId)];
+            : [$this->userModel->getUser(id: $this->currentUserId)];
         
         // ВАЖНО: getUserById возвращает один массив, getAllUsersList - массив массивов.
         // Чтобы унифицировать, оборачиваем результат getUserById в массив.
-        if (!$isUserAdmin && $users[0] === false) {
-             throw new \Exception('Не удалось получить данные о вашем профиле.');
+        if (!$this->isUserAdmin && $users[0] === false) {
+             throw new \UserDataException('Не удалось получить данные о вашем профиле.');
         }
 
         return [
-            'isUserAdmin' => $isUserAdmin,
+            'isUserAdmin' => $this->isUserAdmin,
             'users' => $users,
             'roles' => $this->userModel->getRolesList(),
         ];

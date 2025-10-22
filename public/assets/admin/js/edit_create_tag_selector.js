@@ -99,7 +99,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
 
-                const tags = await response.json();
+                const responseData = await response.json();
+                const tags = responseData.success && Array.isArray(responseData.tags) ? responseData.tags : [];
 
                 tagSuggestions.innerHTML = '';
                 if (tags.length > 0) {

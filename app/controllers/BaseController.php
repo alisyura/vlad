@@ -72,7 +72,7 @@ abstract class BaseController {
      * @return string
      * @deprecated
      */
-    protected function getBasePageUrl()
+    protected function getBasePageUrl1()
     {
         // Получаем полный URL-путь с параметрами
         $fullUrl = $_SERVER['REQUEST_URI'];
@@ -99,7 +99,7 @@ abstract class BaseController {
      * @return void
      * @deprecated
      */
-    protected function showAdminError($title, $errMsg)
+    protected function showAdminError1($title, $errMsg)
     {
         $data = [
             'adminRoute' => $this->getAdminRoute(),
@@ -139,10 +139,10 @@ abstract class BaseController {
      * @return void
      * @deprecated
      */
-    protected function sendErrorJsonResponse(string $message, int $statusCode = 400, array $additionalData = []): void
+    protected function sendErrorJsonResponse1(string $message, int $statusCode = 400, array $additionalData = []): void
     {
         $response = array_merge(['success' => false, 'message' => $message], $additionalData);
-        $this->sendJsonResponse($response, $statusCode);
+        $this->sendJsonResponse1($response, $statusCode);
     }
 
     /**
@@ -154,9 +154,9 @@ abstract class BaseController {
      * @return void
      * @deprecated
      */
-    protected function sendSuccessJsonResponse(string $message, int $statusCode = 200, array $additionalData = []): void
+    protected function sendSuccessJsonResponse1(string $message, int $statusCode = 200, array $additionalData = []): void
     {
         $response = array_merge(['success' => true, 'message' => $message], $additionalData);
-        $this->sendJsonResponse($response, $statusCode);
+        $this->sendJsonResponse1($response, $statusCode);
     }
 }

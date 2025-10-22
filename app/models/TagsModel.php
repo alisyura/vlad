@@ -210,10 +210,10 @@ class TagsModel extends BaseModel {
      * @param array $tagsData Массив с данными для обновления тегов.
      * @return bool Возвращает true в случае успеха, false в противном случае.
      */
-    public function updateTags(array $tagsData): bool
+    public function updateTags(array $tagsData): void
     {
         if (empty($tagsData)) {
-            return false;
+            throw new TagsException('updateTags. tagsData empty');
         }
 
         $this->db->beginTransaction();
@@ -243,8 +243,7 @@ class TagsModel extends BaseModel {
             }
             
             if (empty($caseClauses)) {
-                $this->db->rollBack();
-                return false;
+                throw new TagsException('updateTags. No valid tagsData items found. ' . json_encode($tagsData));
             }
 
             $sql = "UPDATE tags SET `name` = CASE " . implode(" ", $caseClauses) . " END WHERE id IN (" . implode(",", $inPlaceholders) . ")";
@@ -255,17 +254,16 @@ class TagsModel extends BaseModel {
                 $stmt->bindValue($key, $value);
             }
             
-            if (!$stmt->execute()) {
-                $this->db->rollBack();
-                return false;
-            }
+            $stmt->execute();
 
             $this->db->commit();
-            return true;
         } catch (Throwable $e) {
-            Logger::error('Error in updateTags. ' . $e->getTraceAsString(), $tagsData);
-            $this->db->rollBack();
-            return false;
+            if ($this->db->inTransaction())
+            {
+                $this->db->rollBack();
+            }
+            Logger::error('Error in updateTags. ', $tagsData, $e);
+            throw $e;
         }
     }
 
@@ -276,10 +274,10 @@ class TagsModel extends BaseModel {
      * @param array $tagIds Массив с ID тегов для удаления.
      * @return bool Возвращает true в случае успеха, false в противном случае.
      */
-    public function deleteTags(array $tagIds): bool
+    public function deleteTags(array $tagIds): void
     {
         if (empty($tagIds)) {
-            return false;
+            throw new TagsException('deleteTags. tagIds empty');
         }
 
         $this->db->beginTransaction();
@@ -302,17 +300,16 @@ class TagsModel extends BaseModel {
                 $stmt->bindValue($key, $value, PDO::PARAM_INT);
             }
 
-            if (!$stmt->execute()) {
-                $this->db->rollBack();
-                return false;
-            }
+            $stmt->execute();
 
             $this->db->commit();
-            return true;
         } catch (Throwable $e) {
-            Logger::error('Error in updateTags. ' . $e->getTraceAsString(), $tagIds);
-            $this->db->rollBack();
-            return false;
+            if ($this->db->inTransaction())
+            {
+                $this->db->rollBack();
+            }
+            Logger::error('Error in deleteTags. ', $tagIds, $e);
+            throw $e;
         }
     }
 }

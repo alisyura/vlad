@@ -215,36 +215,42 @@ $router->addRoute("/$adminRoute/media/api/upload", function(Container $container
 // Формы для тэгов
 
 // Открыть форму списка тэгов
-$router->addRoute("/$adminRoute/tags(?:/p(\d+))?", function($request, $viewAdmin, $page = 1) {
-    (new AdminTagsController($request, $viewAdmin))->list($page);
+$router->addRoute("/$adminRoute/tags(?:/p(\d+))?", function(Container $container, $page = 1) {
+    $controller = $container->make(AdminTagsController::class);
+    $controller->list($page);
 }, ['UserAuthenticatedMiddleware']);
 
 // Открыть форму редактирование тэга
-$router->addRoute("/$adminRoute/tags/edit/(\d+)", function($request, $viewAdmin, $tagId) {
-    (new AdminTagsController($request, $viewAdmin))->edit($tagId);
+$router->addRoute("/$adminRoute/tags/edit/(\d+)", function(Container $container, $tagId) {
+    $controller = $container->make(AdminTagsController::class);
+    $controller->edit($tagId);
 }, ['UserAuthenticatedMiddleware']);
 
 
 // Операции над тэгами
 
 // Поиск тэгов по имени (автодополнение при создании поста/страницы)
-$router->addRoute("/$adminRoute/tags/api/search", function($request, $viewAdmin) {
-    (new AdminTagsApiController($request))->searchTags();
+$router->addRoute("/$adminRoute/tags/api/search", function(Container $container) {
+    $controller = $container->make(AdminTagsApiController::class);
+    $controller->searchTags();
 }, ['UserAuthenticatedMiddleware', 'AjaxMiddleware', 'CsrfMiddleware'], ['method' => 'POST']);
 
 // Создание нового тэга
-$router->addRoute("/$adminRoute/tags/api/create", function($request, $viewAdmin) {
-    (new AdminTagsApiController($request))->create();
+$router->addRoute("/$adminRoute/tags/api/create", function(Container $container) {
+    $controller = $container->make(AdminTagsApiController::class);
+    $controller->create();
 }, ['UserAuthenticatedMiddleware', 'AjaxMiddleware', 'CsrfMiddleware'], ['method' => 'POST']);
 
 // Редактирование тэга
-$router->addRoute("/$adminRoute/tags/api/edit/(\d+)", function($request, $viewAdmin, $userId) {
-    (new AdminTagsApiController($request))->edit($userId);
+$router->addRoute("/$adminRoute/tags/api/edit/(\d+)", function(Container $container, $tagId) {
+    $controller = $container->make(AdminTagsApiController::class);
+    $controller->edit($tagId);
 }, ['UserAuthenticatedMiddleware', 'AjaxMiddleware', 'CsrfMiddleware'], ['method' => 'PUT']);
 
 // Удаление тэга
-$router->addRoute("/$adminRoute/tags/api/delete/(\d+)", function($request, $viewAdmin, $tagId) {
-    (new AdminTagsApiController($request))->delete($tagId);
+$router->addRoute("/$adminRoute/tags/api/delete/(\d+)", function(Container $container, $tagId) {
+    $controller = $container->make(AdminTagsApiController::class);
+    $controller->delete($tagId);
 }, ['UserAuthenticatedMiddleware', 'AjaxMiddleware', 'CsrfMiddleware'], ['method' => 'DELETE']);
 
 
