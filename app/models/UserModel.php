@@ -67,7 +67,8 @@ class UserModel extends BaseModel {
                 r.id AS id,
                 r.name AS name,
                 r.description AS description
-            FROM roles r");
+            FROM roles r
+            ORDER BY r.name");
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
@@ -89,79 +90,69 @@ class UserModel extends BaseModel {
 
     /**
      * Создает нового пользователя в базе данных
-     * @param array $data Данные пользователя (name, login, email, password, role_id)
-     * @return bool
+     * @param array $data Данные пользователя (name, login, email, HASHED password, role_id)
+     * @return int Возвращает данные созданного пользователя или false при ошибке
+     * @throws \PDOException При ошибке выполнения запроса
      */
-    public function createUser(array $data)
+    public function createUser(array $data): int
     {
         $stmt = $this->db->prepare("
             INSERT INTO users (name, login, email, password, role_id, created_at)
             VALUES (:name, :login, :email, :password, :role_id, NOW())
         ");
-        return $stmt->execute([
+        
+        $stmt->execute([
             ':name' => $data['name'],
             ':login' => $data['login'],
             ':email' => $data['email'],
-            ':password' => $data['password'], // Здесь уже хешированный пароль
+            ':password' => $data['password'],
             ':role_id' => $data['role_id']
         ]);
+
+        return (int)$this->db->lastInsertId(); 
     }
 
     /**
      * Изменяет статус пользователя в базе данных
      * @param int $userId ID пользователя
      * @param int $activeStatus Статус пользователя (0 - заблокирован, 1 - разблокирован)
-     * @return bool
+     * @return void
+     * @throws \PDOException При ошибке выполнения запроса
      */
-    public function updateUserStatus($userId, $activeStatus)
+    public function updateUserStatus($userId, $activeStatus): void
     {
         $stmt = $this->db->prepare("
             UPDATE users SET active = :active WHERE id = :user_id
         ");
-        return $stmt->execute([
+        $stmt->execute([
             ':active' => $activeStatus,
             ':user_id' => $userId
         ]);
     }
 
     /**
-     * Полностью удаляет пользователя из базы данных,
-     * только если у него нет опубликованных постов или медиафайлов.
+     * Удаляет пользователя из БД.
      * @param int $userId ID пользователя
-     * @return bool Возвращает true в случае успешного удаления, false - если удаление не было выполнено
+     * @throws \PDOException При ошибке базы данных.
      */
-    public function deleteUser(int $userId): bool
+    public function deleteUser(int $userId): void
     {
-        // 1. Проверяем, есть ли у пользователя опубликованные посты
-        $stmtPosts = $this->db->prepare("
-            SELECT COUNT(*) FROM posts WHERE user_id = :user_id
-        ");
-        $stmtPosts->execute([':user_id' => $userId]);
-        $postCount = $stmtPosts->fetchColumn();
+        $stmt = $this->db->prepare("DELETE FROM users WHERE id = :user_id");
+        $stmt->execute([':user_id' => $userId]);
+    }
+    public function hasPosts(int $userId): bool
+    {
+        $stmt = $this->db->prepare("SELECT 1 FROM posts WHERE user_id = :user_id LIMIT 1");
+        $stmt->execute([':user_id' => $userId]);
+        // fetchColumn() > 0 or rowCount() > 0 - более эффективно, чем COUNT(*)
+        return $stmt->rowCount() > 0; 
+    }
 
-        if ($postCount > 0) {
-            // У пользователя есть посты, удаление невозможно
-            return false;
-        }
-
-        // 2. Проверяем, есть ли у пользователя медиафайлы
-        $stmtMedia = $this->db->prepare("
-            SELECT COUNT(*) FROM media WHERE user_id = :user_id
-        ");
-        $stmtMedia->execute([':user_id' => $userId]);
-        $mediaCount = $stmtMedia->fetchColumn();
-
-        if ($mediaCount > 0) {
-            // У пользователя есть медиа, удаление невозможно
-            return false;
-        }
-
-        // 3. Если постов и медиа нет, выполняем удаление пользователя
-        $stmt = $this->db->prepare("
-            DELETE FROM users WHERE id = :user_id
-        ");
-        
-        return $stmt->execute([':user_id' => $userId]);
+    public function hasMedia(int $userId): bool
+    {
+        $stmt = $this->db->prepare("SELECT 1 FROM media WHERE user_id = :user_id LIMIT 1");
+        $stmt->execute([':user_id' => $userId]);
+        return $stmt->rowCount() > 0;
     }
 
     /**
@@ -200,23 +191,45 @@ class UserModel extends BaseModel {
         return $stmt->fetchColumn() > 0;
     }
 
-    // Метод для обновления пользователя
-    public function updateUser(int $id, array $data): bool
+    /**
+     * Обновляет данные пользователя в базе данных.
+     * @param int $id ID пользователя.
+     * @param array $data Ассоциативный массив с данными для обновления.
+     * @return void
+     * @throws PDOException Если произошла ошибка БД (т.к. ATTR_ERRMODE => EXCEPTION).
+     */
+    public function updateUser(int $id, array $data): void
     {
+        // Добавление updated_at, если оно еще не было добавлено в $data
+        if (!isset($data['updated_at'])) {
+            $data['updated_at'] = 'NOW()'; // Специальное значение для NOW()
+        }
+        
         $sql = "UPDATE users SET ";
         $params = [];
         $setClauses = [];
         
         foreach ($data as $key => $value) {
-            $setClauses[] = "$key = :$key";
-            $params[":$key"] = $value;
+            // Специальная обработка для NOW(), чтобы не экранировать его
+            if ($value === 'NOW()') {
+                $setClauses[] = "$key = NOW()";
+            } else {
+                $setClauses[] = "$key = :$key";
+                $params[":$key"] = $value;
+            }
         }
         
+        // Если $data пуст, то это кривые данные
+        if (empty($setClauses)) {
+            throw new UserDataException('Передан пустой массив данных');
+        }
+
         $sql .= implode(', ', $setClauses);
-        $sql .= ", updated_at = NOW() WHERE id = :id";
+        $sql .= " WHERE id = :id";
         $params[':id'] = $id;
 
         $stmt = $this->db->prepare($sql);
-        return $stmt->execute($params);
+        
+        $stmt->execute($params);
     }
 }

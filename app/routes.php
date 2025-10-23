@@ -258,41 +258,48 @@ $router->addRoute("/$adminRoute/tags/api/delete/(\d+)", function(Container $cont
 // Формы для управления пользователями
 
 // Открыть форму списка пользователей
-$router->addRoute("/$adminRoute/users", function($request, $viewAdmin) {
-    (new AdminUsersController($request, $viewAdmin))->list();
+$router->addRoute("/$adminRoute/users", function(Container $container) {
+    $controller = $container->make(AdminUsersController::class);
+    $controller->list();
 }, ['AdminAuthenticatedMiddleware']);
 
 // Открыть форму редактирование пользователя
-$router->addRoute("/$adminRoute/users/edit/(\d+)", function($request, $viewAdmin, $userId) {
-    (new AdminUsersController($request, $viewAdmin))->edit($userId);
+$router->addRoute("/$adminRoute/users/edit/(\d+)", function(Container $container, $userId) {
+    $controller = $container->make(AdminUsersController::class);
+    $controller->edit($userId);
 }, ['AdminAuthenticatedMiddleware']);
 
 
 // Операции над пользователями
 
 // Создание нового пользователя
-$router->addRoute("/$adminRoute/users/api/create", function($request, $viewAdmin) {
-    (new AdminUsersApiController($request))->create();
+$router->addRoute("/$adminRoute/users/api/create", function(Container $container) {
+    $controller = $container->make(AdminUsersApiController::class);
+    $controller->create();
 }, ['AdminAuthenticatedMiddleware', 'AjaxMiddleware', 'CsrfMiddleware'], ['method' => 'POST']);
 
 // Редактирование пользователя
-$router->addRoute("/$adminRoute/users/api/edit/(\d+)", function($request, $viewAdmin, $userId) {
-    (new AdminUsersApiController($request))->edit($userId);
+$router->addRoute("/$adminRoute/users/api/edit/(\d+)", function(Container $container, $userId) {
+    $controller = $container->make(AdminUsersApiController::class);
+    $controller->edit($userId);
 }, ['AdminAuthenticatedMiddleware', 'AjaxMiddleware', 'CsrfMiddleware'], ['method' => 'PUT']);
 
 // Блокирование пользователя
-$router->addRoute("/$adminRoute/users/api/block/(\d+)", function($request, $viewAdmin, $userId) {
-    (new AdminUsersApiController($request))->block($userId);
+$router->addRoute("/$adminRoute/users/api/block/(\d+)", function(Container $container, $userId) {
+    $controller = $container->make(AdminUsersApiController::class);
+    $controller->block($userId);
 }, ['AdminAuthenticatedMiddleware', 'AjaxMiddleware', 'CsrfMiddleware'], ['method' => 'PATCH']);
 
 // Разблокирование пользователя
-$router->addRoute("/$adminRoute/users/api/unblock/(\d+)", function($request, $viewAdmin, $userId) {
-    (new AdminUsersApiController($request))->unblock($userId);
+$router->addRoute("/$adminRoute/users/api/unblock/(\d+)", function(Container $container, $userId) {
+    $controller = $container->make(AdminUsersApiController::class);
+    $controller->unblock($userId);
 }, ['AdminAuthenticatedMiddleware', 'AjaxMiddleware', 'CsrfMiddleware'], ['method' => 'PATCH']);
 
 // Удаление пользователя
-$router->addRoute("/$adminRoute/users/api/delete/(\d+)", function($request, $viewAdmin, $userId) {
-    (new AdminUsersApiController($request))->delete($userId);
+$router->addRoute("/$adminRoute/users/api/delete/(\d+)", function(Container $container, $userId) {
+    $controller = $container->make(AdminUsersApiController::class);
+    $controller->delete($userId);
 }, ['AdminAuthenticatedMiddleware', 'AjaxMiddleware', 'CsrfMiddleware'], ['method' => 'DELETE']);
 
 

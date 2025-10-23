@@ -7,12 +7,18 @@ class AdminUsersApiController extends BaseController
     use JsonResponseTrait;
     
     private UserModel $userModel;
+    private UserService $userService;
+    private int $loggedInUserId;
+    private bool $isUserAdmin;
 
-    public function __construct(Request $request, ?View $view = null)
+    public function __construct(Request $request, UserService $userService, 
+        UserModel $userModel, AuthService $authService, ?View $view = null)
     {
         parent::__construct($request, $view);
-        $pdo = Database::getConnection();
-        $this->userModel = new UserModel($pdo);
+        $this->userModel = $userModel;
+        $this->userService = $userService;
+        $this->loggedInUserId = $authService->getUserId();
+        $this->isUserAdmin = $authService->isUserAdmin();
     }
 
     /**
@@ -20,19 +26,23 @@ class AdminUsersApiController extends BaseController
      */
     public function block($userId)
     {
-        // Устанавливаем заголовок, чтобы браузер знал, что это JSON
-        header('Content-Type: application/json');
+        try {
+            $this->userService->blockUser((int)$userId); 
 
-        // Обновляем статус пользователя в базе данных
-        $result = $this->userModel->updateUserStatus($userId, 0); // 0 для "заблокирован"
+            $this->sendSuccessJsonResponse('Пользователь успешно заблокирован.');
+        } catch (\InvalidArgumentException $e) {
+            // Ошибка: 400 Bad Request (например, попытка заблокировать админа)
+            $this->sendErrorJsonResponse($e->getMessage(), 400);
 
-        if ($result) {
-            echo json_encode(['success' => true, 'message' => 'Пользователь успешно заблокирован.']);
-        } else {
-            http_response_code(500); // Bad Request
-            echo json_encode(['success' => false, 'message' => 'Ошибка при блокировании пользователя.']);
+        } catch (\UserDataException $e) {
+            // Ошибка: 404 Not Found (Пользователь не найден)
+            $statusCode = ($e->getCode() === 404) ? 404 : 409; 
+            $this->sendErrorJsonResponse($e->getMessage(), $statusCode);
+
+        } catch (\Throwable $e) {
+            Logger::error('Ошибка при блокировании пользователя', ['userId' => $userId], $e);
+            $this->sendErrorJsonResponse('Ошибка при блокировании пользователя.', 500);
         }
-        exit;
     }
 
     /**
@@ -40,19 +50,20 @@ class AdminUsersApiController extends BaseController
      */
     public function unblock($userId)
     {
-        // Устанавливаем заголовок, чтобы браузер знал, что это JSON
-        header('Content-Type: application/json');
+        try {
+            $this->userService->unblockUser((int)$userId); 
 
-        // Обновляем статус пользователя в базе данных
-        $result = $this->userModel->updateUserStatus($userId, 1); // 1 для "разблокирован"
+            $this->sendSuccessJsonResponse('Пользователь успешно разблокирован.');
+        } catch (\RuntimeException $e) {
+            // Ошибка: 404 Not Found (Пользователь не найден)
+            $statusCode = ($e->getCode() === 404) ? 404 : 409; 
+            $this->sendErrorJsonResponse($e->getMessage(), $statusCode);
 
-        if ($result) {
-            echo json_encode(['success' => true, 'message' => 'Пользователь успешно разблокирован.']);
-        } else {
-            http_response_code(500); // Bad Request
-            echo json_encode(['success' => false, 'message' => 'Ошибка при разблокировании пользователя.']);
+        } catch (Throwable $e) {
+            // Ошибка: 500 Internal Server Error (Проблема с БД)
+            Logger::error('Ошибка при разблокировании пользователя', ['userId' => $userId], $e);
+            $this->sendErrorJsonResponse('Ошибка при разблокировании пользователя.', 500);
         }
-        exit;
     }
 
     /**
@@ -60,19 +71,24 @@ class AdminUsersApiController extends BaseController
      */
     public function delete($userId)
     {
-        // Устанавливаем заголовок, чтобы браузер знал, что это JSON
-        header('Content-Type: application/json');
-        
-        // Обновляем статус пользователя в базе данных
-        $result = $this->userModel->deleteUser($userId);
+        try {
+            $this->userService->deleteUser((int)$userId);
 
-        if ($result) {
-            echo json_encode(['success' => true, 'message' => 'Пользователь успешно удален.']);
-        } else {
-            http_response_code(500); // Bad Request
-            echo json_encode(['success' => false, 'message' => 'Удаление невозможно. У пользователя есть написанные посты и/или медиафайлы.']);
+            $this->sendSuccessJsonResponse('Пользователь успешно удален.', 200); 
+        } catch (\InvalidArgumentException $e) {
+            // Ошибка: 400 Bad Request (Удаление невозможно из-за связанных данных)
+            $this->sendErrorJsonResponse($e->getMessage(), 400);
+
+        } catch (\UserDataException $e) {
+            // Ошибка: 404 Not Found (Пользователь не найден)
+            $statusCode = ($e->getCode() === 404) ? 404 : 409; 
+            $this->sendErrorJsonResponse($e->getMessage(), $statusCode);
+
+        } catch (\Throwable $e) {
+            // Ошибка: 500 Internal Server Error (Проблема с БД)
+            Logger::error('Ошибка при удалении пользователя', ['userId' => $userId], $e);
+            $this->sendErrorJsonResponse('Ошибка при удалении пользователя.', 500);
         }
-        exit;
     }
 
     /**
@@ -80,56 +96,24 @@ class AdminUsersApiController extends BaseController
      */
     public function create()
     {
-        // Устанавливаем заголовок, чтобы браузер знал, что это JSON
-        header('Content-Type: application/json');
+        $inputJson = $this->request->getJson();
 
-        // Получаем JSON-тело запроса
-        $input = file_get_contents('php://input');
-        $data = json_decode($input, true);
+        try {
+            $this->userService->createUser($inputJson);
 
-        // Проверяем наличие необходимых данных
-        $requiredFields = ['name', 'login', 'email', 'password', 'confirm_password', 'role_id'];
-        foreach ($requiredFields as $field) {
-            if (empty($data[$field])) {
-                http_response_code(400); // Bad Request
-                echo json_encode(['success' => false, 'message' => 'Все поля обязательны для заполнения.']);
-                return;
-            }
-        }
+            $this->sendSuccessJsonResponse('Пользователь успешно создан.', 201);
+        } catch (\InvalidArgumentException $e) {
+            // Ошибка валидации (отсутствуют поля, не совпадает пароль и т.п.)
+            $this->sendErrorJsonResponse($e->getMessage(), 400);
 
-        // Проверка совпадения паролей
-        if ($data['password'] !== $data['confirm_password']) {
-            http_response_code(400); // Bad Request
-            echo json_encode(['success' => false, 'message' => 'Пароли не совпадают.']);
-            return;
-        }
+        } catch (\UserDataException $e) {
+            // Ошибка бизнес-логики (логин/email занят, несуществующая роль)
+            $this->sendErrorJsonResponse($e->getMessage(), 409);
 
-        // Проверка уникальности логина и email
-        if ($this->userModel->isLoginExists($data['login'])) {
-            http_response_code(409); // Conflict
-            echo json_encode(['success' => false, 'message' => 'Логин уже занят.']);
-            return;
-        }
-        if ($this->userModel->isEmailExists($data['email'])) {
-            http_response_code(409); // Conflict
-            echo json_encode(['success' => false, 'message' => 'Email уже зарегистрирован.']);
-            return;
-        }
-        if (!$this->userModel->isRoleExists($data['role_id'])) {
-            http_response_code(409); // Conflict
-            echo json_encode(['success' => false, 'message' => 'Несуществующая роль.']);
-            return;
-        }
-
-        // Хеширование пароля для безопасности
-        $data['password'] = password_hash($data['password'], PASSWORD_DEFAULT);
-
-        // Попытка создать пользователя
-        if ($this->userModel->createUser($data)) {
-            echo json_encode(['success' => true, 'message' => 'Пользователь успешно создан.']);
-        } else {
-            http_response_code(500); // Internal Server Error
-            echo json_encode(['success' => false, 'message' => 'Не удалось создать пользователя.']);
+        } catch (\Throwable $e) {
+            // Непредвиденная ошибка (ошибка БД, Internal Server Error)
+            Logger::error('Ошибка при создании пользователя', $inputJson, $e);
+            $this->sendErrorJsonResponse('Не удалось создать пользователя.', 500);
         }
     }
 
@@ -138,73 +122,34 @@ class AdminUsersApiController extends BaseController
      */
     public function edit($userId)
     {
-        // Устанавливаем заголовок, чтобы браузер знал, что это JSON
-        header('Content-Type: application/json');
-
-        // Проверка прав доступа: только админ или сам пользователь могут редактировать.
-        $currentUserId = Auth::getUserId();
-        $isAdmin = Auth::isUserAdmin();
-        
-        // Если текущий пользователь не админ и пытается редактировать другого пользователя,
-        // или пытается редактировать ID, который не соответствует его собственному.
-        if (!$isAdmin && $userId != $currentUserId) {
-            // http_response_code(403); // Forbidden
-            // echo json_encode(['success' => false, 'message' => 'Недостаточно прав для редактирования этого пользователя.']);
-            // return;
+        // если не админ и если пытается редактировать другого пользователя,
+        // то возвращаем код 403
+        if (!$this->isUserAdmin && $userId != $this->loggedInUserId) {
+            // 403 Forbidden: Недостаточно прав для выполнения запроса
             $this->sendErrorJsonResponse('Недостаточно прав для редактирования этого пользователя.', 403);
+            return;
         }
 
-        // Получаем JSON-тело запроса
-        $input = file_get_contents('php://input');
-        $data = json_decode($input, true);
-
-        $user = $this->userModel->getUser($userId);
-
-        // Проверяем наличие необходимых данных
-        $requiredFields = ['name', 'email'];
-        if ($user['built_in'] === 0)
-        {
-            // Роль можно менять только не у системных пользователей
-            // Поэтому и проверять ее имеет смысл только не у системных
-            $requiredFields[] = 'role_id';
-        }
-        foreach ($requiredFields as $field) {
-            if (empty($data[$field])) {
-                $this->sendErrorJsonResponse('Все поля обязательны для заполнения.');
-            }
-        }
-
-        if (!empty($data['password']) && $data['password'] !== $data['confirm_password'])
-        {
-            $this->sendErrorJsonResponse('Пароли не совпадаеют.');
-        }
-
-        // Подготовка данных для обновления
-        $updateData = [
-            'name' => $data['name'],
-            'email' => $data['email']            
-        ];
-
-        if ($user['built_in'] === 0)
-        {
-            // Роль можно менять только не у системных пользователей
-            $updateData['role_id'] = $data['role_id'];
-        }
+        $inputJson = $this->request->getJson();
         
-        // Если пароль был предоставлен, хешируем его и добавляем к данным
-        if (!empty($data['password'])) {
-            $updateData['password'] = password_hash($data['password'], PASSWORD_DEFAULT);
-        }
+        try {
+            // Сервис получает ID пользователя, которого редактируем, и данные
+            $this->userService->updateUser($userId, $inputJson);
 
-        // Обновляем данные пользователя в базе данных
-        $result = $this->userModel->updateUser($userId, $updateData);
-
-        if ($result) {
-            // echo json_encode(['success' => true, 'message' => 'Пользователь успешно обновлен.']);
             $this->sendSuccessJsonResponse('Пользователь успешно обновлен.');
-        } else {
-            // http_response_code(500); // Internal Server Error
-            // echo json_encode(['success' => false, 'message' => 'Не удалось обновить пользователя.']);
+        } catch (\InvalidArgumentException $e) {
+            // Ошибка: 400 Bad Request (Неверный формат, недостающие поля, несовпадение паролей)
+            $this->sendErrorJsonResponse($e->getMessage(), 400);
+
+        } catch (\UserDataException $e) {
+            // Ошибка: 409 Conflict (Email/Роль уже занята/не существует) или 404 Not Found
+            // Здесь можно было бы сделать более точную обработку, но для простоты используем 409/404
+            $statusCode = ($e->getCode() === 404) ? 404 : 409;
+            $this->sendErrorJsonResponse($e->getMessage(), $statusCode);
+
+        } catch (\Exception $e) {
+            // Ошибка: 500 Internal Server Error (Проблема с БД)
+            Logger::error('Ошибка при блокировании пользователя', ['userId' => $userId], $e);
             $this->sendErrorJsonResponse('Не удалось обновить пользователя.', 500);
         }
     }

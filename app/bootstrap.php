@@ -26,6 +26,7 @@ $container->singleton(PDO::class, function() {
         PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
         PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
         PDO::ATTR_EMULATE_PREPARES => false,
+        PDO::MYSQL_ATTR_INIT_COMMAND => 'SET NAMES utf8mb4',
     ];
 
     try {
@@ -76,3 +77,5 @@ $container->bind(AdminPostsApiController::class, AdminPostsApiController::class)
 $container->bind(AdminPostsApiService::class, AdminPostsApiService::class);
 $container->bind(AdminTagsController::class, AdminTagsController::class);
 $container->bind(AdminTagsApiController::class, AdminTagsApiController::class);
+$container->bind(AdminUsersController::class, AdminUsersController::class);
+$container->bind(AdminUsersApiController::class, AdminUsersApiController::class);
