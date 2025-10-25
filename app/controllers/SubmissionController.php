@@ -6,11 +6,10 @@
  *
  * @property Request $request Объект HTTP-запроса.
  */
-class SubmissionController
+class SubmissionController extends BaseController
 {
     use JsonResponseTrait;
 
-    private Request $request;
     private SubmissionService $service;
     private LinkValidator $linkValidator;
 
@@ -24,7 +23,7 @@ class SubmissionController
     public function __construct(Request $request, SubmissionService $submissionService,
         LinkValidator $linkValidator)
     {
-        $this->request = $request;
+        parent::__construct($request, null);
         $this->service = $submissionService;
         $this->linkValidator = $linkValidator;
     }
@@ -44,13 +43,10 @@ class SubmissionController
 
             $this->sendSuccessJsonResponse('Материал успешно отправлен на модерацию');
         } catch (SubmissionException $e) {
-            Logger::error("Ошибка при добавлении пользовательского материала.",
-                 [$e->getTraceAsString()]);
-            $errMsg = $e->getMessage();
+            Logger::error("Ошибка при добавлении пользовательского материала.", [], $e);
             $this->sendErrorJsonResponse($e->getMessage(), 400);
         } catch (Throwable $e) {
-            Logger::error("Ошибка при добавлении пользовательского материала",
-                 [$e->getTraceAsString()]);
+            Logger::error("Сбой при добавлении пользовательского материала", [], $e);
             $this->sendErrorJsonResponse('Произошла ошибка при добавлении материала.', 500);
         }
 

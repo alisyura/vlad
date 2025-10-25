@@ -1,12 +1,12 @@
 <?php
 // app/controllers/AdminTagsController.php
 
-class AdminTagsController extends BaseController
+class AdminTagsController extends BaseAdminController
 {
     use ShowAdminErrorViewTrait;
 
     private TagsModel $tagsModel;
-    private string $userName;
+    private AuthService $authService;
     private PaginationService $paginService;
 
     public function __construct(Request $request, View $view, AuthService $authService, 
@@ -15,11 +15,13 @@ class AdminTagsController extends BaseController
         parent::__construct($request, $view);
         $this->tagsModel = $tagsModel;
         $this->paginService = $paginService;
-        $this->userName = $authService->getUserName();
+        $this->authService = $authService;
     }
 
     public function list($currentPage = 1)
     {
+        $userName = $this->authService->getUserName();
+
         try {
             // Определяем параметры пагинации
             $tagsPerPage = Config::get('admin.TagsPerPage'); // Количество постов на страницу
@@ -39,8 +41,9 @@ class AdminTagsController extends BaseController
 
             // Добавляем данные для шаблона
             $data['adminRoute'] = $this->getAdminRoute();
-            $data['user_name'] = $this->userName;
+            $data['user_name'] = $userName;
             $data['active'] = "tags"; // подсветка вкладки левого меню
+            $data['isUserAdmin'] = $this->authService->isUserAdmin();
             $data['pagination'] = [ // Передаем данные для пагинации в представление
                     'current_page' => $currentPage,
                     'total_pages' => $totalPages
@@ -53,17 +56,20 @@ class AdminTagsController extends BaseController
             $this->view->renderAdmin('admin/tags/list.php', $data);
         } catch(Throwable $e) {
             Logger::error("Error in tags list: ", ['currentPage' => $currentPage], $e);
-            $this->showAdminErrorView('Ошибка', 'Произошла непредвиденная ошибка.', $this->userName);
+            $this->showAdminErrorView('Ошибка', 'Произошла непредвиденная ошибка.', $userName);
         }
     }
 
     public function edit(int $tagId)
     {
+        $userName = $this->authService->getUserName();
+
         try {
             // Добавляем данные для шаблона
             $data['adminRoute'] = $this->getAdminRoute();
-            $data['user_name'] = $this->userName;
+            $data['user_name'] = $userName;
             $data['active'] = "tags"; // подсветка вкладки левого меню
+            $data['isUserAdmin'] = $this->authService->isUserAdmin();
             $data['styles'] = ['tags.css'];
             $data['jss'] = ['tags.js'];
             
@@ -71,15 +77,15 @@ class AdminTagsController extends BaseController
             $tag = $this->tagsModel->getTag(id: $tagId);
             if (empty($tag))
             {
-                $this->showAdminErrorView('Ошибка', 'Тэг не найден.',$this->userName);
+                $this->showAdminErrorView('Ошибка', 'Тэг не найден.',$userName);
                 return;
             }
             
             $data['tag_to_edit'] = $tag;
             $this->view->renderAdmin('admin/tags/edit.php', $data);
         } catch(Throwable $e) {
-            Logger::error("Error in edit tag (show form): " . $e->getTraceAsString());
-            $this->showAdminErrorView('Ошибка', 'Произошла непредвиденная ошибка.', $this->userName);
+            Logger::error("Error in edit tag (show form): ", ['tagId' => $tagId], $e);
+            $this->showAdminErrorView('Ошибка', 'Произошла непредвиденная ошибка.', $userName);
         }
     }
 }

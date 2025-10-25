@@ -1,6 +1,7 @@
 <?php
 
-// app/core/Request.php
+// app/framework/request/Request.php
+
 class Request
 {
     private $get;

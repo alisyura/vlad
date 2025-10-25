@@ -1,11 +1,12 @@
 <?php
 
-// app/core/Response.php
+// app/framework/response/Response.php
 
 /**
- * Класс, представляющий HTTP-ответ.
+ * Базовый класс, представляющий HTTP-ответ. 
+ * Должен наследоваться для создания конкретных типов ответов (HTML, JSON, Redirect).
  */
-class Response
+abstract class Response
 {
     /**
      * @var int HTTP-код статуса (например, 200, 404, 302).
@@ -125,47 +126,12 @@ class Response
      */
     protected function sendContent(): void
     {
+        // Здесь можно добавить проверку, нужно ли отправлять контент 
+        // для ответов с кодами вроде 204 No Content, 304 Not Modified
+        if (in_array($this->statusCode, [204, 304])) {
+            return;
+        }
+        
         echo $this->content;
-    }
-
-    /**
-     * Устанавливает перенаправление (заголовок Location).
-     *
-     * @param string $url URL, на который нужно перенаправить.
-     * @param int $statusCode Код статуса перенаправления (302 по умолчанию).
-     * @return self
-     */
-    public function redirect(string $url, int $statusCode = 302): self
-    {
-        // 1. Устанавливаем статус перенаправления
-        $this->setStatusCode($statusCode); 
-        
-        // 2. Устанавливаем заголовок Location
-        $this->addHeader('Location', $url);
-        
-        // 3. Очищаем контент (перенаправление не должно иметь тела)
-        $this->setContent('');
-        
-        return $this;
-    }
-
-    /**
-     * Устанавливает ответ как JSON.
-     *
-     * @param array $data Данные для кодирования в JSON.
-     * @param int $statusCode HTTP-код статуса.
-     * @return self
-     */
-    public function json(array $data, int $statusCode = 200): self
-    {
-        $this->setStatusCode($statusCode);
-        
-        // Устанавливаем заголовок Content-Type
-        $this->addHeader('Content-Type', 'application/json; charset=UTF-8');
-        
-        // Кодируем данные в строку JSON
-        $this->setContent(json_encode($data)); 
-        
-        return $this;
     }
 }

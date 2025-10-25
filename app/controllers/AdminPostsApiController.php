@@ -1,7 +1,7 @@
 <?php
 // app/controllers/AdminPostsApiController.php
 
-class AdminPostsApiController extends BaseController
+class AdminPostsApiController extends BaseAdminController
 {
     use JsonResponseTrait;
 
@@ -176,7 +176,7 @@ class AdminPostsApiController extends BaseController
             $newPostId = $this->postsApiService->createArticle($postData, $articleType);
 
             if ($newPostId) {
-                $adminRoute = Config::get('admin.AdminRoute');
+                $adminRoute = $this->getAdminRoute();
                 $msgText = ($articleType == 'post' ? 'Пост успешно создан' : 'Страница успешно создана');
                 $this->sendSuccessJsonResponse($msgText, 200, ['redirect' => "/$adminRoute/{$articleType}s"]);
             } else {
@@ -220,7 +220,7 @@ class AdminPostsApiController extends BaseController
             $postId = $updateResultArr['postId'];
 
             if ($updateResult) {
-                $adminRoute = Config::get('admin.AdminRoute');
+                $adminRoute = $this->getAdminRoute();
                 $msgText = ($articleType == 'post' ? 'Пост успешно обновлен' : 'Страница успешно обновлена');
                 $this->sendSuccessJsonResponse($msgText, 200, ['redirect' => "/$adminRoute/{$articleType}s/edit/{$postId}"]);
             } else {

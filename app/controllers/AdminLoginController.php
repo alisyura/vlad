@@ -1,7 +1,7 @@
 <?php
 // app/controllers/AdminLoginController.php
 
-class AdminLoginController extends BaseController
+class AdminLoginController extends BaseAdminController
 {
     private AuthService $authService;
 

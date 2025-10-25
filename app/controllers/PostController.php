@@ -1,6 +1,6 @@
 <?php
 
-class PostController {
+class PostController extends BaseController {
     use ShowClientErrorViewTrait;
 
     /**
@@ -8,18 +8,9 @@ class PostController {
      */
     private PostModelClient $model;
 
-    private Request $request;
-    private View $view;
-
     public function __construct(Request $request, View $view, PostModelClient $postModel) {
+        parent::__construct($request, $view);
         $this->model = $postModel;
-        $this->request = $request;
-        $this->view = $view;
-    }
-
-    protected function getView(): View
-    {
-        return $this->view;
     }
 
     /*
@@ -64,7 +55,7 @@ class PostController {
 
             $this->view->renderClient('posts/show.php', $render_params);
         } catch (Throwable $e) {
-            Logger::error("Error in listPosts: " . $e->getTraceAsString());
+            Logger::error("Error in listPosts: ", ['post_url' => $post_url], $e);
             $this->showErrorView('Ошибка', 'Произошла непредвиденная ошибка.');
         }
     }
@@ -107,7 +98,7 @@ class PostController {
 
             $this->view->renderClient('posts/show.php', $contentData);
         } catch (Throwable $e) {
-            Logger::error("Error in showPage: " . $e->getTraceAsString());
+            Logger::error("Error in showPage: ", ['page_url' => $page_url], $e);
             $this->showErrorView('Ошибка', 'Произошла непредвиденная ошибка.');
         }
     }
@@ -170,7 +161,7 @@ class PostController {
 
             $this->view->renderClient('posts/index.php', $contentData);
         } catch (Throwable $e) {
-            Logger::error("Error in listPosts: " . $e->getTraceAsString());
+            Logger::error("Error in listPosts: ", ['page' => $page], $e);
             $this->showErrorView('Ошибка', 'Произошла непредвиденная ошибка.');
         }
     }
@@ -235,7 +226,7 @@ class PostController {
 
             $this->view->renderClient('posts/index.php', $contentData);
         } catch (Throwable $e) {
-            Logger::error("Error in showSection: " . $e->getTraceAsString());
+            Logger::error("Error in showBySection: ", ['cat_url' => $cat_url, 'show_link_next' => $show_link_next, 'page' => $page], $e);
             $this->showErrorView('Ошибка', 'Произошла непредвиденная ошибка.');
         }
     }
@@ -299,7 +290,7 @@ class PostController {
 
             $this->view->renderClient('posts/index.php', $contentData);
         } catch (Throwable $e) {
-            Logger::error("Error in listPosts: " . $e->getTraceAsString());
+            Logger::error("Error in showByTag: ", ['tag_url' => $tag_url, 'page' => $page], $e);
             $this->showErrorView('Ошибка', 'Произошла непредвиденная ошибка.');
         }
     }

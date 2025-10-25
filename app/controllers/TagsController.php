@@ -10,15 +10,10 @@
  * @property Request $request Объект HTTP-запроса.
  * @property TagsModelClient $model Модель для работы с данными тэгов.
  */
-class TagsController
+class TagsController extends BaseController
 {
     use JsonResponseTrait;
     use ShowClientErrorViewTrait;
-
-    /**
-     * @var Request Объект HTTP-запроса.
-     */
-    private Request $request;
 
     /**
      * @var TagsModelClient Модель для работы с данными тэгов.
@@ -26,12 +21,7 @@ class TagsController
     private TagsModelClient $model;
 
     /**
-     * @var View Объект для отображения HTML-шаблонов.
-     */
-    private View $view;
-
-    /**
-     * Конструктор класса AjaxController.
+     * Конструктор класса TagsController.
      *
      * @param Request $request Объект запроса, внедряется через DI-контейнер.
      * @param View $view Объект для отображения HTML шаблонов, внедряется через DI-контейнер.
@@ -39,14 +29,8 @@ class TagsController
      */
     public function __construct(Request $request, View $view, TagsModelClient $тagsModelClient)
     {
-        $this->request = $request;
+        parent::__construct($request, $view);
         $this->model = $тagsModelClient;
-        $this->view = $view;
-    }
-
-    protected function getView():View
-    {
-        return $this->view;
     }
 
     /**
@@ -69,7 +53,7 @@ class TagsController
         }
         catch(Exception $e)
         {
-            Logger::error('Ошибка при поиске тэгов: ' . $e->getTraceAsString());
+            Logger::error('Ошибка при поиске тэгов: ', [], $e);
             $this->sendErrorJsonResponse('Ошибка при поиске тэгов');
         }
     }
@@ -131,7 +115,7 @@ class TagsController
         }
         catch(Exception $e)
         {
-            Logger::error('Ошибка при поиске тэгов: ' . $e->getTraceAsString());
+            Logger::error('Ошибка при поиске тэгов: ', ['tagName' => $tagName], $e);
             $this->sendErrorJsonResponse('Ошибка при поиске тэгов');
         }
     }
@@ -172,7 +156,7 @@ class TagsController
 
             $this->view->renderClient('posts/tegi.php', $contentData);
         } catch (Throwable $e) {
-            Logger::error("Error in showTagFilter: " . $e->getTraceAsString());
+            Logger::error("Error in showTagFilter: ", [], $e);
             $this->showErrorView('Ошибка', 'Произошла непредвиденная ошибка.');
         }
     }

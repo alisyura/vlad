@@ -2,7 +2,7 @@
 
 // app/controllers/AdminUsersApiController.php
 
-class AdminUsersApiController extends BaseController
+class AdminUsersApiController extends BaseAdminController
 {
     use JsonResponseTrait;
     

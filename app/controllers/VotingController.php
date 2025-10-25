@@ -10,11 +10,10 @@
  * @property Request $request Объект HTTP-запроса.
  * @property VotingModel $model Модель для работы с данными готосования.
  */
-class VotingController
+class VotingController extends BaseController
 {
     use JsonResponseTrait;
 
-    private $request;
     private VotingModel $model;
     private VotingService $service;
 
@@ -25,9 +24,10 @@ class VotingController
      * @param VotingService $votingService Сервис для обработки голосования, внедряется через DI-контейнер.
      * @param VotingModel $votingModel Модель для работы с данными голосования, внедряется через DI-контейнер.
      */
-    public function __construct(Request $request, VotingService $votingService, VotingModel $votingModel)
+    public function __construct(Request $request, VotingService $votingService, 
+        VotingModel $votingModel)
     {
-        $this->request = $request;
+        parent::__construct($request, null);
         $this->model = $votingModel;
         $this->service = $votingService;
     }
@@ -59,13 +59,13 @@ class VotingController
             $this->sendSuccessJsonResponse('Голоса получены', 200, ['votes' => $results]);
 
         } catch (Throwable $e) {
-            Logger::error('getPostVotes. Ошибка получения голосов постов. '.$e->getTraceAsString());
+            Logger::error('getPostVotes. Ошибка получения голосов постов. ', [], $e);
             $this->sendErrorJsonResponse('Ошибка получения голосов постов.', 500);
-            exit();
         }
+        exit();
     }
 
-        /**
+    /**
      * Обрабатывает голосование за пост через AJAX-запрос.
      *
      * Метод принимает данные из JSON-запроса, вызывает сервис для обработки
@@ -101,7 +101,7 @@ class VotingController
                 'message' => $e->getMessage()
             ]);
 
-            Logger::error("reaction. {$e->getMessage()}. res={$errorJson}", $e->getTraceAsString());
+            Logger::error("reaction. Ошибка при голосовании", ['errorJson' => $errorJson], $e);
 
             $this->sendErrorJsonResponse($e->getMessage(), $e->getCode());
         } catch (Throwable $e) {
@@ -114,7 +114,7 @@ class VotingController
                 'message' => $e->getMessage()
             ]);
 
-            Logger::error("reaction. Ошибка при голосовании. res={$errorJson}", $e->getTraceAsString());
+            Logger::error("reaction. Сбой при голосовании.", ['errorJson' => $errorJson], $e);
 
             $this->sendErrorJsonResponse('Ошибка при регистрации голоса', 500);
         }

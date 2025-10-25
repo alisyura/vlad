@@ -1,7 +1,7 @@
 <?php
 // app/controllers/AdminPostsController .php
 
-class AdminPostsController extends BaseController
+class AdminPostsController extends BaseAdminController
 {
     use UrlHelperTrait;
     use ShowAdminErrorViewTrait;
@@ -157,6 +157,7 @@ class AdminPostsController extends BaseController
                 'user_name' => $userName,
                 'title' => 'Список ' . ($articleType === 'post' ? 'постов' : 'страниц'),
                 'active' => "{$articleType}s", // для подсветки в левом меню
+                'isUserAdmin' => $this->authService->isUserAdmin(),
                 'posts' => $posts,
                 'articleType' => $articleType,
                 'allowDelete' => $this->authService->isUserAdmin(),
@@ -199,10 +200,10 @@ class AdminPostsController extends BaseController
             $this->view->renderAdmin('admin/posts/list.php', $data);
 
         } catch (PDOException $e) {
-            Logger::error("Database error in listPosts: " . $e->getTraceAsString());
+            Logger::error("Database error in listPosts", ['currentPage' => $currentPage, 'articleType' => $articleType], $e);
             $this->showAdminErrorView('Ошибка', 'Не удалось загрузить данные. Пожалуйста, попробуйте позже.', $userName);
         } catch (Throwable $e) {
-            Logger::error("Error in listPosts: " . $e->getTraceAsString());
+            Logger::error("Error in listPosts: ", ['currentPage' => $currentPage, 'articleType' => $articleType], $e);
             $this->showAdminErrorView('Ошибка', 'Произошла непредвиденная ошибка.', $userName);
         }
     }
@@ -222,16 +223,10 @@ class AdminPostsController extends BaseController
      * @param string $articleType Тип статьи (post/page)
      */
     private function showCreateArticleForm(string $articleType) {
-        $adminRoute = Config::get('admin.AdminRoute');
+        $adminRoute = $this->getAdminRoute();
         $userName = $this->authService->getUserName();
 
-        $logHeader = ($articleType === 'post') ? 'createPostGet' : 'createPageGet';
-
         try {
-            Logger::debug("$logHeader. begin");
-
-            Logger::debug("$logHeader. adminRoute $adminRoute");
-
             $pageTitle = ($articleType==='post') ? 'Создать новый пост' : 'Создать новую страницу';
             $returnToListUrl = "/{$adminRoute}/{$articleType}s";
             $returnToListTitle = ($articleType==='post') ? 'К списку постов' : 'К списку страниц';
@@ -243,6 +238,7 @@ class AdminPostsController extends BaseController
                 'user_name' => $userName,
                 'title' => '', //тк создаем новый пост
                 'active' => "{$articleType}s", // для подсветки в левом меню
+                'isUserAdmin' => $this->authService->isUserAdmin(),
                 'pageTitle' => $pageTitle,
                 'publishButtonTitle' => $publishButtonTitle,
                 'post' => null,
@@ -269,12 +265,10 @@ class AdminPostsController extends BaseController
                 ]
             ];
 
-            Logger::debug("$logHeader. data", $data);
-        
             $this->view->renderAdmin('admin/posts/edit_create.php', $data);
             
         } catch (Throwable $e) {
-            Logger::error("$logHeader. An unexpected error occurred: " . $e->getTraceAsString());
+            Logger::error("showCreateArticleForm. An unexpected error occurred: ", ['articleType' => $articleType], $e);
 
             $this->showAdminErrorView('Ошибка', 
                 'Не удалось загрузить посты. Пожалуйста, попробуйте позже.', $userName);
@@ -300,9 +294,8 @@ class AdminPostsController extends BaseController
      */
     private function showEditArticleForm($postId, $articleType)
     {
-        $adminRoute = Config::get('admin.AdminRoute');
+        $adminRoute = $this->getAdminRoute();
         $userName = $this->authService->getUserName();
-        $logHeader = ($articleType === 'post') ? 'editPostGet' : 'editPageGet';
         try
         {
             $config = [
@@ -343,6 +336,7 @@ class AdminPostsController extends BaseController
                 'pageTitle' => $pageTitle,
                 'publishButtonTitle' => $publishButtonTitle,
                 'active' => "{$articleType}s", // для подсветки в левом меню
+                'isUserAdmin' => $this->authService->isUserAdmin(),
                 'post' => $postData,
                 'categories' => $this->listmodel->getAllCategories(),
                 'tags' => $this->listmodel->getAllTags(),
@@ -372,7 +366,7 @@ class AdminPostsController extends BaseController
         }
         catch(Throwable $e)
         {
-            Logger::error("$logHeader. An unexpected error occurred: " . $e->getTraceAsString());
+            Logger::error("showEditArticleForm. An unexpected error occurred", ['postId' => $postId, 'articleType' => $articleType], $e);
 
             $this->showAdminErrorView('Ошибка', 
                 'Не удалось загрузить данные поста/страницы. Пожалуйста, попробуйте позже.', 

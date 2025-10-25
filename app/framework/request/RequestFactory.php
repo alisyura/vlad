@@ -1,5 +1,7 @@
 <?php
 
+// app/framework/request/RequestFactory.php
+
 /**
  * Фабрика для создания и получения единственного экземпляра объекта Request.
  *

@@ -7,7 +7,7 @@
  *
  * Контроллер для работы с картой сайта (sitemap) и соответствующими XML-файлами.
  */
-class SitemapController {
+class SitemapController extends BaseController {
     use ShowClientErrorViewTrait;
     
     /**
@@ -21,16 +21,6 @@ class SitemapController {
     private int $maxUrls;
     
     /**
-     * @var Request Объект HTTP запроса.
-     */
-    private Request $request;
-    
-    /**
-     * @var View Объект представления для рендеринга.
-     */
-    private View $view;
-
-    /**
      * @var SitemapModel Объект модели для работы с данными карты сайта.
      */
     private SitemapModel $model;
@@ -43,18 +33,13 @@ class SitemapController {
      * @param SitemapModel $sitemapModel Объект модели, внедряемый через Dependency Injection.
      */
     public function __construct(Request $request, View $view, SitemapModel $sitemapModel) {
-        $this->request = $request;
-        $this->view = $view;
+        parent::__construct($request, $view);
         $this->model = $sitemapModel;
 
         $this->uri = $request->getBaseUrl();
         $this->maxUrls = Config::get('posts.max_urls_in_sitemap');
     }
 
-    protected function getView():View
-    {
-        return $this->view;
-    }
     /**
      * Отображает HTML-страницу карты сайта.
      *
@@ -131,7 +116,7 @@ class SitemapController {
 
             $this->view->renderClient('pages/sitemap.php', $contentData);
         } catch (Throwable $e) {
-            Logger::error("Error in showSitemap: " . $e->getTraceAsString());
+            Logger::error("Error in showSitemap: ", [], $e);
             $this->showErrorView('Ошибка', 'Произошла непредвиденная ошибка.');
         }
     }
@@ -165,7 +150,7 @@ class SitemapController {
                 $contentData, 
                 ['Content-Type: application/xml; charset=utf-8']);
         } catch (Throwable $e) {
-            Logger::error('Error generating sitemap XML: ', [$e->getTraceAsString()]);
+            Logger::error('Error generating sitemap XML: ', [],  $e);
 
             $contentData = [
                 'title' => 'Произошла внутренняя ошибка сервера.'
@@ -218,8 +203,8 @@ class SitemapController {
                 ['Content-Type: application/xml; charset=utf-8']
             );
         } catch (Throwable $e) {
-            Logger::error("Error generating sitemap part XML type={$type}, page={$page}: ", 
-                [$e->getTraceAsString()]);
+            Logger::error("Error generating sitemap part XML: ", 
+                ['type' => $type, 'page' => $page], $e);
 
             $contentData = [
                 'title' => 'Произошла внутренняя ошибка сервера.'

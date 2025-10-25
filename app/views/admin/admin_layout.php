@@ -69,7 +69,7 @@
                                 Тэги
                             </a>
                         </li>
-                        <?php if (Auth::isUserAdmin()): ?>
+                        <?php if ($isUserAdmin): ?>
                             <li class="nav-item">
                                 <a class="nav-link <?= ($active ?? '') === 'users' ? 'active' : '' ?>" 
                                 href="/<?= $adminRoute ?>/users">

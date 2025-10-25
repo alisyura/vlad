@@ -9,17 +9,15 @@
  * @property Request $request Объект HTTP-запроса.
  * @property TagsModelClient $model Модель для работы с данными тэгов.
  */
-class ContactController
+class ContactController extends BaseController
 {
     use JsonResponseTrait;
     use ShowClientErrorViewTrait;
 
-    private $request;
-    private View $view;
     private ContactFormValidator $validator;
 
     /**
-     * Конструктор класса AjaxController.
+     * Конструктор класса ContactController.
      *
      * @param Request $request Объект запроса, внедряется через DI-контейнер.
      * @param View $view Объект для отображения HTML шаблонов, внедряется через DI-контейнер.
@@ -28,14 +26,8 @@ class ContactController
     public function __construct(Request $request, View $view, 
         ContactFormValidator $validator)
     {
-        $this->request = $request;
-        $this->view = $view;
+        parent::__construct($request, $view);
         $this->validator = $validator;
-    }
-
-    protected function getView():View
-    {
-        return $this->view;
     }
 
     /**
@@ -73,7 +65,7 @@ class ContactController
 
             $this->view->renderClient('pages/kontakty.php', $contentData);
         } catch (Throwable $e) {
-            Logger::error("Error in showKontakty: " . $e->getTraceAsString());
+            Logger::error("Error in showKontakty: ", [], $e);
             $this->showErrorView('Ошибка', 'Произошла непредвиденная ошибка.');
         }
         
@@ -117,7 +109,7 @@ class ContactController
                 $this->sendErrorJsonResponse('Ошибка при отправке сообщения');
             }
         } catch(Throwable $e) {
-            Logger::error("sendMeg. Ошибка при отправке сообщения.", [$e->getTraceAsString()]);
+            Logger::error("sendMsg. Ошибка при отправке сообщения.", [], $e);
                 
             $this->sendErrorJsonResponse('При отправке сообщения произошла ошибка');
         }

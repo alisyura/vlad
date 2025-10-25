@@ -21,26 +21,14 @@ abstract class BaseController {
      * @var ?Request
      */
     protected ?Request $request;
-    /**
-     * Базовый маршрут (route) для доступа к административной панели.
-     * Используется для формирования правильных URL.
-     *
-     * @var string
-     */
-    private $adminRoute;
 
     public function __construct(?Request $request, ?View $view = null)
     {
         $this->view = $view;
         $this->request = $request;
-        $this->adminRoute = Config::get('admin.AdminRoute');
     }
 
     protected function getView(): View {
         return $this->view;
-    }
-    protected function getAdminRoute()
-    {
-        return $this->adminRoute;
     }
 }

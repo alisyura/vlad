@@ -1,7 +1,7 @@
 <?php
 // app/controllers/AdminTagsApiController.php
 
-class AdminTagsApiController extends BaseController
+class AdminTagsApiController extends BaseAdminController
 {
     use JsonResponseTrait;
 

@@ -3,7 +3,7 @@
 // app/controllers/AdminMediaApiController.php
 
 
-class AdminMediaApiController extends BaseController
+class AdminMediaApiController extends BaseAdminController
 {
     use JsonResponseTrait;
 
