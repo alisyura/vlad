@@ -42,7 +42,7 @@
                     <ul class="pagination justify-content-center">
                         <!-- Кнопка "Предыдущая" -->
                         <li class="page-item <?= ($pagination['current_page'] <= 1) ? 'disabled' : '' ?>">
-                            <a class="page-link" href="<?= htmlspecialchars($base_page_url . '/p' . ($pagination['current_page'] - 1)) . $sort_string ?>">&laquo;</a>
+                            <a class="page-link" href="<?= htmlspecialchars($base_page_url . '/p' . ($pagination['current_page'] - 1)) ?>">&laquo;</a>
                         </li>
                     
                         <!-- Ссылки на страницы -->
@@ -53,7 +53,7 @@
                                 </li>
                             <?php else: ?>
                                 <li class="page-item<?= $num == $pagination['current_page'] ? ' active' : '' ?>">
-                                    <a class="page-link" href="<?= htmlspecialchars($link) . $sort_string?>">
+                                    <a class="page-link" href="<?= htmlspecialchars($link)?>">
                                         <?= $num ?>
                                     </a>
                                 </li>
@@ -62,7 +62,7 @@
                     
                         <!-- Кнопка "Следующая" -->
                         <li class="page-item <?= ($pagination['current_page'] >= $pagination['total_pages']) ? 'disabled' : '' ?>">
-                            <a class="page-link" href="<?= htmlspecialchars($base_page_url . '/p' . ($pagination['current_page'] + 1)) . $sort_string ?>">&raquo;</a>
+                            <a class="page-link" href="<?= htmlspecialchars($base_page_url . '/p' . ($pagination['current_page'] + 1)) ?>">&raquo;</a>
                         </li>
                     </ul>
                 </nav>

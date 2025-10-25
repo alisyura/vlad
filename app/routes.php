@@ -150,7 +150,7 @@ $router->addRoute("/$adminRoute/logout", function(Container $container) {
 $router->addRoute("/$adminRoute/(post|page)s(?:/p(\d+))?", function(Container $container, $articleType, $page = 1) {
     // Передаем номер страницы в контроллер
     $controller = $container->make(AdminPostsController::class);
-    $controller->list($page, $articleType);
+    $controller->list($articleType, $page);
 }, ['UserAuthenticatedMiddleware']);
 
 // Форма создание нового поста/страницы

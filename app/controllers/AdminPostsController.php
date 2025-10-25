@@ -30,7 +30,7 @@ class AdminPostsController extends BaseAdminController
      * @param int $currentPage Номер текущей страницы (из URL, по умолчанию 1).
      * @param string $articleType Тип статьи (post/page).
      */
-    public function list($currentPage = 1, $articleType)
+    public function list($articleType, $currentPage = 1)
     {
         $this->processList($currentPage, $articleType);
     }

@@ -11,6 +11,12 @@
     RewriteCond %{REQUEST_FILENAME} -d
     RewriteRule ^ - [L]
     
+    # Условие: Если запрошенный путь НЕ является существующим файлом (!-f)
+    RewriteCond %{REQUEST_FILENAME} !-f
+    # Правило: Если URI заканчивается на расширение картинки,
+    # вернуть 404 и прекратить обработку (L,R=404).
+    RewriteRule \.(jpe?g|png|gif|webp|svg)$ - [L,R=404]
+
     # Если ни файл, ни директория не найдены, 
     # перенаправлять запрос на index.php
     RewriteRule ^(.*)$ index.php [QSA,L]

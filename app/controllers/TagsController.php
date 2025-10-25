@@ -69,7 +69,7 @@ class TagsController extends BaseController
      */
     public function showTagsResults()
     {
-        $tagName = $this->request->q;
+        $tagName = $this->request->q ?? '';
 
         try
         {
