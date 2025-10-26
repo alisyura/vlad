@@ -36,9 +36,9 @@ $router->addRoute('/api/send_msg', function (Container $container) {
 
 
 // Главная страница. Или пустая, или номером страницы /p/2
-$router->addRoute('/(p(\d+))?', function(Container $container, $fullMatch = null, $page = 1) {
+$router->addRoute('/(p(\d+))?', function(Container $container, $fullMatch = null, $page = 1): Response|null {
     $controller = $container->make(PostController::class);
-    $controller->index(max(1, (int)$page)); // защита от нуля и отрицательных
+    return $controller->index(max(1, (int)$page)); // защита от нуля и отрицательных
 }, ['PageCacheMiddleware']);
 
 // Страница post

@@ -4,10 +4,8 @@
 
 $container = new Container();
 $container->bind(Request::class, fn($c) => RequestFactory::getInstance());
-// $container->singleton(ResponseFactory::class, ResponseFactory::class); 
-// //Класс Response здесь не регистрируется, так как его экземпляры 
-// // всегда создаются через $container->make(ResponseFactory::class)->createResponse(...)
-
+$container->singleton(ResponseFactory::class, ResponseFactory::class); 
+$container->singleton(ErrorResponseFactory::class, ErrorResponseFactory::class); 
 $container->bind(View::class, function() {
     $viewsRootPath = Config::get('global.ViewsRootPath');
     $loginLayoutPath = 'admin/login.php';

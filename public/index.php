@@ -18,8 +18,9 @@ ErrorHandler::register();
 
 require_once __DIR__ . '/../app/bootstrap.php';
 
-$view = $container->make(View::class);
 // --- Роутинг ---
-$router = new Router($view);
+$respFact = $container->make(ResponseFactory::class);
+$errRespFact = $container->make(ErrorResponseFactory::class);
+$router = new Router($respFact, $errRespFact);
 require_once __DIR__ . '/../app/routes.php';
 $router->dispatch($container);

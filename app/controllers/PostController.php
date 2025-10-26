@@ -8,9 +8,17 @@ class PostController extends BaseController {
      */
     private PostModelClient $model;
 
-    public function __construct(Request $request, View $view, PostModelClient $postModel) {
-        parent::__construct($request, $view);
+    /**
+     * Сервис вычисления параметров пагинации
+     */
+    private PaginationService $paginService;
+
+    public function __construct(Request $request, View $view, PostModelClient $postModel,
+        ResponseFactory $responseFactory, PaginationService $paginService)
+    {
+        parent::__construct($request, $view, $responseFactory);
         $this->model = $postModel;
+        $this->paginService = $paginService;
     }
 
     /*
@@ -24,7 +32,7 @@ class PostController extends BaseController {
                 return;
             }
 
-            $baseUrl= $this->request->getBaseUrl();
+            $baseUrl= $this->getRequest()->getBaseUrl();
             $URL = sprintf("%s/%s", $baseUrl, $post['url']).'.html';
         
             $render_params =[
@@ -71,7 +79,7 @@ class PostController extends BaseController {
                 return;
             }
 
-            $baseUrl= $this->request->getBaseUrl();
+            $baseUrl= $this->getRequest()->getBaseUrl();
             $URL = sprintf("%s/%s", $baseUrl, $page['url']).'.html';
         
             $contentData = [
@@ -106,7 +114,7 @@ class PostController extends BaseController {
     /*
     * Главная страница (список постов)
     */
-    public function index($page = 1) {
+    public function index($page = 1): Response {
         try {
             $posts_per_page = Config::get('posts.posts_per_page');
             $total_posts = $this->model->countAllPosts();
@@ -117,8 +125,7 @@ class PostController extends BaseController {
             $base_page_url = "";
 
             // Генерируем массив ссылок для умной пагинации
-            $ps = new PaginationService();
-            $paginParams = $ps->calculatePaginationParams($posts_per_page, $page, 
+            $paginParams = $this->paginService->calculatePaginationParams($posts_per_page, $page, 
                 $total_posts, $base_page_url);
             
             ['totalPages' => $total_pages, 
@@ -126,7 +133,7 @@ class PostController extends BaseController {
 
             $posts = $this->model->getAllPosts($posts_per_page, $page);
 
-            $baseUrl = $this->request->getBaseUrl();
+            $baseUrl = $this->getRequest()->getBaseUrl();
             
             $contentData = [
                 'posts' => $posts,
@@ -159,10 +166,10 @@ class PostController extends BaseController {
                 ]
             ];
 
-            $this->view->renderClient('posts/index.php', $contentData);
+            return $this->render('posts/index.php', $contentData);
         } catch (Throwable $e) {
-            Logger::error("Error in listPosts: ", ['page' => $page], $e);
-            $this->showErrorView('Ошибка', 'Произошла непредвиденная ошибка.');
+            Logger::error("Error in listPosts (index): ", ['page' => $page], $e);
+            throw new HttpException('Ошибка получения списка постов', 500, $e);
         }
     }
 
@@ -187,7 +194,7 @@ class PostController extends BaseController {
 
             $posts = $this->model->getAllPostsByCategory($cat_url, $show_link_next, $posts_per_page, $page);
 
-            $baseUrl = $this->request->getBaseUrl();
+            $baseUrl = $this->getRequest()->getBaseUrl();
 
             // здесь категория одна у всех постов, поэтому берем из 1го элемента
             $category_name = (!empty($posts) ? ($posts[0]['category_name'] ?? '') : '');
@@ -252,7 +259,7 @@ class PostController extends BaseController {
 
             $posts = $this->model->getAllPostsByTag($tag_url, $posts_per_page, $page);
 
-            $baseUrl = $this->request->getBaseUrl();
+            $baseUrl = $this->getRequest()->getBaseUrl();
             $caption = 'Тэг: ' . (!empty($posts) ? ($posts[0]['tag_name'] ?? '') : '');
 
             $contentData = [
@@ -276,7 +283,7 @@ class PostController extends BaseController {
                     'title' => "$caption | " . Config::get('global.SITE_NAME'),
                     'keywords' => Config::get('global.SITE_KEYWORDS'),
                     'description' => Config::get('global.SITE_DESCRIPTION'),
-                    'url' => $this->request->getRequestUrl(),
+                    'url' => $this->getRequest()->getRequestUrl(),
                     'image' => sprintf("%s/assets/pic/logo.png", $baseUrl),
                     'posts' => $posts,
                     'robots' => 'noindex, follow',

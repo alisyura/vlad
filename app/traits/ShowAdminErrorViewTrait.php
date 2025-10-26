@@ -4,7 +4,7 @@
 
 /**
  * Trait для вывода страницы с ошибкой в админке.
- *
+ * @deprecated Использовать вместо него ErrorResponseFactory
  */
 trait ShowAdminErrorViewTrait
 {
@@ -12,6 +12,7 @@ trait ShowAdminErrorViewTrait
 
     /**
      * Для прямых вызовов
+     * @deprecated Использовать вместо него ErrorResponseFactory
      */
     protected function renderAdminErrorView(View $view, string $title, 
         string $errMsg, int $httpCode, string $userName): void
@@ -35,6 +36,7 @@ trait ShowAdminErrorViewTrait
 
     /**
      * Для вызовов из методов контроллера
+     * @deprecated Использовать вместо него ErrorResponseFactory
      */
     protected function showAdminErrorView(string $title, string $errMsg, 
         string $userName, int $httpCode = 500): void

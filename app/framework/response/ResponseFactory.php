@@ -58,6 +58,14 @@ class ResponseFactory
     }
 
     /**
+     * Создает Response без тела (например, для 204 No Content).
+     */
+    public function createEmptyResponse(int $httpCode = 204, array $headers = []): Response
+    {
+        return new EmptyResponse($httpCode, $headers);
+    }
+
+    /**
      * Создает ответ с данными в формате XML.
      *
      * Использует класс XmlResponse.

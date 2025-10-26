@@ -4,6 +4,7 @@
 
 /**
  * Trait для вывода страницы с ошибкой на клиенте.
+ * @deprecated Перенесено в ErrorResponseFactory
  *
  */
 trait ShowClientErrorViewTrait
@@ -12,6 +13,7 @@ trait ShowClientErrorViewTrait
 
     /**
      * Для прямых вызовов
+     * @deprecated Использовать вместо него ErrorResponseFactory::createClientError
      */
     private function renderErrorView(View $view, $title, $errMsg, $httpCode = 500)
     {
@@ -39,6 +41,7 @@ trait ShowClientErrorViewTrait
 
     /**
      * Для вызовов из методов контроллера
+     * @deprecated Использовать вместо него ErrorResponseFactory::createClientError
      */
     protected function showErrorView($title, $errMsg, $httpCode = 500)
     {

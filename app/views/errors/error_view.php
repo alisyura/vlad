@@ -1,12 +1,12 @@
 <!-- app/views/errors/error_view.php -->
 
-<div class='post_preview'>
+<div class='error_view'>
     <div>
-        <h3 class="post_preview_header" style="font-size: 19px;"><?= htmlspecialchars($title) ?></h4>
-        <p class="post_text_preview"><?= htmlspecialchars($error_message) ?></p>
+        <h3 class="error_view_header" style="font-size: 19px;"><?= htmlspecialchars($title) ?></h4>
+        <p class="error_view_text"><?= htmlspecialchars($error_message) ?></p>
     </div>
 
-    <div class="post_text_preview">
+    <div class="error_view_text">
         <h4>Что можно сделать?</h5>
         <ul>
             <li>Попробуйте обновить страницу.</li>

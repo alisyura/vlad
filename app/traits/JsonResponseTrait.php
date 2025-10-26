@@ -4,7 +4,7 @@
 
 /**
  * Trait для отправки json ответов
- *
+ * @deprecated Использовать вместо него ErrorResponseFactory
  */
 trait JsonResponseTrait
 {
@@ -30,6 +30,7 @@ trait JsonResponseTrait
      * @param int $statusCode Код HTTP-ответа.
      * @param array $additionalData Дополнительные данные для включения в ответ.
      * @return void
+     * @deprecated Использовать вместо него ErrorResponseFactory::createJsonError
      */
     protected function sendErrorJsonResponse(string|array $message, int $statusCode = 400, 
         array $additionalData = []): void
@@ -50,6 +51,7 @@ trait JsonResponseTrait
      * @param int $statusCode Код HTTP-ответа.
      * @param array $additionalData Дополнительные данные для включения в ответ.
      * @return void
+     * @deprecated Использовать вместо него ResponseFactory::createJsonResponse
      */
     protected function sendSuccessJsonResponse(string $message, int $statusCode = 200, 
         array $additionalData = []): void
