@@ -32,7 +32,7 @@ class AdminPostsController extends BaseAdminController
      */
     public function list($articleType, $currentPage = 1)
     {
-        $this->processList($currentPage, $articleType);
+        $this->processList($articleType, $currentPage);
     }
 
     /**
@@ -40,7 +40,7 @@ class AdminPostsController extends BaseAdminController
      * @param int $currentPage Номер текущей страницы (из URL, по умолчанию 1).
      * @param string $articleType Тип статьи. post или page
      */
-    private function processList($currentPage = 1, $articleType = 'post') {
+    private function processList($articleType = 'post', $currentPage = 1) {
         // $adminRoute = $this->getAdminRoute();
         $userName = $this->authService->getUserName();
         try {
@@ -86,7 +86,7 @@ class AdminPostsController extends BaseAdminController
     
             // Генерируем массив ссылок для умной пагинации
             $paginParams = $this->pageinationService->calculatePaginationParams(
-                Config::get('admin.PostsPerPage'), $currentPage, 
+                (int)Config::get('admin.PostsPerPage'), $currentPage, 
                 $totalPosts, $basePageUrl);
 
             ['totalPages' => $totalPages, 

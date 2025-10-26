@@ -309,7 +309,7 @@ $router->addRoute("/$adminRoute/users/api/delete/(\d+)", function(Container $con
 $router->addRoute("/$adminRoute/thrash/(post|page)s(?:/p(\d+))?", function(Container $container, $articleType, $page = 1) {
     // Передаем номер страницы в контроллер
     $controller = $container->make(AdminPostsController::class);
-    $controller->list($page, $articleType);
+    $controller->list($articleType, $page);
 }, ['UserAuthenticatedMiddleware']);
 
 
