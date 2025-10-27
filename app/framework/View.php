@@ -198,19 +198,4 @@ final class View implements ViewInterface
     {
         $this->renderWithLayout($contentView, $this->adminLayoutPath, $data, $headers);
     }
-
-    /**
-     * Рендерит страницу клиентской (публичной) части с использованием клиентского макета.
-     *
-     * @param string $contentView Относительный путь к шаблону основного содержимого страницы.
-     * @param array $data Ассоциативный массив данных.
-     * @param array $headers Массив HTTP-заголовков для отправки.
-     * @return void
-     * @deprecated Взамен используйте ResponseFactory::createHtmlResponse, 
-     * созданный с помощью View::renderLayoutContent().
-     */
-    public function renderClient(string $contentView, array $data = [], array $headers = []): void
-    {
-        $this->renderWithLayout($contentView, $this->clientLayoutPath, $data, $headers);
-    }
 }

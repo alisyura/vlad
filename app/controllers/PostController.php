@@ -1,8 +1,6 @@
 <?php
 
 class PostController extends BaseController {
-    use ShowClientErrorViewTrait;
-
     /**
      * Экземпляр модели
      */
@@ -13,6 +11,15 @@ class PostController extends BaseController {
      */
     private PaginationService $paginService;
 
+    /**
+     * Конструктор класса PostController.
+     *
+     * @param Request $request Объект HTTP запроса, внедряемый через Dependency Injection.
+     * @param View $view Объект представления, внедряемый через Dependency Injection.
+     * @param PostModelClient $sitemapModel Объект модели, внедряемый через Dependency Injection.
+     * @param ResponseFactory $responseFactory Фабрика для создания объектов Response, внедряемая через Dependency Injection.
+     * @param PaginationService $paginService Сервис для вычисления параметров пагинации, внедряется через Dependency Injection..
+     */
     public function __construct(Request $request, View $view, PostModelClient $postModel,
         ResponseFactory $responseFactory, PaginationService $paginService)
     {
@@ -24,18 +31,17 @@ class PostController extends BaseController {
     /*
     * Страница post
     */
-    public function showPost($post_url) {
+    public function showPost($post_url): Response {
         try {
             $post = $this->model->getPostByUrl($post_url);
             if (!$post) {
-                $this->showErrorView('Пост не найден', '', 404);
-                return;
+                throw new HttpException('Пост не найден', 404);
             }
 
             $baseUrl= $this->getRequest()->getBaseUrl();
             $URL = sprintf("%s/%s", $baseUrl, $post['url']).'.html';
         
-            $render_params =[
+            $renderParams =[
                 'post' => $post,
                 'full_url' => $URL,
                 'tags_baseUrl' => sprintf("%s/tag/", $baseUrl),
@@ -58,25 +64,26 @@ class PostController extends BaseController {
             ];
 
             if (isset($post['image'])) {
-                $render_params['post_image'] = sprintf("%s%s", $baseUrl, $post['image']);
+                $renderParams['post_image'] = sprintf("%s%s", $baseUrl, $post['image']);
             }
 
-            $this->view->renderClient('posts/show.php', $render_params);
+            return $this->renderHtml('posts/show.php', $renderParams);
+        } catch (HttpException $e) {
+            throw $e;
         } catch (Throwable $e) {
-            Logger::error("Error in listPosts: ", ['post_url' => $post_url], $e);
-            $this->showErrorView('Ошибка', 'Произошла непредвиденная ошибка.');
+            Logger::error("Error in showPost: ", ['post_url' => $post_url], $e);
+            throw new HttpException('Ошибка при открытии поста', 500, $e);
         }
     }
 
     /*
     * Страница page
     */
-    public function showPage($page_url) {
+    public function showPage($page_url): Response {
         try {
             $page = $this->model->getPageByUrl($page_url);
             if (!$page) {
-                $this->showErrorView('Страница не найдена', '', 404);
-                return;
+                throw new HttpException('Страница не найдена', 404);
             }
 
             $baseUrl= $this->getRequest()->getBaseUrl();
@@ -104,10 +111,12 @@ class PostController extends BaseController {
                 ]
             ];
 
-            $this->view->renderClient('posts/show.php', $contentData);
+            return $this->renderHtml('posts/show.php', $contentData);
+        } catch (HttpException $e) {
+            throw $e;
         } catch (Throwable $e) {
             Logger::error("Error in showPage: ", ['page_url' => $page_url], $e);
-            $this->showErrorView('Ошибка', 'Произошла непредвиденная ошибка.');
+            throw new HttpException('Ошибка при открытии страницы', 500, $e);
         }
     }
 
@@ -166,7 +175,7 @@ class PostController extends BaseController {
                 ]
             ];
 
-            return $this->render('posts/index.php', $contentData);
+            return $this->renderHtml('posts/index.php', $contentData);
         } catch (Throwable $e) {
             Logger::error("Error in listPosts (index): ", ['page' => $page], $e);
             throw new HttpException('Ошибка получения списка постов', 500, $e);
@@ -185,9 +194,8 @@ class PostController extends BaseController {
             $base_page_url = "/cat/{$cat_url}";
 
             // Генерируем массив ссылок для умной пагинации
-            $ps = new PaginationService();
-            $paginParams = $ps->calculatePaginationParams($posts_per_page, $page, 
-                $total_posts, $base_page_url);
+            $paginParams = $this->paginService->calculatePaginationParams($posts_per_page, 
+                $page, $total_posts, $base_page_url);
             
             ['totalPages' => $total_pages, 
                     'paginationLinks' => $pagination_links] = $paginParams;
@@ -231,17 +239,17 @@ class PostController extends BaseController {
                 ]
             ];
 
-            $this->view->renderClient('posts/index.php', $contentData);
+          return $this->renderHtml('posts/index.php', $contentData);
         } catch (Throwable $e) {
             Logger::error("Error in showBySection: ", ['cat_url' => $cat_url, 'show_link_next' => $show_link_next, 'page' => $page], $e);
-            $this->showErrorView('Ошибка', 'Произошла непредвиденная ошибка.');
+            throw new HttpException('Ошибка получения списка постов по разделу', 500, $e);
         }
     }
 
     /*
     * Список постов по тэгу
     */
-    public function showByTag($tag_url, $page = 1) {
+    public function showByTag($tag_url, $page = 1): Response {
         try {
             $posts_per_page = Config::get('posts.posts_per_page');
             $total_posts = $this->model->countAllPostsByTag($tag_url);
@@ -250,9 +258,8 @@ class PostController extends BaseController {
             $base_page_url = "/tag/{$tag_url}";
 
             // Генерируем массив ссылок для умной пагинации
-            $ps = new PaginationService();
-            $paginParams = $ps->calculatePaginationParams($posts_per_page, $page, 
-                $total_posts, $base_page_url);
+            $paginParams = $this->paginService->calculatePaginationParams($posts_per_page, 
+                $page, $total_posts, $base_page_url);
             
             ['totalPages' => $total_pages, 
                     'paginationLinks' => $pagination_links] = $paginParams;
@@ -295,10 +302,10 @@ class PostController extends BaseController {
                 ]
             ];
 
-            $this->view->renderClient('posts/index.php', $contentData);
+             return $this->renderHtml('posts/index.php', $contentData);
         } catch (Throwable $e) {
             Logger::error("Error in showByTag: ", ['tag_url' => $tag_url, 'page' => $page], $e);
-            $this->showErrorView('Ошибка', 'Произошла непредвиденная ошибка.');
+            throw new HttpException('Ошибка получения списка постов по тэгу', 500, $e);
         }
     }
 }

@@ -63,10 +63,21 @@ abstract class BaseController {
      * Вспомогательный метод для рендеринга шаблона и немедленного 
      * оборачивания результата в HtmlResponse.
      */
-    protected function render(string $templatePath, array $data = [], 
+    protected function renderHtml(string $templatePath, array $data = [], 
         int $httpCode = 200): Response
     {
         $content = $this->getView()->renderClientContent($templatePath, $data); 
         return $this->responseFactory->createHtmlResponse($content, $httpCode);
+    }
+
+    protected function renderJson(string $message, int $statusCode = 200, 
+        array $additionalData = []): Response
+    {
+        $response = [
+            'success' => true, 
+            'message' => $message,
+            ...($additionalData ?? [])
+        ]; 
+        return $this->responseFactory->createJsonResponse($response, $statusCode);
     }
 }

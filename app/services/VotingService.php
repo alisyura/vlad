@@ -56,7 +56,7 @@ class VotingService
             }
             $hasVoted = $this->votingModel->checkIfVisitorHasAlreadyVoted($visitorId, $postUrl);
             if ($hasVoted) {
-                throw new ReactionException();
+                throw new ReactionException('За этот пост вы уже голосовали', 409);
             }
             $this->votingModel->addNewVote($postId, $visitorId, $voteType);
             $counts = $this->votingModel->getPostLikeDislikeCounters($postId);

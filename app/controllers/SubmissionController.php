@@ -3,13 +3,9 @@
 /**
  * Класс SubmissionController отвечает за обработку AJAX-запросов,
  * связанных с обработкой пользовательский материалов.
- *
- * @property Request $request Объект HTTP-запроса.
  */
 class SubmissionController extends BaseController
 {
-    use JsonResponseTrait;
-
     private SubmissionService $service;
     private LinkValidator $linkValidator;
 
@@ -19,20 +15,21 @@ class SubmissionController extends BaseController
      * @param Request $request Объект запроса, внедряется через DI-контейнер.
      * @param SubmissionService $submissionService Сервис, содержащий бизнес-логику по обработке пользовательских материалов, внедряется через DI-контейнер.
      * @param LinkValidator $linkValidator Валидатор, содержащий логику по проверке ссылок, внедряется через DI-контейнер.
+     * @param ResponseFactory $responseFactory Фабрика для создания объектов Response, внедряемая через Dependency Injection.
      */
     public function __construct(Request $request, SubmissionService $submissionService,
-        LinkValidator $linkValidator)
+        LinkValidator $linkValidator, ResponseFactory $responseFactory)
     {
-        parent::__construct($request, null);
+        parent::__construct($request, null, $responseFactory);
         $this->service = $submissionService;
         $this->linkValidator = $linkValidator;
     }
 
-    public function publish()
+    public function publish(): Response
     {
-        $content = $this->request->post('text') ?? '';
-        $videoLink = $this->request->post('video_link') ?? '';
-        $file = $this->request->file('image') ?? null;
+        $content = $this->getRequest()->post('text') ?? '';
+        $videoLink = $this->getRequest()->post('video_link') ?? '';
+        $file = $this->getRequest()->file('image') ?? null;
 
         try {
             if (!empty($videoLink) && !$this->linkValidator->isValidSingleVideoLink($videoLink)) {
@@ -41,15 +38,13 @@ class SubmissionController extends BaseController
             $this->service->handleSubmission(Config::get('admin.AdminRoleName'),
                 $content, $videoLink, $file);
 
-            $this->sendSuccessJsonResponse('Материал успешно отправлен на модерацию');
+            return $this->renderJson('Материал успешно отправлен на модерацию');
         } catch (SubmissionException $e) {
             Logger::error("Ошибка при добавлении пользовательского материала.", [], $e);
-            $this->sendErrorJsonResponse($e->getMessage(), 400);
+            throw new HttpException('Ошибка при добавлении пользовательского материала.', 400, $e, HttpException::JSON_RESPONSE);
         } catch (Throwable $e) {
             Logger::error("Сбой при добавлении пользовательского материала", [], $e);
-            $this->sendErrorJsonResponse('Произошла ошибка при добавлении материала.', 500);
+            throw new HttpException('Сбой при добавлении материала.', 500, $e, HttpException::JSON_RESPONSE);
         }
-
-        exit();
     }
 }

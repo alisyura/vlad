@@ -6,14 +6,9 @@
 /**
  * Класс VotingController отвечает за обработку AJAX-запросов,
  * связанных с голосованием за посты.
- *
- * @property Request $request Объект HTTP-запроса.
- * @property VotingModel $model Модель для работы с данными готосования.
  */
 class VotingController extends BaseController
 {
-    use JsonResponseTrait;
-
     private VotingModel $model;
     private VotingService $service;
 
@@ -23,21 +18,21 @@ class VotingController extends BaseController
      * @param Request $request Объект запроса, внедряется через DI-контейнер.
      * @param VotingService $votingService Сервис для обработки голосования, внедряется через DI-контейнер.
      * @param VotingModel $votingModel Модель для работы с данными голосования, внедряется через DI-контейнер.
+     * @param ResponseFactory $responseFactory Фабрика для создания объектов Response, внедряемая через Dependency Injection.
      */
     public function __construct(Request $request, VotingService $votingService, 
-        VotingModel $votingModel)
+        VotingModel $votingModel, ResponseFactory $responseFactory)
     {
-        parent::__construct($request, null);
+        parent::__construct($request, null, $responseFactory);
         $this->model = $votingModel;
         $this->service = $votingService;
     }
 
-    public function getPostVotes()
+    public function getPostVotes(): Response
     {
-        $posts = $this->request->json('posts') ?? '';
+        $posts = $this->getRequest()->json('posts') ?? '';
         if (empty($posts)) {
-            $this->sendErrorJsonResponse('Нет постов', 404);
-            exit;
+            throw new HttpException('Нет постов', 404, null, HttpException::JSON_RESPONSE);
         }
 
         try {
@@ -50,19 +45,20 @@ class VotingController extends BaseController
             $postUrls = array_unique(array_filter($posts));
 
             if (empty($postUrls)) {
-                $this->sendErrorJsonResponse('Нет корректных постов', 422);
-                exit;
+                throw new HttpException('Нет корректных постов', 422, null, HttpException::JSON_RESPONSE);
             }
 
             $results = $this->model->findPostsByUrls($postUrls, $visitorId);
 
-            $this->sendSuccessJsonResponse('Голоса получены', 200, ['votes' => $results]);
-
+            return $this->renderJson('Голоса получены', 200, ['votes' => $results]);
         } catch (Throwable $e) {
             Logger::error('getPostVotes. Ошибка получения голосов постов. ', [], $e);
-            $this->sendErrorJsonResponse('Ошибка получения голосов постов.', 500);
+            if ($e instanceof HttpException)
+            {
+                throw $e;
+            }
+            throw new HttpException('Ошибка получения голосов постов.', 500, $e, HttpException::JSON_RESPONSE);
         }
-        exit();
     }
 
     /**
@@ -71,12 +67,12 @@ class VotingController extends BaseController
      * Метод принимает данные из JSON-запроса, вызывает сервис для обработки
      * бизнес-логики и отправляет JSON-ответ об успехе или ошибке.
      *
-     * @return void
+     * @return Response
      */
-    public function reaction(): void
+    public function reaction(): Response
     {
-        $postUrl = $this->request->json('postUrl') ?? '';
-        $voteType = $this->request->json('type') ?? '';
+        $postUrl = $this->getRequest()->json('postUrl') ?? '';
+        $voteType = $this->getRequest()->json('type') ?? '';
 
         Logger::debug("reaction. postUrl=".$postUrl.", voteType=".$voteType);
         $uuid = getVisitorCookie();
@@ -90,33 +86,22 @@ class VotingController extends BaseController
                 'dislikes' => $result['dislikes_count']
             ];
             Logger::debug("reaction. resJson=".json_encode($resJson));
-            $this->sendSuccessJsonResponse('Спасибо за ваш голос', 200, $resJson);
+
+            return $this->renderJson('Спасибо за ваш голос', 200, $resJson);
         } catch (ReactionException $e) {
-            $errorJson = json_encode([
-                'success' => false,
-                'postUrl' => $postUrl,
-                'type' => $voteType,
-                'cookie' => $uuid,
-                'uuid' => $uuid,
-                'message' => $e->getMessage()
-            ]);
-
-            Logger::error("reaction. Ошибка при голосовании", ['errorJson' => $errorJson], $e);
-
-            $this->sendErrorJsonResponse($e->getMessage(), $e->getCode());
+            throw new HttpException($e->getMessage(), $e->getCode(), $e, HttpException::JSON_RESPONSE);
         } catch (Throwable $e) {
-            $errorJson = json_encode([
-                'success' => false,
-                'postUrl' => $postUrl,
-                'type' => $voteType,
-                'cookie' => $uuid,
-                'uuid' => $uuid,
-                'message' => $e->getMessage()
-            ]);
+            Logger::error("reaction. Ошибка при голосовании", 
+                [ 
+                    'success' => false,
+                    'postUrl' => $postUrl,
+                    'type' => $voteType,
+                    'cookie' => $uuid,
+                    'uuid' => $uuid,
+                    'message' => $e->getMessage()
+                ], $e);
 
-            Logger::error("reaction. Сбой при голосовании.", ['errorJson' => $errorJson], $e);
-
-            $this->sendErrorJsonResponse('Ошибка при регистрации голоса', 500);
+            throw new HttpException('Ошибка при регистрации голоса', 500, $e, HttpException::JSON_RESPONSE);
         }
     }
 }

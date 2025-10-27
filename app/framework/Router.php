@@ -150,9 +150,51 @@ class Router {
             // (например, от старого контроллера, который выбросил исключение).
             ob_end_clean();
 
+            if ($e->getResponseType() === HttpException::HTML_RESPONSE)
+            {
+                // Глобальная обработка исключений (500 Internal Server Error)
+                $this->errorFactory->createClientError(
+                    $e->getMessage(), 
+                    'Произошла непредвиденная ошибка.', 
+                    $e->getCode()
+                )->send();
+                return;
+            }
+
+            if ($e->getResponseType() === HttpException::JSON_RESPONSE)
+            {
+                $prevException = $e->getPrevious();
+                $statusCode = 400;
+                if ($prevException !== null && ($prevException instanceof UserDataException))
+                {
+                    // массив сообщений
+                    $errorsMsg = $prevException->getValidationErrors();
+                    $statusCode = $prevException->getCode();
+                }
+                else {
+                    // строка
+                    $errorsMsg = $e->getMessage();
+                    $statusCode = $e->getCode();
+                }
+                
+                $this->errorFactory->createJsonError(
+                    $errorsMsg,
+                    $statusCode
+                )->send();
+                return;
+            }
+
+            return;
+        } catch (RouteException $e) { // потом перенести в ErrorHandler
+            // Очищаем буфер, чтобы убрать любой нежелательный вывод 
+            // (например, от старого контроллера, который выбросил исключение).
+            ob_end_clean();
+
+            Logger::error("Error in Router: ", ['uri' => $uri, 'requestMethod' => $requestMethod], $e);
+
             // Глобальная обработка исключений (500 Internal Server Error)
             $this->errorFactory->createClientError(
-                $e->getMessage(), 
+                'Непредвиденная ошибка', 
                 'Произошла непредвиденная ошибка.', 
                 $e->getCode()
             )->send();

@@ -8,13 +8,6 @@
  * Контроллер для работы с картой сайта (sitemap) и соответствующими XML-файлами.
  */
 class SitemapController extends BaseController {
-    use ShowClientErrorViewTrait;
-    
-    /**
-     * @var string Базовый URI приложения.
-     */
-    private string $uri;
-
     /**
      * @var int Максимальное количество URL в одном файле карты сайта.
      */
@@ -31,12 +24,14 @@ class SitemapController extends BaseController {
      * @param Request $request Объект HTTP запроса, внедряемый через Dependency Injection.
      * @param View $view Объект представления, внедряемый через Dependency Injection.
      * @param SitemapModel $sitemapModel Объект модели, внедряемый через Dependency Injection.
+     * @param ResponseFactory $responseFactory Фабрика для создания объектов Response, внедряемая через Dependency Injection.
      */
-    public function __construct(Request $request, View $view, SitemapModel $sitemapModel) {
-        parent::__construct($request, $view);
+    public function __construct(Request $request, View $view, SitemapModel $sitemapModel,
+        ResponseFactory $responseFactory) 
+    {
+        parent::__construct($request, $view, $responseFactory);
         $this->model = $sitemapModel;
 
-        $this->uri = $request->getBaseUrl();
         $this->maxUrls = Config::get('posts.max_urls_in_sitemap');
     }
 
@@ -48,12 +43,11 @@ class SitemapController extends BaseController {
      *
      * @return void
      */
-    public function showSitemap():void {
+    public function showSitemap(): Response {
         try {
             $posts = $this->model->getSitemapData();
             if (!$posts) {
-                $this->showErrorView('Страница не найдена', '', 404);
-                return;
+                throw new HttpException('Страница не найдена', 404);
             }
 
             $result = [
@@ -90,11 +84,11 @@ class SitemapController extends BaseController {
                 }
             }
 
-            $URL = $this->request->getBaseUrl();
+            $URL = $this->getRequest()->getBaseUrl();
 
             $contentData = [
                 'data' => $result,
-                'full_url' => $this->request->getRequestUrl(),
+                'full_url' => $this->getRequest()->getRequestUrl(),
                 'is_post' => false,
                 'export' => [
                     'page_type' => 'sitemap',
@@ -102,7 +96,7 @@ class SitemapController extends BaseController {
                     'site_name' => Config::get('global.SITE_NAME'),
                     'keywords' => Config::get('global.SITE_KEYWORDS'),
                     'description' => Config::get('global.SITE_DESCRIPTION'),
-                    'url' => $this->request->getBaseUrl(),
+                    'url' => $URL,
                     'image' => $URL . asset('pic/logo.png'),
                     'robots' => 'index, follow',
                     'styles' => [
@@ -114,10 +108,10 @@ class SitemapController extends BaseController {
                 ]
             ];
 
-            $this->view->renderClient('pages/sitemap.php', $contentData);
+            return $this->renderHtml('pages/sitemap.php', $contentData);
         } catch (Throwable $e) {
             Logger::error("Error in showSitemap: ", [], $e);
-            $this->showErrorView('Ошибка', 'Произошла непредвиденная ошибка.');
+            throw new HttpException('Ошибка получения списка постов для карты сайта', 500, $e);
         }
     }
 
@@ -143,9 +137,9 @@ class SitemapController extends BaseController {
             $contentData = [
                 'chunks_posts' => $chunks_posts,
                 'chunks_pages' => $chunks_pages,
-                'url' => $this->uri
+                'url' => $this->getRequest()->getBaseUrl()
             ];
-            echo $this->view->render(
+            echo $this->getView()->render(
                 'sitemap/sitemap-index.xml.php', 
                 $contentData, 
                 ['Content-Type: application/xml; charset=utf-8']);
@@ -155,7 +149,7 @@ class SitemapController extends BaseController {
             $contentData = [
                 'title' => 'Произошла внутренняя ошибка сервера.'
             ];
-            echo $this->view->render(
+            echo $this->getView()->render(
                 'errors/error_xml.php', 
                 $contentData, 
                 ['Content-Type: application/xml; charset=utf-8'], 
@@ -179,7 +173,7 @@ class SitemapController extends BaseController {
             $items = $this->model->getPostsByOffsetNum($offset, $type, $this->maxUrls);
 
             $render_parts = [
-                'url' => $this->uri,
+                'url' => $this->getRequest()->getBaseUrl(),
                 'posts' => [],
                 'pages' => []
             ];
@@ -197,7 +191,7 @@ class SitemapController extends BaseController {
                     break;
             }
 
-            echo $this->view->render(
+            echo $this->getView()->render(
                 'sitemap/sitemap-part.xml.php',
                 $render_parts,
                 ['Content-Type: application/xml; charset=utf-8']
@@ -209,7 +203,7 @@ class SitemapController extends BaseController {
             $contentData = [
                 'title' => 'Произошла внутренняя ошибка сервера.'
             ];
-            echo $this->view->render(
+            echo $this->getView()->render(
                 'errors/error_xml.php', 
                 $contentData, 
                 ['Content-Type: application/xml; charset=utf-8'], 

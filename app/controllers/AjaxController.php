@@ -5,13 +5,15 @@
  * связанных с взаимодействием пользователей с контентом,
  * таким как голосование за посты.
  */
-class AjaxController
+class AjaxController extends BaseController
 {
-    use JsonResponseTrait;
-
-    public function getCsrfToken()
+    public function __construct(ResponseFactory $responseFactory)
     {
-        $this->sendSuccessJsonResponse('', 200, ['csrf_token' => CSRF::getToken()]);
-        exit;
+        parent::__construct(null, null, $responseFactory);
+    }
+
+    public function getCsrfToken(): Response
+    {
+        return $this->renderJson('', 200, ['csrf_token' => CSRF::getToken()]);
     }
 }

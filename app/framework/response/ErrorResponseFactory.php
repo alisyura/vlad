@@ -75,7 +75,8 @@ class ErrorResponseFactory
      * @param array $additionalData Дополнительные данные, которые могут быть полезны клиенту (например, поля валидации).
      * @return Response Объект готового JSON-ответа.
      */
-    public function createJsonError(string|array $message, int $statusCode = 400, array $additionalData = []): Response
+    public function createJsonError(string|array $message, int $statusCode = 400, 
+        array $additionalData = []): Response
     {
         $data = [
             'success' => false, 

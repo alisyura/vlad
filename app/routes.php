@@ -1,9 +1,9 @@
 <?php
 
 // Страница карта сайта
-$router->addRoute('/page/sitemap\.html', function(Container $container) {
+$router->addRoute('/page/sitemap\.html', function(Container $container): Response {
     $controller = $container->make(SitemapController::class);
-    $controller->showSitemap();
+    return $controller->showSitemap();
 }, ['PageCacheMiddleware']);
 
 // Sitemap.xml
@@ -12,79 +12,85 @@ $router->addRoute('/sitemap\.xml', function (Container $container) {
     $controller->generateSitemapIndexXml();
 }, ['PageCacheMiddleware']);
 
-$router->addRoute('/sitemap-(post|page)s-(\d+)\.xml', function (Container $container, $type, $page) {
-    $controller = $container->make(SitemapController::class);
-    $controller->generateSitemapPartXml($type, $page);
+$router->addRoute('/sitemap-(post|page)s-(\d+)\.xml', 
+    function (Container $container, $type, $page) {
+        $controller = $container->make(SitemapController::class);
+        $controller->generateSitemapPartXml($type, $page);
 }, ['PageCacheMiddleware']);
 
 
 
 
 // Страница контакты
-$router->addRoute('/page/kontakty\.html', function(Container $container) {
+$router->addRoute('/page/kontakty\.html', function(Container $container): Response {
     $controller = $container->make(ContactController::class);
-    $controller->showKontakty();
+    return $controller->showKontakty();
 }, ['PageCacheMiddleware']);
 
 // Отправка сообщения через форму обратной связи
-$router->addRoute('/api/send_msg', function (Container $container) {
+$router->addRoute('/api/send_msg', function (Container $container): Response {
     $controller = $container->make(ContactController::class);
-    $controller->sendMsg();
+    return $controller->sendMsg();
 }, ['AjaxMiddleware', 'CsrfMiddleware'], ['method' => 'POST']);
 
 
 
 
 // Главная страница. Или пустая, или номером страницы /p/2
-$router->addRoute('/(p(\d+))?', function(Container $container, $fullMatch = null, $page = 1): Response|null {
-    $controller = $container->make(PostController::class);
-    return $controller->index(max(1, (int)$page)); // защита от нуля и отрицательных
+$router->addRoute('/(p(\d+))?', 
+    function(Container $container, $fullMatch = null, $page = 1): Response|null {
+        $controller = $container->make(PostController::class);
+        return $controller->index(max(1, (int)$page)); // защита от нуля и отрицательных
 }, ['PageCacheMiddleware']);
 
 // Страница post
-$router->addRoute('/([0-9a-zA-Z-_]+)\.html', function(Container $container, $post_url) {
-    $controller = $container->make(PostController::class);
-    $controller->showPost($post_url);
+$router->addRoute('/([0-9a-zA-Z-_]+)\.html', 
+    function(Container $container, $post_url): Response {
+        $controller = $container->make(PostController::class);
+        return $controller->showPost($post_url);
 }, ['PageCacheMiddleware']);
 
 // Страница page
-$router->addRoute('/page\/([0-9a-zA-Z-_]+)\.html', function(Container $container, $page_url) {
-    $controller = $container->make(PostController::class);
-    $controller->showPage($page_url);
+$router->addRoute('/page\/([0-9a-zA-Z-_]+)\.html', 
+    function(Container $container, $page_url): Response {
+        $controller = $container->make(PostController::class);
+        return $controller->showPage($page_url);
 }, ['PageCacheMiddleware']);
 
 // Список постов по тэгу
-$router->addRoute('/tag\/([0-9a-zA-Z-_]+)(?:\/p(\d+))?', function(Container $container, $tagUrl, $page = 1) {
-    $controller = $container->make(PostController::class);
-    $controller->showByTag($tagUrl, max(1, (int)$page));
+$router->addRoute('/tag\/([0-9a-zA-Z-_]+)(?:\/p(\d+))?', 
+    function(Container $container, $tagUrl, $page = 1): Response {
+        $controller = $container->make(PostController::class);
+        return $controller->showByTag($tagUrl, max(1, (int)$page));
 }, ['PageCacheMiddleware']);
 
 // Список постов по разделу
 $router->addRoute('/cat\/(anekdoty|veselaya-rifma|citatnik|istorii|kartinki|video|luchshee)(?:\/p(\d+))?', 
-    function(Container $container, $cat_url, $page = 1) {
+    function(Container $container, $cat_url, $page = 1): Response {
         $controller = $container->make(PostController::class);
-        $controller->showBySection($cat_url, $cat_url === 'istorii', max(1, (int)$page));
+        return $controller->showBySection($cat_url, $cat_url === 'istorii', max(1, (int)$page));
 }, ['PageCacheMiddleware']);
 
 
 
 // Страница поиска постов по тэгам
 $router->addRoute('/cat\/tegi', 
-    function(Container $container) {
+    function(Container $container): Response {
         $controller = $container->make(TagsController::class);
-        $controller->showTagFilter();
+        return $controller->showTagFilter();
 }, ['PageCacheMiddleware']);
 
 // Получение списка тэгов (для seo)
-$router->addRoute('/cat\/tegi-results\.html', function (Container $container) {
-    $controller = $container->make(TagsController::class);
-    $controller->showTagsResults();
+$router->addRoute('/cat\/tegi-results\.html', 
+    function (Container $container): Response {
+        $controller = $container->make(TagsController::class);
+        return $controller->showTagsResults();
 });
 
 // Получение списка тэгов
-$router->addRoute('/api/search_tags', function (Container $container) {
+$router->addRoute('/api/search_tags', function (Container $container): Response {
     $controller = $container->make(TagsController::class);
-    $controller->searchTags();
+    return $controller->searchTags();
 }, ['AjaxMiddleware']);
 
 
@@ -92,31 +98,31 @@ $router->addRoute('/api/search_tags', function (Container $container) {
 
 
 // Получение CSRF токена для клиента
-$router->addRoute('/api/get-csrf-token', function (Container $container) {
+$router->addRoute('/api/get-csrf-token', function (Container $container): Response {
     $controller = $container->make(AjaxController::class);
-    $controller->getCsrfToken();
+    return $controller->getCsrfToken();
 });
 
 
 
 // Добавление пользователем материала через кнопку Добавить из меню
-$router->addRoute('/api/publish', function (Container $container) {
+$router->addRoute('/api/publish', function (Container $container): Response {
     $controller = $container->make(SubmissionController::class);
-    $controller->publish();
+    return $controller->publish();
 }, ['AjaxMiddleware', 'CsrfMiddleware'], ['method' => 'POST']);
 
 
 
 // Лайк/дислайк
-$router->addRoute('/api/reaction', function (Container $container) {
+$router->addRoute('/api/reaction', function (Container $container): Response {
     $controller = $container->make(VotingController::class);
-    $controller->reaction();
+    return $controller->reaction();
 }, ['AjaxMiddleware', 'CsrfMiddleware'], ['method' => 'POST']);
 
 // Получение лайков/дислайков постов
-$router->addRoute('/api/get-post-votes', function (Container $container) {
+$router->addRoute('/api/get-post-votes', function (Container $container): Response {
     $controller = $container->make(VotingController::class);
-    $controller->getPostVotes();
+    return $controller->getPostVotes();
 }, ['AjaxMiddleware'], ['method' => 'POST']);
 
 

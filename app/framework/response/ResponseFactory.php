@@ -17,7 +17,7 @@ class ResponseFactory
      * @param string $content Тело ответа.
      * @param int $statusCode HTTP-код статуса.
      * @param array $headers Заголовки.
-     * @return HtmlResponse|Response
+     * @return HtmlResponse
      */
     public function createHtmlResponse(string $content = '', int $statusCode = 200, array $headers = []): Response
     {
@@ -59,6 +59,10 @@ class ResponseFactory
 
     /**
      * Создает Response без тела (например, для 204 No Content).
+     * 
+     * @param int $httpCode HTTP-код статуса. (По-умолчанию 204)
+     * @param array $headers Дополнительные заголовки.
+     * @return EmptyResponse
      */
     public function createEmptyResponse(int $httpCode = 204, array $headers = []): Response
     {

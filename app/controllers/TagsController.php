@@ -6,15 +6,9 @@
 /**
  * Класс TagsController отвечает за обработку AJAX-запросов,
  * связанных с тэгами.
- *
- * @property Request $request Объект HTTP-запроса.
- * @property TagsModelClient $model Модель для работы с данными тэгов.
  */
 class TagsController extends BaseController
 {
-    use JsonResponseTrait;
-    use ShowClientErrorViewTrait;
-
     /**
      * @var TagsModelClient Модель для работы с данными тэгов.
      */
@@ -26,10 +20,12 @@ class TagsController extends BaseController
      * @param Request $request Объект запроса, внедряется через DI-контейнер.
      * @param View $view Объект для отображения HTML шаблонов, внедряется через DI-контейнер.
      * @param TagsModelClient $reactionService Модель для работы с данными тэгов, внедряется через DI-контейнер.
+     * @param ResponseFactory $responseFactory Фабрика для создания объектов Response, внедряемая через Dependency Injection.
      */
-    public function __construct(Request $request, View $view, TagsModelClient $тagsModelClient)
+    public function __construct(Request $request, View $view, 
+        TagsModelClient $тagsModelClient, ResponseFactory $responseFactory)
     {
-        parent::__construct($request, $view);
+        parent::__construct($request, $view, $responseFactory);
         $this->model = $тagsModelClient;
     }
 
@@ -41,20 +37,20 @@ class TagsController extends BaseController
      *
      * @return void
      */
-    public function searchTags()
+    public function searchTags(): Response
     {
-        $tagName = $this->request->name;
+        $tagName = $this->getRequest()->name;
         try
         {
             $results = $this->model->findPublishedPostTagsByName($tagName);
 
-            $this->sendSuccessJsonResponse('Поиск тэгов выполнен успешно', 200, 
+            return $this->renderJson('Поиск тэгов выполнен успешно', 200, 
                 ['tagname' => $tagName, 'tagslist' => $results]);
         }
-        catch(Exception $e)
+        catch(Throwable $e)
         {
             Logger::error('Ошибка при поиске тэгов: ', [], $e);
-            $this->sendErrorJsonResponse('Ошибка при поиске тэгов');
+            throw new HttpException('Ошибка при поиске тэгов', 500, $e, HttpException::JSON_RESPONSE);
         }
     }
 
@@ -67,9 +63,9 @@ class TagsController extends BaseController
      *
      * @return void
      */
-    public function showTagsResults()
+    public function showTagsResults(): Response
     {
-        $tagName = $this->request->q ?? '';
+        $tagName = $this->getRequest()->q ?? '';
 
         try
         {
@@ -82,11 +78,11 @@ class TagsController extends BaseController
                 $tags = $this->model->findPublishedPostTagsByName($tagName);
             }
 
-            $URL = $this->request->getBaseUrl();
+            $URL = $this->getRequest()->getBaseUrl();
 
             $contentData = [
                 'show_caption' => true,
-                'full_url' => $this->request->getRequestUrl(),
+                'full_url' => $this->getRequest()->getRequestUrl(),
                 'tags_baseUrl' => sprintf("%s/tag/", $URL),
                 //'post_image' => sprintf("%s%s", $this->uri, $page['image']),
                 'tags' => $tags,
@@ -98,7 +94,7 @@ class TagsController extends BaseController
                     'site_name' => Config::get('global.SITE_NAME'),
                     'keywords' => Config::get('global.SITE_KEYWORDS'),
                     'description' => Config::get('global.SITE_DESCRIPTION'),
-                    'url' => $URL . $this->request->getUri(),
+                    'url' => $URL . $this->getRequest()->getUri(),
                     'image' => $URL . asset('pic/logo.png'),
                     'urlTemplate' => sprintf('%s/cat/tegi-results.html?q={search_term_string}', $URL),
                     'robots' => 'noindex, follow',
@@ -111,12 +107,10 @@ class TagsController extends BaseController
                 ]
             ];
 
-            $this->view->renderClient('posts/tegi-seo.php', $contentData);
-        }
-        catch(Exception $e)
-        {
-            Logger::error('Ошибка при поиске тэгов: ', ['tagName' => $tagName], $e);
-            $this->sendErrorJsonResponse('Ошибка при поиске тэгов');
+            return $this->renderHtml('posts/tegi-seo.php', $contentData);
+        } catch (Throwable $e) {
+            Logger::error("Ошибка при поиске тэгов", ['tagName' => $tagName], $e);
+            throw new HttpException('Ошибка при поиске тэгов', 500, $e);
         }
     }
 
@@ -126,14 +120,16 @@ class TagsController extends BaseController
      * Рендерит клиентский шаблон 'posts/tegi.php'.
      *
      * @throws Throwable В случае непредвиденной ошибки во время отображения.
-     * @return void
+     * @return Response
      */
-    public function showTagFilter() {
+    public function showTagFilter(): Response {
+        $requestUrl = $this->getRequest()->getRequestUrl();
+
         try {
             $contentData = [
                 'show_caption' => true,
-                'full_url' => $this->request->getRequestUrl(),
-                'tags_baseUrl' => sprintf("%s/tag/", $this->request->getBaseUrl()),
+                'full_url' => $requestUrl,
+                'tags_baseUrl' => sprintf("%s/tag/", $this->getRequest()->getBaseUrl()),
                 //'post_image' => sprintf("%s%s", $this->uri, $page['image']),
                 //'tags' => $tags,
                 'is_post' => false,
@@ -142,8 +138,8 @@ class TagsController extends BaseController
                     'site_name' => Config::get('global.SITE_NAME'),
                     'keywords' => Config::get('global.SITE_KEYWORDS'),
                     'description' => Config::get('global.SITE_DESCRIPTION'),
-                    'url' => $this->request->getRequestUrl(),
-                    'urlTemplate' => sprintf('%s/cat/tegi-results.html?q={search_term_string}', $this->request->getBaseUrl()),
+                    'url' => $requestUrl,
+                    'urlTemplate' => sprintf('%s/cat/tegi-results.html?q={search_term_string}', $this->getRequest()->getBaseUrl()),
                     'robots' => 'noindex, follow',
                     'styles' => [
                         'tegi.css'
@@ -154,10 +150,10 @@ class TagsController extends BaseController
                 ]
             ];
 
-            $this->view->renderClient('posts/tegi.php', $contentData);
+            return $this->renderHtml('posts/tegi.php', $contentData);
         } catch (Throwable $e) {
-            Logger::error("Error in showTagFilter: ", [], $e);
-            $this->showErrorView('Ошибка', 'Произошла непредвиденная ошибка.');
+            Logger::error("Error in showTagFilter: ", ['requestUrl' => $requestUrl], $e);
+            throw new HttpException('Ошибка получения списка тэгов', 500, $e);
         }
     }
 }
