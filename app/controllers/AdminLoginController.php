@@ -5,22 +5,23 @@ class AdminLoginController extends BaseAdminController
 {
     private AuthService $authService;
 
-    public function __construct(Request $request, View $view, AuthService $authService)
+    public function __construct(Request $request, View $view, 
+        AuthService $authService, ResponseFactory $responseFactory)
     {
-        parent::__construct($request, $view);
+        parent::__construct($request, $view, $responseFactory);
         $this->authService = $authService;
     }
 
-    public function login() {
+    public function login(): Response {
         if ($this->request->getMethod() === 'POST') {
             // --- Проверка и обработка POST ---
             $token = $this->request->post('csrf_token') ?? '';
             if (!CSRF::validateToken($token)) {
-                // После неудачной проверки желательно обновить токен
+                // После неудачной проверки нужно обновить токен
                 CSRF::refreshToken(); // Можно добавить
                 $error='Ошибка CSRF-токена. Попробуйте ещё раз.';
-                $this->view->renderLogin(['error' => $error]);
-                return;
+
+                return $this->renderLogin(['error' => $error]);
             }
 
             if ($this->authService->login(
@@ -28,8 +29,8 @@ class AdminLoginController extends BaseAdminController
                  // После успешного логина обновляем токен (хорошая практика)
                 CSRF::refreshToken();
                 $adminRoute = Config::get('admin.AdminRoute');
-                header("Location: /$adminRoute/dashboard");
-                exit;
+
+                return $this->redirect("/$adminRoute/dashboard");
             }
             $error = 'Неверный логин или пароль';
             // Если логин неудачен, токен остаётся тем же, что и в форме
@@ -37,8 +38,8 @@ class AdminLoginController extends BaseAdminController
         elseif (($this->request->getMethod() === 'GET') && ($this->authService->check())) {
             CSRF::refreshToken();
             $adminRoute = Config::get('admin.AdminRoute');
-            header("Location: /$adminRoute/dashboard");
-            exit;
+
+            return $this->redirect("/$adminRoute/dashboard");
         }
 
         // --- Отображение формы GET или повторный показ после ошибки ---
@@ -49,9 +50,9 @@ class AdminLoginController extends BaseAdminController
         $data=[];
         if (isset($error) && !empty($error))
         {
-            $data = ['error' => 'Неверный логин или пароль'];
+            $data = ['error' => $error];
         }
-        $this->view->renderLogin($data);
+        return $this->renderLogin($data);
     }
 
     public function logout() {
@@ -59,6 +60,7 @@ class AdminLoginController extends BaseAdminController
         // После логаута тоже стоит обновить токен или очистить его
         // CSRF::refreshToken(); // Можно добавить
         $adminRoute = Config::get('admin.AdminRoute');
-        header("Location: /$adminRoute/login");
+
+        return $this->redirect("/$adminRoute/login");
     }
 }

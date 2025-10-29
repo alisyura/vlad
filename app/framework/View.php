@@ -97,10 +97,77 @@ final class View
 
         extract($data);
         ob_start();
-        include $this->viewsRootPath . DIRECTORY_SEPARATOR . $templatePath;
+        include $this->getViewsRootPath() . DIRECTORY_SEPARATOR . $templatePath;
         return ob_get_clean();
     }
 
+    /**
+     * Рендерит всю страницу (контент + макет) и возвращает HTML-строку.
+     * Этим методом должны пользоваться контроллеры для создания HtmlResponse.
+     * 
+     * @param string|null $contentTemplatePath Относительный путь к шаблону содержимого,
+     * или null, если рендерится только макет (например, для страницы логина).
+     * @param string $layoutTemplatePath Относительный путь к файлу макета.
+     * @param array $data Ассоциативный массив данных, которые будут доступны в макете и, если он указан, в содержимом.
+     * @return string
+     */
+    private function renderLayoutContent(?string $contentTemplatePath, 
+        string $layoutTemplatePath, array $data = []): string
+    {
+        $content = ''; 
+        if (!empty($contentTemplatePath))
+        {
+            // Рендерим контент (используем существующий render, но без заголовков)
+            $content = $this->render($contentTemplatePath, $data, [], 200, false, false); 
+        }
+
+        // Вставляем контент в макет
+        $data['content'] = $content;
+
+        // Вводим переменные в область видимости для макета
+        $exportData = $data['export'] ?? [];
+        if (empty($exportData)) {
+            // для админки
+            extract($data);
+        }
+        
+        // Рендерим макет
+        ob_start();
+        require $this->getViewsRootPath() . DIRECTORY_SEPARATOR . $layoutTemplatePath;
+        return ob_get_clean();
+    }
+
+    public function renderClientContent(string $contentView, 
+        array $data = []): string
+    {
+        return $this->renderLayoutContent($contentView, $this->clientLayoutPath, $data);
+    }
+
+    /**
+     * Рендерит страницу входа (логина) с использованием макета для логина.
+     *
+     * Содержимое не рендерится, используется только макет логина.
+     *
+     * @param array $data Ассоциативный массив данных, доступных в макете.
+     * @return string
+     */
+    public function renderLoginContent(array $data = []): string
+    {
+        return $this->renderLayoutContent(null, $this->loginLayoutPath, $data);
+    }
+
+    /**
+     * Рендерит страницу административной части с использованием административного макета.
+     *
+     * @param string $contentView Относительный путь к шаблону основного содержимого страницы.
+     * @param array $data Ассоциативный массив данных.
+     * @return string
+     */
+    public function renderAdminContent(string $contentView, array $data = []): string
+    {
+        return $this->renderLayoutContent($contentView, $this->adminLayoutPath, $data);
+    }
+    
     /**
      * Рендерит всю страницу, включая основное содержимое и макет.
      *
@@ -129,59 +196,6 @@ final class View
             extract($data);
         }
         require $this->viewsRootPath . '/' . $layoutTemplatePath;
-    }
-
-    /**
-     * Рендерит всю страницу (контент + макет) и возвращает HTML-строку.
-     * Этим методом должны пользоваться контроллеры для создания HtmlResponse.
-     * 
-     * @param string|null $contentTemplatePath Относительный путь к шаблону содержимого,
-     * или null, если рендерится только макет (например, для страницы логина).
-     * @param string $layoutTemplatePath Относительный путь к файлу макета.
-     * @param array $data Ассоциативный массив данных, которые будут доступны в макете и, если он указан, в содержимом.
-     * @return string
-     */
-    private function renderLayoutContent(string $contentTemplatePath, 
-        string $layoutTemplatePath, array $data = []): string
-    {
-        // Рендерим контент (используем существующий render, но без заголовков)
-        $content = $this->render($contentTemplatePath, $data, [], 200, false, false); 
-
-        // Вставляем контент в макет
-        $data['content'] = $content;
-
-        // Вводим переменные в область видимости для макета
-        $exportData = $data['export'] ?? [];
-        if (empty($exportData)) {
-            // для админки
-            extract($data);
-        }
-        
-        // Рендерим макет
-        ob_start();
-        require $this->viewsRootPath . DIRECTORY_SEPARATOR . $layoutTemplatePath;
-        return ob_get_clean();
-    }
-
-    public function renderClientContent(string $contentView, 
-        array $data = []): string
-    {
-        return $this->renderLayoutContent($contentView, $this->clientLayoutPath, $data);
-    }
-    
-    /**
-     * Рендерит страницу входа (логина) с использованием макета для логина.
-     *
-     * Содержимое не рендерится, используется только макет логина.
-     *
-     * @param array $data Ассоциативный массив данных, доступных в макете.
-     * @return void
-     * @deprecated Взамен используйте ResponseFactory::createHtmlResponse, 
-     * созданный с помощью View::renderLayoutContent().
-     */
-    public function renderLogin(array $data = []): void
-    {
-        $this->renderWithLayout(null, $this->loginLayoutPath, $data);
     }
     
     /**

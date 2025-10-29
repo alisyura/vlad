@@ -4,19 +4,18 @@
 
 class AdminDashboardController extends BaseAdminController
 {
-    use ShowAdminErrorViewTrait;
-
     private DashboardModel $model;
     private AuthService $authService;
 
-    public function __construct(View $view, DashboardModel $model, AuthService $authService)
+    public function __construct(View $view, DashboardModel $model, 
+        AuthService $authService, ResponseFactory $responseFactory)
     {
-        parent::__construct(null, $view);
+        parent::__construct(null, $view, $responseFactory);
         $this->model = $model;
         $this->authService = $authService;
     }
 
-    public function dashboard() {
+    public function dashboard(): Response {
         $userName = $this->authService->getUserName();
 
         try {
@@ -35,10 +34,10 @@ class AdminDashboardController extends BaseAdminController
             ];
             
             // Здесь загружаем данные для админ-панели
-            $this->view->renderAdmin('admin/dashboard.php', $data);
+            return $this->renderHtml('admin/dashboard.php', $data);
         } catch(Throwable $e) {
             Logger::error('Ошибка при открытии Dashboard', [], $e);
-            $this->showAdminErrorView('Ошибка при открытии Dashboard','Сбой при открытии Dashboard', $userName);
+            throw new HttpException('Сбой при открытии Dashboard', 500, $e);
         }
     }
 }

@@ -134,19 +134,19 @@ $router->addRoute('/api/get-post-votes', function (Container $container): Respon
 
 $adminRoute = Config::get('admin.AdminRoute');
 
-$router->addRoute("/$adminRoute/login", function(Container $container) {
+$router->addRoute("/$adminRoute/login", function(Container $container): Response {
     $controller = $container->make(AdminLoginController::class);
-    $controller->login();
+    return $controller->login();
 }, [], ['method' => 'GET, POST']);
 
-$router->addRoute("/$adminRoute/dashboard", function(Container $container) {
+$router->addRoute("/$adminRoute/dashboard", function(Container $container): Response {
     $controller = $container->make(AdminDashboardController::class);
-    $controller->dashboard();
+    return $controller->dashboard();
 }, ['UserAuthenticatedMiddleware']);
 
-$router->addRoute("/$adminRoute/logout", function(Container $container) {
+$router->addRoute("/$adminRoute/logout", function(Container $container): Response {
     $controller = $container->make(AdminLoginController::class);
-    $controller->logout();
+    return $controller->logout();
 }, ['UserAuthenticatedMiddleware']);
 
 

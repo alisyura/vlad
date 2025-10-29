@@ -60,14 +60,27 @@ abstract class BaseController {
     }
 
     /**
+     * Возвращает объект ResponseFactory.
+     * Используется для инкапсуляции доступа к зависимости.
+     */
+    protected function getResponseFactory(): ResponseFactory {
+        return $this->responseFactory;
+    }
+
+    /**
      * Вспомогательный метод для рендеринга шаблона и немедленного 
      * оборачивания результата в HtmlResponse.
      */
     protected function renderHtml(string $templatePath, array $data = [], 
         int $httpCode = 200): Response
     {
-        $content = $this->getView()->renderClientContent($templatePath, $data); 
-        return $this->responseFactory->createHtmlResponse($content, $httpCode);
+        $view = $this->getView();
+        if (null === $view)
+        {
+            throw new \RuntimeException('View is null');
+        }
+        $content = $view->renderClientContent($templatePath, $data); 
+        return $this->getResponseFactory()->createHtmlResponse($content, $httpCode);
     }
 
     protected function renderJson(string $message, int $statusCode = 200, 
@@ -78,6 +91,6 @@ abstract class BaseController {
             'message' => $message,
             ...($additionalData ?? [])
         ]; 
-        return $this->responseFactory->createJsonResponse($response, $statusCode);
+        return $this->getResponseFactory()->createJsonResponse($response, $statusCode);
     }
 }
