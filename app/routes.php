@@ -153,22 +153,25 @@ $router->addRoute("/$adminRoute/logout", function(Container $container): Respons
 // Формы GET
 
 // Список постов/страниц с пагинацией
-$router->addRoute("/$adminRoute/(post|page)s(?:/p(\d+))?", function(Container $container, $articleType, $page = 1) {
-    // Передаем номер страницы в контроллер
-    $controller = $container->make(AdminPostsController::class);
-    $controller->list($articleType, $page);
+$router->addRoute("/$adminRoute/(post|page)s(?:/p(\d+))?", 
+    function(Container $container, $articleType, $page = 1): Response {
+        // Передаем номер страницы в контроллер
+        $controller = $container->make(AdminPostsController::class);
+        return $controller->list($articleType, $page);
 }, ['UserAuthenticatedMiddleware']);
 
 // Форма создание нового поста/страницы
-$router->addRoute("/$adminRoute/(post|page)s/create", function(Container $container, $articleType) {
-    $controller = $container->make(AdminPostsController::class);
-    $controller->create($articleType);
+$router->addRoute("/$adminRoute/(post|page)s/create", 
+    function(Container $container, $articleType): Response {
+        $controller = $container->make(AdminPostsController::class);
+        return $controller->create($articleType);
 }, ['UserAuthenticatedMiddleware']);
 
 // Форма редактирования существующего поста/страницы
-$router->addRoute("/$adminRoute/(post|page)s/edit/(\d+)", function(Container $container, $articleType, $postId) {
-    $controller = $container->make(AdminPostsController::class);
-    $controller->edit($postId, $articleType);
+$router->addRoute("/$adminRoute/(post|page)s/edit/(\d+)", 
+    function(Container $container, $articleType, $postId): Response {
+        $controller = $container->make(AdminPostsController::class);
+        return $controller->edit($postId, $articleType);
 }, ['UserAuthenticatedMiddleware']);
 
 
@@ -176,27 +179,31 @@ $router->addRoute("/$adminRoute/(post|page)s/edit/(\d+)", function(Container $co
 // Вызовы API работы с постами/страницами
 
 // Вызов api создания нового поста из формы создания нового поста по кнопке "опубликовать"
-$router->addRoute("/$adminRoute/(post|page)s/api/create", function(Container $container, $articleType) {
-    $controller = $container->make(AdminPostsApiController::class);
-    $controller->create($articleType);
+$router->addRoute("/$adminRoute/(post|page)s/api/create", 
+    function(Container $container, $articleType): Response {
+        $controller = $container->make(AdminPostsApiController::class);
+        return $controller->create($articleType);
 }, ['UserAuthenticatedMiddleware', 'AjaxMiddleware', 'CsrfMiddleware'], ['method' => 'POST']);
 
 // Вызов api изменения поста из формы изменения поста по кнопке "обновить"
-$router->addRoute("/$adminRoute/(post|page)s/api/edit", function(Container $container, $articleType) {
-    $controller = $container->make(AdminPostsApiController::class);
-    $controller->edit($articleType);
+$router->addRoute("/$adminRoute/(post|page)s/api/edit", 
+    function(Container $container, $articleType): Response {
+        $controller = $container->make(AdminPostsApiController::class);
+        return $controller->edit($articleType);
 }, ['UserAuthenticatedMiddleware', 'AjaxMiddleware', 'CsrfMiddleware'], ['method' => 'PUT']);
 
 // Мягкое удаление поста/страницы. Простановка статуса "удален"
-$router->addRoute("/$adminRoute/(post|page)s/api/delete", function(Container $container, $articleType) {
-    $controller = $container->make(AdminPostsApiController::class);
-    $controller->delete($articleType);
+$router->addRoute("/$adminRoute/(post|page)s/api/delete", 
+    function(Container $container, $articleType): Response {
+        $controller = $container->make(AdminPostsApiController::class);
+        return $controller->delete($articleType);
 }, ['UserAuthenticatedMiddleware', 'AjaxMiddleware', 'CsrfMiddleware'], ['method' => 'PATCH']);
 
 // Проверка урла при создании поста/страницы
-$router->addRoute("/$adminRoute/(post|page)s/api/check-url", function(Container $container, $articleType) {
-    $controller = $container->make(AdminPostsApiController::class);
-    $controller->checkUrl($articleType);
+$router->addRoute("/$adminRoute/(post|page)s/api/check-url", 
+    function(Container $container, $articleType): Response {
+        $controller = $container->make(AdminPostsApiController::class);
+        return $controller->checkUrl($articleType);
 }, ['UserAuthenticatedMiddleware', 'AjaxMiddleware', 'CsrfMiddleware'], ['method' => 'POST']);
 
 
@@ -205,15 +212,17 @@ $router->addRoute("/$adminRoute/(post|page)s/api/check-url", function(Container 
 // Маршруты для работы с медиа изображениями
 
 // Получение списка картинок
-$router->addRoute("/$adminRoute/media/api/list", function(Container $container) {
-    $controller = $container->make(AdminMediaApiController::class);
-    $controller->list();
+$router->addRoute("/$adminRoute/media/api/list", 
+    function(Container $container): Response {
+        $controller = $container->make(AdminMediaApiController::class);
+        return $controller->list();
 }, ['UserAuthenticatedMiddleware', 'AjaxMiddleware']);
 
 // Загрузка новой картинки
-$router->addRoute("/$adminRoute/media/api/upload", function(Container $container) {
-    $controller = $container->make(AdminMediaApiController::class);
-    $controller->upload();
+$router->addRoute("/$adminRoute/media/api/upload", 
+    function(Container $container):Response {
+        $controller = $container->make(AdminMediaApiController::class);
+        return $controller->upload();
 }, ['UserAuthenticatedMiddleware', 'AjaxMiddleware', 'CsrfMiddleware'], ['method' => 'POST']);
 
 
@@ -221,42 +230,48 @@ $router->addRoute("/$adminRoute/media/api/upload", function(Container $container
 // Формы для тэгов
 
 // Открыть форму списка тэгов
-$router->addRoute("/$adminRoute/tags(?:/p(\d+))?", function(Container $container, $page = 1) {
-    $controller = $container->make(AdminTagsController::class);
-    $controller->list($page);
+$router->addRoute("/$adminRoute/tags(?:/p(\d+))?", 
+    function(Container $container, $page = 1): Response {
+        $controller = $container->make(AdminTagsController::class);
+        return $controller->list($page);
 }, ['UserAuthenticatedMiddleware']);
 
 // Открыть форму редактирование тэга
-$router->addRoute("/$adminRoute/tags/edit/(\d+)", function(Container $container, $tagId) {
-    $controller = $container->make(AdminTagsController::class);
-    $controller->edit($tagId);
+$router->addRoute("/$adminRoute/tags/edit/(\d+)", 
+    function(Container $container, $tagId): Response {
+        $controller = $container->make(AdminTagsController::class);
+        return $controller->edit($tagId);
 }, ['UserAuthenticatedMiddleware']);
 
 
 // Операции над тэгами
 
 // Поиск тэгов по имени (автодополнение при создании поста/страницы)
-$router->addRoute("/$adminRoute/tags/api/search", function(Container $container) {
-    $controller = $container->make(AdminTagsApiController::class);
-    $controller->searchTags();
+$router->addRoute("/$adminRoute/tags/api/search", 
+    function(Container $container): Response {
+        $controller = $container->make(AdminTagsApiController::class);
+        return $controller->searchTags();
 }, ['UserAuthenticatedMiddleware', 'AjaxMiddleware', 'CsrfMiddleware'], ['method' => 'POST']);
 
 // Создание нового тэга
-$router->addRoute("/$adminRoute/tags/api/create", function(Container $container) {
-    $controller = $container->make(AdminTagsApiController::class);
-    $controller->create();
+$router->addRoute("/$adminRoute/tags/api/create", 
+    function(Container $container): Response {
+        $controller = $container->make(AdminTagsApiController::class);
+        return $controller->create();
 }, ['UserAuthenticatedMiddleware', 'AjaxMiddleware', 'CsrfMiddleware'], ['method' => 'POST']);
 
 // Редактирование тэга
-$router->addRoute("/$adminRoute/tags/api/edit/(\d+)", function(Container $container, $tagId) {
-    $controller = $container->make(AdminTagsApiController::class);
-    $controller->edit($tagId);
+$router->addRoute("/$adminRoute/tags/api/edit/(\d+)", 
+    function(Container $container, $tagId): Response {
+        $controller = $container->make(AdminTagsApiController::class);
+        return $controller->edit($tagId);
 }, ['UserAuthenticatedMiddleware', 'AjaxMiddleware', 'CsrfMiddleware'], ['method' => 'PUT']);
 
 // Удаление тэга
-$router->addRoute("/$adminRoute/tags/api/delete/(\d+)", function(Container $container, $tagId) {
-    $controller = $container->make(AdminTagsApiController::class);
-    $controller->delete($tagId);
+$router->addRoute("/$adminRoute/tags/api/delete/(\d+)", 
+    function(Container $container, $tagId): Response {
+        $controller = $container->make(AdminTagsApiController::class);
+        return $controller->delete($tagId);
 }, ['UserAuthenticatedMiddleware', 'AjaxMiddleware', 'CsrfMiddleware'], ['method' => 'DELETE']);
 
 

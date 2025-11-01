@@ -201,6 +201,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         // Пользователь не авторизован, перенаправляем на страницу логина
                         window.location.href = `/${adminRoute}/login`;
                     }
+
                     if (!data.success && data.message) {
                         if (Array.isArray(data.errors) && data.errors.length > 0)
                         {

@@ -3,44 +3,42 @@
 
 class AdminTagsApiController extends BaseAdminController
 {
-    use JsonResponseTrait;
-
     private TagsModel $tagsModel;
 
-    public function __construct(Request $request, TagsModel $tagsModel, ?View $view = null)
+    public function __construct(Request $request, TagsModel $tagsModel, ?View $view = null,
+        ResponseFactory $responseFactory)
     {
-        parent::__construct($request, $view);
+        parent::__construct($request, $view, $responseFactory);
         $this->tagsModel = $tagsModel;
     }
 
     /**
      * Поиск тэгов по названию для автодополнения (POST-запрос).
      */
-    public function searchTags()
+    public function searchTags(): Response
     {
         $query = $this->request->json('q', '');
 
         if (mb_strlen($query) < 2) {
-            $this->sendSuccessJsonResponse('');
-            return;
+            return $this->renderJson('');
         }
 
         try {
             $tags = $this->tagsModel->searchTagsByName($query);
-            $this->sendSuccessJsonResponse('', 200, ['tags' => $tags]);
+
+            return $this->renderJson('', 200, ['tags' => $tags]);
         } catch (Throwable $e) {
             $inputJson = $this->request->getJson() ?? [];
             Logger::error('Ошибка при поиске меток: ', $inputJson, $e);
-            $this->sendErrorJsonResponse('');
+            throw new HttpException('', 500, $e, HttpException::JSON_RESPONSE);
         }
-
-        exit;
     }
 
     /**
      * @route POST /admin/tags/api/create
+     * @return Response
      */
-    public function create()
+    public function create(): Response
     {
         $inputJson = $this->request->getJson();
 
@@ -48,8 +46,7 @@ class AdminTagsApiController extends BaseAdminController
         $requiredFields = ['name', 'url'];
         foreach ($requiredFields as $field) {
             if (empty($inputJson[$field])) {
-                $this->sendErrorJsonResponse('Все поля обязательны для заполнения.');
-                return;
+                throw new HttpException('Все поля обязательны для заполнения.', 400, null, HttpException::JSON_RESPONSE);
             }
         }
 
@@ -57,32 +54,33 @@ class AdminTagsApiController extends BaseAdminController
             // Проверка уникальности урла
             $checkUniqnessResult = $this->tagsModel->checkTagUniqueness($inputJson['name'], $inputJson['url']);
             if ($checkUniqnessResult['name_exists']) {
-                $this->sendErrorJsonResponse('Имя тэга занято.', 409);
-                return;
+                throw new HttpException('Имя тэга занято.', 409, null, HttpException::JSON_RESPONSE);
             }
             if ($checkUniqnessResult['url_exists']) {
-                $this->sendErrorJsonResponse('Урл тэга занят.', 409);
-                return;
+                throw new HttpException('Урл тэга занят.', 409, null, HttpException::JSON_RESPONSE);
             }
 
             // Попытка создать тэг
             if ($this->tagsModel->createTags([$inputJson])) {
-                $this->sendSuccessJsonResponse('Тэг успешно создан.');
+                return $this->renderJson('Тэг успешно создан.');
             } else {
-                $this->sendErrorJsonResponse('Не удалось создать тэг.', 500);
+                throw new HttpException('Не удалось создать тэг.', 500);
             }
         } catch(Throwable $e) {
             Logger::error('Ошибка при создании тэга: ', $inputJson, $e);
-            $this->sendErrorJsonResponse('Сбой при создании тэга', 500);
+            if ($e instanceof HttpException)
+            {
+                throw $e;
+            }
+            throw new HttpException('Сбой при создании тэга', 500, $e, HttpException::JSON_RESPONSE);
         }
-
-        exit;
     }
 
     /**
      * @route PUT /admin/tags/api/edit
+     * @return Response
      */
-    public function edit($tagId)
+    public function edit($tagId): Response
     {
         $inputJson = $this->request->getJson();
 
@@ -90,15 +88,14 @@ class AdminTagsApiController extends BaseAdminController
             $tag = $this->tagsModel->getTag($tagId);
             if (empty($tag))
             {
-                $this->sendErrorJsonResponse('Тэг не найден.', 404);
+                throw new HttpException('Тэг не найден.', 404, null, HttpException::JSON_RESPONSE);
             }
 
             // Проверяем наличие необходимых данных
             $requiredFields = ['name'];
             foreach ($requiredFields as $field) {
                 if (empty($inputJson[$field])) {
-                    $this->sendErrorJsonResponse('Все поля обязательны для заполнения.');
-                    return;
+                    throw new HttpException('Все поля обязательны для заполнения.', 400, null, HttpException::JSON_RESPONSE);
                 }
             }
 
@@ -111,30 +108,31 @@ class AdminTagsApiController extends BaseAdminController
             // Обновляем данные пользователя в базе данных
             $this->tagsModel->updateTags([$updateData]);
 
-            $this->sendSuccessJsonResponse('Тэг успешно обновлен.');
+            return $this->renderJson('Тэг успешно обновлен.');
         } catch(Throwable $e) {
             Logger::error('Ошибка при редактировании тэга: ', $inputJson, $e);
-            $this->sendErrorJsonResponse('Сбой при редактировании тэга', 500);
+            if ($e instanceof HttpException)
+            {
+                throw $e;
+            }
+            throw new HttpException('Сбой при редактировании тэга', 500, $e, HttpException::JSON_RESPONSE);
         }
-
-        exit;
     }
 
     /**
      * @route DELETE /admin/tags/api/block/$userId
+     * @return Response
      */
-    public function delete($tagId)
+    public function delete($tagId): Response
     {
         try {
             // Обновляем статус пользователя в базе данных
             $this->tagsModel->deleteTags([$tagId]);
 
-            $this->sendSuccessJsonResponse('Тэг успешно удален.');
+            return $this->renderJson('Тэг успешно удален.');
         } catch(Throwable $e) {
             Logger::error('Ошибка при удалении тэга: ', ['tagId' => $tagId], $e);
-            $this->sendErrorJsonResponse('Сбой при удалении тэга', 500);
+            throw new HttpException('Сбой при удалении тэга', 500, $e, HttpException::JSON_RESPONSE);
         }
-
-        exit;
     }
 }

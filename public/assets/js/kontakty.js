@@ -64,7 +64,7 @@ class ContactFormManager {
                 showToast('Ваше сообщение успешно отправлено!');
                 this.resetForm();
             } else {
-                let errorMessages = Array.isArray(result.message) ? result.message : [result.message || 'Неизвестная ошибка'];
+                let errorMessages = Array.isArray(result.errors) ? result.errors : [result.errors || 'Неизвестная ошибка'];
                 const errorMessage = 'Сообщение не отправлено\n\n' + errorMessages.join('\n');
                 showToast(errorMessage);
             }

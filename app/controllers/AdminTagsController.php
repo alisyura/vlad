@@ -3,22 +3,20 @@
 
 class AdminTagsController extends BaseAdminController
 {
-    use ShowAdminErrorViewTrait;
-
     private TagsModel $tagsModel;
     private AuthService $authService;
     private PaginationService $paginService;
 
     public function __construct(Request $request, View $view, AuthService $authService, 
-        TagsModel $tagsModel, PaginationService $paginService)
+        TagsModel $tagsModel, PaginationService $paginService, ResponseFactory $responseFactory)
     {
-        parent::__construct($request, $view);
+        parent::__construct($request, $view, $responseFactory);
         $this->tagsModel = $tagsModel;
         $this->paginService = $paginService;
         $this->authService = $authService;
     }
 
-    public function list($currentPage = 1)
+    public function list($currentPage = 1): Response
     {
         $userName = $this->authService->getUserName();
 
@@ -53,14 +51,14 @@ class AdminTagsController extends BaseAdminController
             $data['styles'] = ['tags.css'];
             $data['jss'] = ['tags.js'];
 
-            $this->view->renderAdmin('admin/tags/list.php', $data);
+            return $this->renderHtml('admin/tags/list.php', $data);
         } catch(Throwable $e) {
             Logger::error("Error in tags list: ", ['currentPage' => $currentPage], $e);
-            $this->showAdminErrorView('Ошибка', 'Произошла непредвиденная ошибка.', $userName);
+            throw new HttpException('Произошла непредвиденная ошибка.', 500, $e);
         }
     }
 
-    public function edit(int $tagId)
+    public function edit(int $tagId): Response
     {
         $userName = $this->authService->getUserName();
 
@@ -77,15 +75,20 @@ class AdminTagsController extends BaseAdminController
             $tag = $this->tagsModel->getTag(id: $tagId);
             if (empty($tag))
             {
-                $this->showAdminErrorView('Ошибка', 'Тэг не найден.',$userName);
-                return;
+                throw new HttpException('Тэг не найден.', 404);
             }
             
             $data['tag_to_edit'] = $tag;
-            $this->view->renderAdmin('admin/tags/edit.php', $data);
+
+            return $this->renderHtml('admin/tags/edit.php', $data);
         } catch(Throwable $e) {
             Logger::error("Error in edit tag (show form): ", ['tagId' => $tagId], $e);
-            $this->showAdminErrorView('Ошибка', 'Произошла непредвиденная ошибка.', $userName);
+            if (($e instanceof HttpException) && $e->getCode() == 404)
+            {
+                throw $e;
+            }
+
+            throw new HttpException('Произошла непредвиденная ошибка.', 500);
         }
     }
 }

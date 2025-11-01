@@ -5,31 +5,28 @@
 
 class AdminMediaApiController extends BaseAdminController
 {
-    use JsonResponseTrait;
-
     private MediaService $mediaService;
 
-    public function __construct(MediaService $mediaService, Request $request)
+    public function __construct(MediaService $mediaService, Request $request, 
+        ResponseFactory $responseFactory)
     {
-        parent::__construct($request, null);
+        parent::__construct($request, null, $responseFactory);
         $this->mediaService = $mediaService;
     }
 
-    public function list()
+    public function list(): Response
     {
         try {
             $media = $this->mediaService->list();
 
-            $this->sendSuccessJsonResponse('', 200, ['mediaList' => $media]);
+            return $this->renderJson('', 200, ['mediaList' => $media]);
         } catch (Throwable $e) {
             Logger::error('AdminMediaApiController.list. Сбой при получении списка картинок', [], $e);
-            $this->sendErrorJsonResponse('Сбой при получении списка картинок', 500);
+            throw new HttpException('Сбой при получении списка картинок', 500, $e, HttpException::JSON_RESPONSE);
         }
-
-        exit;
     }
 
-    public function upload()
+    public function upload(): Response
     {
         $file = [];
         $alt = '';
@@ -40,21 +37,20 @@ class AdminMediaApiController extends BaseAdminController
 
             $this->mediaService->upload($file, $alt);
             
-            $this->sendSuccessJsonResponse('Файл успешно загружен!');
+            return $this->renderJson('Файл успешно загружен!');
         } catch (MediaException $e) {
             // Обработка ошибок, связанных только с загрузкой медиа
             Logger::error('AdminMediaApiController.Ошибка при загрузке картинки.', ['file' => $file, 'alt' => $alt], $e);
-            $this->sendErrorJsonResponse('Ошибка при загрузке: ' . $e->getMessage(), 400);
+            throw new HttpException('Ошибка при загрузке: ' . $e->getMessage(), 400, $e, HttpException::JSON_RESPONSE);
         } catch (PDOException $e) {
             // Удаляем файл, если не удалось сохранить в БД
             Logger::error("AdminMediaApiController.Ошибка при сохранении в БД", ['file' => $file, 'alt' => $alt], $e);
-            $this->sendErrorJsonResponse('Ошибка при сохранении данных.', 500);
+            throw new HttpException('Ошибка при сохранении данных.', 500, $e, HttpException::JSON_RESPONSE);
         } catch (Throwable $e) {
             // Логируем ошибку и возвращаем ответ
             Logger::error("AdminMediaApiController.Сбой при загрузке файла", ['file' => $file, 'alt' => $alt], $e);
-            $this->sendErrorJsonResponse('Произошел сбой при загрузке файла.', 500);
+            throw new HttpException('Произошел сбой при загрузке файла.', 500, $e, HttpException::JSON_RESPONSE);
         } 
-        exit;
     }
 }
 

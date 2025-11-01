@@ -4,7 +4,6 @@
 class AdminPostsController extends BaseAdminController
 {
     use UrlHelperTrait;
-    use ShowAdminErrorViewTrait;
 
     private PostModelAdmin $model;
     private ListModel $listmodel;
@@ -17,9 +16,9 @@ class AdminPostsController extends BaseAdminController
         PostModelAdmin $model,
         ListModel $listmodel, 
         AuthService $authService, 
-        PaginationService $pageinationService)
+        PaginationService $pageinationService, ResponseFactory $responseFactory)
     {
-        parent::__construct($request, $view);
+        parent::__construct($request, $view, $responseFactory);
         $this->model = $model;
         $this->listmodel = $listmodel;
         $this->authService = $authService;
@@ -29,18 +28,20 @@ class AdminPostsController extends BaseAdminController
      * Отображает список постов/страниц в админ-панели с пагинацией.
      * @param int $currentPage Номер текущей страницы (из URL, по умолчанию 1).
      * @param string $articleType Тип статьи (post/page).
+     * @return Response
      */
-    public function list($articleType, $currentPage = 1)
+    public function list($articleType, $currentPage = 1): Response
     {
-        $this->processList($articleType, $currentPage);
+        return $this->processList($articleType, $currentPage);
     }
 
     /**
      * Отображает список постов в админ-панели с пагинацией.
      * @param int $currentPage Номер текущей страницы (из URL, по умолчанию 1).
      * @param string $articleType Тип статьи. post или page
+     * @return Response
      */
-    private function processList($articleType = 'post', $currentPage = 1) {
+    private function processList($articleType = 'post', $currentPage = 1): Response {
         // $adminRoute = $this->getAdminRoute();
         $userName = $this->authService->getUserName();
         try {
@@ -197,14 +198,13 @@ class AdminPostsController extends BaseAdminController
                 ]
             ];
 
-            $this->view->renderAdmin('admin/posts/list.php', $data);
-
+            return $this->renderHtml('admin/posts/list.php', $data);
         } catch (PDOException $e) {
             Logger::error("Database error in listPosts", ['currentPage' => $currentPage, 'articleType' => $articleType], $e);
-            $this->showAdminErrorView('Ошибка', 'Не удалось загрузить данные. Пожалуйста, попробуйте позже.', $userName);
+            throw new HttpException('Не удалось загрузить данные. Пожалуйста, попробуйте позже.', 400, $e);
         } catch (Throwable $e) {
             Logger::error("Error in listPosts: ", ['currentPage' => $currentPage, 'articleType' => $articleType], $e);
-            $this->showAdminErrorView('Ошибка', 'Произошла непредвиденная ошибка.', $userName);
+            throw new HttpException('Произошла непредвиденная ошибка.', 500, $e);
         }
     }
 
@@ -212,17 +212,19 @@ class AdminPostsController extends BaseAdminController
      * Точка входа в создание нового поста/страницы из маршрутизатора
      * 
      * @param string $articleType Тип статьи (post/page).
+     * @return Response
      */
-    public function create($articleType) {
-        $this->showCreateArticleForm($articleType);
+    public function create($articleType): Response {
+        return $this->showCreateArticleForm($articleType);
     }
 
     /**
      * Открывает страницу создания нового поста/страницы
      * 
      * @param string $articleType Тип статьи (post/page)
+     * @return Response
      */
-    private function showCreateArticleForm(string $articleType) {
+    private function showCreateArticleForm(string $articleType): Response {
         $adminRoute = $this->getAdminRoute();
         $userName = $this->authService->getUserName();
 
@@ -265,13 +267,10 @@ class AdminPostsController extends BaseAdminController
                 ]
             ];
 
-            $this->view->renderAdmin('admin/posts/edit_create.php', $data);
-            
+            return $this->renderHtml('admin/posts/edit_create.php', $data);
         } catch (Throwable $e) {
             Logger::error("showCreateArticleForm. An unexpected error occurred: ", ['articleType' => $articleType], $e);
-
-            $this->showAdminErrorView('Ошибка', 
-                'Не удалось загрузить посты. Пожалуйста, попробуйте позже.', $userName);
+            throw new HttpException('Сбой при открытии формы', 500, $e);
         }   
     }
 
@@ -280,10 +279,11 @@ class AdminPostsController extends BaseAdminController
      * 
      * @param int $postId ID поста для редактирования.
      * @param string $articleType Тип статьи (post/page).
+     * @return Response
      */
-    public function edit($postId, $articleType)
+    public function edit($postId, $articleType): Response
     {
-        $this->showEditArticleForm($postId, $articleType);
+        return $this->showEditArticleForm($postId, $articleType);
     }
 
     /**
@@ -291,8 +291,9 @@ class AdminPostsController extends BaseAdminController
      *
      * @param int $postId Id статьи
      * @param string $articleType Тип статьи (post/page)
+     * @return Response
      */
-    private function showEditArticleForm($postId, $articleType)
+    private function showEditArticleForm($postId, $articleType): Response
     {
         $adminRoute = $this->getAdminRoute();
         $userName = $this->authService->getUserName();
@@ -321,12 +322,7 @@ class AdminPostsController extends BaseAdminController
     
             $postData = $this->model->getPostById($postId, $articleType);
             if ($postData === null) {
-                // Если пост не найден, рендерим специальный view и выходим
-                $this->showAdminErrorView('Запись не найдена.', 
-                    'Не удалось загрузить данные поста/страницы. Пожалуйста, попробуйте позже.', 
-                    $userName);
-
-                return; // Ранний выход
+                throw new HttpException('Запись не найдена.', 404);
             }
 
             $data = [
@@ -362,15 +358,18 @@ class AdminPostsController extends BaseAdminController
             // Устанавливаем заголовок
             $data['pageTitle'] .= htmlspecialchars($data['post']['title'] ?? '');
 
-            $this->view->renderAdmin('admin/posts/edit_create.php', $data);
+            return $this->renderHtml('admin/posts/edit_create.php', $data);
         }
         catch(Throwable $e)
         {
             Logger::error("showEditArticleForm. An unexpected error occurred", ['postId' => $postId, 'articleType' => $articleType], $e);
 
-            $this->showAdminErrorView('Ошибка', 
-                'Не удалось загрузить данные поста/страницы. Пожалуйста, попробуйте позже.', 
-                $userName);
+            if (($e instanceof HttpException) && $e->getCode() === 404)
+            {
+                throw $e;
+            }
+
+            throw new HttpException('Сбой при открытии формы редактирования', 500, $e);
         }
     }
 }

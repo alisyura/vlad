@@ -165,21 +165,22 @@ class Router {
             {
                 $prevException = $e->getPrevious();
                 $statusCode = 400;
+                $errors = [];
                 if ($prevException !== null && ($prevException instanceof UserDataException))
                 {
                     // массив сообщений
-                    $errorsMsg = $prevException->getValidationErrors();
+                    $errors = $prevException->getValidationErrors();
                     $statusCode = $prevException->getCode();
                 }
                 else {
                     // строка
-                    $errorsMsg = $e->getMessage();
                     $statusCode = $e->getCode();
                 }
                 
                 $this->errorFactory->createJsonError(
-                    $errorsMsg,
-                    $statusCode
+                    $e->getMessage(),
+                    $statusCode,
+                    $errors
                 )->send();
                 return;
             }

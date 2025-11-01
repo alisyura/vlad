@@ -95,7 +95,7 @@ class AdminPostsApiService
         return $postId;
     }
 
-    public function editArticle(array $postData, string $articleType): array
+    public function editArticle(array $postData, string $articleType): void
     {
         if (empty($postData))
         {
@@ -139,11 +139,7 @@ class AdminPostsApiService
             'thumbnail_url' => $thumbnailUrl,
         ];
 
-        return [
-            'updateResult' => $this->model->updatePost($postId, 
-                    $dataForModel, $selectedCategories, $tagsString),
-            'postId' => $postId
-        ];
+        $this->model->updatePost($postId, $dataForModel, $selectedCategories, $tagsString);
     }
 
     public function deleteArticle(array $postData, string $articleType): bool
@@ -160,13 +156,8 @@ class AdminPostsApiService
             throw new UserDataException('Не передан или неверного формата id поста', [], 400);
         }
 
-        $errors=[];
-        if (!$this->model->postExists($postId, null, $articleType)) {
-            $errors[] = 'Пост не найден.';
-        }
-
-        if (!empty($errors)) {
-            throw new UserDataException('Неверно заполнены поля.', $errors, 400);
+        if ($this->model->postExists($postId, null, $articleType)) {
+            throw new UserDataException('Пост не найден.', [], 404);
         }
 
         return $this->model->setPostStatus($postId, PostModelAdmin::STATUS_DELETED, 

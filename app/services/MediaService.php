@@ -12,7 +12,7 @@ class MediaService
         $this->authService = $authService;
     }
 
-    public function list()
+    public function list(): array
     {
         return $this->model->getMedialist();
     }

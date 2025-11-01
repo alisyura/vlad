@@ -22,7 +22,7 @@ class AdminMediaModel extends BaseModel {
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
         } catch (PDOException $e) {
             Logger::error("Error fetching media list: " . $e->getMessage());
-            return 0;
+            throw $e;
         }
     }
 

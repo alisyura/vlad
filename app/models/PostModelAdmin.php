@@ -99,9 +99,9 @@ class PostModelAdmin extends BaseModel {
      * @param array $postData Данные поста.
      * @param array $categories Массив ID категорий.
      * @param string $tagsString Строка тегов, разделённая запятыми.
-     * @return bool Успех операции.
+     * @return void
      */
-    public function updatePost(int $postId, array $postData, array $categories = [], string $tagsString = ''): bool
+    public function updatePost(int $postId, array $postData, array $categories = [], string $tagsString = ''): void
     {
         try {
             $this->db->beginTransaction();
@@ -152,11 +152,10 @@ class PostModelAdmin extends BaseModel {
             }
 
             $this->db->commit();
-            return true;
         } catch (PDOException $e) {
             $this->db->rollBack();
             Logger::error("updatePost. Error updating post with ID: " . $postId, $postData, $e);
-            return false;
+            throw $e;
         }
     }
 
@@ -244,7 +243,7 @@ class PostModelAdmin extends BaseModel {
             $mergedForLog = [...$postData, 'categoriesIds' => $categories];
             $mergedForLog['tagsString'] = $tagsString;
             Logger::error("createPost. Error creating post", $mergedForLog, $e);
-            return false;
+            throw $e;
         }
     }
 

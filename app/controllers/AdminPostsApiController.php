@@ -3,15 +3,13 @@
 
 class AdminPostsApiController extends BaseAdminController
 {
-    use JsonResponseTrait;
-
     private PostModelAdmin $model;
     private AdminPostsApiService $postsApiService;
 
     public function __construct(Request $request, PostModelAdmin $model, 
-        AdminPostsApiService $postsApiService)
+        AdminPostsApiService $postsApiService, ResponseFactory $responseFactory)
     {
-        parent::__construct($request, null);
+        parent::__construct($request, null, $responseFactory);
         $this->model = $model;
         $this->postsApiService = $postsApiService;
     }
@@ -84,17 +82,20 @@ class AdminPostsApiController extends BaseAdminController
      * Точка входа на удаление поста/страницы (AJAX PATCH запрос)
      * 
      * @param string $articleType Тип статьи (post/page).
+     * @return Response
      */
-    public function delete($articleType)
+    public function delete($articleType): Response
     {
-        $this->deleteArticle($articleType);
+        return $this->deleteArticle($articleType);
     }
 
     /**
      * Выполняет мягкое удаление поста/страницы по ID (через AJAX).
      * Ожидает PATCH-запрос с JSON: { post_id: 123, csrf_token: "..." }
+     * @param string $articleType Тип статьи (post/page).
+     * @return Response
      */
-    private function deleteArticle($articleType)
+    private function deleteArticle($articleType): Response
     {
         Logger::debug("deleteArticle. Начало");
         
@@ -107,26 +108,26 @@ class AdminPostsApiController extends BaseAdminController
             $deleteResult = $this->postsApiService->deleteArticle($postData, $articleType);
 
             if ($deleteResult) {
-                $this->sendSuccessJsonResponse('Пост перемещен на удаление в корзину.');
+                return $this->renderJson('Пост перемещен на удаление в корзину.');
             } else {
-                $this->sendErrorJsonResponse('Произошла ошибка при удалении поста.', 500);
+                throw new HttpException('Произошла ошибка при удалении поста.', 500);
             }
         } catch (UserDataException $e) {
             Logger::error("deleteArticle. ошибки заполнены. выход", ['postId' => $postId, 'articleType' => $articleType], $e);
-            $this->sendErrorJsonResponse($e->getMessage(), $e->getCode(), $e->getValidationErrors());
+            throw new HttpException($e->getMessage(), $e->getCode(), $e, HttpException::JSON_RESPONSE);
         } catch (Throwable $e) {
             Logger::error("deleteArticle. сбой при удалении поста/страницы", ['postId' => $postId,'articleType' => $articleType], $e);
-            $this->sendErrorJsonResponse('Сбой при удалении поста/страницы.', 500);
+            throw new HttpException('Сбой при удалении поста/страницы.', 500, $e, HttpException::JSON_RESPONSE);
         }
-
-        exit;
     }
 
     /**
      * Проверяет что поста/страницы с переданным урлом нет, чтобы создать новый пост/страницу
      * (AJAX POST запрос)
+     * @param string $articleType Тип статьи (post/page).
+     * @return Response
      */
-    public function checkUrl($articleType)
+    public function checkUrl($articleType): Response
     {
         Logger::debug("checkUrl. Начало");
         
@@ -138,33 +139,34 @@ class AdminPostsApiController extends BaseAdminController
         try {
             $isUnique = $this->postsApiService->checkUrl($postData, $articleType);
 
-            $this->sendSuccessJsonResponse('Урл доступен', 200, ['is_unique' => $isUnique]);
+            return $this->renderJson('Урл доступен', 200, ['is_unique' => $isUnique]);
         } catch (UserDataException $e) {
             Logger::error("checkUrl. ошибки заполнены. выход", ['url' => $url, 'articleType' => $articleType], $e);
-            $this->sendErrorJsonResponse($e->getMessage(), $e->getCode(), $e->getValidationErrors());
+            throw new HttpException($e->getMessage(), $e->getCode(), $e, HttpException::JSON_RESPONSE);
         } catch (Throwable $e) {
             Logger::error("checkUrl. сбой при проверке урла", ['url' =>$url, 'articleType' => $articleType], $e);
-            $this->sendErrorJsonResponse('Сбой при проверке урла.', 500);
+            throw new HttpException('Сбой при проверке урла.', 500, $e, HttpException::JSON_RESPONSE);
         }
-
-        exit;
     }
 
     /**
      * Точка входа на создание нового поста/страницы (AJAX POST запрос)
      * 
      * @param string $articleType Тип статьи (post/page).
+     * @return Response
      */
-    public function create($articleType)
+    public function create($articleType): Response
     {
-        $this->createArticle($articleType);
+        return $this->createArticle($articleType);
     }
 
     /**
      * Создает запись с типом из articleType
      * Вызывается по AJAX POST
+     * @param string $articleType Тип статьи (post/page).
+     * @return Response
      */
-    private function createArticle($articleType) {
+    private function createArticle($articleType): Response {
         Logger::debug("createArticle. Начало");
         
         $postData=$this->request->getJson();
@@ -173,41 +175,39 @@ class AdminPostsApiController extends BaseAdminController
         $url = $postData['url'] ?? 'null';
 
         try {
-            $newPostId = $this->postsApiService->createArticle($postData, $articleType);
+            $this->postsApiService->createArticle($postData, $articleType);
 
-            if ($newPostId) {
-                $adminRoute = $this->getAdminRoute();
-                $msgText = ($articleType == 'post' ? 'Пост успешно создан' : 'Страница успешно создана');
-                $this->sendSuccessJsonResponse($msgText, 200, ['redirect' => "/$adminRoute/{$articleType}s"]);
-            } else {
-                $this->sendErrorJsonResponse('Произошла ошибка при создании поста.', 500);
-            }
+            $adminRoute = $this->getAdminRoute();
+            $msgText = ($articleType == 'post' ? 'Пост успешно создан' : 'Страница успешно создана');
+
+            return $this->renderJson($msgText, 200, ['redirect' => "/$adminRoute/{$articleType}s"]);
         } catch (UserDataException $e) {
             Logger::error("createArticle. ошибки заполнены. выход", ['url' => $url, 'articleType' => $articleType], $e);
-            $this->sendErrorJsonResponse($e->getMessage(), $e->getCode(), $e->getValidationErrors());
+            throw new HttpException($e->getMessage(), $e->getCode(), $e, HttpException::JSON_RESPONSE);
+
         } catch (Throwable $e) {
             Logger::error("createArticle. сбой при создании поста/страницы", ['url' => $url, 'articleType' => $articleType], $e);
-            $this->sendErrorJsonResponse('Сбой при создании поста/страницы.', 500);
+            throw new HttpException('Сбой при создании поста/страницы.', 500, $e, HttpException::JSON_RESPONSE);
         }
-
-        exit;
     }
 
     /**
      * Точка входа на редактирование поста/страницы (AJAX PUT запрос)
      * 
      * @param string $articleType Тип статьи (post/page).
+     * @return Response
      */
-    public function edit($articleType)
+    public function edit($articleType): Response
     {
-        $this->editArticle($articleType);
+        return $this->editArticle($articleType);
     }
 
     /**
      * Изменяет запись с типом из articleType
      * Вызов по AJAX PUT
+     * @return Response
      */
-    private function editArticle($articleType)
+    private function editArticle($articleType): Response
     {
         $postData=$this->request->getJson();
 
@@ -215,25 +215,18 @@ class AdminPostsApiController extends BaseAdminController
         $postId = $postData['id'] ?? 'null';
 
         try {
-            $updateResultArr = $this->postsApiService->editArticle($postData, $articleType);
-            $updateResult = $updateResultArr['updateResult'];
-            $postId = $updateResultArr['postId'];
+            $this->postsApiService->editArticle($postData, $articleType);
 
-            if ($updateResult) {
-                $adminRoute = $this->getAdminRoute();
-                $msgText = ($articleType == 'post' ? 'Пост успешно обновлен' : 'Страница успешно обновлена');
-                $this->sendSuccessJsonResponse($msgText, 200, ['redirect' => "/$adminRoute/{$articleType}s/edit/{$postId}"]);
-            } else {
-                $this->sendErrorJsonResponse('Произошла ошибка при обновлении поста.', 500);
-            }
+            $adminRoute = $this->getAdminRoute();
+            $msgText = ($articleType == 'post' ? 'Пост успешно обновлен' : 'Страница успешно обновлена');
+
+            return $this->renderJson($msgText, 200, ['redirect' => "/$adminRoute/{$articleType}s/edit/{$postId}"]);
         } catch (UserDataException $e) {
             Logger::error("editArticle. ошибки заполнены. выход", ['postId' => $postId, 'articleType' => $articleType], $e);
-            $this->sendErrorJsonResponse($e->getMessage(), $e->getCode(), $e->getValidationErrors());
+            throw new HttpException($e->getMessage(), $e->getCode(), $e, HttpException::JSON_RESPONSE);
         } catch (Throwable $e) {
             Logger::error("editArticle. сбой при создании поста/страницы", ['postId' => $postId, 'articleType' => $articleType], $e);
-            $this->sendErrorJsonResponse('Сбой при создании поста/страницы.', 500);
+            throw new HttpException('Сбой при создании поста/страницы.', 500, $e, HttpException::JSON_RESPONSE);
         }
-
-        exit;
     }
 }
