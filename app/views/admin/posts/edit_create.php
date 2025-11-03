@@ -131,13 +131,13 @@ $adminRoute = $data['adminRoute'] ?? 'admin';
                                 Опубликовано
                             </label>
                         </div>
-                        <div class="form-check">
+                        <!-- <div class="form-check">
                             <input class="form-check-input" type="radio" name="status" id="statusPending" value="pending"
                                 <?= ($post['status'] ?? '') === 'pending' ? 'checked' : '' ?>>
                             <label class="form-check-label" for="statusPending">
                                 Ожидание
                             </label>
-                        </div>
+                        </div> -->
                     </div>
                     <button type="button" class="btn btn-primary w-100">
                         <?= htmlspecialchars($publishButtonTitle) ?>
