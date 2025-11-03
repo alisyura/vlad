@@ -156,7 +156,7 @@ class AdminPostsApiService
             throw new UserDataException('Не передан или неверного формата id поста', [], 400);
         }
 
-        if ($this->model->postExists($postId, null, $articleType)) {
+        if (!$this->model->postExists($postId, null, $articleType)) {
             throw new UserDataException('Пост не найден.', [], 404);
         }
 

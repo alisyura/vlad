@@ -17,7 +17,7 @@ class AdminTagsApiController extends BaseAdminController
      */
     public function searchTags(): Response
     {
-        $query = $this->request->json('q', '');
+        $query = $this->getRequest()->json('q', '');
 
         if (mb_strlen($query) < 2) {
             return $this->renderJson('');
@@ -28,7 +28,7 @@ class AdminTagsApiController extends BaseAdminController
 
             return $this->renderJson('', 200, ['tags' => $tags]);
         } catch (Throwable $e) {
-            $inputJson = $this->request->getJson() ?? [];
+            $inputJson = $this->getRequest()->getJson() ?? [];
             Logger::error('Ошибка при поиске меток: ', $inputJson, $e);
             throw new HttpException('', 500, $e, HttpException::JSON_RESPONSE);
         }
@@ -40,7 +40,7 @@ class AdminTagsApiController extends BaseAdminController
      */
     public function create(): Response
     {
-        $inputJson = $this->request->getJson();
+        $inputJson = $this->getRequest()->getJson();
 
         // Проверяем наличие необходимых данных
         $requiredFields = ['name', 'url'];
@@ -82,7 +82,7 @@ class AdminTagsApiController extends BaseAdminController
      */
     public function edit($tagId): Response
     {
-        $inputJson = $this->request->getJson();
+        $inputJson = $this->getRequest()->getJson();
 
         try {
             $tag = $this->tagsModel->getTag($tagId);

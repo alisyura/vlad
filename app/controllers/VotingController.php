@@ -39,8 +39,6 @@ class VotingController extends BaseController
 
             $uuid = getVisitorCookie();
 
-            $visitorId=$this->model->getVisitorIdForUUID($uuid);
-
             // Убираем дубликаты и пустые значения
             $postUrls = array_unique(array_filter($posts));
 
@@ -48,7 +46,7 @@ class VotingController extends BaseController
                 throw new HttpException('Нет корректных постов', 422, null, HttpException::JSON_RESPONSE);
             }
 
-            $results = $this->model->findPostsByUrls($postUrls, $visitorId);
+            $results = $this->service->getVotesForUrls($uuid, $postUrls);
 
             return $this->renderJson('Голоса получены', 200, ['votes' => $results]);
         } catch (Throwable $e) {

@@ -13,13 +13,13 @@ abstract class BaseController {
      *
      * @var ?View
      */
-    protected ?View $view;
+    private ?View $view;
     /**
      * Объект Request для получения данных из запроса.
      *
      * @var ?Request
      */
-    protected ?Request $request;
+    private ?Request $request;
 
     /**
      * Фабрика для создания объектов Response.

@@ -303,7 +303,20 @@ body {
     color: #706f69; /* Цвет текста */
 }
 
+.counters-block {
+    display: none;
+}
 
+@media (min-width: 1024px) {
+    .counters-block {
+        display: block;
+        
+        margin-top: 40px; 
+        padding-left: 25px; 
+        padding-right: 25px; 
+        text-align: center;
+    }
+}
 
 .ad_block {
     width: auto;

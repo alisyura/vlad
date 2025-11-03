@@ -25,7 +25,7 @@ class AdminTagsController extends BaseAdminController
             $tagsPerPage = Config::get('admin.TagsPerPage'); // Количество постов на страницу
 
             // Базовый URL для админки
-            $basePageUrl=$this->request->getBasePageUrl();
+            $basePageUrl=$this->getRequest()->getBasePageUrl();
 
             $paginParams = $this->paginService->calculatePaginationParams($tagsPerPage, $currentPage,
                 $this->tagsModel->getTotalTagsCount(), $basePageUrl);

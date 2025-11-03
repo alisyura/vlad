@@ -27,6 +27,9 @@ class PaginationService
 
         // Вычисляем общее количество страниц
         $totalPages = ceil($totalQnty / $qntyPerPage);
+        if ($totalPages == 0) {
+            $totalPages = 1;
+        }
         
         // Убеждаемся, что текущая страница не превышает общее количество
         $currentPage = min($currentPage, $totalPages);

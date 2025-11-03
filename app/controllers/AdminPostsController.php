@@ -42,20 +42,22 @@ class AdminPostsController extends BaseAdminController
      * @return Response
      */
     private function processList($articleType = 'post', $currentPage = 1): Response {
-        // $adminRoute = $this->getAdminRoute();
         $userName = $this->authService->getUserName();
+        Logger::debug('processList. begin', ['articleType' => $articleType, 'currentPage' => $currentPage]);
         try {
             // получение фильтров
             $filterData = [
-                'selectedStatus' => $this->request->status ?? '',
-                'selectedPostDate' => $this->request->post_date ?? '',
-                'selectedSearchQuery' => $this->request->searchquery ?? '',
-                'selectedCategory' => $this->request->category_id ?? '',
+                'selectedStatus' => $this->getRequest()->status ?? '',
+                'selectedPostDate' => $this->getRequest()->post_date ?? '',
+                'selectedSearchQuery' => $this->getRequest()->searchquery ?? '',
+                'selectedCategory' => $this->getRequest()->category_id ?? '',
             ];
 
+            Logger::debug('processList. filterData', $filterData);
+
             // --- Получение и валидация параметров сортировки ---
-            $sortBy = $this->request->sort ?? 'updated_at';
-            $sortOrder = $this->request->order ?? 'DESC';
+            $sortBy = $this->getRequest()->sort ?? 'updated_at';
+            $sortOrder = $this->getRequest()->order ?? 'DESC';
 
             $allowedSorts = ['id', 
                 'title', 
@@ -73,22 +75,25 @@ class AdminPostsController extends BaseAdminController
             if (!in_array($sortOrder, $allowedOrders)) {
                 $sortOrder = 'DESC';
             }
+
+            Logger::debug('processList. Параметры сортировки', ['sortOrder' => $sortOrder, 'sortBy' => $sortBy]);
             // --- Конец обработки параметров сортировки ---
 
             // Базовый URL для админки
-            $basePageUrl=$this->request->getBasePageUrl();
+            $basePageUrl=$this->getRequest()->getBasePageUrl();
             $isTrash = $this->hasThrash($basePageUrl);
 
             // Определяем параметры пагинации
             $postsPerPage = Config::get('admin.PostsPerPage'); // Количество постов на страницу
+
+            Logger::debug('processList. Основные параметры', ['basePageUrl' => $basePageUrl, 'isTrash' => $isTrash, 'postsPerPage' => $postsPerPage]);
 
             // Получаем общее количество постов
             $totalPosts = $this->model->getTotalPostsCount($articleType, $isTrash, $filterData);
     
             // Генерируем массив ссылок для умной пагинации
             $paginParams = $this->pageinationService->calculatePaginationParams(
-                (int)Config::get('admin.PostsPerPage'), $currentPage, 
-                $totalPosts, $basePageUrl);
+                (int)$postsPerPage, $currentPage, $totalPosts, $basePageUrl);
 
             ['totalPages' => $totalPages, 
                 'offset' => $offset, 
@@ -97,9 +102,24 @@ class AdminPostsController extends BaseAdminController
             $queryPagingParams = buildQueryString($filterData, $sortBy, $sortOrder, true);
             $querySortingParams = buildQueryString($filterData, $sortBy, $sortOrder, false);
 
+            Logger::debug('processList. Параметры пагинации', ['totalPosts' => $totalPosts, 'totalPages' => $totalPages, 'offset' => $offset]);
+
+            Logger::debug('processList. Вызывается getPostsList', [
+                'articleType' => $articleType, 
+                'postsPerPage' => $postsPerPage, 
+                'offset' => $offset,
+                'sortBy' => $sortBy, 
+                'sortOrder' => $sortOrder, 
+                'isTrash' => $isTrash,
+                'filterData' => $filterData
+            ]);
+
             // Получаем посты для текущей страницы
             $posts = $this->model->getPostsList($articleType, $postsPerPage, $offset,
                 $sortBy, $sortOrder, $isTrash, $filterData);
+
+            Logger::debug('processList. Получено ' . count($posts ?? -1), []);
+            
             
             // Обрабатываем каждый пост для форматирования и подготовки к выводу
             foreach ($posts as &$post) {

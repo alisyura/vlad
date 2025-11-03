@@ -709,7 +709,7 @@ class PostModelAdmin extends BaseModel {
                     LIMIT :limit OFFSET :offset";
 
         try {
-            Logger::debug("getPosts. $articleType, $limit, $offset, $sortBy, $sortOrder. SQL with filters: " . $sql);
+            Logger::debug("getPosts.", ['articleType' => $articleType, '$limit' => $limit, 'offset' => $offset, 'sortBy' => $sortBy, 'sortOrder' => $sortOrder, 'sql' => $sql]);
             $stmt = $this->db->prepare($sql);
             
             // --- 5. Связываем все параметры ---

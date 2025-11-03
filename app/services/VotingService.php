@@ -70,4 +70,12 @@ class VotingService
             throw $ex;
         }
     }
+
+    public function getVotesForUrls(string $uuid, array $postUrls): array
+    {
+        $visitorId=$this->votingModel->getVisitorIdForUUID($uuid);
+        $results = $this->votingModel->findPostsByUrls($postUrls, $visitorId);
+    
+        return $results;
+    }
 }

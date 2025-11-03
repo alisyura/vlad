@@ -19,7 +19,6 @@ class UserService
         $user = $this->userModel->getUser(id: $userId);
         if (!$user) {
             throw new \UserDataException('Пользователь не найден.', [], 404);
-            throw $exception;
         }
 
         // ВАЛИДАЦИЯ И БИЗНЕС-ЛОГИКА

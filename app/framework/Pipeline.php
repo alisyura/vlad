@@ -7,6 +7,13 @@ class Pipeline
     protected array $middleware = [];
     protected Closure $destination; // Финальное действие (запуск контроллера)
 
+    protected Container $container; // Добавляем контейнер
+    
+    public function __construct(Container $container) 
+    {
+        $this->container = $container;
+    }
+
     public function setMiddleware(array $middleware): self
     {
         // Здесь должны быть имена классов, реализующих MiddlewareInterface
@@ -53,7 +60,9 @@ class Pipeline
         return function (Closure $stack, string $pipe) {
             return function (Request $request) use ($stack, $pipe) {
                 // Создаем экземпляр Middleware и вызываем его метод handle()
-                $middlewareInstance = new $pipe(); // В реальном DI-приложении здесь будет $container->get($pipe)
+                // $middlewareInstance = new $pipe(); // В реальном DI-приложении здесь будет $container->get($pipe)
+                // ✅ Используем контейнер для создания Middleware
+                $middlewareInstance = $this->container->make($pipe);
                 
                 // Передаем запрос и $stack (Closure для следующего элемента)
                 return $middlewareInstance->handle($request, $stack);

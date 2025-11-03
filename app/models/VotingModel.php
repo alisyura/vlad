@@ -170,27 +170,33 @@ class VotingModel {
      * указанный посетитель уже голосовал за этот пост. Использует LEFT JOIN.
      *
      * @param string[] $postUrls Массив URL-адресов постов.
-     * @param int $visitorId ID посетителя.
+     * @param ?int $visitorId ID посетителя.
      * @return array Массив ассоциативных массивов с данными постов.
      * Возвращает пустой массив, если ни один пост не найден.
      */
-    public function findPostsByUrls(array $postUrls, int $visitorId): array
+    public function findPostsByUrls(array $postUrls, ?int $visitorId): array
     {
         $placeholders = implode(',', array_fill(0, count($postUrls), '?'));
 
         $sql = "
             SELECT 
                 p.url AS post_url,
-                p.likes_count,
-                p.dislikes_count,
+                p.likes_count,     -- Модель по-прежнему берет фактические счетчики
+                p.dislikes_count,  -- Сервис их обнулит, если нужно
                 pv.vote_type AS user_vote
             FROM posts p
-            LEFT JOIN post_votes pv ON p.id = pv.post_id AND pv.visitor_id = ?
+            
+            -- LEFT JOIN будет работать корректно:
+            -- - Если $visitorId = N, найдет голос (или NULL)
+            -- - Если $visitorId = NULL, сравнение `pv.visitor_id = NULL` не найдет совпадений, 
+            --   и pv.vote_type будет NULL, что правильно для гостя.
+            LEFT JOIN post_votes pv ON p.id = pv.post_id AND pv.visitor_id = ? 
+            
             WHERE p.url IN ($placeholders)
         ";
 
-        // Собираем параметры для выполнения: сначала visitorId, затем URL-адреса
-        $params = array_merge([$visitorId], $postUrls); // visitor_id первым
+        // Собираем параметры для выполнения:
+        $params = array_merge([$visitorId], $postUrls); 
 
         $stmt = $this->db->prepare($sql);
         $stmt->execute($params);

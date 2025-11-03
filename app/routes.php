@@ -279,72 +279,81 @@ $router->addRoute("/$adminRoute/tags/api/delete/(\d+)",
 // Формы для управления пользователями
 
 // Открыть форму списка пользователей
-$router->addRoute("/$adminRoute/users", function(Container $container) {
+$router->addRoute("/$adminRoute/users", function(Container $container): Response {
     $controller = $container->make(AdminUsersController::class);
-    $controller->list();
+    return $controller->list();
 }, ['AdminAuthenticatedMiddleware']);
 
 // Открыть форму редактирование пользователя
-$router->addRoute("/$adminRoute/users/edit/(\d+)", function(Container $container, $userId) {
-    $controller = $container->make(AdminUsersController::class);
-    $controller->edit($userId);
+$router->addRoute("/$adminRoute/users/edit/(\d+)", 
+    function(Container $container, $userId): Response {
+        $controller = $container->make(AdminUsersController::class);
+        return $controller->edit($userId);
 }, ['AdminAuthenticatedMiddleware']);
 
 
 // Операции над пользователями
 
 // Создание нового пользователя
-$router->addRoute("/$adminRoute/users/api/create", function(Container $container) {
-    $controller = $container->make(AdminUsersApiController::class);
-    $controller->create();
+$router->addRoute("/$adminRoute/users/api/create", 
+    function(Container $container): Response {
+        $controller = $container->make(AdminUsersApiController::class);
+        return $controller->create();
 }, ['AdminAuthenticatedMiddleware', 'AjaxMiddleware', 'CsrfMiddleware'], ['method' => 'POST']);
 
 // Редактирование пользователя
-$router->addRoute("/$adminRoute/users/api/edit/(\d+)", function(Container $container, $userId) {
-    $controller = $container->make(AdminUsersApiController::class);
-    $controller->edit($userId);
+$router->addRoute("/$adminRoute/users/api/edit/(\d+)", 
+    function(Container $container, $userId): Response {
+        $controller = $container->make(AdminUsersApiController::class);
+        return $controller->edit($userId);
 }, ['AdminAuthenticatedMiddleware', 'AjaxMiddleware', 'CsrfMiddleware'], ['method' => 'PUT']);
 
 // Блокирование пользователя
-$router->addRoute("/$adminRoute/users/api/block/(\d+)", function(Container $container, $userId) {
-    $controller = $container->make(AdminUsersApiController::class);
-    $controller->block($userId);
+$router->addRoute("/$adminRoute/users/api/block/(\d+)", 
+    function(Container $container, $userId): Response {
+        $controller = $container->make(AdminUsersApiController::class);
+        return $controller->block($userId);
 }, ['AdminAuthenticatedMiddleware', 'AjaxMiddleware', 'CsrfMiddleware'], ['method' => 'PATCH']);
 
 // Разблокирование пользователя
-$router->addRoute("/$adminRoute/users/api/unblock/(\d+)", function(Container $container, $userId) {
-    $controller = $container->make(AdminUsersApiController::class);
-    $controller->unblock($userId);
+$router->addRoute("/$adminRoute/users/api/unblock/(\d+)", 
+    function(Container $container, $userId): Response {
+        $controller = $container->make(AdminUsersApiController::class);
+        return $controller->unblock($userId);
 }, ['AdminAuthenticatedMiddleware', 'AjaxMiddleware', 'CsrfMiddleware'], ['method' => 'PATCH']);
 
 // Удаление пользователя
-$router->addRoute("/$adminRoute/users/api/delete/(\d+)", function(Container $container, $userId) {
-    $controller = $container->make(AdminUsersApiController::class);
-    $controller->delete($userId);
+$router->addRoute("/$adminRoute/users/api/delete/(\d+)", 
+    function(Container $container, $userId): Response {
+        $controller = $container->make(AdminUsersApiController::class);
+        return $controller->delete($userId);
 }, ['AdminAuthenticatedMiddleware', 'AjaxMiddleware', 'CsrfMiddleware'], ['method' => 'DELETE']);
 
 
 // Формы для работы с корзиной удаленных постов/страниц
 
 // Форма списка удаленных постов/страниц с пагинацией
-$router->addRoute("/$adminRoute/thrash/(post|page)s(?:/p(\d+))?", function(Container $container, $articleType, $page = 1) {
-    // Передаем номер страницы в контроллер
-    $controller = $container->make(AdminPostsController::class);
-    $controller->list($articleType, $page);
+$router->addRoute("/$adminRoute/thrash/(post|page)s(?:/p(\d+))?", 
+    function(Container $container, $articleType, $page = 1): Response {
+        // Передаем номер страницы в контроллер
+        $controller = $container->make(AdminPostsController::class);
+        return $controller->list($articleType, $page);
 }, ['UserAuthenticatedMiddleware']);
 
 
 // Операции над корзиной
 
 // Восстановление поста/страницы из корзины. Простановка статуса "черновик"
-$router->addRoute("/$adminRoute/thrash/api/restore", function(Container $container) {
-    $controller = $container->make(AdminPostsApiController::class);
-    $controller->restore();
+$router->addRoute("/$adminRoute/thrash/api/restore", 
+    function(Container $container): Response {
+        $controller = $container->make(AdminPostsApiController::class);
+        return $controller->restore();
 }, ['UserAuthenticatedMiddleware', 'AjaxMiddleware', 'CsrfMiddleware'], ['method' => 'PATCH']);
 
 // Физическое удаление поста/страницы из БД.
-$router->addRoute("/$adminRoute/thrash/api/delete-forever", function(Container $container) {
-    // (new AdminPostsApiController($request))->hardDelete();
-    $controller = $container->make(AdminPostsApiController::class);
-    $controller->hardDelete();
+$router->addRoute("/$adminRoute/thrash/api/delete-forever", 
+    function(Container $container): Response {
+        // (new AdminPostsApiController($request))->hardDelete();
+        $controller = $container->make(AdminPostsApiController::class);
+        return $controller->hardDelete();
 }, ['AdminAuthenticatedMiddleware', 'AjaxMiddleware', 'CsrfMiddleware'], ['method' => 'DELETE']);

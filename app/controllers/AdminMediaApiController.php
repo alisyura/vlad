@@ -32,8 +32,8 @@ class AdminMediaApiController extends BaseAdminController
         $alt = '';
         
         try {
-            $file = $this->request->file('file', []);
-            $alt = $this->request->post('alt', '');
+            $file = $this->getRequest()->file('file', []);
+            $alt = $this->getRequest()->post('alt', '');
 
             $this->mediaService->upload($file, $alt);
             

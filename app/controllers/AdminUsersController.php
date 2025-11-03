@@ -2,22 +2,20 @@
 // app/controllers/AdminUsersController.php
 class AdminUsersController extends BaseAdminController
 {
-    use ShowAdminErrorViewTrait;
-
     private UserService $userService;
     private UserModel $userModel;
     private AuthService $authService;
 
     public function __construct(View $view, UserService $userService,
-        AuthService $authService, UserModel $userModel)
+        AuthService $authService, UserModel $userModel, ResponseFactory $responseFactory)
     {
-        parent::__construct(null, $view);
+        parent::__construct(null, $view, $responseFactory);
         $this->userService = $userService;
         $this->authService = $authService;
         $this->userModel = $userModel;
     }
 
-    public function list()
+    public function list(): Response
     {
         $userName = $this->authService->getUserName();
 
@@ -31,15 +29,15 @@ class AdminUsersController extends BaseAdminController
             $data['isUserAdmin'] = $this->authService->isUserAdmin();
             $data['styles'] = ['users.css'];
             $data['jss'] = ['users.js'];
-            
-            $this->view->renderAdmin('admin/users/list.php', $data);
+
+            return $this->renderHtml('admin/users/list.php', $data);
         } catch(Throwable $e) {
             Logger::error("Error in users list", [], $e);
-            $this->showAdminErrorView('Ошибка', 'Произошла непредвиденная ошибка.', $userName);
+            throw new HttpException('Произошла непредвиденная ошибка.', 500, $e);
         }
     }
 
-    public function edit(int $userId)
+    public function edit(int $userId): Response
     {
         $userName = $this->authService->getUserName();
 
@@ -58,8 +56,7 @@ class AdminUsersController extends BaseAdminController
             $user = $this->userModel->getUser(id: $userId);
             if (empty($user))
             {
-                $this->showAdminErrorView('Ошибка', 'Пользователь не найден.', $userName);
-                return;
+                throw new HttpException('Пользователь не найден.', 404);
             }
             
             $isUserAdmin = $this->authService->isUserAdmin();
@@ -67,15 +64,19 @@ class AdminUsersController extends BaseAdminController
 
             // Проверяем, существует ли пользователь и имеет ли текущий админ права на его редактирование
             if (!$isUserAdmin && $user['id'] != $loggedInUserId) {
-                $this->showAdminErrorView('Ошибка', 'Недостаточно прав для редактирования этого пользователя.', $userName);
-                return;
+                throw new HttpException('Недостаточно прав для редактирования этого пользователя.', 403);
             }
             
             $data['user_to_edit'] = $user;
-            $this->view->renderAdmin('admin/users/edit.php', $data);
+
+            return $this->renderHtml('admin/users/edit.php', $data);
         } catch(Throwable $e) {
             Logger::error("Error in edit user (show form): ", ['userId' => $userId], $e);
-            $this->showAdminErrorView('Ошибка', 'Произошла непредвиденная ошибка.', $userName);
+            if ($e instanceof HttpException)
+            {
+                throw $e;
+            }
+            throw new HttpException('Произошла непредвиденная ошибка.', 500, $e);
         }
     }
 }
