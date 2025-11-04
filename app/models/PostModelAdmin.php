@@ -103,6 +103,13 @@ class PostModelAdmin extends BaseModel {
      */
     public function updatePost(int $postId, array $postData, array $categories = [], string $tagsString = ''): void
     {
+        // Убедимся, что $urlChangeable всегда BOOLEAN или NULL
+        // Получаем значение из массива $postData. Если нет, устанавливаем NULL (или FALSE).
+        $urlChangeable = $postData['urlChangeable'] ?? false; 
+        
+        // Параметр, который будет передан в SQL. PDO преобразует PHP-bool в SQL-bool/int.
+        $isChangeableParam = ($urlChangeable === true) ? 1 : 0;
+
         try {
             $this->db->beginTransaction();
 
@@ -111,19 +118,26 @@ class PostModelAdmin extends BaseModel {
                 $thumbnailMediaId = $this->mediaModel->getMediaIdByUrl($postData['thumbnail_url']);
             }
 
-            // SQL-запрос для обновления поста
+            // --- SQL-запрос с условным обновлением ---
             $sql = "UPDATE posts SET
-                        status = :status,
-                        title = :title,
-                        content = :content,
-                        excerpt = :excerpt,
-                        meta_title = :meta_title,
-                        meta_description = :meta_description,
-                        meta_keywords = :meta_keywords,
-                        thumbnail_media_id = :thumbnail_media_id,
-                        updated_at = :updated_at
-                    WHERE id = :id AND article_type = :article_type";
-            
+                            status = :status,
+                            title = :title,
+                            content = :content,
+                            excerpt = :excerpt,
+                            meta_title = :meta_title,
+                            meta_description = :meta_description,
+                            meta_keywords = :meta_keywords,
+                            thumbnail_media_id = :thumbnail_media_id,
+                            updated_at = :updated_at,
+                            
+                            -- УСЛОВНОЕ ОБНОВЛЕНИЕ URL:
+                            url = CASE 
+                                WHEN :url_changeable = TRUE THEN :url 
+                                ELSE url 
+                            END
+                            
+                        WHERE id = :id AND article_type = :article_type";
+
             $stmt = $this->db->prepare($sql);
             $stmt->execute([
                 ':id' => $postId,
@@ -136,9 +150,15 @@ class PostModelAdmin extends BaseModel {
                 ':meta_keywords' => $postData['meta_keywords'],
                 ':thumbnail_media_id' => $thumbnailMediaId,
                 ':updated_at' => date('Y-m-d H:i:s'),
-                ':article_type' => $postData['article_type']
+                ':article_type' => $postData['article_type'],
+                
+                // ПАРАМЕТРЫ ДЛЯ УСЛОВНОГО ОБНОВЛЕНИЯ:
+                ':url_changeable' => $isChangeableParam, // TRUE или FALSE (преобразуется в 1 или 0)
+                ':url' => $postData['url'] // Передаем новое значение URL
             ]);
-
+            
+            // ... (Остальная логика) ...
+            
             // Удаляем старые связи перед добавлением новых
             $this->deletePostLinks($postId);
 

@@ -356,7 +356,7 @@ class AdminPostsController extends BaseAdminController
                 'post' => $postData,
                 'categories' => $this->listmodel->getAllCategories(),
                 'tags' => $this->listmodel->getAllTags(),
-                'is_new_post' => false,
+                'is_new_post' => $postData['status'] == PostModelAdmin::STATUS_PENDING,
                 'formAction' => $formAction,
                 'returnToListUrl' => [
                         'url' => $returnToListUrl,

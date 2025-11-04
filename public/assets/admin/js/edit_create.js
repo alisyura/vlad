@@ -165,6 +165,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 // редактирование
                 method = 'PUT';
                 dataObject.id = postIdAndType.id;
+                dataObject.urlChangeable = !postUrlInput.hasAttribute('readonly');
             }
             else
             {

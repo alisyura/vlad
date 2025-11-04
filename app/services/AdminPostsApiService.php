@@ -20,6 +20,8 @@ class AdminPostsApiService
             $postId = filter_var($postId, FILTER_VALIDATE_INT);
             $postId = (false === $postId) ? null : $postId;
         }
+
+        $urlChangeable = $postData['urlChangeable'] ?? null;
         
         $articleType = $postData['articleType'] ?? '';
         $title = trim($postData['title'] ?? '');
@@ -38,7 +40,8 @@ class AdminPostsApiService
         $thumbnailUrl = trim($postData['post_image_url'] ?? ''); 
 
         return [
-            'postId' => $postId, 'articleType' => $articleType, 'title' => $title, 
+            'postId' => $postId, 'urlChangeable' => $urlChangeable, 
+            'articleType' => $articleType, 'title' => $title, 
             'content' => $content, 'url' => $url, 'status' => $status,
             'metaTitle' => $metaTitle, 'metaDescription' => $metaDescription,
             'metaKeywords' => $metaKeywords, 'excerpt' => $excerpt, 
@@ -102,7 +105,8 @@ class AdminPostsApiService
             throw new UserDataException('Данные не переданы', [], 400);
         }
 
-        ['postId' => $postId, 'title' => $title, 
+        ['postId' => $postId, 'urlChangeable' => $urlChangeable, 
+        'url' => $url, 'title' => $title, 
         'content' => $content, 'status' => $status,
         'metaTitle' => $metaTitle, 'metaDescription' => $metaDescription,
         'metaKeywords' => $metaKeywords, 'excerpt' => $excerpt, 
@@ -128,6 +132,8 @@ class AdminPostsApiService
         $userId = $this->authService->getUserId();
         $dataForModel = [
             'user_id' => $userId,
+            'urlChangeable' => $urlChangeable,
+            'url' => $url,
             'article_type' => $articleType,
             'status' => $status,
             'title' => $title,
