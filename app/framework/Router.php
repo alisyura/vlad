@@ -4,12 +4,12 @@
 class Router {
     private $routes = [];
     private ResponseFactory $responseFactory;
-    private ErrorResponseFactory $errorFactory;
+    private ErrorHandler $errorHandler;
 
-    public function __construct(ResponseFactory $responseFactory, ErrorResponseFactory $errorFactory)
+    public function __construct(ResponseFactory $responseFactory, ErrorHandler $errorHandler)
     {
         $this->responseFactory = $responseFactory;
-        $this->errorFactory = $errorFactory;
+        $this->errorHandler = $errorHandler;
     }
     
     public function addRoute($pattern, $handler, $middlewares = [], array $options = []) {
@@ -53,12 +53,13 @@ class Router {
                             // Очищаем буфер, чтобы убрать любой нежелательный вывод 
                             // (например, от старого контроллера, который выбросил исключение).
                             ob_end_clean();
-                            $this->errorFactory->createClientError(
-                                    '405 Метод не разрешен', 
-                                    'Метод запроса не поддерживается для данного ресурса.', 
-                                    405
-                                )->send();
-                            return;
+
+                            throw new HttpException(
+                                '405 Метод не разрешен', 
+                                405, 
+                                null, 
+                                HttpException::HTML_RESPONSE
+                            );
                         }
                     }
 
@@ -126,92 +127,29 @@ class Router {
                     // вероятно, уже вывел контент в буфер (старый механизм).
                     
                     // СЛИВАЕМ содержимое буфера в браузер и завершаем буферизацию.
-                    ob_end_flush();
-                    return;
+                    // ob_end_flush();
+                    // return;
 
                     // Если контроллер не вернул Response, это ошибка 500.
-                    // Будет использовано, когда все контроллеры переведу на response
-                    // throw new RouteException("Обработчик маршрута не вернул объект Response.");
+                    throw new RouteException("Обработчик маршрута не вернул объект Response.");
                 }
             }
 
             // Очищаем буфер, прежде чем отправить 404
             ob_end_clean();
 
-            // 5. 404 Not Found (замена $this->showErrorView)
-            $this->errorFactory->createClientError(
-                    '404 Страница не найдена', 
-                    'Запрошенный ресурс не найден на сервере.', 
-                    404
-                )->send();
-            return;
-        } catch (HttpException $e) { // потом перенести в ErrorHandler
-            // Очищаем буфер, чтобы убрать любой нежелательный вывод 
-            // (например, от старого контроллера, который выбросил исключение).
+            throw new HttpException(
+                '404 Страница не найдена', 
+                404, 
+                null, 
+                HttpException::HTML_RESPONSE
+            );
+        } catch (Throwable $e) { // Ловим ВСЁ и делегируем
+            // Очищаем буфер (хотя это уже делается в ErrorHandler)
             ob_end_clean();
-
-            if ($e->getResponseType() === HttpException::HTML_RESPONSE)
-            {
-                // Глобальная обработка исключений (500 Internal Server Error)
-                $this->errorFactory->createClientError(
-                    $e->getMessage(), 
-                    'Произошла непредвиденная ошибка.', 
-                    $e->getCode()
-                )->send();
-                return;
-            }
-
-            if ($e->getResponseType() === HttpException::JSON_RESPONSE)
-            {
-                $prevException = $e->getPrevious();
-                $statusCode = 400;
-                $errors = [];
-                if ($prevException !== null && ($prevException instanceof UserDataException))
-                {
-                    // массив сообщений
-                    $errors = $prevException->getValidationErrors();
-                    $statusCode = $prevException->getCode();
-                }
-                else {
-                    // строка
-                    $statusCode = $e->getCode();
-                }
-                
-                $this->errorFactory->createJsonError(
-                    $e->getMessage(),
-                    $statusCode,
-                    $errors
-                )->send();
-                return;
-            }
-
-            return;
-        } catch (RouteException $e) { // потом перенести в ErrorHandler
-            // Очищаем буфер, чтобы убрать любой нежелательный вывод 
-            // (например, от старого контроллера, который выбросил исключение).
-            ob_end_clean();
-
-            Logger::error("Error in Router: ", ['uri' => $uri, 'requestMethod' => $requestMethod], $e);
-
-            // Глобальная обработка исключений (500 Internal Server Error)
-            $this->errorFactory->createClientError(
-                'Непредвиденная ошибка', 
-                'Произошла непредвиденная ошибка.', 
-                $e->getCode()
-            )->send();
-            return;
-        } catch (Throwable $e) { // потом перенести в ErrorHandler
-            // Очищаем буфер, чтобы убрать любой нежелательный вывод 
-            // (например, от старого контроллера, который выбросил исключение).
-            ob_end_clean();
-
-            // Глобальная обработка исключений (500 Internal Server Error)
-            $this->errorFactory->createClientError(
-                'Ошибка сервера 500', 
-                'Произошла внутренняя ошибка сервера.', 
-                500
-            )->send();
-            return;
+            
+            // ЕДИНСТВЕННАЯ СТРОКА, которая обрабатывает все исключения:
+            $this->errorHandler->handleCaughtException($e); 
         }
     }
 }

@@ -46,11 +46,13 @@ class ErrorResponseFactory
      * @param int $httpCode HTTP-код ответа (по умолчанию 500).
      * @return Response Объект готового HTML-ответа.
      */
-    public function createClientError(string $title, string $errMsg, int $httpCode = 500): Response
+    public function createClientError(string $title, string $errMsg, int $httpCode = 500, $isAdminArea = false): Response
     {
+        $adminPrefix = $isAdminArea ? 'admin/' : '';
+        $callMethod = $isAdminArea ? 'renderAdminContent' : 'renderClientContent';
         // Используем новый чистый метод View
-        $htmlContent = $this->view->renderClientContent(
-            'errors/error_view.php', 
+        $htmlContent = $this->view->$callMethod(
+            $adminPrefix . 'errors/error_view.php', 
             [
                 'title' => $title, 
                 'error_message' => $errMsg, 

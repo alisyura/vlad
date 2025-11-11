@@ -3,6 +3,7 @@
 // app/bootstrap.php
 
 $container = new Container();
+$container->singleton(ErrorHandler::class, ErrorHandler::class); 
 $container->bind(Request::class, fn($c) => RequestFactory::getInstance());
 $container->singleton(ResponseFactory::class, ResponseFactory::class); 
 $container->singleton(ErrorResponseFactory::class, ErrorResponseFactory::class); 

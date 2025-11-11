@@ -1,5 +1,5 @@
 <?php
-// 1. Начинаем сессию
+// Начинаем сессию
 session_set_cookie_params([
     'lifetime' => 0,
     'path' => '/',
@@ -11,16 +11,17 @@ session_set_cookie_params([
 session_start();
 
 require __DIR__ . '/../vendor/autoload.php';
+require_once __DIR__ . '/../app/bootstrap.php';
+
+// --- Получаем зависимости, необходимые для роутинга и ошибок ---
+$respFact = $container->make(ResponseFactory::class);
+$errorHandler = $container->make(ErrorHandler::class);
 
 // --- Обработка ошибок ---
 // Регистрируем все обработчики ошибок
 ErrorHandler::register();
 
-require_once __DIR__ . '/../app/bootstrap.php';
-
 // --- Роутинг ---
-$respFact = $container->make(ResponseFactory::class);
-$errRespFact = $container->make(ErrorResponseFactory::class);
-$router = new Router($respFact, $errRespFact);
+$router = new Router($respFact, $errorHandler);
 require_once __DIR__ . '/../app/routes.php';
 $router->dispatch($container);
