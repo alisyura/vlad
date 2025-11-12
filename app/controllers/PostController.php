@@ -166,7 +166,7 @@ class PostController extends BaseController {
                     'url' => $baseUrl,
                     'image' => $baseUrl . asset('pic/logo.png'),
                     'posts' => $posts,
-                    'robots' => 'noindex, follow',
+                    'robots' => 'index, follow',
                     'styles' => [
                         'list.css'
                     ],
