@@ -304,19 +304,14 @@ body {
 }
 
 .counters-block {
-    display: none;
+    display: block;
+
+    margin-top: 40px; 
+    padding-left: 25px; 
+    padding-right: 25px; 
+    text-align: center;
 }
 
-@media (min-width: 1024px) {
-    .counters-block {
-        display: block;
-        
-        margin-top: 40px; 
-        padding-left: 25px; 
-        padding-right: 25px; 
-        text-align: center;
-    }
-}
 
 .ad_block {
     width: auto;
@@ -345,17 +340,6 @@ body {
     .menu {
        order: 1; /* меню идет первым */
     }
-    .menu div.menu-block {
-        display: none;
-    }
-    .menu a.add-button {
-        display: none;
-    }
-    .menu div.links-block {
-        display: none;
-    }
-
-
    
 
     .logo-block {

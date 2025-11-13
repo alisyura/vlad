@@ -4,39 +4,57 @@
     touch-action: none; /* Отключаем жесты прокрутки на тачскринах */
 }
 
-nav.navbar {
-    position: relative;
-    z-index: 1000;
-    /* Чтобы меню было поверх других элементов */
-}
 
 .mobilemenu-overlay {
-    display: none;
-    /* Скрываем фоновую плашку */
-    position: fixed;
-    top: 90px;
-    left: 10px;
-    width: calc(100% - 20px);
-    height: calc(100% - 90px); /* Высота минус отступ сверху */
-    background-color: #f3f4ee;
-    color: white;
-    /* padding: 20px; */
-    box-sizing: border-box;
-    overflow-y: auto;
-    z-index: 1000;
-}
-
-.mobilemenu-overlay.hidden {
-    display: none;
-    /* Класс для скрытия */
-}
-
-.mobilemenu-overlay.visible {
     display: block;
-    /* Класс для отображения */
+    /* Скрываем фоновую плашку */
+    position: static;
+    top: auto;
+    left: auto;
+    width: auto;
+    height: auto; /* Высота минус отступ сверху */
+    background-color: transparent;
+    color: #706f69;
+    padding: 0px;
+    box-sizing: border-box;
+    overflow-y: visible;
+    z-index: auto;
 }
+
+/* Убедимся, что контейнер внутри также ведет себя правильно */
+.mobilemenu-container {
+    margin: 0;
+}
+
+
 
 @media (max-width: 1024px) {
+    /* Стили для мобильного оверлея */
+    .mobilemenu-overlay {
+        position: fixed; /* Делаем его фиксированным оверлеем */
+        top: 90px;
+        left: 10px;
+        width: calc(100% - 20px);
+        height: calc(100% - 90px);
+        background-color: #f3f4ee; /* Возвращаем фон */
+        padding: 0; /* Удаляем лишний padding, если он был */
+        overflow-y: auto;
+        z-index: 1000;
+        
+        /* Скрываем по умолчанию, используя класс hidden, 
+           который будет добавляться/удаляться JS */
+        display: none; 
+    }
+
+    /* Стили для управления видимостью с помощью JS */
+    .mobilemenu-overlay.hidden {
+        display: none;
+    }
+
+    .mobilemenu-overlay.visible {
+        display: block;
+    }
+
     /* Скрываем обе иконки по умолчанию */
     .menu-toggle .hamburger-button,
     .menu-toggle .close-button {
