@@ -82,10 +82,10 @@ class ErrorHandler
      */
     private function handleHttpExceptionResponse(HttpException $e): void
     {
-        
+        $responsetype = $e->getResponseType();
 
-        // 1. HTML_RESPONSE (обычно для 404/405/500 для страниц)
-        if ($e->getResponseType() === HttpException::HTML_RESPONSE)
+        // HTML_RESPONSE (обычно для 404/405/500 для страниц)
+        if ($responsetype === HttpException::HTML_RESPONSE)
         {
             $this->errorFactory->createClientError(
                 $e->getMessage(), 
@@ -95,9 +95,19 @@ class ErrorHandler
             )->send();
             return;
         }
+
+        // XML_RESPONSE (обычно для 404/405/500 для страниц)
+        if ($responsetype === HttpException::XML_RESPONSE)
+        {
+            $this->errorFactory->createXmlError(
+                $e->getMessage(), 
+                $e->getCode()
+            )->send();
+            return;
+        }
         
-        // 2. JSON_RESPONSE (для API)
-        if ($e->getResponseType() === HttpException::JSON_RESPONSE)
+        // JSON_RESPONSE (для API)
+        if ($responsetype === HttpException::JSON_RESPONSE)
         {
             $prevException = $e->getPrevious();
             $errors = [];

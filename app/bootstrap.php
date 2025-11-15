@@ -6,6 +6,7 @@ $container = new Container();
 $container->singleton(ErrorHandler::class, ErrorHandler::class); 
 $container->bind(Request::class, fn($c) => RequestFactory::getInstance());
 $container->singleton(ResponseFactory::class, ResponseFactory::class); 
+$container->singleton(ApplicationResponseFactory::class, ApplicationResponseFactory::class); 
 $container->singleton(ErrorResponseFactory::class, ErrorResponseFactory::class); 
 $container->bind(View::class, function() {
     $viewsRootPath = Config::get('global.ViewsRootPath');

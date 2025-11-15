@@ -7,15 +7,15 @@ $router->addRoute('/page/sitemap\.html', function(Container $container): Respons
 }, ['PageCacheMiddleware']);
 
 // Sitemap.xml
-$router->addRoute('/sitemap\.xml', function (Container $container) {
+$router->addRoute('/sitemap\.xml', function (Container $container): Response {
     $controller = $container->make(SitemapController::class);
-    $controller->generateSitemapIndexXml();
+    return $controller->generateSitemapIndexXml();
 }, ['PageCacheMiddleware']);
 
 $router->addRoute('/sitemap-(post|page)s-(\d+)\.xml', 
-    function (Container $container, $type, $page) {
+    function (Container $container, $type, $page): Response  {
         $controller = $container->make(SitemapController::class);
-        $controller->generateSitemapPartXml($type, $page);
+        return $controller->generateSitemapPartXml($type, $page);
 }, ['PageCacheMiddleware']);
 
 

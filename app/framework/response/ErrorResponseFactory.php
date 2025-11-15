@@ -68,6 +68,18 @@ class ErrorResponseFactory
 
         return $this->responseFactory->createHtmlResponse($htmlContent, $httpCode);
     }
+
+    public function createXmlError(string $title, int $httpCode = 500): Response
+    {
+        $xmlContent = $this->view->render(
+            'errors/error_xml.php', 
+            [
+                'title' => $title
+            ]
+        );
+
+        return $this->responseFactory->createXmlResponse($xmlContent, $httpCode);
+    }
     
     /**
      * Создает JSON-ответ для ошибок API или AJAX-запросов.

@@ -74,12 +74,12 @@ class ResponseFactory
      *
      * Использует класс XmlResponse.
      *
-     * @param array $data Данные для кодирования в XML.
+     * @param array|string $data Данные для кодирования в XML.
      * @param int $statusCode HTTP-код статуса.
      * @param array $headers Дополнительные заголовки.
      * @return XmlResponse
      */
-    public function createXmlResponse(array $data, int $statusCode = 200, array $headers = []): Response
+    public function createXmlResponse(array|string $data, int $statusCode = 200, array $headers = []): Response
     {
         // Класс XmlResponse сам занимается XML-кодированием и установкой Content-Type
         return new XmlResponse($data, $statusCode, $headers);

@@ -24,15 +24,19 @@ class SitemapController extends BaseController {
      * @param Request $request Объект HTTP запроса, внедряемый через Dependency Injection.
      * @param View $view Объект представления, внедряемый через Dependency Injection.
      * @param SitemapModel $sitemapModel Объект модели, внедряемый через Dependency Injection.
-     * @param ResponseFactory $responseFactory Фабрика для создания объектов Response, внедряемая через Dependency Injection.
+     * @param ApplicationResponseFactory $responseFactory Фабрика для создания объектов Response, внедряемая через Dependency Injection.
      */
     public function __construct(Request $request, View $view, SitemapModel $sitemapModel,
-        ResponseFactory $responseFactory) 
+        ApplicationResponseFactory $responseFactory) 
     {
         parent::__construct($request, $view, $responseFactory);
         $this->model = $sitemapModel;
 
         $this->maxUrls = Config::get('posts.max_urls_in_sitemap');
+    }
+
+    protected function getResponseFactory(): ApplicationResponseFactory {
+        return parent::getResponseFactory();
     }
 
     /**
@@ -121,9 +125,9 @@ class SitemapController extends BaseController {
      * Метод вычисляет количество частей карты сайта для постов и страниц,
      * а затем передает эти данные в соответствующее представление.
      *
-     * @return void
+     * @return Response
      */
-    public function generateSitemapIndexXml(): void
+    public function generateSitemapIndexXml(): Response
     {
         try {
             // Чанки для постов
@@ -134,26 +138,15 @@ class SitemapController extends BaseController {
             $total_pages = $this->model->getPostsCount('page');
             $chunks_pages = ceil($total_pages / $this->maxUrls);
 
-            $contentData = [
-                'chunks_posts' => $chunks_posts,
-                'chunks_pages' => $chunks_pages,
-                'url' => $this->getRequest()->getBaseUrl()
-            ];
-            echo $this->getView()->render(
-                'sitemap/sitemap-index.xml.php', 
-                $contentData, 
-                ['Content-Type: application/xml; charset=utf-8']);
+            return $this->getResponseFactory()->createSitemapIndexResponse(
+                $chunks_posts, 
+                $chunks_pages, 
+                $this->getRequest()->getBaseUrl()
+            );
         } catch (Throwable $e) {
             Logger::error('Error generating sitemap XML: ', [],  $e);
 
-            $contentData = [
-                'title' => 'Произошла внутренняя ошибка сервера.'
-            ];
-            echo $this->getView()->render(
-                'errors/error_xml.php', 
-                $contentData, 
-                ['Content-Type: application/xml; charset=utf-8'], 
-                500, true);
+            throw new HttpException('Произошла внутренняя ошибка сервера.', 500, $e, HttpException::XML_RESPONSE);
         }
     }
 
@@ -165,8 +158,10 @@ class SitemapController extends BaseController {
      *
      * @param string $type Тип контента ('post' или 'page').
      * @param int $page Номер страницы (части) карты сайта.
+     * 
+     * @return Response
      */
-    public function generateSitemapPartXml(string $type, int $page): void
+    public function generateSitemapPartXml(string $type, int $page): Response
     {
         try {
             $offset = ($page - 1) * $this->maxUrls;
@@ -191,23 +186,20 @@ class SitemapController extends BaseController {
                     break;
             }
 
-            echo $this->getView()->render(
-                'sitemap/sitemap-part.xml.php',
-                $render_parts,
-                ['Content-Type: application/xml; charset=utf-8']
+            return $this->getResponseFactory()->createSitemapPartResponse(
+                $render_parts['url'],
+                $render_parts['posts'],
+                $render_parts['pages'],
+                $render_parts['changefreq_posts'] ?? 'weekly',
+                $render_parts['posts_priority'] ?? '0.6',
+                $render_parts['changefreq_pages'] ?? 'monthly',
+                $render_parts['pages_priority'] ?? '0.5'
             );
         } catch (Throwable $e) {
             Logger::error("Error generating sitemap part XML: ", 
                 ['type' => $type, 'page' => $page], $e);
 
-            $contentData = [
-                'title' => 'Произошла внутренняя ошибка сервера.'
-            ];
-            echo $this->getView()->render(
-                'errors/error_xml.php', 
-                $contentData, 
-                ['Content-Type: application/xml; charset=utf-8'], 
-                500, true);
+            throw new HttpException('Произошла внутренняя ошибка сервера.', 500, $e, HttpException::XML_RESPONSE);
         }
     }
 }

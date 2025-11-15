@@ -11,14 +11,22 @@ class XmlResponse extends Response
 
     /**
      * Конструктор XmlResponse.
-     * @param array $data Данные для кодирования в XML.
+     * @param array|string $data Данные для кодирования в XML.
      * @param int $statusCode HTTP-код статуса.
      * @param array $headers Дополнительные заголовки.
      */
-    public function __construct(array $data, int $statusCode = 200, array $headers = [])
+    public function __construct(array|string $data, int $statusCode = 200, array $headers = [])
     {
         // 1. Конвертируем массив данных в XML-строку
-        $xmlContent = $this->arrayToXml($data); 
+        $xmlContent = '';//$this->arrayToXml($data); 
+
+        if (is_array($data)) {
+            $xmlContent = $this->arrayToXml($data); 
+        } elseif (is_string($data)) {
+            $xmlContent = $data;
+        } else {
+             // Обработка ошибки
+        }
         
         // 2. Вызываем родительский конструктор с XML-строкой
         parent::__construct($xmlContent, $statusCode, $headers);
@@ -40,7 +48,7 @@ class XmlResponse extends Response
      * @param SimpleXMLElement|null $xml_data
      * @return string
      */
-    private function arrayToXml(array $data, ?SimpleXMLElement $xml_data = null): string
+    protected function arrayToXml(array $data, ?SimpleXMLElement $xml_data = null): string
     {
         // Инициализация SimpleXMLElement, если не передан
         if ($xml_data === null) {
