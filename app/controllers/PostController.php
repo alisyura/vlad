@@ -12,6 +12,11 @@ class PostController extends BaseController {
     private PaginationService $paginService;
 
     /**
+     * Модель для получения сео настроек
+     */
+    private SettingsModel $settingModel;
+
+    /**
      * Конструктор класса PostController.
      *
      * @param Request $request Объект HTTP запроса, внедряемый через Dependency Injection.
@@ -21,11 +26,12 @@ class PostController extends BaseController {
      * @param PaginationService $paginService Сервис для вычисления параметров пагинации, внедряется через Dependency Injection..
      */
     public function __construct(Request $request, View $view, PostModelClient $postModel,
-        ResponseFactory $responseFactory, PaginationService $paginService)
+        ResponseFactory $responseFactory, PaginationService $paginService, SettingsModel $settingModel)
     {
         parent::__construct($request, $view, $responseFactory);
         $this->model = $postModel;
         $this->paginService = $paginService;
+        $this->settingModel = $settingModel;
     }
 
     /*
@@ -41,6 +47,9 @@ class PostController extends BaseController {
             $baseUrl= $this->getRequest()->getBaseUrl();
             $URL = sprintf("%s/%s", $baseUrl, $post['url']).'.html';
         
+            $seoSettings = $this->settingModel->getMassSeoSettings([
+                'index_page_title']);
+
             $renderParams =[
                 'post' => $post,
                 'full_url' => $URL,
@@ -48,8 +57,8 @@ class PostController extends BaseController {
                 'is_post' => true,
                 'export' => [
                     'page_type' => 'post',
-                    'site_name' => Config::get('global.SITE_NAME'),
-                    'title' => $post['meta_title'] . ' | ' . Config::get('global.SITE_NAME'),
+                    'site_name' => $seoSettings['index_page_title']['value'],
+                    'title' => $post['meta_title'] . ' | ' . $seoSettings['index_page_title']['value'],
                     'keywords' => $post['meta_keywords'],
                     'description' => $post['meta_description'],
                     'url' => $baseUrl,
@@ -89,6 +98,9 @@ class PostController extends BaseController {
             $baseUrl= $this->getRequest()->getBaseUrl();
             $URL = sprintf("%s/%s", $baseUrl, $page['url']).'.html';
         
+            $seoSettings = $this->settingModel->getMassSeoSettings([
+                'index_page_title']);
+
             $contentData = [
                 'post' => $page,
                 'full_url' => $URL,
@@ -96,8 +108,8 @@ class PostController extends BaseController {
                 'is_post' => false,
                 'export' => [
                     'page_type' => 'post',
-                    'site_name' => Config::get('global.SITE_NAME'),
-                    'title' => $page['meta_title'] . ' | ' . Config::get('global.SITE_NAME'),
+                    'site_name' => $seoSettings['index_page_title']['value'],
+                    'title' => $page['meta_title'] . ' | ' . $seoSettings['index_page_title']['value'],
                     'keywords' => $page['meta_keywords'],
                     'description' => $page['meta_description'],
                     'url' => $baseUrl,
@@ -143,6 +155,11 @@ class PostController extends BaseController {
             $posts = $this->model->getAllPosts($posts_per_page, $page);
 
             $baseUrl = $this->getRequest()->getBaseUrl();
+
+            $seoSettings = $this->settingModel->getMassSeoSettings([
+                'index_page_title',
+                'index_page_description',
+                'index_page_keywords']);
             
             $contentData = [
                 'posts' => $posts,
@@ -159,10 +176,10 @@ class PostController extends BaseController {
                 'base_page_url' => $base_page_url,
                 'export' => [
                     'page_type' => 'home',
-                    'title' => Config::get('global.SITE_NAME'),
-                    'site_name' => Config::get('global.SITE_NAME'),
-                    'keywords' => Config::get('global.SITE_KEYWORDS'),
-                    'description' => Config::get('global.SITE_DESCRIPTION'),
+                    'title' => $seoSettings['index_page_title']['value'],
+                    'site_name' => $seoSettings['index_page_title']['value'],
+                    'keywords' => $seoSettings['index_page_keywords']['value'],
+                    'description' => $seoSettings['index_page_description']['value'],
                     'url' => $baseUrl,
                     'image' => $baseUrl . asset('pic/logo.png'),
                     'posts' => $posts,
@@ -206,11 +223,16 @@ class PostController extends BaseController {
 
             // здесь категория одна у всех постов, поэтому берем из 1го элемента
             $category_name = (!empty($posts) ? ($posts[0]['category_name'] ?? '') : '');
+
+            ['keywords' => $keywords, 'description' => $description,
+                'caption' => $caption, 'caption_desc' => $caption_desc, 
+                'seoTitle' => $seoTitle] = $this->getSeoParams("cat_{$cat_url}", $cat_url, null, $category_name);
+            
             $contentData = [
                 'posts' => $posts,
                 'show_caption' => true,
-                'caption' => 'Рубрика: ' . $category_name,
-                'caption_desc' => null,
+                'caption' => $caption,
+                'caption_desc' => $caption_desc,
                 'url' => $baseUrl,
                 'show_read_next' => $show_link_next,
                 'pagination' => [
@@ -223,10 +245,10 @@ class PostController extends BaseController {
                 'base_page_url' => $base_page_url,
                 'export' => [
                     'page_type' => 'home',
-                    'site_name' => Config::get('global.SITE_NAME'),
-                    'title' => "$category_name | " . Config::get('global.SITE_NAME'),
-                    'keywords' => Config::get('global.SITE_KEYWORDS'),
-                    'description' => Config::get('global.SITE_DESCRIPTION'),
+                    'site_name' => $seoTitle,
+                    'title' => "$category_name | " . $seoTitle,
+                    'keywords' => $keywords,
+                    'description' => $description,
                     'url' => $baseUrl,
                     'image' => sprintf("%s/assets/pic/logo.png", $baseUrl),
                     'posts' => $posts,
@@ -239,7 +261,7 @@ class PostController extends BaseController {
                 ]
             ];
 
-          return $this->renderHtml('posts/index.php', $contentData);
+            return $this->renderHtml('posts/index.php', $contentData);
         } catch (Throwable $e) {
             Logger::error("Error in showBySection: ", ['cat_url' => $cat_url, 'show_link_next' => $show_link_next, 'page' => $page], $e);
             throw new HttpException('Ошибка получения списка постов по разделу', 500, $e);
@@ -267,13 +289,17 @@ class PostController extends BaseController {
             $posts = $this->model->getAllPostsByTag($tag_url, $posts_per_page, $page);
 
             $baseUrl = $this->getRequest()->getBaseUrl();
-            $caption = 'Тэг: ' . (!empty($posts) ? ($posts[0]['tag_name'] ?? '') : '');
+            $tag_name = (!empty($posts) ? ($posts[0]['tag_name'] ?? '') : '');
+
+            ['keywords' => $keywords, 'description' => $description,
+                'caption' => $caption, 'caption_desc' => $caption_desc, 
+                'seoTitle' => $seoTitle] = $this->getSeoParams("tag_{$tag_url}", null, $tag_url, $tag_name);
 
             $contentData = [
                 'posts' => $posts,
                 'show_caption' => true,
                 'caption' => $caption,
-                'caption_desc' => null,
+                'caption_desc' => $caption_desc,
                 'url' => $baseUrl,
                 'show_read_next' => false,
                 'pagination' => [
@@ -286,10 +312,10 @@ class PostController extends BaseController {
                 'base_page_url' => $base_page_url,
                 'export' => [
                     'page_type' => 'home',
-                    'site_name' => Config::get('global.SITE_NAME'),
-                    'title' => "$caption | " . Config::get('global.SITE_NAME'),
-                    'keywords' => Config::get('global.SITE_KEYWORDS'),
-                    'description' => Config::get('global.SITE_DESCRIPTION'),
+                    'site_name' => $seoTitle,
+                    'title' => "$tag_name | " . $seoTitle,
+                    'keywords' => $keywords,
+                    'description' => $description,
                     'url' => $this->getRequest()->getRequestUrl(),
                     'image' => sprintf("%s/assets/pic/logo.png", $baseUrl),
                     'posts' => $posts,
@@ -307,5 +333,73 @@ class PostController extends BaseController {
             Logger::error("Error in showByTag: ", ['tag_url' => $tag_url, 'page' => $page], $e);
             throw new HttpException('Ошибка получения списка постов по тэгу', 500, $e);
         }
+    }
+
+    /**
+     * Получает и объединяет SEO-параметры для определенной сущности (Категория/Тег) 
+     * с логикой наследования от глобальных настроек.
+     *
+     * @param string $prefixName Уникальный префикс ключа для текущей сущности (например, 'cat_anekdoty' или 'tag_humor'). 
+     * Используется для запроса специфичных настроек (например, '{$prefixName}_keywords').
+     * @param ?string $categoryUrl URL категории. Если задан, используется для выборки настроек категории.
+     * @param ?string $tagUrl URL тега. Если задан, используется для выборки настроек тега.
+     * @param string $defaultName Название сущности, используемое как резервное значение для поля 'caption'.
+     * @return array Возвращает ассоциативный массив SEO-параметров.
+     * [
+     * 'keywords' => string, 
+     * 'description' => string,
+     * 'caption' => string, 
+     * 'caption_desc' => ?string, 
+     * 'seoTitle' => string
+     * ]
+     * @throws InvalidArgumentException Если $categoryUrl и $tagUrl одновременно null
+     */
+    private function getSeoParams(string $prefixName, ?string $categoryUrl, 
+        ?string $tagUrl, string $defaultName): array
+    {
+        if ($categoryUrl === null && $tagUrl === null)
+        {
+            throw new InvalidArgumentException('И урл категории и урл тэга одновременно не могут быть пустыми');
+        }
+
+        $catUrlParams = ($categoryUrl !== null) ? [$categoryUrl] : [];
+        $tagUrlParams = ($tagUrl !== null) ? [$tagUrl] : [];
+
+        $seoSettings = $this->settingModel->getMassSeoSettings(
+            [
+                'index_page_title',
+                'index_page_description',
+                'index_page_keywords',
+                "{$prefixName}_keywords",
+                "{$prefixName}_description",
+                "{$prefixName}_caption",
+                "{$prefixName}_caption_desc"
+            ], 
+            $catUrlParams,
+            $tagUrlParams);
+
+        $seoTitle = $seoSettings["index_page_title"]['value'];
+        $keywords = $seoSettings["{$prefixName}_keywords"] ?? $seoSettings["index_page_keywords"];
+        $description = $seoSettings["{$prefixName}_description"] ?? $seoSettings["index_page_description"];
+        $keywords = $keywords['value'];
+        $description = $description['value'];
+
+        $caption = '';
+        if ($seoSettings["{$prefixName}_caption"] !== null)
+        {
+            $caption = $seoSettings["{$prefixName}_caption"]['value'];
+        }
+        else
+        {
+            $caption = ($categoryUrl !== null ? "Рубрика : " : "Тэг : ");
+            $caption .= $defaultName;
+        }
+
+        $caption_desc = ($seoSettings["{$prefixName}_caption_desc"] ?? [])['value'] ?? null;
+        
+
+        return ['keywords' => $keywords, 'description' => $description,
+            'caption' => $caption, 'caption_desc' => $caption_desc, 
+            'seoTitle' => $seoTitle];
     }
 }
