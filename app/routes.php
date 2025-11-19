@@ -357,3 +357,14 @@ $router->addRoute("/$adminRoute/thrash/api/delete-forever",
         $controller = $container->make(AdminPostsApiController::class);
         return $controller->hardDelete();
 }, ['AdminAuthenticatedMiddleware', 'AjaxMiddleware', 'CsrfMiddleware'], ['method' => 'DELETE']);
+
+
+// Настройки
+
+// Форма списка настройек
+$router->addRoute("/$adminRoute/settings", 
+    function(Container $container): Response {
+        // Передаем номер страницы в контроллер
+        $controller = $container->make(AdminSettingsController::class);
+        return $controller->list();
+}, ['UserAuthenticatedMiddleware']);

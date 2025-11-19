@@ -1,5 +1,5 @@
 <?php
-// app/controllers/AdminPostsController .php
+// app/controllers/AdminPostsController.php
 
 class AdminPostsController extends BaseAdminController
 {

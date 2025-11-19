@@ -36,7 +36,7 @@ $container->singleton(PDO::class, function() {
         throw new \RuntimeException("Не удалось подключиться к базе данных. Пожалуйста, попробуйте позже.");
     }
 });
-$container->bind(SettingsModel::class, SettingsModel::class);
+
 $container->bind(PaginationService::class, PaginationService::class);
 $container->bind(PostController::class, PostController::class);
 $container->bind(PostModelClient::class, PostModelClient::class);
@@ -80,3 +80,6 @@ $container->bind(AdminTagsController::class, AdminTagsController::class);
 $container->bind(AdminTagsApiController::class, AdminTagsApiController::class);
 $container->bind(AdminUsersController::class, AdminUsersController::class);
 $container->bind(AdminUsersApiController::class, AdminUsersApiController::class);
+$container->bind(AdminSettingsController::class, AdminSettingsController::class);
+$container->bind(SettingsModel::class, SettingsModel::class);
+$container->bind(SettingsService::class, SettingsService::class);

@@ -92,13 +92,13 @@
                                href="/<?= $adminRoute ?>/pics">
                                 Картинки
                             </a>
-                        </li>
+                        </li>-->
                         <li class="nav-item">
                             <a class="nav-link <?= ($active ?? '') === 'settings' ? 'active' : '' ?>" 
                                href="/<?= $adminRoute ?>/settings">
                                 Настройки
                             </a>
-                        </li> -->
+                        </li> 
                     </ul>
                 </div>
             </nav>

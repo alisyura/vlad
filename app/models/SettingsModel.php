@@ -155,4 +155,64 @@ class SettingsModel extends BaseModel {
             throw $e;
         }
     }
+
+    /**
+     * Получает список всех настроек из таблицы seo_settings в виде плоского массива,
+     * включая данные привязанных сущностей (категорий, тегов).
+     *
+     * @return array Плоский массив настроек, отсортированный по group_name и key.
+     */
+    public function getAllSeoSettingsFlat(): array
+    {
+        $groupingColumn = 'group_name'; 
+        
+        // Переменная для вычисления имени группы в SQL, используется дважды
+        $groupNameCalculation = "COALESCE(NULLIF(TRIM(s.`{$groupingColumn}`), ''), 'NoGroup')";
+
+        $sql = "
+            SELECT
+                s.id,
+                {$groupNameCalculation} AS group_name,
+                s.`key`,
+                s.`value`,
+                s.`comment`,
+                s.`builtin`,
+                
+                -- Поля Категории
+                s.`category_id`,
+                c.name AS category_name,
+                c.url AS category_url,
+                
+                -- Поля Тега
+                s.`tag_id`,
+                t.name AS tag_name,
+                t.url AS tag_url
+            FROM
+                `seo_settings` s
+            -- LEFT JOIN, так как настройки могут быть глобальными
+            LEFT JOIN `categories` c ON s.category_id = c.id
+            LEFT JOIN `tags` t ON s.tag_id = t.id
+            ORDER BY
+                -- 'NoGroup' идет последним (CASE WHEN возвращает 1)
+                CASE 
+                    WHEN {$groupNameCalculation} = 'NoGroup' THEN 1
+                    ELSE 0
+                END ASC,
+                -- Затем сортируем по алфавиту остальные группы
+                group_name ASC,
+                -- И по ключу внутри группы
+                s.`key` ASC
+        ";
+
+        try {
+            $stmt = $this->db->prepare($sql);
+            $stmt->execute(); 
+            
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        } catch (PDOException $e) {
+            Logger::error("Error fetching all SEO settings flat", [], $e);
+            throw $e;
+        }
+    }
 }

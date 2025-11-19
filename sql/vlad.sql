@@ -1066,8 +1066,10 @@ DROP TABLE IF EXISTS `seo_settings`;
 /*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `seo_settings` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
+  `group_name` varchar(50) NOT NULL,
   `key` varchar(100) NOT NULL COMMENT 'Например: page_title, header_text',
   `value` text NOT NULL COMMENT 'Значение настройки (например, сам заголовок)',
+  `comment` varchar(255) NOT NULL,
   `category_id` int(11) DEFAULT NULL,
   `tag_id` int(11) DEFAULT NULL,
   `builtin` tinyint(1) NOT NULL DEFAULT 0 COMMENT '1, если настройка встроенная и не может быть удалена через админку',
@@ -1079,7 +1081,7 @@ CREATE TABLE `seo_settings` (
   KEY `fk_seo_settings_tag` (`tag_id`),
   CONSTRAINT `fk_seo_settings_category` FOREIGN KEY (`category_id`) REFERENCES `categories` (`id`) ON DELETE CASCADE,
   CONSTRAINT `fk_seo_settings_tag` FOREIGN KEY (`tag_id`) REFERENCES `tags` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=20 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=21 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1090,14 +1092,15 @@ LOCK TABLES `seo_settings` WRITE;
 /*!40000 ALTER TABLE `seo_settings` DISABLE KEYS */;
 set autocommit=0;
 INSERT INTO `seo_settings` VALUES
-(1,'index_page_title','Смехбук – анекдоты юмор сатира и шутки на любой вкус',NULL,NULL,1,-1,-1),
-(2,'index_page_description','Смехбук - самые смешные анекдоты, истории, фразы и афоризмы, сатира, стишки, карикатуры и другой юмор. Ежедневно добавляем свежие анекдоты. Выходят с 11 ноября 2025 года.',NULL,NULL,1,-1,-1),
-(3,'index_page_keywords','смехбук, анекдоты, свежие анекдоты, смешные, истории, фразы, карикатуры, карикатура, стишки, стешок, мемы, сатира',NULL,NULL,1,-1,-1),
-(7,'cat_citatnik_caption','Цитатник СмехБук — это регулярно обновляемая коллекция смешных цитат: от интернет-мемов до афоризмов великих.',5,NULL,0,5,-1),
-(12,'cat_anekdoty_caption','Анекдоты на СмехБук – собираем лучшие анекдоты из разных областей жизни, новые шутки каждый день.',3,NULL,0,3,-1),
-(17,'cat_veselaya-rifma_caption','Весёлая рифма на СмехБук – сборник лучших стишков из народного творчества на различные темы.',4,NULL,0,4,-1),
-(18,'cat_istorii_caption','Истории на СмехБук — сборник реальных смешных историй из жизни наших читателей.',6,NULL,0,6,-1),
-(19,'cat_kartinki_caption','Картинки на СмехБук – карикатуры, мемы и смешные фото, лучшая подборка из сети.',7,NULL,0,7,-1);
+(1,'SEO','index_page_title','Смехбук – анекдоты юмор сатира и шутки на любой вкус','',NULL,NULL,1,-1,-1),
+(2,'SEO','index_page_description','Смехбук - самые смешные анекдоты, истории, фразы и афоризмы, сатира, стишки, карикатуры и другой юмор. Ежедневно добавляем свежие анекдоты. Выходят с 11 ноября 2025 года.','',NULL,NULL,1,-1,-1),
+(3,'SEO','index_page_keywords','смехбук, анекдоты, свежие анекдоты, смешные, истории, фразы, карикатуры, карикатура, стишки, стешок, мемы, сатира','',NULL,NULL,1,-1,-1),
+(7,'','cat_citatnik_caption','Цитатник СмехБук — это регулярно обновляемая коллекция смешных цитат: от интернет-мемов до афоризмов великих.','',5,NULL,0,5,-1),
+(12,'','cat_anekdoty_caption','Анекдоты на СмехБук – собираем лучшие анекдоты из разных областей жизни, новые шутки каждый день.','',3,NULL,0,3,-1),
+(17,'','cat_veselaya-rifma_caption','Весёлая рифма на СмехБук – сборник лучших стишков из народного творчества на различные темы.','',4,NULL,0,4,-1),
+(18,'','cat_istorii_caption','Истории на СмехБук — сборник реальных смешных историй из жизни наших читателей.','',6,NULL,0,6,-1),
+(19,'','cat_kartinki_caption','Картинки на СмехБук – карикатуры, мемы и смешные фото, лучшая подборка из сети.','',7,NULL,0,7,-1),
+(20,'Cache','cache_enabled','0','1 - кэширование на сайте включено, 0 - выключено',NULL,NULL,1,-1,-1);
 /*!40000 ALTER TABLE `seo_settings` ENABLE KEYS */;
 UNLOCK TABLES;
 commit;
@@ -1461,4 +1464,4 @@ commit;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*M!100616 SET NOTE_VERBOSITY=@OLD_NOTE_VERBOSITY */;
 
--- Dump completed on 2025-11-17 20:30:28
+-- Dump completed on 2025-11-19 17:26:41
