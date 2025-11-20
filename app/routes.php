@@ -364,7 +364,20 @@ $router->addRoute("/$adminRoute/thrash/api/delete-forever",
 // Форма списка настройек
 $router->addRoute("/$adminRoute/settings", 
     function(Container $container): Response {
-        // Передаем номер страницы в контроллер
         $controller = $container->make(AdminSettingsController::class);
         return $controller->list();
 }, ['UserAuthenticatedMiddleware']);
+
+// Форма создания настройки
+$router->addRoute("/$adminRoute/settings/create", 
+    function(Container $container): Response {
+        $controller = $container->make(AdminSettingsController::class);
+        return $controller->create();
+}, ['AdminAuthenticatedMiddleware']);
+
+// Обработчик создания настройки
+$router->addRoute("/$adminRoute/settings/store", 
+    function(Container $container): Response {
+        $controller = $container->make(AdminSettingsController::class);
+        return $controller->handleCreate();
+}, ['AdminAuthenticatedMiddleware'], ['method' => 'POST']);

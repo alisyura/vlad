@@ -107,6 +107,10 @@
                 
                 <h3 class="mb-4 text-primary">Настройки группы <?= htmlspecialchars($groupName) ?></h3>
 
+                <?php if ($groupName === "Cache"): ?>
+                    <button type="submit" class="btn btn-secondary mb-2">Очистить кэш</button>
+                <?php endif ?>
+
                 <div class="table-responsive">
                     <table class="table table-striped table-hover posts-table">
                         <thead>
@@ -149,62 +153,59 @@
                                             <strong>Значение:</strong> <?= $settingValue ?>
                                         </div>
                                         <div class="detail-item">
-                                            <strong>Категория:</strong> <?= $settingCategoryName ?> (<?= $settingCategoryUrl ?>)
+                                            <strong>Категория:</strong> <?= $settingCategoryName ?>
                                         </div>
                                         <div class="detail-item">
-                                            <strong>Тэг:</strong> <?= $settingTagName ?> (<?= $settingTagUrl ?>)
+                                            <strong>Тэг:</strong> <?= $settingTagName ?>
                                         </div>
                                         <div class="detail-item">
                                             <strong>Комментарий:</strong> <?= $settingComment ?>
                                         </div>
                                         <div class="post-actions mt-2">
                                             <!-- Для мобильных -->
+                                             <?php if ($allowEdit): ?>
                                             <a href="<?= htmlspecialchars($basePageUrl) ?>/edit/<?= $settingId ?>" class="btn btn-sm btn-outline-primary mb-1 me-1">Редактировать</a>
-                                            <?php if ($settingBuiltin === '0' && $allowEdit): ?>
-                                                <a href="#" 
-                                                    class="btn btn-sm btn-outline-danger mb-1 me-1 delete-post-link" 
-                                                    data-post-id="<?= $settingId ?>"
-                                                    data-action="delete"
-                                                    data-post-title="<?= $settingKey ?>">
-                                                    Удалить
-                                                </a>
+                                                <?php if ($settingBuiltin === '0'): ?>
+                                                    <a href="#" 
+                                                        class="btn btn-sm btn-outline-danger mb-1 me-1 delete-post-link" 
+                                                        data-post-id="<?= $settingId ?>"
+                                                        data-action="delete"
+                                                        data-post-title="<?= $settingKey ?>">
+                                                        Удалить
+                                                    </a>
+                                                <?php endif ?>
                                             <?php endif ?>
                                         </div>
                                     </div>
 
                                     <div class="post-actions mt-1 d-none d-md-block">
                                         <!-- Для десктопа -->
+                                        <?php if ($allowEdit): ?>
                                         <a href="<?= htmlspecialchars($basePageUrl) ?>/edit/<?= $settingId ?>" class="text-primary me-2">Редактировать</a>
-                                        <?php if ($settingBuiltin === '0' &&$allowEdit): ?>
-                                            <a href="#" 
-                                                class="btn btn-sm text-danger mb-1 me-1 delete-post-link" 
-                                                data-post-id="<?= $settingId ?>"
-                                                data-action="delete"
-                                                data-post-title="<?= $settingKey ?>">
-                                                Удалить
-                                            </a>
+                                            <?php if ($settingBuiltin === '0'): ?>
+                                                <a href="#" 
+                                                    class="btn btn-sm text-danger mb-1 me-1 delete-post-link" 
+                                                    data-post-id="<?= $settingId ?>"
+                                                    data-action="delete"
+                                                    data-post-title="<?= $settingKey ?>">
+                                                    Удалить
+                                                </a>
+                                            <?php endif ?>
                                         <?php endif ?>
                                     </div>
                                 </td>
                                 <td class="d-none d-md-table-cell"><?= $settingValue ?></td>
-                                <td class="d-none d-md-table-cell"><?= $settingCategoryName ?> (<?= $settingCategoryUrl ?>)</td>
-                                <td class="d-none d-md-table-cell"><?= $settingTagName ?> (<?= $settingTagUrl ?>)</td>
+                                <td class="d-none d-md-table-cell"><?= $settingCategoryName ?></td>
+                                <td class="d-none d-md-table-cell"><?= $settingTagName ?></td>
                                 <td class="d-none d-md-table-cell"><?= $settingComment ?></td>
                             </tr>
                             <?php endforeach; ?>
-
                         </tbody>
                     </table>
                 </div>
-
-
-<!-- <button type="submit" class="btn btn-success mt-3">Сохранить <?= htmlspecialchars($groupName) ?></button> -->
-
-
             </div>
         <?php $tabIndex++; endforeach; ?>
     </div>
-
 
     <?php endif; // Конец проверки empty($groupedSettings) ?>
 </div>

@@ -62,4 +62,57 @@ class AdminSettingsController extends BaseAdminController
             throw new HttpException('Произошла непредвиденная ошибка.', 500, $e);
         }
     }
+
+    public function create(): Response
+    {
+        try {
+            $data = [
+                'adminRoute' => $this->getAdminRoute(),
+                'active' => "settings", // для подсветки в левом меню
+                'categoriesList' => $this->listmodel->getAllCategories(),
+                'tagsList' => $this->listmodel->getAllTags(),
+                'existingGroupsList' => $this->settingsService->getExistingGroupNames(),
+                'styles' => [
+                ],
+                'jss' => [
+                    'settings_edit_create.js',
+                    'common.js'
+                ]
+            ];
+            return $this->renderHtml('admin/settings/edit_create.php', $data);
+        } catch (Throwable $e) {
+            Logger::error("Error in create settingslist", [], $e);
+            throw new HttpException('Произошла непредвиденная ошибка.', 500, $e);
+        }
+    }
+
+    public function handleCreate(): Response
+    {
+        $groupName = $this->getRequest()->post('group_name','');
+        $key = $this->getRequest()->post('key','');
+        $value = $this->getRequest()->post('value','');
+        $category = $this->getRequest()->post('category_id','');
+        $tag = $this->getRequest()->post('tag_id','');
+        $comment = $this->getRequest()->post('comment','');
+        
+        try {
+            $data = [
+                'adminRoute' => $this->getAdminRoute(),
+                'active' => "settings", // для подсветки в левом меню
+                'categoriesList' => $this->listmodel->getAllCategories(),
+                'tagsList' => $this->listmodel->getAllTags(),
+                'existingGroupsList' => $this->settingsService->getExistingGroupNames(),
+                'styles' => [
+                ],
+                'jss' => [
+                    'settings_edit_create.js',
+                    'common.js'
+                ]
+            ];
+            return $this->renderHtml('admin/settings/edit_create.php', $data);
+        } catch (Throwable $e) {
+            Logger::error("Error in create settingslist", [], $e);
+            throw new HttpException('Произошла непредвиденная ошибка.', 500, $e);
+        }
+    }
 }

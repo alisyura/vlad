@@ -215,4 +215,37 @@ class SettingsModel extends BaseModel {
             throw $e;
         }
     }
+
+    /**
+     * Получает список всех уникальных имен групп настроек.
+     * Исключает настройки, где group_name не указан (NULL или пустая строка).
+     *
+     * @return array Массив строк с именами групп, упорядоченный по алфавиту.
+     */
+    public function getExistingGroupNames(): array
+    {
+        $groupingColumn = 'group_name'; 
+        
+        $sql = "
+            SELECT DISTINCT
+                `{$groupingColumn}` AS group_name
+            FROM
+                `seo_settings`
+            WHERE
+                -- Исключаем NULL и пустые/состоящие из пробелов строки
+                TRIM(`{$groupingColumn}`) != '' AND `{$groupingColumn}` IS NOT NULL
+            ORDER BY
+                group_name ASC
+        ";
+
+        try {
+            $stmt = $this->db->prepare($sql);
+            $stmt->execute(); 
+            
+            return $stmt->fetchAll(PDO::FETCH_COLUMN, 0);
+        } catch (PDOException $e) {
+            Logger::error("Error fetching existing group names: ", [], $e);
+            throw $e;
+        }
+    }
 }

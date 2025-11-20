@@ -80,4 +80,15 @@ class SettingsService
         
         return $this->groupSettingsArray($rawSettings, 'group_name');
     }
+
+    /**
+     * Получает список всех уникальных имен групп настроек.
+     * Исключает настройки, где group_name не указан (NULL или пустая строка).
+     *
+     * @return array Массив строк с именами групп, упорядоченный по алфавиту.
+     */
+    public function getExistingGroupNames(): array
+    {
+        return $this->settingsModel->getExistingGroupNames();
+    }
 }

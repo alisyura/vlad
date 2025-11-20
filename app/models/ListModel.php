@@ -12,7 +12,7 @@ class ListModel extends BaseModel {
      * @return array Список категорий.
      */
     public function getAllCategories(): array {
-        $sql = "SELECT id, name FROM categories WHERE url <> 'tegi' ORDER BY name ASC";
+        $sql = "SELECT id, name, url FROM categories WHERE url <> 'tegi' ORDER BY name ASC";
         try {
             $stmt = $this->db->prepare($sql);
             $stmt->execute();
