@@ -76,7 +76,7 @@ class CollapseIconToggler {
 // Использование классов после загрузки DOM
 document.addEventListener('DOMContentLoaded', function() {
     // Создаем экземпляр для управления выбором Категории/Тега
-    const selector = new ExclusiveSelector('category_id', 'tag_id', 'key');
+    const selector = new ExclusiveSelector('category', 'tag', 'key');
 
     // Создаем экземпляр для управления иконкой подсказки
     const iconToggler = new CollapseIconToggler('collapseKeyHint', '.hint-toggle-icon');

@@ -67,7 +67,7 @@
             <!-- КОНЕЦ БЛОКА С ПОДСКАЗКОЙ -->
 
             <div class="card p-4">
-                <form method="POST" action="/<?= htmlspecialchars($adminRoute) ?>/settings/store">
+                <form method="POST" action="/<?= htmlspecialchars($adminRoute) ?>/settings/create">
                     
                     <!-- ГРУППА И КЛЮЧ -->
                     <div class="row mb-3">
@@ -78,7 +78,8 @@
                                    id="group_name" 
                                    name="group_name" 
                                    placeholder="Например: General, Homepage, Analytics"
-                                   list="existingGroupsList">
+                                   list="existingGroupsList"
+                                   value="<?= htmlspecialchars($curGroup) ?>">
                             <datalist id="existingGroupsList">
                                 <?php 
                                 // Предполагается, что $existingGroups — это массив имен групп
@@ -96,7 +97,8 @@
                                    name="key" 
                                    required 
                                    placeholder="Например: page_title_template"
-                                   oninput="handleKeyInput(this)">
+                                   oninput="handleKeyInput(this)"
+                                   value="<?= htmlspecialchars($curKey) ?>">
                             <div class="form-text">Уникальный ключ для этой настройки.</div>
                         </div>
                     </div>
@@ -109,7 +111,7 @@
                                   name="value" 
                                   rows="4" 
                                   required
-                                  placeholder="Введите значение настройки (текст, число, JSON и т.д.)"></textarea>
+                                  placeholder="Введите значение настройки (текст, число, JSON и т.д.)"><?= htmlspecialchars($curValue) ?></textarea>
                     </div>
 
                     <!-- ПРИВЯЗКА К СУЩНОСТИ -->
@@ -118,10 +120,12 @@
                     <div class="row mb-4">
                         <div class="col-md-6">
                             <label for="category_id" class="form-label fw-bold">Категория</label>
-                            <select class="form-select" id="category_id" name="category_id">
+                            <select class="form-select" id="category" name="category_id">
                                 <option value="" selected>-- Глобальная (Не привязывать) --</option>
-                                <?php foreach ($categoriesList as $category): ?>
-                                    <option value="<?= $category['url'] ?>">
+                                <?php foreach ($categoriesList as $category): 
+                                    $selected = $category['url'] === $curCategoryUrl ? 'selected' : '';
+                                    ?>
+                                    <option <?= $selected ?> value="<?= $category['url'] ?>">
                                         <?= htmlspecialchars($category['name']) ?> (<?= htmlspecialchars($category['url']) ?>)
                                     </option>
                                 <?php endforeach; ?>
@@ -129,10 +133,12 @@
                         </div>
                         <div class="col-md-6">
                             <label for="tag_id" class="form-label fw-bold">Тег</label>
-                            <select class="form-select" id="tag_id" name="tag_id">
+                            <select class="form-select" id="tag" name="tag_id">
                                 <option value="" selected>-- Глобальная (Не привязывать) --</option>
-                                <?php foreach ($tagsList as $tag): ?>
-                                    <option value="<?= $tag['url'] ?>">
+                                <?php foreach ($tagsList as $tag): 
+                                    $selected = $tag['url'] === $curTagUrl ? 'selected' : '';
+                                    ?>
+                                    <option <?= $selected ?> value="<?= $tag['url'] ?>">
                                         <?= htmlspecialchars($tag['name']) ?> (<?= htmlspecialchars($tag['url']) ?>)
                                     </option>
                                 <?php endforeach; ?>
@@ -147,7 +153,7 @@
                                   id="comment" 
                                   name="comment" 
                                   rows="2" 
-                                  placeholder="Описание назначения этой настройки"></textarea>
+                                  placeholder="Описание назначения этой настройки"><?= htmlspecialchars($curComment) ?></textarea>
                     </div>
 
                    

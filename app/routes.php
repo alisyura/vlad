@@ -376,7 +376,7 @@ $router->addRoute("/$adminRoute/settings/create",
 }, ['AdminAuthenticatedMiddleware']);
 
 // Обработчик создания настройки
-$router->addRoute("/$adminRoute/settings/store", 
+$router->addRoute("/$adminRoute/settings/create", 
     function(Container $container): Response {
         $controller = $container->make(AdminSettingsController::class);
         return $controller->handleCreate();

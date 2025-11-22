@@ -50,6 +50,7 @@ class Router {
                         $allowedMethods = array_map('strtoupper', $allowedMethods);
                             
                         if (!in_array($requestMethod, $allowedMethods)) {
+                            continue;
                             // Очищаем буфер, чтобы убрать любой нежелательный вывод 
                             // (например, от старого контроллера, который выбросил исключение).
                             ob_end_clean();

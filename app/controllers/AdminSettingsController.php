@@ -91,13 +91,31 @@ class AdminSettingsController extends BaseAdminController
         $groupName = $this->getRequest()->post('group_name','');
         $key = $this->getRequest()->post('key','');
         $value = $this->getRequest()->post('value','');
-        $category = $this->getRequest()->post('category_id','');
-        $tag = $this->getRequest()->post('tag_id','');
+        $categoryUrl = $this->getRequest()->post('category_id','');
+        $tagUrl = $this->getRequest()->post('tag_id','');
         $comment = $this->getRequest()->post('comment','');
+
+        $adminRoute = $this->getAdminRoute();
         
         try {
+            $this->settingsService->createSetting($groupName, $key, $value, 
+                $categoryUrl, $tagUrl, $comment);
+            
+            return $this->redirect("/{$adminRoute}/settings");
+        } catch (Throwable $e) {
+            Logger::error("Error in create settingslist", [], $e);
+
             $data = [
-                'adminRoute' => $this->getAdminRoute(),
+                'curGroup' => $groupName,
+                'curKey' => $key,
+                'curValue' => $value,
+                'curCategoryUrl' => $categoryUrl,
+                'curTagUrl' => $tagUrl,
+                'curComment' => $comment,
+                'errors' => [
+                    $e->getMessage()
+                ],
+                'adminRoute' => $adminRoute,
                 'active' => "settings", // для подсветки в левом меню
                 'categoriesList' => $this->listmodel->getAllCategories(),
                 'tagsList' => $this->listmodel->getAllTags(),
@@ -110,9 +128,6 @@ class AdminSettingsController extends BaseAdminController
                 ]
             ];
             return $this->renderHtml('admin/settings/edit_create.php', $data);
-        } catch (Throwable $e) {
-            Logger::error("Error in create settingslist", [], $e);
-            throw new HttpException('Произошла непредвиденная ошибка.', 500, $e);
         }
     }
 }

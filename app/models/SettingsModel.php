@@ -248,4 +248,103 @@ class SettingsModel extends BaseModel {
             throw $e;
         }
     }
+
+    /**
+     * Возвращает ID сущности (категории или тега) по ее URL.
+     * * @param string $tableName Имя таблицы ('categories' или 'tags').
+     * @param string $url URL сущности.
+     * @return int|null ID сущности или NULL, если не найдена.
+     */
+    private function getEntityIdByUrl(string $tableName, string $url): ?int
+    {
+        if (empty($url)) {
+            return null;
+        }
+
+        $sql = "SELECT `id` FROM `{$tableName}` WHERE `url` = :url";
+        
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([':url' => $url]);
+        $result = $stmt->fetchColumn();
+        
+        return $result !== false ? (int)$result : null;
+    }
+    
+    /**
+     * Создает новую настройку в таблице seo_settings.
+     * @param string $groupName Имя группы.
+     * @param string $key Ключ настройки.
+     * @param string $value Значение настройки.
+     * @param string|null $categoryUrl URL категории (для настроек категории).
+     * @param string|null $tagUrl URL тега (для настроек тега).
+     * @param string|null $comment Комментарий.
+     * @return int ID созданной настройки.
+     * @throws Exception Если и категория, и тег заданы, или не найдена сущность по URL.
+     */
+    public function createSetting(
+        string $groupName, 
+        string $key, 
+        string $value, 
+        ?string $categoryUrl = null, 
+        ?string $tagUrl = null, 
+        ?string $comment = null
+    ): int {
+        $categoryId = null;
+        $tagId = null;
+        
+        // 1. Проверяем, что задана только одна сущность
+        if (!empty($categoryUrl) && !empty($tagUrl)) {
+            throw new \InvalidArgumentException('Нельзя одновременно задать URL категории и URL тега.');
+        }
+
+        // 2. Получаем ID сущностей
+        if (!empty($categoryUrl)) {
+            $categoryId = $this->getEntityIdByUrl('categories', $categoryUrl);
+            if ($categoryId === null) {
+                throw new \RuntimeException("Категория с URL '{$categoryUrl}' не найдена.");
+            }
+        }
+
+        if (!empty($tagUrl)) {
+            $tagId = $this->getEntityIdByUrl('tags', $tagUrl);
+            if ($tagId === null) {
+                throw new \RuntimeException("Тег с URL '{$tagUrl}' не найден.");
+            }
+        }
+        
+        // 3. Составляем SQL-запрос
+        $sql = "
+            INSERT INTO `seo_settings` 
+                (`group_name`, `key`, `value`, `comment`, `category_id`, `tag_id`)
+            VALUES 
+                (:groupName, :key, :value, :comment, :categoryId, :tagId)
+        ";
+        
+        $params = [
+            ':groupName' => $groupName,
+            ':key'       => $key,
+            ':value'     => $value,
+            ':comment'   => $comment,
+            ':categoryId'=> $categoryId,
+            ':tagId'     => $tagId,
+        ];
+
+        // 4. Выполняем запрос
+        try {
+            $stmt = $this->db->prepare($sql);
+            $stmt->execute($params); 
+            
+            // Возвращаем ID только что созданной записи
+            return (int)$this->db->lastInsertId();
+
+        } catch (PDOException $e) {
+            // Реальное логирование
+            Logger::error("Error creating SEO setting: ", $params, $e);
+            // Обработка возможного дублирования ключа (например, UNIQUE-индекс)
+            if ($e->getCode() === '23000') { // 23000 - Integrity constraint violation
+                 throw new \RuntimeException("Настройка с ключом '{$key}' уже существует в данном контексте.", 0, $e);
+            }
+            throw $e;
+        }
+    }
 }

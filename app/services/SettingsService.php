@@ -91,4 +91,17 @@ class SettingsService
     {
         return $this->settingsModel->getExistingGroupNames();
     }
+
+    public function createSetting(
+        string $groupName, 
+        string $key, 
+        string $value, 
+        ?string $categoryUrl = null, 
+        ?string $tagUrl = null, 
+        ?string $comment = null): void
+    {
+        $this->settingsModel->createSetting($groupName, $key, $value, 
+            $categoryUrl, $tagUrl, $comment);
+    }
+
 }
