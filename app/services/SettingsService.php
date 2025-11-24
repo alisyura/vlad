@@ -72,11 +72,16 @@ class SettingsService
      * * Здесь можно добавить логику кеширования, преобразования данных
      * или фильтрации, прежде чем они попадут в контроллер.
      *
+     * @param ?string $categoryUrl Выбор настроек только для этой категории.
+     * @param ?string $tagUrl Выбор настроек только для этого тэга.
+     * @param ?string $searchQuery Поиск настроек по названию и значению
      * @return array Сгруппированный массив настроек.
      */
-    public function getGroupedSettingsForDisplay(): array
+    public function getGroupedSettingsForDisplay(?string $categoryUrl = '', ?string $tagUrl = '', 
+        ?string $searchQuery = ''): array
     {
-        $rawSettings = $this->settingsModel->getAllSeoSettingsFlat();
+        $rawSettings = $this->settingsModel->getAllSeoSettingsFlat($categoryUrl,
+            $tagUrl, $searchQuery);
         
         return $this->groupSettingsArray($rawSettings, 'group_name');
     }

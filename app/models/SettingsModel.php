@@ -160,9 +160,116 @@ class SettingsModel extends BaseModel {
      * Получает список всех настроек из таблицы seo_settings в виде плоского массива,
      * включая данные привязанных сущностей (категорий, тегов).
      *
+     * @param ?string $categoryUrl Выбор настроек только для этой категории.
+     * @param ?string $tagUrl Выбор настроек только для этого тэга.
+     * @param ?string $searchQuery Поиск настроек по названию и значению
      * @return array Плоский массив настроек, отсортированный по group_name и key.
      */
-    public function getAllSeoSettingsFlat(): array
+    public function getAllSeoSettingsFlat(?string $categoryUrl = '', ?string $tagUrl = '', 
+        ?string $searchQuery = ''): array
+    {
+        $groupingColumn = 'group_name'; 
+        
+        // Переменная для вычисления имени группы в SQL, используется дважды
+        $groupNameCalculation = "COALESCE(NULLIF(TRIM(s.`{$groupingColumn}`), ''), 'NoGroup')";
+
+        // Инициализация массивов для условий WHERE и параметров PDO
+        $where = [];
+        $params = [];
+        
+        // 1. Фильтрация по Категории (URL)
+        if (!empty($categoryUrl)) {
+            // Фильтруем настройки, которые явно привязаны к этой категории
+            $where[] = "c.url = :categoryUrl";
+            $params[':categoryUrl'] = $categoryUrl;
+        }
+
+        // 2. Фильтрация по Тегу (URL)
+        if (!empty($tagUrl)) {
+            // Фильтруем настройки, которые явно привязаны к этому тегу
+            $where[] = "t.url = :tagUrl";
+            $params[':tagUrl'] = $tagUrl;
+        }
+        
+        // 3. Поиск по ключу, значению или комментарию
+        if (!empty($searchQuery)) {
+            $searchString = "%" . $searchQuery . "%";
+            $where[] = "(
+                s.`key` LIKE :searchQueryKey OR 
+                s.`value` LIKE :searchQueryValue OR 
+                s.`comment` LIKE :searchQueryComment
+            )";
+            // Передаем одну и ту же строку поиска для всех полей
+            $params[':searchQueryKey'] = $searchString;
+            $params[':searchQueryValue'] = $searchString;
+            $params[':searchQueryComment'] = $searchString;
+        }
+
+        // Построение WHERE части запроса
+        $whereClause = '';
+        if (!empty($where)) {
+            $whereClause = "WHERE " . implode(" AND ", $where);
+        }
+
+        $sql = "
+            SELECT
+                s.id,
+                {$groupNameCalculation} AS group_name,
+                s.`key`,
+                s.`value`,
+                s.`comment`,
+                s.`builtin`,
+                
+                -- Поля Категории
+                s.`category_id`,
+                c.name AS category_name,
+                c.url AS category_url,
+                
+                -- Поля Тега
+                s.`tag_id`,
+                t.name AS tag_name,
+                t.url AS tag_url
+            FROM
+                `seo_settings` s
+            -- LEFT JOIN, так как настройки могут быть глобальными
+            LEFT JOIN `categories` c ON s.category_id = c.id
+            LEFT JOIN `tags` t ON s.tag_id = t.id
+            
+            {$whereClause} -- Вставляем WHERE clause
+
+            ORDER BY
+                -- 'NoGroup' идет последним (CASE WHEN возвращает 1)
+                CASE 
+                    WHEN {$groupNameCalculation} = 'NoGroup' THEN 1
+                    ELSE 0
+                END ASC,
+                -- Затем сортируем по алфавиту остальные группы
+                group_name ASC,
+                -- И по ключу внутри группы
+                s.`key` ASC
+        ";
+
+        try {
+            // Используем подготовленные выражения для безопасной передачи параметров
+            $stmt = $this->db->prepare($sql);
+            $stmt->execute($params); 
+            
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        } catch (PDOException $e) {
+            // Предполагается, что класс Logger доступен
+            Logger::error("Error fetching all SEO settings flat with filters", [
+                'categoryUrl' => $categoryUrl, 
+                'tagUrl' => $tagUrl,
+                'searchQuery' => $searchQuery
+            ], $e);
+            throw $e;
+        }
+    }
+
+
+    public function getAllSeoSettingsFlat_(?string $categoryUrl, ?string $tagUrl, 
+        ?string $searchQuery): array
     {
         $groupingColumn = 'group_name'; 
         

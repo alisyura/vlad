@@ -16,24 +16,24 @@
         <form class="row g-2 align-items-center justify-content-end" action='<?= htmlspecialchars($filter['formAction'] ?? '') ?>' method="GET">
             
             <div class="col-12 col-md-auto">
-                <select class="form-select form-select-sm" name="category_id">
+                <select class="form-select form-select-sm" name="category">
                     <option value="">— Все рубрики —</option>
                     <?php if (!empty($filter) && !empty($filter['categories'] ?? [])): ?>
                         <?php foreach ($filter['categories'] as $category): ?>
-                            <?php $selected = ($category['id'] == $filter['selectedCategory'] ? 'selected' : '') ?>
-                            <option <?= htmlspecialchars($selected) ?> value="<?= htmlspecialchars($category['id']) ?>"><?= htmlspecialchars($category['name']) ?></option>
+                            <?php $selected = ($category['url'] == $filter['selectedCategory'] ? 'selected' : '') ?>
+                            <option <?= htmlspecialchars($selected) ?> value="<?= htmlspecialchars($category['url']) ?>"><?= htmlspecialchars($category['name']) ?></option>
                         <?php endforeach ?>
                     <?php endif ?>
                 </select>
             </div>
 
             <div class="col-12 col-md-auto">
-                <select class="form-select form-select-sm" name="status">
+                <select class="form-select form-select-sm" name="tag">
                     <option value="">— Все тэги —</option>
                     <?php if (!empty($filter) && !empty($filter['tags'] ?? [])): ?>
                         <?php foreach ($filter['tags'] as $tag): ?>
-                            <?php $selected = ($tag['id'] === $filter['selectedTag'] ? 'selected' : '') ?>
-                            <option <?= htmlspecialchars($selected) ?> value="<?= htmlspecialchars($tag['id']) ?>"><?= htmlspecialchars($statusName) ?></option>
+                            <?php $selected = ($tag['url'] === $filter['selectedTag'] ? 'selected' : '') ?>
+                            <option <?= htmlspecialchars($selected) ?> value="<?= htmlspecialchars($tag['url']) ?>"><?= htmlspecialchars($tag['name']) ?></option>
                         <?php endforeach ?>
                     <?php endif ?>
                 </select>

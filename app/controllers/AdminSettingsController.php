@@ -23,8 +23,15 @@ class AdminSettingsController extends BaseAdminController
 
     public function list(): Response
     {
+        $selectedCategory = $this->getRequest()->category ?? '';
+        $selectedTag = $this->getRequest()->tag ?? '';
+        $searchQuery = $this->getRequest()->searchquery ?? '';
+
         try {
-            $groupedSettingsList=$this->settingsService->getGroupedSettingsForDisplay();
+            $groupedSettingsList=$this->settingsService->getGroupedSettingsForDisplay(
+                $selectedCategory,
+                $selectedTag,
+                $searchQuery);
 
             $basePageUrl=$this->getRequest()->getBasePageUrl();
 
@@ -38,12 +45,10 @@ class AdminSettingsController extends BaseAdminController
                 'basePageUrl' => $basePageUrl,
                 'filter' => [
                     'categories' => $this->listmodel->getAllCategories(),
-                    'statuses' => [
-                        'Ожидание' => PostModelAdmin::STATUS_PENDING,
-                        'Опубликован' => PostModelAdmin::STATUS_PUBLISHED,
-                        'Удален' => PostModelAdmin::STATUS_DELETED,
-                        'Черновик' => PostModelAdmin::STATUS_DRAFT
-                    ],
+                    'tags' => $this->listmodel->getAllTags(),
+                    'selectedCategory' => $selectedCategory,
+                    'selectedTag' => $selectedTag,
+                    'selectedSearchQuery' => $searchQuery,
                     // При установке фильтра сбрасываем все сортировки и предыдущие фильтры
                     'formAction' => $basePageUrl
                 ],
@@ -58,7 +63,10 @@ class AdminSettingsController extends BaseAdminController
 
             return $this->renderHtml('admin/settings/list.php', $data);
         } catch (Throwable $e) {
-            Logger::error("Error in get settingslist", [], $e);
+            Logger::error("Error in get settingslist", [
+                'selectedCategory' => $selectedCategory, 
+                'selectedTag' => $selectedTag], 
+                $e);
             throw new HttpException('Произошла непредвиденная ошибка.', 500, $e);
         }
     }
