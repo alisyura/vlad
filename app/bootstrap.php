@@ -32,7 +32,7 @@ $container->singleton(PDO::class, function() {
     try {
         return new PDO($dsn, $user, $pass, $options);
     } catch (PDOException $e) {
-        Logger::error("Ошибка подключения к базе данных: " . $e->getTraceAsString());
+        Logger::error("Ошибка подключения к БД.", ['code' => $e->getCode(), 'message' => $e->getMessage()], $e);
         throw new \RuntimeException("Не удалось подключиться к базе данных. Пожалуйста, попробуйте позже.");
     }
 });
@@ -83,3 +83,5 @@ $container->bind(AdminUsersApiController::class, AdminUsersApiController::class)
 $container->bind(AdminSettingsController::class, AdminSettingsController::class);
 $container->bind(SettingsModel::class, SettingsModel::class);
 $container->bind(SettingsService::class, SettingsService::class);
+$container->bind(SettingsValidator::class, SettingsValidator::class);
+$container->bind(AdminSettingsApiController::class, AdminSettingsApiController::class);

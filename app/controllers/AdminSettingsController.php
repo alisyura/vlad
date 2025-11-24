@@ -65,7 +65,8 @@ class AdminSettingsController extends BaseAdminController
         } catch (Throwable $e) {
             Logger::error("Error in get settingslist", [
                 'selectedCategory' => $selectedCategory, 
-                'selectedTag' => $selectedTag], 
+                'selectedTag' => $selectedTag,
+                'searchQuery' => $searchQuery], 
                 $e);
             throw new HttpException('Произошла непредвиденная ошибка.', 500, $e);
         }
@@ -74,19 +75,7 @@ class AdminSettingsController extends BaseAdminController
     public function create(): Response
     {
         try {
-            $data = [
-                'adminRoute' => $this->getAdminRoute(),
-                'active' => "settings", // для подсветки в левом меню
-                'categoriesList' => $this->listmodel->getAllCategories(),
-                'tagsList' => $this->listmodel->getAllTags(),
-                'existingGroupsList' => $this->settingsService->getExistingGroupNames(),
-                'styles' => [
-                ],
-                'jss' => [
-                    'settings_edit_create.js',
-                    'common.js'
-                ]
-            ];
+            $data = $this->createRenderData('Создание настройки', 'create');
             return $this->renderHtml('admin/settings/edit_create.php', $data);
         } catch (Throwable $e) {
             Logger::error("Error in create settingslist", [], $e);
@@ -110,10 +99,29 @@ class AdminSettingsController extends BaseAdminController
                 $categoryUrl, $tagUrl, $comment);
             
             return $this->redirect("/{$adminRoute}/settings");
+        } catch (UserDataException $e) {
+            Logger::error("Error in create settingslist", [], $e);
+
+            $data = $this->createRenderData('Создание настройки');
+            $newData = [
+                'curGroup' => $groupName,
+                'curKey' => $key,
+                'curValue' => $value,
+                'curCategoryUrl' => $categoryUrl,
+                'curTagUrl' => $tagUrl,
+                'curComment' => $comment,
+                'errors' => $e->getValidationErrors()
+            ];
+            $data = [
+                ...$data,
+                ...$newData
+            ];
+            return $this->renderHtml('admin/settings/edit_create.php', $data);
         } catch (Throwable $e) {
             Logger::error("Error in create settingslist", [], $e);
 
-            $data = [
+            $data = $this->createRenderData('Создание настройки');
+            $newData = [
                 'curGroup' => $groupName,
                 'curKey' => $key,
                 'curValue' => $value,
@@ -121,13 +129,142 @@ class AdminSettingsController extends BaseAdminController
                 'curTagUrl' => $tagUrl,
                 'curComment' => $comment,
                 'errors' => [
-                    $e->getMessage()
-                ],
+                    'Сбой при создании настройки'
+                ]
+            ];
+            $data = [
+                ...$data,
+                ...$newData
+            ];
+            return $this->renderHtml('admin/settings/edit_create.php', $data);
+        }
+    }
+
+    public function edit(int $id): Response
+    {
+        try {
+            $id = filter_var($id, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
+            if ($id === false) {
+                throw new \HttpException("Некорректный формат ID."); 
+            }
+
+            $setting = $this->settingsService->getSettingById($id);
+            if ($setting === null || empty($setting))
+            {
+                throw new HttpException('Настройка не найдена');
+            }
+            $data = $this->createRenderData("Изменение настройки: {$setting['key']}", "edit/{$id}");
+
+            $newData = [
+                'builtin' => $setting['builtin'],
+                'curGroup' => $setting['group_name'],
+                'curKey' => $setting['key'],
+                'curValue' => $setting['value'],
+                'curCategoryUrl' => $setting['category_url'],
+                'curTagUrl' => $setting['tag_url'],
+                'curComment' => $setting['comment']
+            ];
+            $data = [
+                ...$data,
+                ...$newData
+            ];
+            return $this->renderHtml('admin/settings/edit_create.php', $data);
+        } catch (Throwable $e) {
+            Logger::error("Error in create settingslist", [], $e);
+            if ($e instanceof HttpException)
+            {
+                throw $e;
+            }
+            throw new HttpException('Произошла непредвиденная ошибка.', 500, $e);
+        }
+    }
+
+    public function handleEdit($id): Response
+    {
+        $id = filter_var($id, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
+        $groupName = $this->getRequest()->post('group_name','');
+        $key = $this->getRequest()->post('key');
+        $value = $this->getRequest()->post('value','');
+        $categoryUrl = $this->getRequest()->post('category_id');
+        $tagUrl = $this->getRequest()->post('tag_id');
+        $comment = $this->getRequest()->post('comment','');
+
+        $adminRoute = $this->getAdminRoute();
+        
+        try {
+            if ($id === false) {
+                throw new \HttpException("Некорректный формат ID."); 
+            }
+            $setting = $this->settingsService->getSettingById($id);
+            if ($setting === null || empty($setting))
+            {
+                throw new HttpException('Настройка не найдена');
+            }
+
+            $this->settingsService->updateSetting($id, $groupName, $key, $value, 
+                $categoryUrl, $tagUrl, $comment);
+            
+            return $this->redirect("/{$adminRoute}/settings");
+        } catch (UserDataException $e) {
+            Logger::error("Error in create settingslist", [], $e);
+
+            $data = $this->createRenderData("Изменение настройки: {$setting['key']}", "edit/{$id}");
+            $newData = [
+                'builtin' => $setting['builtin'],
+                'curGroup' => $groupName,
+                'curKey' => $setting['key'],
+                'curValue' => $value,
+                'curCategoryUrl' => $setting['category_url'],
+                'curTagUrl' => $setting['tag_url'],
+                'curComment' => $comment,
+                'errors' => $e->getValidationErrors()
+            ];
+            $data = [
+                ...$data,
+                ...$newData
+            ];
+            return $this->renderHtml('admin/settings/edit_create.php', $data);
+        } catch (Throwable $e) {
+            Logger::error("Error in create settingslist", [], $e);
+
+            $error = 'Сбой при обновлении настройки';
+            if ($e instanceof HttpException || $e instanceof SettingsException)
+            {
+                $error = $e->getMessage();
+            }
+            $data = $this->createRenderData("Изменение настройки: {$setting['key']}", "edit/{$id}");
+            $newData = [
+                'builtin' => $setting['builtin'],
+                'curGroup' => $groupName,
+                'curKey' => $setting['key'],
+                'curValue' => $value,
+                'curCategoryUrl' => $setting['category_url'],
+                'curTagUrl' => $setting['tag_url'],
+                'curComment' => $comment,
+                'errors' => [
+                    $error
+                ]
+            ];
+            $data = [
+                ...$data,
+                ...$newData
+            ];
+            return $this->renderHtml('admin/settings/edit_create.php', $data);
+        }
+    }
+
+    private function createRenderData($title, $formActionSuffix): array
+    {
+        $adminRoute = $this->getAdminRoute();
+        return [
+                'title' => $title,
+                'builtin' => '0',
                 'adminRoute' => $adminRoute,
                 'active' => "settings", // для подсветки в левом меню
                 'categoriesList' => $this->listmodel->getAllCategories(),
                 'tagsList' => $this->listmodel->getAllTags(),
                 'existingGroupsList' => $this->settingsService->getExistingGroupNames(),
+                'formAction' => "/{$adminRoute}/settings/{$formActionSuffix}",
                 'styles' => [
                 ],
                 'jss' => [
@@ -135,7 +272,5 @@ class AdminSettingsController extends BaseAdminController
                     'common.js'
                 ]
             ];
-            return $this->renderHtml('admin/settings/edit_create.php', $data);
-        }
     }
 }

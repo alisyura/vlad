@@ -267,62 +267,6 @@ class SettingsModel extends BaseModel {
         }
     }
 
-
-    public function getAllSeoSettingsFlat_(?string $categoryUrl, ?string $tagUrl, 
-        ?string $searchQuery): array
-    {
-        $groupingColumn = 'group_name'; 
-        
-        // Переменная для вычисления имени группы в SQL, используется дважды
-        $groupNameCalculation = "COALESCE(NULLIF(TRIM(s.`{$groupingColumn}`), ''), 'NoGroup')";
-
-        $sql = "
-            SELECT
-                s.id,
-                {$groupNameCalculation} AS group_name,
-                s.`key`,
-                s.`value`,
-                s.`comment`,
-                s.`builtin`,
-                
-                -- Поля Категории
-                s.`category_id`,
-                c.name AS category_name,
-                c.url AS category_url,
-                
-                -- Поля Тега
-                s.`tag_id`,
-                t.name AS tag_name,
-                t.url AS tag_url
-            FROM
-                `seo_settings` s
-            -- LEFT JOIN, так как настройки могут быть глобальными
-            LEFT JOIN `categories` c ON s.category_id = c.id
-            LEFT JOIN `tags` t ON s.tag_id = t.id
-            ORDER BY
-                -- 'NoGroup' идет последним (CASE WHEN возвращает 1)
-                CASE 
-                    WHEN {$groupNameCalculation} = 'NoGroup' THEN 1
-                    ELSE 0
-                END ASC,
-                -- Затем сортируем по алфавиту остальные группы
-                group_name ASC,
-                -- И по ключу внутри группы
-                s.`key` ASC
-        ";
-
-        try {
-            $stmt = $this->db->prepare($sql);
-            $stmt->execute(); 
-            
-            return $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-        } catch (PDOException $e) {
-            Logger::error("Error fetching all SEO settings flat", [], $e);
-            throw $e;
-        }
-    }
-
     /**
      * Получает список всех уникальных имен групп настроек.
      * Исключает настройки, где group_name не указан (NULL или пустая строка).
@@ -451,6 +395,153 @@ class SettingsModel extends BaseModel {
             if ($e->getCode() === '23000') { // 23000 - Integrity constraint violation
                  throw new \RuntimeException("Настройка с ключом '{$key}' уже существует в данном контексте.", 0, $e);
             }
+            throw $e;
+        }
+    }
+
+    /**
+     * Получает одну настройку по её ID, включая URL привязанных категории и тега.
+     *
+     * @param int $id ID настройки.
+     * @return array|null Ассоциативный массив с данными настройки или null, если не найдена.
+     */
+    public function getSettingById(int $id): ?array
+    {
+        $sql = "
+            SELECT
+                s.id,
+                s.`key`,
+                s.`value`,
+                s.`group_name`,
+                s.`comment`,
+                s.`builtin`,
+                
+                -- URL привязанной Категории (получаем через LEFT JOIN)
+                c.url AS category_url,
+                -- URL привязанного Тега (получаем через LEFT JOIN)
+                t.url AS tag_url
+            FROM
+                `seo_settings` s
+            LEFT JOIN `categories` c ON s.category_id = c.id
+            LEFT JOIN `tags` t ON s.tag_id = t.id
+            WHERE
+                s.id = :id
+            LIMIT 1
+        ";
+
+        try {
+            $stmt = $this->db->prepare($sql);
+            $stmt->execute([':id' => $id]);
+            
+            return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
+
+        } catch (PDOException $e) {
+            Logger::error("Error fetching SEO setting by ID: {$id}", [], $e);
+            throw $e;
+        }
+    }
+
+    /**
+     * Обновляет настройки SEO в таблице `seo_settings` по имени группы.
+     * * Обновление полей `key`, `category_id` и `tag_id` происходит только в том случае, 
+     * если соответствующие входные параметры ($key, $categoryUrl, $tagUrl) не равны NULL.
+     * Если URL категории или тега передан, но не найден в соответствующей таблице, 
+     * связанный ID (category_id или tag_id) будет установлен в NULL.
+     *
+     * @param string $groupName Имя группы настройки (используется в WHERE-условии).
+     * @param string|null $key Новый ключ настройки. Если NULL, поле `key` не обновляется.
+     * @param string $value Новое значение настройки (всегда обновляется).
+     * @param string|null $categoryUrl URL категории. Если NULL, поле `category_id` не обновляется.
+     * Если не NULL, ID находится по URL и обновляет `category_id`.
+     * @param string|null $tagUrl URL тега. Если NULL, поле `tag_id` не обновляется.
+     * Если не NULL, ID находится по URL и обновляет `tag_id`.
+     * @param string|null $comment Комментарий к настройке.
+     * @return bool Возвращает TRUE при успешном выполнении запроса, FALSE в случае ошибки.
+     */
+    function updateSetting(
+        int $id,
+        string $groupName,
+        ?string $key,
+        string $value,
+        ?string $categoryUrl,
+        ?string $tagUrl,
+        ?string $comment): bool 
+    {
+        // всегда обновляемые поля
+        $setFields = [
+            'group_name' => $groupName,
+            'value' => $value,
+            'comment' => $comment,
+        ];
+        
+        $parameters = [];
+        
+        // Условие 1: Обновление поля `key`
+        if ($key !== null) {
+            $setFields['key'] = $key;
+        }
+        
+        // Условие 2: Обновление поля `category_id`
+        if ($categoryUrl !== null) {
+            // Получаем category_id. Если URL не найден, ID будет null.
+            $categoryId = $this->getEntityIdByUrl('categories', $categoryUrl);
+            $setFields['category_id'] = $categoryId;
+        }
+
+        // Условие 3: Обновление поля `tag_id`
+        if ($tagUrl !== null) {
+            // Получаем tag_id. Если URL не найден, ID будет null.
+            $tagId = $this->getEntityIdByUrl('tags', $tagUrl);
+            $setFields['tag_id'] = $tagId;
+        }
+
+        // 2. Динамическое построение SQL-запроса
+        $setSql = [];
+        foreach ($setFields as $field => $val) {
+            $paramName = ':' . $field;
+            // Используем обратные кавычки для `key`, так как это зарезервированное слово в SQL.
+            $fieldName = ($field === 'key') ? '`key`' : $field;
+
+            // Если значение NULL (например, при ненахождении categoryUrl/tagUrl или если $comment был NULL), 
+            // устанавливаем его как SQL NULL, иначе используем подготовленный параметр.
+            if ($val === null) {
+                $setSql[] = $fieldName . ' = NULL';
+            } else {
+                $setSql[] = $fieldName . ' = ' . $paramName;
+                $parameters[$paramName] = $val;
+            }
+        }
+        
+        // WHERE-условие для поиска строки настройки (предполагаем, что group_name уникален)
+        $whereSql = 'id = :id';
+        $parameters[':id'] = $id;
+
+        $sql = 'UPDATE seo_settings SET ' . implode(', ', $setSql) . ' WHERE ' . $whereSql;
+
+        // 3. Выполнение запроса (пример с PDO)
+        
+        $stmt = $this->db->prepare($sql);
+        return $stmt->execute($parameters);
+    }
+
+    /**
+     * Удаляет настройку по ее уникальному ID.
+     *
+     * @param int $id ID настройки для удаления.
+     * @return bool Возвращает TRUE, если запрос выполнен успешно (даже если 0 строк удалено), 
+     * FALSE в случае некритической ошибки выполнения.
+     */
+    public function deleteSetting(int $id): bool
+    {
+        $sql = "DELETE FROM seo_settings WHERE id = :id";
+        
+        try {
+            $stmt = $this->db->prepare($sql);
+            $parameters = [':id' => $id];
+
+            return $stmt->execute($parameters);
+        } catch (\PDOException $e) {
+            Logger::error("Ошибка при удалении настройки", ['id' => $id], $e);
             throw $e;
         }
     }

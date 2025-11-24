@@ -1,5 +1,5 @@
 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-    <h1 class="h2">Создание настройки</h1>
+    <h1 class="h2"><?= htmlspecialchars($title) ?></h1>
     <div class="btn-toolbar mb-2 mb-md-0">
         <a href="/<?= htmlspecialchars($adminRoute) ?>/settings" class="btn btn-sm btn-outline-secondary">
             << К списку
@@ -10,8 +10,6 @@
 <div class="container mt-5">
     <div class="row justify-content-center">
         <div class="col-lg-8">
-            <h1 class="mb-4 text-center"><?= htmlspecialchars($title) ?></h1>
-
             <!-- ОБЛАСТЬ ДЛЯ ВЫВОДА ОШИБОК -->
             <?php if (!empty($errors)): ?>
                 <div class="alert alert-danger border-0 rounded-3 shadow-sm p-3 mb-4" role="alert">
@@ -67,8 +65,9 @@
             <!-- КОНЕЦ БЛОКА С ПОДСКАЗКОЙ -->
 
             <div class="card p-4">
-                <form method="POST" action="/<?= htmlspecialchars($adminRoute) ?>/settings/create">
-                    
+                <form method="POST" action="<?= htmlspecialchars($formAction) ?>">
+                    <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(CSRF::getToken()) ?>">
+                    <?php $disabled = $builtin=='0' ? '' : 'disabled' ?>
                     <!-- ГРУППА И КЛЮЧ -->
                     <div class="row mb-3">
                         <div class="col-md-6">
@@ -98,6 +97,7 @@
                                    required 
                                    placeholder="Например: page_title_template"
                                    oninput="handleKeyInput(this)"
+                                   <?= htmlspecialchars($disabled) ?>
                                    value="<?= htmlspecialchars($curKey) ?>">
                             <div class="form-text">Уникальный ключ для этой настройки.</div>
                         </div>
@@ -120,7 +120,7 @@
                     <div class="row mb-4">
                         <div class="col-md-6">
                             <label for="category_id" class="form-label fw-bold">Категория</label>
-                            <select class="form-select" id="category" name="category_id">
+                            <select <?= htmlspecialchars($disabled) ?> class="form-select" id="category" name="category_id">
                                 <option value="" selected>-- Глобальная (Не привязывать) --</option>
                                 <?php foreach ($categoriesList as $category): 
                                     $selected = $category['url'] === $curCategoryUrl ? 'selected' : '';
@@ -133,7 +133,7 @@
                         </div>
                         <div class="col-md-6">
                             <label for="tag_id" class="form-label fw-bold">Тег</label>
-                            <select class="form-select" id="tag" name="tag_id">
+                            <select <?= htmlspecialchars($disabled) ?> class="form-select" id="tag" name="tag_id">
                                 <option value="" selected>-- Глобальная (Не привязывать) --</option>
                                 <?php foreach ($tagsList as $tag): 
                                     $selected = $tag['url'] === $curTagUrl ? 'selected' : '';
@@ -159,7 +159,7 @@
                    
 
                     <div class="d-grid gap-2">
-                        <button type="submit" class="btn btn-primary btn-lg">Создать Настройку</button>
+                        <button type="submit" class="btn btn-primary btn-lg">Сохранить</button>
                     </div>
                 </form>
             </div>

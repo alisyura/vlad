@@ -72,8 +72,6 @@ class PostActionsModal {
                 return;
         }
         
-        alert('вызов delete');
-
         const bodyJson = { id: this.currentPostId };
         const csrfToken = document.querySelector('meta[name="csrf_token"]')?.content;
         if (!csrfToken) {
@@ -82,7 +80,6 @@ class PostActionsModal {
         }
 
         try {
-            alert('444');
             const response = await fetch(url, {
                 method: method,
                 headers: {
@@ -95,7 +92,7 @@ class PostActionsModal {
             if (this.bsModal) {
                 this.bsModal.hide();
             }
-alert('sdf');
+
             const result = await response.json();
             if (!response.ok) {
                 if (response.status === 401) {

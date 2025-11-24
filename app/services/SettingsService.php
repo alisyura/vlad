@@ -5,10 +5,12 @@
 class SettingsService
 {
     private SettingsModel $settingsModel;
+    private SettingsValidator $validator;
 
-    public function __construct(SettingsModel $settingsModel)
+    public function __construct(SettingsModel $settingsModel, SettingsValidator $validator)
     {
         $this->settingsModel = $settingsModel;
+        $this->validator = $validator;
     }
 
     /**
@@ -105,8 +107,71 @@ class SettingsService
         ?string $tagUrl = null, 
         ?string $comment = null): void
     {
+        $errors = $this->validator->validateCreate($key, 
+            $value, $categoryUrl, $tagUrl);
+        if (!empty($errors))
+        {
+            throw new UserDataException('Некорректно заполнены данные', $errors);
+        }
         $this->settingsModel->createSetting($groupName, $key, $value, 
             $categoryUrl, $tagUrl, $comment);
     }
 
+    public function settingExists($id): bool
+    {
+        return $this->settingsModel->getSettingById($id) !== null;
+    }
+
+    /**
+     * Получает одну настройку по её ID, включая URL привязанных категории и тега.
+     *
+     * @param int $id ID настройки.
+     * @return array|null Ассоциативный массив с данными настройки или null, если не найдена.
+     */
+    public function getSettingById(int $id): ?array
+    {
+        return $this->settingsModel->getSettingById($id);
+    }
+
+    public function updateSetting(
+        int $id,
+        string $groupName,
+        ?string $key,
+        string $value,
+        ?string $categoryUrl,
+        ?string $tagUrl,
+        ?string $comment): bool 
+    {
+        $errors = $this->validator->validateUpdate($id, $key, 
+            $value, $categoryUrl, $tagUrl);
+        if (!empty($errors))
+        {
+            throw new UserDataException('Некорректно заполнены данные', $errors);
+        }
+        if (!$this->settingsModel->updateSetting($id, $groupName, $key, $value, 
+            $categoryUrl, $tagUrl, $comment))
+        {
+            throw new SettingsException(
+                "Не удалось сохранить или обновить настройку"
+            );
+        }
+
+        return true;
+    }
+
+    /**
+     * Удаляет настройку и проверяет, была ли строка затронута.
+     *
+     * @param int $id ID настройки для удаления.
+     * @return bool Возвращает TRUE при успешном удалении.
+     * @throws InvalidArgumentException Если настройка с указанным ID не найдена.
+     */
+    public function deleteSetting(int $id): bool
+    {
+        if (!filter_var($id, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]])) {
+            throw new \InvalidArgumentException("Некорректный ID настройки.");
+        }
+        
+        return $this->settingsModel->deleteSetting($id);
+    }
 }

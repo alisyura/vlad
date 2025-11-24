@@ -21,6 +21,11 @@ class CsrfMiddleware implements MiddlewareInterface
     private Request $request;
 
     /**
+     * Для отображения ошибок
+     */
+    private ErrorResponseFactory $errorResponseFactory;
+
+    /**
      * Конструктор CsrfMiddleware.
      *
      * Внедряет зависимость Request через конструктор, обеспечивая доступ
@@ -28,9 +33,10 @@ class CsrfMiddleware implements MiddlewareInterface
      *
      * @param Request $request Объект запроса, предоставляемый фреймворком.
      */
-    public function __construct(Request $request)
+    public function __construct(Request $request, ErrorResponseFactory $errorResponseFactory)
     {
         $this->request = $request;
+        $this->errorResponseFactory = $errorResponseFactory;
     }
 
     /**
@@ -58,7 +64,7 @@ class CsrfMiddleware implements MiddlewareInterface
         // 2. Если токена в заголовке нет, ищем его в теле запроса (для обычных форм)
         // Для PUT/PATCH/DELETE токен часто передается в теле запроса, как и для POST.
         if (empty($token) && null !== $this->request->post('csrf_token')) {
-            $token = $_POST['csrf_token'];
+            $token = $this->request->post('csrf_token');
         }
 
         // Если токена нет нигде, или он невалидный, прерываем выполнение
@@ -70,11 +76,23 @@ class CsrfMiddleware implements MiddlewareInterface
                 $this->sendErrorJsonResponse('Неверный CSRF-токен.', 403);
             } else {
                 // Иначе делаем редирект или показываем страницу с ошибкой
-                header("Location: /error?code=403");
+                // header("Location: /error?code=403");
+                $this->errorResponseFactory->createClientError(
+                    'Некорректный CSRF токен', 
+                    'Произошла непредвиденная ошибка.', 
+                    403,
+                    $this->isAdminArea()
+                )->send();
             }
             exit;
         }
 
         return true;
+    }
+
+    private function isAdminArea(): bool
+    {
+        $requestUri=$this->request->getUri();
+        return str_starts_with($requestUri, '/'.Config::get('admin.AdminRoute'));
     }
 }

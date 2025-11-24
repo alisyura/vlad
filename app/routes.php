@@ -380,4 +380,25 @@ $router->addRoute("/$adminRoute/settings/create",
     function(Container $container): Response {
         $controller = $container->make(AdminSettingsController::class);
         return $controller->handleCreate();
-}, ['AdminAuthenticatedMiddleware'], ['method' => 'POST']);
+}, ['AdminAuthenticatedMiddleware', 'CsrfMiddleware'], ['method' => 'POST']);
+
+// Форма редактирования настройки
+$router->addRoute("/$adminRoute/settings/edit/(\d+)", 
+    function(Container $container, $id): Response {
+        $controller = $container->make(AdminSettingsController::class);
+        return $controller->edit($id);
+}, ['AdminAuthenticatedMiddleware']);
+
+// Обработчик редактирования настройки
+$router->addRoute("/$adminRoute/settings/edit/(\d+)", 
+    function(Container $container, $id): Response {
+        $controller = $container->make(AdminSettingsController::class);
+        return $controller->handleEdit($id);
+}, ['AdminAuthenticatedMiddleware', 'CsrfMiddleware'], ['method' => 'POST']);
+
+// Удаление настройки из БД
+$router->addRoute("/$adminRoute/settings/api/delete", 
+    function(Container $container): Response {
+        $controller = $container->make(AdminSettingsApiController::class);
+        return $controller->delete();
+}, ['AdminAuthenticatedMiddleware', 'AjaxMiddleware', 'CsrfMiddleware'], ['method' => 'DELETE']);
