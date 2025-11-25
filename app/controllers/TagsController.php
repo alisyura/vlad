@@ -15,6 +15,11 @@ class TagsController extends BaseController
     private TagsModelClient $model;
 
     /**
+     * Модель для получения сео настроек
+     */
+    private SettingsModel $settingModel;
+
+    /**
      * Конструктор класса TagsController.
      *
      * @param Request $request Объект запроса, внедряется через DI-контейнер.
@@ -23,10 +28,12 @@ class TagsController extends BaseController
      * @param ResponseFactory $responseFactory Фабрика для создания объектов Response, внедряемая через Dependency Injection.
      */
     public function __construct(Request $request, View $view, 
-        TagsModelClient $тagsModelClient, ResponseFactory $responseFactory)
+        TagsModelClient $тagsModelClient, ResponseFactory $responseFactory, 
+        SettingsModel $settingModel)
     {
         parent::__construct($request, $view, $responseFactory);
         $this->model = $тagsModelClient;
+        $this->settingModel = $settingModel;
     }
 
     /**
@@ -80,6 +87,11 @@ class TagsController extends BaseController
 
             $URL = $this->getRequest()->getBaseUrl();
 
+            $seoSettings = $this->settingModel->getMassSeoSettings([
+                'index_page_title',
+                'index_page_description',
+                'index_page_keywords']);
+
             $contentData = [
                 'show_caption' => true,
                 'full_url' => $this->getRequest()->getRequestUrl(),
@@ -90,10 +102,10 @@ class TagsController extends BaseController
                 'is_post' => false,
                 'export' => [
                     'page_type' => 'tegi',
-                    'title' => 'Поиск тэгов | ' . Config::get('global.SITE_NAME'),
-                    'site_name' => Config::get('global.SITE_NAME'),
-                    'keywords' => Config::get('global.SITE_KEYWORDS'),
-                    'description' => Config::get('global.SITE_DESCRIPTION'),
+                    'title' => 'Поиск тэгов | ' . $seoSettings['index_page_title']['value'],
+                    'site_name' => $seoSettings['index_page_title']['value'],
+                    'keywords' => $seoSettings['index_page_keywords']['value'],
+                    'description' => $seoSettings['index_page_description']['value'],
                     'url' => $URL . $this->getRequest()->getUri(),
                     'image' => $URL . asset('pic/logo.png'),
                     'urlTemplate' => sprintf('%s/cat/tegi-results.html?q={search_term_string}', $URL),
@@ -126,6 +138,11 @@ class TagsController extends BaseController
         $requestUrl = $this->getRequest()->getRequestUrl();
 
         try {
+            $seoSettings = $this->settingModel->getMassSeoSettings([
+                'index_page_title',
+                'index_page_description',
+                'index_page_keywords']);
+
             $contentData = [
                 'show_caption' => true,
                 'full_url' => $requestUrl,
@@ -135,9 +152,9 @@ class TagsController extends BaseController
                 'is_post' => false,
                 'export' => [
                     'page_type' => 'tegi',
-                    'site_name' => Config::get('global.SITE_NAME'),
-                    'keywords' => Config::get('global.SITE_KEYWORDS'),
-                    'description' => Config::get('global.SITE_DESCRIPTION'),
+                    'site_name' => $seoSettings['index_page_title']['value'],
+                    'keywords' => $seoSettings['index_page_keywords']['value'],
+                    'description' => $seoSettings['index_page_description']['value'],
                     'url' => $requestUrl,
                     'urlTemplate' => sprintf('%s/cat/tegi-results.html?q={search_term_string}', $this->getRequest()->getBaseUrl()),
                     'robots' => 'noindex, follow',

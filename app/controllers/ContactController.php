@@ -11,6 +11,11 @@ class ContactController extends BaseController
     private ContactFormValidator $validator;
 
     /**
+     * Модель для получения сео настроек
+     */
+    private SettingsModel $settingModel;
+
+    /**
      * Конструктор класса ContactController.
      *
      * @param Request $request Объект запроса, внедряется через DI-контейнер.
@@ -19,10 +24,12 @@ class ContactController extends BaseController
      * @param ResponseFactory $responseFactory Фабрика для создания объектов Response, внедряемая через DI-контейнер.
      */
     public function __construct(Request $request, View $view, 
-        ContactFormValidator $validator, ResponseFactory $responseFactory)
+        ContactFormValidator $validator, ResponseFactory $responseFactory,
+        SettingsModel $settingModel)
     {
         parent::__construct($request, $view, $responseFactory);
         $this->validator = $validator;
+        $this->settingModel = $settingModel;
     }
 
     /**
@@ -37,15 +44,20 @@ class ContactController extends BaseController
         try {
             $URL = $this->getRequest()->getBaseUrl();
 
+            $seoSettings = $this->settingModel->getMassSeoSettings([
+                'index_page_title',
+                'index_page_description',
+                'index_page_keywords']);
+
             $contentData = [
                 'full_url' => $this->getRequest()->getRequestUrl(),
                 'url_id' => 'kontakty',
                 'export' => [
                     'page_type' => 'kontakty',
-                    'title' => 'Обратная связь | ' . Config::get('global.SITE_NAME'),
-                    'site_name' => Config::get('global.SITE_NAME'),
-                    'keywords' => Config::get('global.SITE_KEYWORDS'),
-                    'description' => Config::get('global.SITE_DESCRIPTION'),
+                    'title' => 'Обратная связь | ' . $seoSettings['index_page_title']['value'],
+                    'site_name' => $seoSettings['index_page_title']['value'],
+                    'keywords' => $seoSettings['index_page_keywords']['value'],
+                    'description' => $seoSettings['index_page_description']['value'],
                     'url' => $URL,
                     'image' => $URL . asset('pic/logo.png'),
                     'robots' => 'noindex, follow',

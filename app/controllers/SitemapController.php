@@ -18,6 +18,11 @@ class SitemapController extends BaseController {
      */
     private SitemapModel $model;
 
+    /**
+     * Модель для получения сео настроек
+     */
+    private SettingsModel $settingModel;
+
      /**
      * Конструктор класса SitemapController.
      *
@@ -27,10 +32,11 @@ class SitemapController extends BaseController {
      * @param ApplicationResponseFactory $responseFactory Фабрика для создания объектов Response, внедряемая через Dependency Injection.
      */
     public function __construct(Request $request, View $view, SitemapModel $sitemapModel,
-        ApplicationResponseFactory $responseFactory) 
+        ApplicationResponseFactory $responseFactory, SettingsModel $settingModel) 
     {
         parent::__construct($request, $view, $responseFactory);
         $this->model = $sitemapModel;
+        $this->settingModel = $settingModel;
 
         $this->maxUrls = Config::get('posts.max_urls_in_sitemap');
     }
@@ -90,16 +96,21 @@ class SitemapController extends BaseController {
 
             $URL = $this->getRequest()->getBaseUrl();
 
+            $seoSettings = $this->settingModel->getMassSeoSettings([
+                'index_page_title',
+                'index_page_description',
+                'index_page_keywords']);
+
             $contentData = [
                 'data' => $result,
                 'full_url' => $this->getRequest()->getRequestUrl(),
                 'is_post' => false,
                 'export' => [
                     'page_type' => 'sitemap',
-                    'title' => 'Карта сайта | ' . Config::get('global.SITE_NAME'),
-                    'site_name' => Config::get('global.SITE_NAME'),
-                    'keywords' => Config::get('global.SITE_KEYWORDS'),
-                    'description' => Config::get('global.SITE_DESCRIPTION'),
+                    'title' => 'Карта сайта | ' . $seoSettings['index_page_title']['value'],
+                    'site_name' => $seoSettings['index_page_title']['value'],
+                    'keywords' => $seoSettings['index_page_keywords']['value'],
+                    'description' => $seoSettings['index_page_description']['value'],
                     'url' => $URL,
                     'image' => $URL . asset('pic/logo.png'),
                     'robots' => 'index, follow',
