@@ -78,6 +78,7 @@
                                    name="group_name" 
                                    placeholder="Например: General, Homepage, Analytics"
                                    list="existingGroupsList"
+                                   oninput="handleKeyInput(this)"
                                    value="<?= htmlspecialchars($curGroup) ?>">
                             <datalist id="existingGroupsList">
                                 <?php 

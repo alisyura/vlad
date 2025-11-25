@@ -86,6 +86,7 @@ class AdminSettingsController extends BaseAdminController
     public function handleCreate(): Response
     {
         $groupName = $this->getRequest()->post('group_name','');
+        $groupName = mb_convert_case($groupName, MB_CASE_TITLE, 'UTF-8');
         $key = $this->getRequest()->post('key','');
         $value = $this->getRequest()->post('value','');
         $categoryUrl = $this->getRequest()->post('category_id','');
@@ -183,6 +184,7 @@ class AdminSettingsController extends BaseAdminController
     {
         $id = filter_var($id, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
         $groupName = $this->getRequest()->post('group_name','');
+        $groupName = mb_convert_case($groupName, MB_CASE_TITLE, 'UTF-8');
         $key = $this->getRequest()->post('key');
         $value = $this->getRequest()->post('value','');
         $categoryUrl = $this->getRequest()->post('category_id');
