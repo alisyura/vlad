@@ -81,8 +81,8 @@
                             <a itemprop="url" href="/cat/anekdoty">Анекдоты</a>
                         </div>
                         <div class="menu-item">
-                            <img src="/assets/pic/menu/veselaya-rifma.png" alt="Веселая рифма" />
-                            <a itemprop="url" href="/cat/veselaya-rifma">Веселая рифма</a>
+                            <img src="/assets/pic/menu/veselaya_rifma.png" alt="Веселая рифма" />
+                            <a itemprop="url" href="/cat/veselaya_rifma">Веселая рифма</a>
                         </div>
                         <div class="menu-item">
                             <img src="/assets/pic/menu/citatnik.png" alt="Цитатник" />
