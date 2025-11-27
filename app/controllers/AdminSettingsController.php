@@ -103,7 +103,7 @@ class AdminSettingsController extends BaseAdminController
         } catch (UserDataException $e) {
             Logger::error("Error in create settingslist", [], $e);
 
-            $data = $this->createRenderData('Создание настройки');
+            $data = $this->createRenderData('Создание настройки', 'create');
             $newData = [
                 'curGroup' => $groupName,
                 'curKey' => $key,
@@ -121,7 +121,7 @@ class AdminSettingsController extends BaseAdminController
         } catch (Throwable $e) {
             Logger::error("Error in create settingslist", [], $e);
 
-            $data = $this->createRenderData('Создание настройки');
+            $data = $this->createRenderData('Создание настройки', 'create');
             $newData = [
                 'curGroup' => $groupName,
                 'curKey' => $key,
@@ -262,6 +262,7 @@ class AdminSettingsController extends BaseAdminController
                 'title' => $title,
                 'builtin' => '0',
                 'adminRoute' => $adminRoute,
+                'user_name' => $this->authService->getUserName(),
                 'active' => "settings", // для подсветки в левом меню
                 'categoriesList' => $this->listmodel->getAllCategories(),
                 'tagsList' => $this->listmodel->getAllTags(),

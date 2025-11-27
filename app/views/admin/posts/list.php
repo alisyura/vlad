@@ -232,7 +232,7 @@
                 <tr>
                     <td colspan="7" class="text-center py-5 no-posts-found">
                         <p class="mb-1">Посты не найдены</p>
-                        <a href="/<?= htmlspecialchars($adminRoute ?? 'admin') ?>/posts/create" class="btn btn-sm btn-outline-primary">Создать первый пост</a>
+                        <a href="/<?= htmlspecialchars($adminRoute ?? 'admin') ?>/<?= htmlspecialchars($articleType) ?>s/create" class="btn btn-sm btn-outline-primary">Создать первый пост</a>
                     </td>
                 </tr>
             <?php endif; ?>

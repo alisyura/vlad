@@ -193,11 +193,11 @@ body {
 
 /* Исходное состояние */
 .menu-item:nth-child(3) img {
-    content: url('/assets/pic/menu/veselaya-rifma.png'); /* Исходная иконка для первого пункта */
+    content: url('/assets/pic/menu/veselaya_rifma.png'); /* Исходная иконка для первого пункта */
 }
 /* Активное состояние */
 .menu-item:nth-child(3):hover img {
-    content: url('/assets/pic/menu/veselaya-rifma_hover.png'); /* Уникальная иконка для третьего пункта */
+    content: url('/assets/pic/menu/veselaya_rifma_hover.png'); /* Уникальная иконка для третьего пункта */
 }
 
 /* Исходное состояние */
