@@ -19,9 +19,9 @@
     <!-- Блок post_preview -->
     <div class="post_preview" itemscope itemtype="https://schema.org/Article" data-url="<?= htmlspecialchars($url) ?>/<?= htmlspecialchars($post['url']) ?>.html" data-id="<?= htmlspecialchars($post['url']) ?>">
         <!-- Schema.org внутри блока -->
-        <meta itemprop="url" content="<?= htmlspecialchars($url) ?>/<?= htmlspecialchars($post['url']) ?>.html"> 
         <meta itemprop="description" content="<?= get_clean_description(create_excerpt($post['content'])) ?>">
         <meta itemprop="dateModified" content="<?= dateISO8601($post['updated_at']) ?>">
+        <meta itemscope itemprop="mainEntityOfPage" itemType="https://schema.org/WebPage" itemid="<?= htmlspecialchars($url) ?>/<?= htmlspecialchars($post['url']) ?>.html"/>
 
         <div itemprop="author" itemscope itemtype="https://schema.org/Person" class="schema-hidden">
             <meta itemprop="name" content="Автор не указан"> 

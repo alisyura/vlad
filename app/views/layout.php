@@ -4,9 +4,9 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title itemprop="headline"><?= htmlspecialchars($exportData['title'] ?? '') ?></title>
-    <meta itemprop="keywords" name="keywords" content="<?= htmlspecialchars($exportData['keywords'] ?? '') ?>" />
-    <meta itemprop="description" name="description" content="<?= htmlspecialchars($exportData['description'] ?? '') ?>" />
+    <title><?= htmlspecialchars($exportData['title'] ?? '') ?></title>
+    <meta name="keywords" content="<?= htmlspecialchars($exportData['keywords'] ?? '') ?>" />
+    <meta name="description" content="<?= htmlspecialchars($exportData['description'] ?? '') ?>" />
     <?php if (!empty($exportData['robots']) && is_string($exportData['robots'])): ?>
         <meta name="robots" content="<?= htmlspecialchars($exportData['robots']) ?>" />
     <?php else: ?>
@@ -42,13 +42,6 @@
 </head>
 
 <body>
-    <div itemprop="publisher" itemscope itemtype="https://schema.org/Organization" class="schema-hidden">
-        <meta itemprop="name" content="<?= htmlspecialchars($exportData['site_name'] ?? '') ?>">
-        <div itemprop="logo" itemscope itemtype="https://schema.org/ImageObject">
-            <meta itemprop="url" content="<?= htmlspecialchars($exportData['image'] ?? '') ?>"> 
-        </div>
-        <meta itemprop="url" content="<?= htmlspecialchars($exportData['url'] ?? '') ?>"> 
-    </div>
     <div class="container">
         <!-- Левая часть - Меню -->
         <nav class="menu">
