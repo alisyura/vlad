@@ -39,6 +39,7 @@ class AdminSettingsController extends BaseAdminController
                 'adminRoute' => $this->getAdminRoute(),
                 'title' => 'Список настроек',
                 'active' => "settings", // для подсветки в левом меню
+                'user_name' => $this->authService->getUserName(),
                 'isUserAdmin' => $this->authService->isUserAdmin(),
                 'groupedSettingsList' => $groupedSettingsList,
                 'allowEdit' => $this->authService->isUserAdmin(),
