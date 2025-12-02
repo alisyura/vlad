@@ -82,6 +82,10 @@ class AdminPostsController extends BaseAdminController
             // Базовый URL для админки
             $basePageUrl=$this->getRequest()->getBasePageUrl();
             $isTrash = $this->hasThrash($basePageUrl);
+            if ($isTrash)
+            {
+                $filterData['selectedStatus'] = PostModelAdmin::STATUS_DELETED;
+            }
 
             // Определяем параметры пагинации
             $postsPerPage = Config::get('admin.PostsPerPage'); // Количество постов на страницу
@@ -198,7 +202,6 @@ class AdminPostsController extends BaseAdminController
                     'statuses' => [
                         'Ожидание' => PostModelAdmin::STATUS_PENDING,
                         'Опубликован' => PostModelAdmin::STATUS_PUBLISHED,
-                        'Удален' => PostModelAdmin::STATUS_DELETED,
                         'Черновик' => PostModelAdmin::STATUS_DRAFT
                     ],
                     ...($filterData),

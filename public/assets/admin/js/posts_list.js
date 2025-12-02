@@ -239,8 +239,9 @@ class PostSelection {
         
         // Добавляем обратно параметры запроса, если они были
         const queryString = window.location.search;
+        // alert(queryString+' - '+newPath);
         if (newPath) {
-            window.location.href = newPath + queryString;
+            window.location.href = newPath;
         }
     }
 }

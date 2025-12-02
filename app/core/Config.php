@@ -48,7 +48,7 @@ class Config
             'EnableEditCategory' => false,
             'AdminRoleName' => 'Administrator',
             // урлы страниц, которые не будут показаны в списке страниц в админке
-            'PagesToExclude' => ['sitemap', ''],
+            'PagesToExclude' => ['sitemap', 'kontakty'],
             'PostsToExclude' => [],
             'TagsPerPage' => 10,
         ]

@@ -32,6 +32,7 @@
                 </select>
             </div>
 
+            <?php if (!$isTrash): ?>
             <div class="col-12 col-md-auto">
                 <select class="form-select form-select-sm" name="status">
                     <option value="">— Все статусы —</option>
@@ -43,6 +44,7 @@
                     <?php endif ?>
                 </select>
             </div>
+            <?php endif ?>
 
             <div class="col-12 col-md-auto">
                 <input value="<?= htmlspecialchars($filter['selectedPostDate'] ?? '') ?>" type="text" id="post_date" name="post_date" class="form-control form-control-sm" placeholder="Дата">
