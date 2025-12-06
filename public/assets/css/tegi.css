@@ -29,7 +29,7 @@ h1.tegi_header {
 
 /* Стили для контейнера поиска */
 .tegi-search-container {
-    position: relative;
+    position: relative; /* Сохраняем для позиционирования clear-icon */
     display: flex;
     align-items: center;
     width: 100%;
@@ -38,11 +38,18 @@ h1.tegi_header {
 form.form-tegi-search-input {
     width: 100%;
     box-sizing: border-box; 
+    /* Добавляем relative для позиционирования иконок внутри формы */
+    position: relative; 
 }
+
 /* Стили для поля ввода */
 .tegi-search-input {
     width: 100%;
-    padding: 16px 48px 16px 48px; /* Верх/нижний отступ 16px, левый и правый — 48px (учитывая иконки) */
+    /*
+    - Левый отступ 48px (для Лупы)
+    - Правый отступ 48px (для кнопки отправки)
+    */
+    padding: 16px 48px 16px 48px; 
     border: 1px solid #B8B7B4;
     border-radius: 10px;
     font-size: 14px;
@@ -64,20 +71,82 @@ form.form-tegi-search-input {
     transform: translateY(-50%);
     background-color: transparent;
     border: none;
-}
-
-.clear-icon {
+    padding: 0; /* Убираем лишний padding */
+    height: 20px; /* Фиксированная высота для лучшего центрирования */
+    width: 20px; /* Фиксированная ширина */
     cursor: pointer;
 }
 
-/* Лупа (иконка поиска) */
-.search-icon {
-    left: 16px;
+/* 1. Внешняя кнопка (.submit-icon) - контейнер и позиционирование */
+.submit-icon {
+    /* Позиционирование - вторая справа */
+    position: absolute;
+    right: 48px; /* 16px (отступ) + 20px (ширина clear-icon) + 12px (зазор) = 48px */
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    z-index: 10;
+    
+    /* Делаем ее прозрачной и без границ, чтобы виден был только внутренний div */
+    width: 32px; 
+    height: 32px; 
+    background-color: transparent; 
+    border: none;
+    padding: 0;
+    
+    /* Центрирование внутреннего div */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
 }
 
-/* Крестик (иконка очистки) */
+/* Внутренний DIV (.submit-arrow-shape) - визуальный элемент */
+.submit-arrow-shape {
+    /* Наследуем или задаем размер, чтобы он был виден */
+    width: 24px; 
+    height: 24px; 
+    background-color: #DD6E53; /* Цвет фона */
+    border-radius: 6px; /* Скругление */
+    
+    /* Подготовка для стрелки */
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Создание стрелки внутри внутреннего DIV */
+.submit-arrow-shape::after {
+    content: '';
+    display: block;
+    width: 6px; 
+    height: 6px; 
+    border-top: 2px solid #ffffff; /* Белый цвет */
+    border-right: 2px solid #ffffff;
+    
+    /* Поворот на 45 градусов */
+    transform: rotate(45deg);
+    /* Небольшое смещение влево для оптического центрирования */
+    margin-left: -3px;
+}
+
+/* Лупа (иконка поиска), теперь внутри формы */
+.search-icon {
+    left: 16px; /* Позиционируется относительно формы */
+    cursor: default; /* Не должна быть кликабельной, если не submit */
+}
+
+/* Кнопка отправки (НОВАЯ) */
+.submit-icon {
+    right: 36px; /* Позиционируется относительно формы, справа */
+    z-index: 10; /* Убедимся, что она поверх поля ввода */
+}
+
+/* Крестик (иконка очистки), вне формы, позиционируется относительно tegi-search-container */
 .clear-icon {
-    right: 16px;
+    right: 16px; /* Позиционируется относительно контейнера */
+    z-index: 11; /* Должна быть поверх submit-icon */
 }
 
 .tegi-search-result {
