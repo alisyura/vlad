@@ -65,7 +65,7 @@ $router->addRoute('/tag\/([0-9a-zA-Z-_]+)(?:\/p(\d+))?',
 }, ['PageCacheMiddleware']);
 
 // Список постов по разделу
-$router->addRoute('/cat\/(anekdoty|veselaya-rifma|citatnik|istorii|kartinki|video|luchshee)(?:\/p(\d+))?', 
+$router->addRoute('/cat\/(anekdoty|veselaya_rifma|citatnik|istorii|kartinki|video|luchshee)(?:\/p(\d+))?', 
     function(Container $container, $cat_url, $page = 1): Response {
         $controller = $container->make(PostController::class);
         return $controller->showBySection($cat_url, $cat_url === 'istorii', max(1, (int)$page));

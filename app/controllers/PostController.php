@@ -49,6 +49,11 @@ class PostController extends BaseController {
         
             $seoSettings = $this->settingModel->getMassSeoSettings([
                 'index_page_title']);
+            
+            $metaTitle = trim($post['meta_title'] ?? '');
+            if ($metaTitle === '') {
+                $metaTitle = $post['title'];
+            }
 
             $renderParams =[
                 'post' => $post,
@@ -58,7 +63,7 @@ class PostController extends BaseController {
                 'export' => [
                     'page_type' => 'post',
                     'site_name' => $seoSettings['index_page_title']['value'],
-                    'title' => $post['meta_title'] . ' | ' . $seoSettings['index_page_title']['value'],
+                    'title' => $metaTitle, //$post['meta_title'] . ' | ' . $seoSettings['index_page_title']['value'],
                     'keywords' => $post['meta_keywords'],
                     'description' => $post['meta_description'],
                     'url' => $baseUrl,
@@ -101,6 +106,11 @@ class PostController extends BaseController {
             $seoSettings = $this->settingModel->getMassSeoSettings([
                 'index_page_title']);
 
+            $metaTitle = trim($page['meta_title'] ?? '');
+            if ($metaTitle === '') {
+                $metaTitle = $page['title'];
+            }
+
             $contentData = [
                 'post' => $page,
                 'full_url' => $URL,
@@ -109,7 +119,7 @@ class PostController extends BaseController {
                 'export' => [
                     'page_type' => 'post',
                     'site_name' => $seoSettings['index_page_title']['value'],
-                    'title' => $page['meta_title'] . ' | ' . $seoSettings['index_page_title']['value'],
+                    'title' => $metaTitle, //$page['meta_title'] . ' | ' . $seoSettings['index_page_title']['value'],
                     'keywords' => $page['meta_keywords'],
                     'description' => $page['meta_description'],
                     'url' => $baseUrl,
@@ -224,9 +234,14 @@ class PostController extends BaseController {
             // здесь категория одна у всех постов, поэтому берем из 1го элемента
             $category_name = (!empty($posts) ? ($posts[0]['category_name'] ?? '') : '');
 
-            ['keywords' => $keywords, 'description' => $description,
+            ['title' => $title, 'keywords' => $keywords, 'description' => $description,
                 'caption' => $caption, 'caption_desc' => $caption_desc, 
                 'seoTitle' => $seoTitle] = $this->getSeoParams("cat_{$cat_url}", $cat_url, null, $category_name);
+
+            if ($title === null || empty(trim($title)))
+            {
+                $title = "$category_name | " . $seoTitle;
+            }
             
             $contentData = [
                 'posts' => $posts,
@@ -246,7 +261,7 @@ class PostController extends BaseController {
                 'export' => [
                     'page_type' => 'home',
                     'site_name' => $seoTitle,
-                    'title' => "$category_name | " . $seoTitle,
+                    'title' => $title,
                     'keywords' => $keywords,
                     'description' => $description,
                     'url' => $baseUrl,
@@ -291,9 +306,14 @@ class PostController extends BaseController {
             $baseUrl = $this->getRequest()->getBaseUrl();
             $tag_name = (!empty($posts) ? ($posts[0]['tag_name'] ?? '') : '');
 
-            ['keywords' => $keywords, 'description' => $description,
+            ['title' => $title, 'keywords' => $keywords, 'description' => $description,
                 'caption' => $caption, 'caption_desc' => $caption_desc, 
                 'seoTitle' => $seoTitle] = $this->getSeoParams("tag_{$tag_url}", null, $tag_url, $tag_name);
+
+            if ($title === null || empty(trim($title)))
+            {
+                $title = "$tag_name | " . $seoTitle;
+            }
 
             $contentData = [
                 'posts' => $posts,
@@ -313,7 +333,7 @@ class PostController extends BaseController {
                 'export' => [
                     'page_type' => 'home',
                     'site_name' => $seoTitle,
-                    'title' => "$tag_name | " . $seoTitle,
+                    'title' => $title,
                     'keywords' => $keywords,
                     'description' => $description,
                     'url' => $this->getRequest()->getRequestUrl(),
@@ -370,6 +390,7 @@ class PostController extends BaseController {
                 'index_page_title',
                 'index_page_description',
                 'index_page_keywords',
+                "{$prefixName}_title",
                 "{$prefixName}_keywords",
                 "{$prefixName}_description",
                 "{$prefixName}_caption",
@@ -379,6 +400,7 @@ class PostController extends BaseController {
             $tagUrlParams);
 
         $seoTitle = $seoSettings["index_page_title"]['value'];
+        $title = $seoSettings["{$prefixName}_title"] ? $seoSettings["{$prefixName}_title"]['value'] : null;
         $keywords = $seoSettings["{$prefixName}_keywords"] ?? $seoSettings["index_page_keywords"];
         $description = $seoSettings["{$prefixName}_description"] ?? $seoSettings["index_page_description"];
         $keywords = $keywords['value'];
@@ -398,8 +420,11 @@ class PostController extends BaseController {
         $caption_desc = ($seoSettings["{$prefixName}_caption_desc"] ?? [])['value'] ?? null;
         
 
-        return ['keywords' => $keywords, 'description' => $description,
-            'caption' => $caption, 'caption_desc' => $caption_desc, 
+        return ['title' => $title, 
+            'keywords' => $keywords, 
+            'description' => $description,
+            'caption' => $caption, 
+            'caption_desc' => $caption_desc, 
             'seoTitle' => $seoTitle];
     }
 }
