@@ -47,17 +47,27 @@ class ContactController extends BaseController
             $seoSettings = $this->settingModel->getMassSeoSettings([
                 'index_page_title',
                 'index_page_description',
-                'index_page_keywords']);
+                'index_page_keywords',
+                'contact_title',
+                'contact_keywords',
+                'contact_description']);
+            
+            $title = $seoSettings['contact_title'];
+            $keywords = $seoSettings['contact_keywords'] ?? $seoSettings['index_page_keywords'];
+            $description = $seoSettings['contact_description'] ?? $seoSettings['index_page_description'];
+            $title = is_array($title) ? $title['value'] : 'Обратная связь';
+            $keywords = $keywords['value'];
+            $description = $description['value'];
 
             $contentData = [
                 'full_url' => $this->getRequest()->getRequestUrl(),
                 'url_id' => 'kontakty',
                 'export' => [
                     'page_type' => 'kontakty',
-                    'title' => 'Обратная связь | ' . $seoSettings['index_page_title']['value'],
+                    'title' => $title,
                     'site_name' => $seoSettings['index_page_title']['value'],
-                    'keywords' => $seoSettings['index_page_keywords']['value'],
-                    'description' => $seoSettings['index_page_description']['value'],
+                    'keywords' => $keywords,
+                    'description' => $description,
                     'url' => $URL,
                     'image' => $URL . asset('pic/logo.png'),
                     'robots' => 'noindex, follow',

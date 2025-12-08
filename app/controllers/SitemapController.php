@@ -99,7 +99,17 @@ class SitemapController extends BaseController {
             $seoSettings = $this->settingModel->getMassSeoSettings([
                 'index_page_title',
                 'index_page_description',
-                'index_page_keywords']);
+                'index_page_keywords',
+                'sitemap_title',
+                'sitemap_keywords',
+                'sitemap_description']);
+            
+            $title = $seoSettings['sitemap_title'];
+            $keywords = $seoSettings['sitemap_keywords'] ?? $seoSettings['index_page_keywords'];
+            $description = $seoSettings['sitemap_description'] ?? $seoSettings['index_page_description'];
+            $title = is_array($title) ? $title['value'] : 'Карта сайта';
+            $keywords = $keywords['value'];
+            $description = $description['value'];
 
             $contentData = [
                 'data' => $result,
@@ -107,10 +117,10 @@ class SitemapController extends BaseController {
                 'is_post' => false,
                 'export' => [
                     'page_type' => 'sitemap',
-                    'title' => 'Карта сайта | ' . $seoSettings['index_page_title']['value'],
+                    'title' => $title,
                     'site_name' => $seoSettings['index_page_title']['value'],
-                    'keywords' => $seoSettings['index_page_keywords']['value'],
-                    'description' => $seoSettings['index_page_description']['value'],
+                    'keywords' => $keywords,
+                    'description' => $description,
                     'url' => $URL,
                     'image' => $URL . asset('pic/logo.png'),
                     'robots' => 'index, follow',
