@@ -1,7 +1,7 @@
 <!-- Блок post_preview -->
 <div class="contact_full" itemscope itemtype="https://schema.org/ContactPage">
     <!-- Schema.org внутри блока -->
-    <meta itemprop="url" content="<?= htmlspecialchars($full_url) ?>"> 
+    <meta itemscope itemprop="mainEntityOfPage" itemType="https://schema.org/WebPage" itemid="<?= htmlspecialchars($full_url) ?>"/>
     
     <!-- Заголовок поста -->
     <h1 class="post_preview_header">Обратная связь</h1>

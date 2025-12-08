@@ -2,7 +2,7 @@
 <article class="post_full" itemscope itemtype="https://schema.org/Article" data-url="<?= htmlspecialchars($full_url) ?>" data-id="<?= htmlspecialchars($post['url']) ?>">
     <!-- Schema.org внутри блока -->
     <meta itemprop="description" content="<?= get_clean_description(create_excerpt($post['content'])) ?>">
-    <meta itemprop="url" content="<?= htmlspecialchars($full_url) ?>"> 
+    <meta itemscope itemprop="mainEntityOfPage" itemType="https://schema.org/WebPage" itemid="<?= htmlspecialchars($full_url) ?>"/>
     <?php if ($is_post && isset($post_image)): ?>
     <meta itemprop="image" content="<?= htmlspecialchars($post_image) ?>"> 
     <?php endif ?>

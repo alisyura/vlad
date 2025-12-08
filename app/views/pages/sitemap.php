@@ -1,7 +1,7 @@
 <!-- Блок post_preview -->
 <div class="sitemap_full" itemscope itemtype="https://schema.org/WebPage">
     <!-- Schema.org внутри блока -->
-    <meta itemprop="url" content="<?= htmlspecialchars($full_url) ?>"> 
+    <meta itemscope itemprop="mainEntityOfPage" itemType="https://schema.org/WebPage" itemid="<?= htmlspecialchars($full_url) ?>"/>
     
     <!-- Заголовок поста -->
     <h1 class="sitemap_header">Карта сайта</h1>
