@@ -43,7 +43,7 @@ class SettingsValidator
         {
             $errors[] = 'Некорректное ID';
         }
-        if (empty($value))
+        if (trim($value) === '')
         {
             $errors[] = 'Значение не может быть пустым';
         }

@@ -11,9 +11,9 @@ class ContactController extends BaseController
     private ContactFormValidator $validator;
 
     /**
-     * Модель для получения сео настроек
+     * Сервис для получения сео настроек
      */
-    private SettingsModel $settingModel;
+    private SettingsService $settingsService;
 
     /**
      * Конструктор класса ContactController.
@@ -22,14 +22,15 @@ class ContactController extends BaseController
      * @param View $view Объект для отображения HTML шаблонов, внедряется через DI-контейнер.
      * @param ContactFormValidator $validator Валидатор, которые проверяет заполненные поля перед отпраывкой сообщения, внедряется через DI-контейнер.
      * @param ResponseFactory $responseFactory Фабрика для создания объектов Response, внедряемая через DI-контейнер.
+     * @param SettingsService $settingsService Сервис для получения сео настроек, внедряемая через DI-контейнер.
      */
     public function __construct(Request $request, View $view, 
         ContactFormValidator $validator, ResponseFactory $responseFactory,
-        SettingsModel $settingModel)
+        SettingsService $settingsService)
     {
         parent::__construct($request, $view, $responseFactory);
         $this->validator = $validator;
-        $this->settingModel = $settingModel;
+        $this->settingsService = $settingsService;
     }
 
     /**
@@ -44,7 +45,7 @@ class ContactController extends BaseController
         try {
             $URL = $this->getRequest()->getBaseUrl();
 
-            $seoSettings = $this->settingModel->getMassSeoSettings([
+            $seoSettings = $this->settingsService->getMassSeoSettings([
                 'index_page_title',
                 'index_page_description',
                 'index_page_keywords',

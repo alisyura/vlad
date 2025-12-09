@@ -28,16 +28,19 @@ class PageCacheMiddleware implements MiddlewareInterface
      */
     private Request $request;
 
+    private SettingsService $settingsService;
+
     /**
      * Конструктор.
      * Инициализирует свойства из конфигурации.
      */
-    public function __construct(Request $request)
+    public function __construct(Request $request, SettingsService $settingsService)
     {
         $this->cacheDir = Config::get('cache.CacheDir');
         $this->cacheLifetime = Config::get('cache.CacheLifetime');
         $this->useCache = Config::get('cache.UseCache');
         $this->request = $request;
+        $this->settingsService = $settingsService;
     }
 
     /**

@@ -15,9 +15,9 @@ class TagsController extends BaseController
     private TagsModelClient $model;
 
     /**
-     * Модель для получения сео настроек
+     * Сервис для получения сео настроек
      */
-    private SettingsModel $settingModel;
+    private SettingsService $settingService;
 
     /**
      * Конструктор класса TagsController.
@@ -29,11 +29,11 @@ class TagsController extends BaseController
      */
     public function __construct(Request $request, View $view, 
         TagsModelClient $тagsModelClient, ResponseFactory $responseFactory, 
-        SettingsModel $settingModel)
+        SettingsService $settingService)
     {
         parent::__construct($request, $view, $responseFactory);
         $this->model = $тagsModelClient;
-        $this->settingModel = $settingModel;
+        $this->settingService = $settingService;
     }
 
     /**
@@ -87,10 +87,20 @@ class TagsController extends BaseController
 
             $URL = $this->getRequest()->getBaseUrl();
 
-            $seoSettings = $this->settingModel->getMassSeoSettings([
+            $seoSettings = $this->settingService->getMassSeoSettings([
                 'index_page_title',
                 'index_page_description',
-                'index_page_keywords']);
+                'index_page_keywords',
+                'tags_search_page_title',
+                'tags_search_page_description',
+                'tags_search_page_keywords']);
+
+            $title = $seoSettings['tags_search_page_title'];
+            $keywords = $seoSettings['tags_search_page_keywords'] ?? $seoSettings['index_page_keywords'];
+            $description = $seoSettings['tags_search_page_description'] ?? $seoSettings['index_page_description'];
+            $title = is_array($title) ? $title['value'] : 'Поиск тэгов';
+            $keywords = $keywords['value'];
+            $description = $description['value'];
 
             $contentData = [
                 'show_caption' => true,
@@ -102,10 +112,10 @@ class TagsController extends BaseController
                 'is_post' => false,
                 'export' => [
                     'page_type' => 'tegi',
-                    'title' => 'Поиск тэгов | ' . $seoSettings['index_page_title']['value'],
+                    'title' => $title,
                     'site_name' => $seoSettings['index_page_title']['value'],
-                    'keywords' => $seoSettings['index_page_keywords']['value'],
-                    'description' => $seoSettings['index_page_description']['value'],
+                    'keywords' => $keywords,
+                    'description' => $description,
                     'url' => $URL . $this->getRequest()->getUri(),
                     'image' => $URL . asset('pic/logo.png'),
                     'urlTemplate' => sprintf('%s/cat/tegi-results.html?q={search_term_string}', $URL),
@@ -138,7 +148,7 @@ class TagsController extends BaseController
         $requestUrl = $this->getRequest()->getRequestUrl();
 
         try {
-            $seoSettings = $this->settingModel->getMassSeoSettings([
+            $seoSettings = $this->settingService->getMassSeoSettings([
                 'index_page_title',
                 'index_page_description',
                 'index_page_keywords']);

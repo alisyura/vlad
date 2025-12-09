@@ -12,9 +12,9 @@ class PostController extends BaseController {
     private PaginationService $paginService;
 
     /**
-     * Модель для получения сео настроек
+     * Сервис для получения сео настроек
      */
-    private SettingsModel $settingModel;
+    private SettingsService $settingsService;
 
     /**
      * Конструктор класса PostController.
@@ -23,15 +23,16 @@ class PostController extends BaseController {
      * @param View $view Объект представления, внедряемый через Dependency Injection.
      * @param PostModelClient $sitemapModel Объект модели, внедряемый через Dependency Injection.
      * @param ResponseFactory $responseFactory Фабрика для создания объектов Response, внедряемая через Dependency Injection.
-     * @param PaginationService $paginService Сервис для вычисления параметров пагинации, внедряется через Dependency Injection..
+     * @param PaginationService $paginService Сервис для вычисления параметров пагинации, внедряется через Dependency Injection.
+     * @param SettingsService $settingsService Сервис для получения сео настроек, внедряется через Dependency Injection.
      */
     public function __construct(Request $request, View $view, PostModelClient $postModel,
-        ResponseFactory $responseFactory, PaginationService $paginService, SettingsModel $settingModel)
+        ResponseFactory $responseFactory, PaginationService $paginService, SettingsService $settingsService)
     {
         parent::__construct($request, $view, $responseFactory);
         $this->model = $postModel;
         $this->paginService = $paginService;
-        $this->settingModel = $settingModel;
+        $this->settingsService = $settingsService;
     }
 
     /*
@@ -47,7 +48,7 @@ class PostController extends BaseController {
             $baseUrl= $this->getRequest()->getBaseUrl();
             $URL = sprintf("%s/%s", $baseUrl, $post['url']).'.html';
         
-            $seoSettings = $this->settingModel->getMassSeoSettings([
+            $seoSettings = $this->settingsService->getMassSeoSettings([
                 'index_page_title']);
             
             $metaTitle = trim($post['meta_title'] ?? '');
@@ -103,7 +104,7 @@ class PostController extends BaseController {
             $baseUrl= $this->getRequest()->getBaseUrl();
             $URL = sprintf("%s/%s", $baseUrl, $page['url']).'.html';
         
-            $seoSettings = $this->settingModel->getMassSeoSettings([
+            $seoSettings = $this->settingsService->getMassSeoSettings([
                 'index_page_title']);
 
             $metaTitle = trim($page['meta_title'] ?? '');
@@ -166,7 +167,7 @@ class PostController extends BaseController {
 
             $baseUrl = $this->getRequest()->getBaseUrl();
 
-            $seoSettings = $this->settingModel->getMassSeoSettings([
+            $seoSettings = $this->settingsService->getMassSeoSettings([
                 'index_page_title',
                 'index_page_description',
                 'index_page_keywords']);
@@ -385,7 +386,7 @@ class PostController extends BaseController {
         $catUrlParams = ($categoryUrl !== null) ? [$categoryUrl] : [];
         $tagUrlParams = ($tagUrl !== null) ? [$tagUrl] : [];
 
-        $seoSettings = $this->settingModel->getMassSeoSettings(
+        $seoSettings = $this->settingsService->getMassSeoSettings(
             [
                 'index_page_title',
                 'index_page_description',

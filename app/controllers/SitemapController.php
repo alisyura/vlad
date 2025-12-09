@@ -19,9 +19,9 @@ class SitemapController extends BaseController {
     private SitemapModel $model;
 
     /**
-     * Модель для получения сео настроек
+     * Сервис для получения сео настроек
      */
-    private SettingsModel $settingModel;
+    private SettingsService $settingsService;
 
      /**
      * Конструктор класса SitemapController.
@@ -30,13 +30,14 @@ class SitemapController extends BaseController {
      * @param View $view Объект представления, внедряемый через Dependency Injection.
      * @param SitemapModel $sitemapModel Объект модели, внедряемый через Dependency Injection.
      * @param ApplicationResponseFactory $responseFactory Фабрика для создания объектов Response, внедряемая через Dependency Injection.
+     * @param SettingsService $responseFactory Сервис для получения сео настроек, внедряемая через Dependency Injection.
      */
     public function __construct(Request $request, View $view, SitemapModel $sitemapModel,
-        ApplicationResponseFactory $responseFactory, SettingsModel $settingModel) 
+        ApplicationResponseFactory $responseFactory, SettingsService $settingsService) 
     {
         parent::__construct($request, $view, $responseFactory);
         $this->model = $sitemapModel;
-        $this->settingModel = $settingModel;
+        $this->settingsService = $settingsService;
 
         $this->maxUrls = Config::get('posts.max_urls_in_sitemap');
     }
@@ -96,7 +97,7 @@ class SitemapController extends BaseController {
 
             $URL = $this->getRequest()->getBaseUrl();
 
-            $seoSettings = $this->settingModel->getMassSeoSettings([
+            $seoSettings = $this->settingsService->getMassSeoSettings([
                 'index_page_title',
                 'index_page_description',
                 'index_page_keywords',

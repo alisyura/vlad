@@ -36,9 +36,7 @@ class Config
             'UploadedMinWidth' => 400
         ],
         'cache' => [
-            'CacheDir' => 'C:\\Users\\kriya\\Projects\\web\\vlad.local\\cache\\pages/',
-            'CacheLifetime' => 3600,
-            'UseCache' => false
+            'CacheDir' => 'C:\\Users\\kriya\\Projects\\web\\vlad.local\\cache\\pages/'
         ],
         'admin' => [
             'AdminEmail' => 'admin@admin.ru',
