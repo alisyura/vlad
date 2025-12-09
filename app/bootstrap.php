@@ -85,3 +85,4 @@ $container->bind(SettingsModel::class, SettingsModel::class);
 $container->bind(SettingsService::class, SettingsService::class);
 $container->bind(SettingsValidator::class, SettingsValidator::class);
 $container->bind(AdminSettingsApiController::class, AdminSettingsApiController::class);
+$container->bind(AdminCacheApiController::class, AdminCacheApiController::class);

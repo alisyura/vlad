@@ -81,4 +81,22 @@ class Config
     {
         return true;
     }
+
+    public static function getConfigValue(array $settings, string $key, $default)
+    {
+        // Проверяем, существует ли ключ в массиве $settings
+        if (!isset($settings[$key])) {
+            return $default;
+        }
+        
+        $configItem = $settings[$key];
+        
+        // Если это массив и в нём есть ключ 'value', возвращаем его
+        if (is_array($configItem) && isset($configItem['value'])) {
+            return $configItem['value'];
+        }
+        
+        // Иначе возвращаем сам элемент (для обратной совместимости)
+        return $configItem;
+    }
 }

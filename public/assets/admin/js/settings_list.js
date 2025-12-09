@@ -8,7 +8,7 @@ class PostActionsModal {
         this.currentPostId = null;
         this.currentAction = null;
 
-        this.actionLinks = document.querySelectorAll('.delete-post-link'); 
+        this.actionLinks = document.querySelectorAll('.delete-post-link, #clearCacheBtn'); 
         this.confirmActionModal = document.getElementById('confirmDeleteModal');
         this.confirmActionBtn = document.getElementById('confirmDeleteBtn');
         this.bsModal = null;
@@ -40,13 +40,22 @@ class PostActionsModal {
         if (this.confirmActionModal) {
             const modalTitle = this.confirmActionModal.querySelector('#confirmDeleteModalLabel');
             const modalBody = this.confirmActionModal.querySelector('.modal-body');
+            this.confirmActionBtn.classList.remove('btn-danger', 'btn-success', 'btn-secondary');
+            // Установим класс по умолчанию (например, серый)
+            this.confirmActionBtn.classList.add('btn-secondary');
 
             if (this.currentAction === 'delete') {
                 modalTitle.textContent = `Подтвердите удаление настройки`; // Упрощено
                 modalBody.innerHTML = `Вы действительно хотите <b style="color: red;">удалить навсегда</b> настройку: ${postTitle}? Это действие нельзя отменить.`; 
-                this.confirmActionBtn.classList.remove('btn-success');
+                this.confirmActionBtn.classList.remove('btn-secondary');
                 this.confirmActionBtn.classList.add('btn-danger');
                 this.confirmActionBtn.textContent = 'Да, удалить';
+            } else if (this.currentAction === 'clear_cache') {
+                modalTitle.textContent = `Подтвердите очистку кэша`;
+                modalBody.innerHTML = `Вы действительно хотите <b style="color: orange;">очистить</b> ${postTitle}?`;
+                this.confirmActionBtn.classList.remove('btn-secondary');
+                this.confirmActionBtn.classList.add('btn-success');
+                this.confirmActionBtn.textContent = 'Да, очистить';
             }
 
             this.bsModal = new bootstrap.Modal(this.confirmActionModal);
@@ -58,21 +67,28 @@ class PostActionsModal {
      * Обработка подтверждения действия.
      */
     async confirmAction() {
-        if (!this.currentPostId) return;
+        if (!this.currentAction) return;
 
         let url;
-        let method = 'DELETE'; // Настройки обычно удаляются навсегда (DELETE)
+        let method = 'POST';
+        let bodyJson = {};
         
         switch (this.currentAction) {
             case 'delete':
+                if (!this.currentPostId) return;
                 url = `/${adminRoute}/settings/api/delete`;
+                method = 'DELETE';
+                bodyJson = { id: this.currentPostId };
+                break;
+            case 'clear_cache':
+                url = `/${adminRoute}/cache/api/clear-cache`;
+                method = 'POST';
                 break;
             default:
                 console.error('Неизвестное действие');
                 return;
         }
         
-        const bodyJson = { id: this.currentPostId };
         const csrfToken = document.querySelector('meta[name="csrf_token"]')?.content;
         if (!csrfToken) {
             alert('Ошибка: CSRF-токен не найден.');
@@ -108,6 +124,7 @@ class PostActionsModal {
             }
 
             if (result.success) {
+                alert(result.message);
                 location.reload();
             } else {
                 alert('Ошибка: ' + (result.message || 'Не удалось выполнить действие.'));

@@ -108,7 +108,15 @@
                 <h3 class="mb-4 text-primary">Настройки группы <?= htmlspecialchars($groupName) ?></h3>
 
                 <?php if ($groupName === "Cache"): ?>
-                    <button type="submit" class="btn btn-secondary mb-2">Очистить кэш</button>
+                    <button
+                        type="button" 
+                        class="btn btn-secondary mb-2"
+                        id="clearCacheBtn" 
+                        data-action="clear_cache" 
+                        data-post-title="всего кэша системы"
+                    >
+                        Очистить кэш
+                    </button>
                 <?php endif ?>
 
                 <div class="table-responsive">

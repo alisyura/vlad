@@ -402,3 +402,10 @@ $router->addRoute("/$adminRoute/settings/api/delete",
         $controller = $container->make(AdminSettingsApiController::class);
         return $controller->delete();
 }, ['AdminAuthenticatedMiddleware', 'AjaxMiddleware', 'CsrfMiddleware'], ['method' => 'DELETE']);
+
+// Очистка кэша
+$router->addRoute("/$adminRoute/cache/api/clear-cache", 
+    function(Container $container): Response {
+        $controller = $container->make(AdminCacheApiController::class);
+        return $controller->clear();
+}, ['UserAuthenticatedMiddleware', 'AjaxMiddleware', 'CsrfMiddleware'], ['method' => 'POST']);

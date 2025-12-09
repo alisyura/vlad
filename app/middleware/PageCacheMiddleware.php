@@ -12,13 +12,13 @@
 class PageCacheMiddleware implements MiddlewareInterface
 {
     /** @var string Директория для хранения файлов кэша. */
-    private $cacheDir;
+    private string $cacheDir;
 
     /** @var int Время жизни кэша в секундах. */
-    private $cacheLifetime;
+    private int $cacheLifetime;
 
     /** @var bool Флаг, указывающий, использовать ли кэш. */
-    private $useCache;
+    private bool $useCache;
 
     /**
      * Класс, представляющий HTTP-запрос.
@@ -36,12 +36,46 @@ class PageCacheMiddleware implements MiddlewareInterface
      */
     public function __construct(Request $request, SettingsService $settingsService)
     {
-        $this->cacheDir = Config::get('cache.CacheDir');
-        $this->cacheLifetime = Config::get('cache.CacheLifetime');
-        $this->useCache = Config::get('cache.UseCache');
         $this->request = $request;
         $this->settingsService = $settingsService;
+        ['cacheDir' => $this->cacheDir, 
+         'cacheEnabled' => $this->useCache,
+         'cacheLifetime' => $this->cacheLifetime] = $this->fillCacheSettings();
     }
+
+    /**
+     * Извлекает настройки кэширования (включение/выключение, время жизни)
+     * и директорию кэша, нормализуя их типы.
+     *
+     * Настройки 'cache_enabled' и 'cache_lifetime' извлекаются из сервиса настроек 
+     * и приводятся к булеву и целочисленному типу соответственно, 
+     * используя значения по умолчанию в случае отсутствия.
+     *
+     * @return array{cacheDir: string, cacheEnabled: bool, cacheLifetime: int}
+     * Массив, содержащий нормализованные настройки кэша:
+     * - 'cacheDir' (string): Путь к директории кэша.
+     * - 'cacheEnabled' (bool): Флаг включения/выключения кэша.
+     * - 'cacheLifetime' (int): Время жизни кэша в секундах (по умолчанию 3600).
+     */
+    private function fillCacheSettings(): array
+    {
+        $cacheDir = Config::get('cache.CacheDir');
+        $settings = $this->settingsService->getMassSeoSettings([
+            'cache_enabled',
+            'cache_lifetime'
+        ]);
+
+        // $cacheEnabled = (bool)($settings['cache_enabled'] ?? false);
+        // $cacheLifetime = (int)($settings['cache_lifetime'] ?? 3600);
+
+        $cacheEnabled = (bool) Config::getConfigValue($settings, 'cache_enabled', false);
+        $cacheLifetime = (int) Config::getConfigValue($settings, 'cache_lifetime', 3600);
+
+        return ['cacheDir' => $cacheDir, 
+                'cacheEnabled' => $cacheEnabled,
+                'cacheLifetime' => $cacheLifetime];
+    }
+
 
     /**
      * Обрабатывает входящий HTTP-запрос.
@@ -93,7 +127,7 @@ class PageCacheMiddleware implements MiddlewareInterface
     {
         // Создаем уникальный ключ кэша на основе URI запроса
         // Можно также учитывать query parameters, если они важны
-        $uri = $$this->request->server('REQUEST_URI');
+        $uri = $this->request->server('REQUEST_URI');
         // Убираем query string для простоты, если она не влияет на содержимое
         $uri = strtok($uri, '?'); 
         // Хешируем, чтобы получить безопасное имя файла
