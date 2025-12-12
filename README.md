@@ -66,7 +66,7 @@ project/
 ### Настройка config файлов
 Отредактируйте файлы в папке `app/core/` согласно вашим настройкам:
 
-**config/database.php** (пример):
+**Config.php**:
 ```php
 <?php
     'db' => [
