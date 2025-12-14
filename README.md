@@ -58,34 +58,38 @@ project/
 │   └── index.php           # Точка входа
 ├── sql/                    # Дамп БД
 ├── vendor/                 # Файлы автозагрузки классов, сторонние библиотеки
+├── .env                    # Файл с настройками подключений к внешним серверам
 └── README.md               📖 Этот файл
 ```
 
 ## ⚙️ Конфигурация
 
 ### Настройка config файлов
-Отредактируйте файлы в папке `app/core/` согласно вашим настройкам:
+Отредактируйте файлы в корневой папке согласно вашим настройкам:
 
-**Config.php**:
+**.ENV**
 ```php
-<?php
-    'db' => [
-            'DB_HOST' => 'localhost',
-            'DB_NAME' => 'vlad',
-            'DB_USER' => 'vlad',
-            'DB_PASS' => 'vlad'
-        ],
-    'global' => [
-            'ViewsRootPath' => 'C:\\Users\\kriya\\Projects\\web\\vlad.local\\app\\views'
-        ],
-    'logger' => [
-            'LogPath' => 'C:\\Users\\kriya\\Projects\\web\\vlad.local\\logs'
-        ],
-    'cache' => [
-            'CacheDir' => 'C:\\Users\\kriya\\Projects\\web\\vlad.local\\cache\\pages/'
-        ],
-            'AdminEmail' => 'admin@admin.ru',
-        ]
+# Настройки базы данных
+DB_HOST=
+DB_NAME=
+DB_USER=
+DB_PASS=
+
+# Настройки почты (PHPMailer)
+# Исползовать уникальные имена переменных, чтобы не конфликтовать со средой
+MAIL_HOST=
+MAIL_FROM_USERNAME=
+MAIL_ADMIN_USERNAME=
+MAIL_PASSWORD=
+MAIL_PORT=465
+
+# Режим приложения: true для разработки, false для продакшена
+APP_DEBUG=true
+
+# ----------------------------------------
+# Секретный ключ приложения (32 символа)
+# ----------------------------------------
+APP_SECRET_KEY=
 ```
 
 ### Настройка VS Code
