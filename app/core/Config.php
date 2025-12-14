@@ -1,56 +1,85 @@
 <?php
 class Config
 {
-    private static $config = [
-        'db' => [
-            'DB_HOST' => 'localhost',
-            'DB_NAME' => 'vlad',
-            'DB_USER' => 'vlad',
-            'DB_PASS' => 'vlad'
-        ],
-        'posts' => [
-            'exerpt_len' => 200,
-            'posts_per_page' => 5,
-            'max_urls_in_sitemap' => 50000,
-            'allowed_tags' => '<p><b><i><strong><em><a><img><br><span><s><ul><li><ol><div>',
-            // кол-во тэгов на странице поиска тэгов, когда ее тока открыли. без поиска
-            'count_tags_without_query' => 10
-        ],
-        'global' => [
-            'ViewsRootPath' => 'C:\\Users\\kriya\\Projects\\web\\vlad.local\\app\\views'
-        ],
-        'logger' => [
-            'UseDebugLogger' => true,
-            'UseInfoLogger' => true,
-            'UseWarningLogger' => true,
-            'UseErrorLogger' => true,
-            'UseCriticalLogger' => true,
-            'LogPath' => 'C:\\Users\\kriya\\Projects\\web\\vlad.local\\logs'
-        ],
-        'upload' => [
-            'UploadDir' => 'uploads',
-            'UploadedMaxFilesize' => 5 * 1024 * 1024,
-            'UploadedMaxHeight' => 600,
-            'UploadedMaxWidth' => 840,
-            'UploadedMinHeight' => 300,
-            'UploadedMinWidth' => 400
-        ],
-        'cache' => [
-            'CacheDir' => 'C:\\Users\\kriya\\Projects\\web\\vlad.local\\cache\\pages/'
-        ],
-        'admin' => [
-            'AdminEmail' => 'admin@admin.ru',
-            'AdminRoute' => 'adm',
-            'PostsPerPage' => 10,
-            'EnableCreateCategory' => false,
-            'EnableEditCategory' => false,
-            'AdminRoleName' => 'Administrator',
-            // урлы страниц, которые не будут показаны в списке страниц в админке
-            'PagesToExclude' => ['sitemap', 'kontakty'],
-            'PostsToExclude' => [],
-            'TagsPerPage' => 10,
-        ]
-    ];
+    // Изначально делаем массив $config пустым
+    private static $config = []; 
+    
+    // Флаг, чтобы знать, инициализировали ли мы уже настройки
+    private static $isInitialized = false;
+
+    /**
+     * Выполняет инициализацию настроек, считывая их из $_ENV.
+     * Вызывается только один раз.
+     */
+    private static function initialize()
+    {
+        if (self::$isInitialized) {
+            return;
+        }
+
+        // --- НАЧАЛО КОНФИГА ---
+        self::$config = [
+            'db' => [
+                'DB_HOST' => $_ENV['DB_HOST'] ?? 'localhost',
+                'DB_NAME' => $_ENV['DB_NAME'] ?? 'vlad',
+                'DB_USER' => $_ENV['DB_USER'] ?? 'vlad',
+                'DB_PASS' => $_ENV['DB_PASS'] ?? 'vlad'
+            ],
+            'posts' => [
+                'exerpt_len' => 200,
+                'posts_per_page' => 5,
+                'max_urls_in_sitemap' => 50000,
+                'allowed_tags' => '<p><b><i><strong><em><a><img><br><span><s><ul><li><ol><div>',
+                // кол-во тэгов на странице поиска тэгов, когда ее тока открыли. без поиска
+                'count_tags_without_query' => 10
+            ],
+            'global' => [
+                'ViewsRootPath' => ROOT_PATH . DIRECTORY_SEPARATOR . 'app' . DIRECTORY_SEPARATOR . 'views',
+                // Секретный ключ приложения, используется для шифрования/сессий
+                'APP_KEY' => $_ENV['APP_KEY'] ?? null, 
+            ],
+            'logger' => [
+                'UseDebugLogger' => true,
+                'UseInfoLogger' => true,
+                'UseWarningLogger' => true,
+                'UseErrorLogger' => true,
+                'UseCriticalLogger' => true,
+                'LogPath' => ROOT_PATH . DIRECTORY_SEPARATOR . 'logs'
+            ],
+            'upload' => [
+                'UploadDir' => 'uploads',
+                'UploadedMaxFilesize' => 5 * 1024 * 1024,
+                'UploadedMaxHeight' => 600,
+                'UploadedMaxWidth' => 840,
+                'UploadedMinHeight' => 300,
+                'UploadedMinWidth' => 400
+            ],
+            'cache' => [
+                'CacheDir' => ROOT_PATH . DIRECTORY_SEPARATOR . 'cache' . DIRECTORY_SEPARATOR . 'pages' . DIRECTORY_SEPARATOR
+            ],
+            'admin' => [
+                'AdminRoute' => 'adm',
+                'PostsPerPage' => 10,
+                'EnableCreateCategory' => false,
+                'EnableEditCategory' => false,
+                'AdminRoleName' => 'Administrator',
+                // урлы страниц, которые не будут показаны в списке страниц в админке
+                'PagesToExclude' => ['sitemap', 'kontakty'],
+                'PostsToExclude' => [],
+                'TagsPerPage' => 10,
+            ],
+            'mail' => [
+                'AdminEmail' => $_ENV['MAIL_ADMIN_USERNAME'] ?? 'admin@admin.ru',
+                'MailFrom' => $_ENV['MAIL_FROM_USERNAME'] ?? 'noreply@admin.ru',
+                'pw' => $_ENV['MAIL_PASSWORD'] ?? 'default_password',
+                'SMTPServer' => $_ENV['MAIL_HOST'] ?? 'localhost',
+                'SMTPPort' => (int)($_ENV['MAIL_PORT'] ?? 465)
+            ]
+        ];
+        // --- КОНЕЦ КОНФИГА ---
+
+        self::$isInitialized = true;
+    }
 
     /**
      * Получает значение из конфигурации по ключу.
@@ -64,6 +93,8 @@ class Config
      */
     public static function get(string $key, $default = null)
     {
+        self::initialize();
+
         // Проверяем, содержит ли ключ точку для доступа к вложенным элементам.
         if (strpos($key, '.') === false) {
             return self::$config[$key] ?? $default;
@@ -77,9 +108,17 @@ class Config
         return self::$config[$section][$property] ?? $default;
     }
 
-    public static function isDev()
+    public static function isDev(): bool
     {
-        return true;
+        // Константа APP_DEBUG определена в index.php 
+        // после загрузки .env и ДО инициализации Config.
+        if (!defined('APP_DEBUG')) {
+            // Аварийный отказ: Если константа не определена, 
+            // предполагаем, что это продакшн, чтобы не раскрыть ошибки.
+            return false;
+        }
+
+        return APP_DEBUG;
     }
 
     public static function getConfigValue(array $settings, string $key, $default)

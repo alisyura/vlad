@@ -3,6 +3,7 @@
 
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
+use PHPMailer\PHPMailer\SMTP;
 
 /**
  * Сервис для отправки сообщений по электронной почте.
@@ -27,21 +28,36 @@ class ContactMailerService
     {
         $mail = new PHPMailer(true);
 
+        $host = Config::get('mail.SMTPServer');
+        $username = Config::get('mail.MailFrom');
+        $password = Config::get('mail.pw');
+        $port = Config::get('mail.SMTPPort');
+            
         try {
             // Настройки сервера
-            // $mail->isSMTP();
-            // $mail->Host = 'smtp.example.com';
-            // $mail->SMTPAuth = true;
-            // $mail->Username = 'user@example.com';
-            // $mail->Password = 'secret';
-            // $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
-            // $mail->Port = 587;
+            $mail->isSMTP();
+            $mail->Host = $host;
+            $mail->SMTPAuth = true;
+            $mail->Username = $username;
+            $mail->Password = $password;
+
+            // Настройка шифрования и порта
+            // Поскольку порт 465, почти наверняка используется SMTPS (SSL/TLS)
+            if ($port == 465) {
+                $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS; // SSL/TLS
+                $mail->Port = 465;
+            } else if ($port == 587) {
+                $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS; // STARTTLS
+                $mail->Port = 587;
+            } else {
+                $mail->Port = $port;
+            }
 
             // От кого
-            $mail->setFrom(Config::get('admin.AdminEmail'), 'Сообщение с сайта');
+            $mail->setFrom(Config::get('mail.MailFrom'), 'Сообщение с сайта');
             
             // Кому
-            $mail->addAddress(Config::get('admin.AdminEmail'));
+            $mail->addAddress(Config::get('mail.AdminEmail'));
 
             // Установка адреса для ответа
             $mail->addReplyTo($data['email'], $data['name']);
@@ -68,7 +84,14 @@ class ContactMailerService
             return ['success' => true];
 
         } catch (Exception $e) {
-            Logger::error("ContactMailerService.sendContactEmail. Mailer Error: {$mail->ErrorInfo}", [$e->getTraceAsString()]);
+            Logger::error("ContactMailerService.sendContactEmail. Mailer Error: ", 
+                [
+                    'host' => $host, 
+                    'username' => $username, 
+                    'password' => $password, 
+                    'port' => $port, 
+                    'ErrorInfo' => $mail->ErrorInfo
+                ], $e);
             return ['success' => false, 'message' => $mail->ErrorInfo];
         }
     }

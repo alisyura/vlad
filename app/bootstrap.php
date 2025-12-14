@@ -21,6 +21,8 @@ $container->singleton(PDO::class, function() {
     $user = Config::get('db.DB_USER');
     $pass = Config::get('db.DB_PASS');
 
+    Logger::debug('Для подключения к БД', ['host' => $host, 'name' => $name, 'user' => $user, 'pass' => $pass]);
+
     $dsn = "mysql:host=$host;dbname=$name;charset=utf8mb4";
     $options = [
         PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,

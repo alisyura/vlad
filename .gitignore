@@ -8,3 +8,5 @@
 /public/assets/uploads/
 .DS_Store
 Thumbs.db
+# Игнорировать локальные переменные окружения
+.env
