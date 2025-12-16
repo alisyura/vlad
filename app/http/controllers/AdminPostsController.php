@@ -266,6 +266,7 @@ class AdminPostsController extends BaseAdminController
                 'isUserAdmin' => $this->authService->isUserAdmin(),
                 'pageTitle' => $pageTitle,
                 'publishButtonTitle' => $publishButtonTitle,
+                'showPostLink' => '',
                 'post' => null,
                 'categories' => [],
                 'tags' => [],
@@ -322,31 +323,34 @@ class AdminPostsController extends BaseAdminController
         $userName = $this->authService->getUserName();
         try
         {
+            $postData = $this->model->getPostById($postId, $articleType);
+            if ($postData === null) {
+                throw new HttpException('Запись не найдена.', 404);
+            }
+
             $config = [
                 'post' => [
                     'listTitle' => 'К списку постов',
                     'formAction' => "/{$adminRoute}/posts/api/edit",
                     'pageTitle' => 'Редактирование поста: ',
                     'listUrl' => "/{$adminRoute}/posts",
+                    'showPostLink' => '/' . htmlspecialchars($postData['url']) . '.html'
                 ],
                 'page' => [
                     'listTitle' => 'К списку страниц',
                     'formAction' => "/{$adminRoute}/pages/api/edit",
                     'pageTitle' => 'Редактирование страницы: ',
                     'listUrl' => "/{$adminRoute}/pages",
+                    'showPostLink' => '/page/' . htmlspecialchars($postData['url']) . '.html'
                 ]
             ];
 
+            $showPostLink = $config[$articleType]['showPostLink'];
             $returnToListTitle = $config[$articleType]['listTitle'];
             $formAction = $config[$articleType]['formAction'];
             $pageTitle = $config[$articleType]['pageTitle'];
             $returnToListUrl = $config[$articleType]['listUrl'];
             $publishButtonTitle = 'Обновить ' . ($articleType == 'post' ? 'пост' : 'страницу');
-    
-            $postData = $this->model->getPostById($postId, $articleType);
-            if ($postData === null) {
-                throw new HttpException('Запись не найдена.', 404);
-            }
 
             $data = [
                 'adminRoute' => $adminRoute,
@@ -357,6 +361,7 @@ class AdminPostsController extends BaseAdminController
                 'active' => "{$articleType}s", // для подсветки в левом меню
                 'isUserAdmin' => $this->authService->isUserAdmin(),
                 'post' => $postData,
+                'showPostLink' => $showPostLink,
                 'categories' => $this->listmodel->getAllCategories(),
                 'tags' => $this->listmodel->getAllTags(),
                 'is_new_post' => $postData['status'] == PostModelAdmin::STATUS_PENDING,

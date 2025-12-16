@@ -49,6 +49,7 @@ class PostModelAdmin extends BaseModel {
                     p.title,
                     p.content,
                     p.excerpt,
+                    p.comment,
                     p.meta_title,
                     p.meta_keywords,
                     p.meta_description,
@@ -124,6 +125,7 @@ class PostModelAdmin extends BaseModel {
                             title = :title,
                             content = :content,
                             excerpt = :excerpt,
+                            comment = :comment,
                             meta_title = :meta_title,
                             meta_description = :meta_description,
                             meta_keywords = :meta_keywords,
@@ -145,6 +147,7 @@ class PostModelAdmin extends BaseModel {
                 ':title' => $postData['title'],
                 ':content' => $postData['content'],
                 ':excerpt' => $postData['excerpt'],
+                ':comment' => $postData['comment'],
                 ':meta_title' => $postData['meta_title'],
                 ':meta_description' => $postData['meta_description'],
                 ':meta_keywords' => $postData['meta_keywords'],
@@ -224,11 +227,11 @@ class PostModelAdmin extends BaseModel {
             // Исправленный SQL-запрос с учетом правильных названий столбцов
             $sql = "INSERT INTO posts (
                         user_id, article_type, status, title, content, url, 
-                        excerpt, meta_title, meta_description, meta_keywords, 
+                        excerpt, comment, meta_title, meta_description, meta_keywords, 
                         thumbnail_media_id, created_at, updated_at)
                     VALUES (
                         :user_id, :article_type, :status, :title, :content, :url, 
-                        :excerpt, :meta_title, :meta_description, :meta_keywords, 
+                        :excerpt, :comment, :meta_title, :meta_description, :meta_keywords, 
                         :thumbnail_media_id, :created_at, :updated_at)";
             $stmt = $this->db->prepare($sql);
             $stmt->execute([
@@ -238,7 +241,8 @@ class PostModelAdmin extends BaseModel {
                 ':title' => $postData['title'],
                 ':content' => $postData['content'],
                 ':url' => $postData['url'],
-                ':excerpt' => $postData['excerpt'], // Исправлено на excerpt
+                ':excerpt' => $postData['excerpt'],
+                ':comment' => $postData['comment'],
                 ':meta_title' => $postData['meta_title'],
                 ':meta_description' => $postData['meta_description'],
                 ':meta_keywords' => $postData['meta_keywords'],

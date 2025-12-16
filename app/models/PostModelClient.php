@@ -143,6 +143,7 @@ class PostModelClient {
             p.url AS url,
             p.title AS title,
             p.content AS content,
+            p.comment AS comment,
             p.updated_at AS updated_at,
             c.url AS category_url,
             c.name AS category_name,

@@ -3,21 +3,10 @@
 // $data['post'] будет содержать данные поста, если это редактирование,
 // иначе он будет пустым (null), и поля будут пустыми.
 
-// Проверяем, есть ли данные поста (для редактирования)
-// $post = $data['post'] ?? null;
-// $categories = $data['categories'] ?? [];
-// $tags = $data['tags'] ?? [];
 $selectedCategories = $post['selected_categories'] ?? []; // Для формы создания, если были ошибки
 $selectedTags = $post['selected_tags'] ?? [];
 
-// Убедимся, что $data['adminRoute'] доступен
 $adminRoute = $data['adminRoute'] ?? 'admin';
-
-// Заголовок страницы
-// $pageTitle = !$is_new_post ? 'Редактировать пост: ' . htmlspecialchars($post['title']) : 'Создать новый пост';
-
-// URL для отправки формы (можно определить в контроллере и передать сюда)
-// $formAction = '/' . htmlspecialchars($adminRoute) . (!$is_new_post ? '/api/posts/edit/' . htmlspecialchars($post['id']) : '/api/posts/create');
 
 ?>
 <input type="hidden" id="initialTagsData" value='<?= htmlspecialchars(json_encode($data['tags'] ?? []), ENT_QUOTES, 'UTF-8') ?>'>
@@ -28,8 +17,8 @@ $adminRoute = $data['adminRoute'] ?? 'admin';
     <h1 class="h2"><?= $pageTitle ?></h1>
     <div class="btn-toolbar mb-2 mb-md-0">
         <?php if ($post): // Если это режим редактирования, показываем кнопку "Посмотреть на сайте" ?>
-            <?php if (!empty($post['url']) && strtolower($post['status']) === 'published'): ?>
-                <a href="/<?= htmlspecialchars($post['url']) ?>.html" target="_blank" class="btn btn-sm btn-outline-info me-2">
+            <?php if (!empty($post['url']) && strtolower($post['status']) === 'published' && !empty($showPostLink)): ?>
+                <a href="<?= htmlspecialchars($showPostLink) ?>" target="_blank" class="btn btn-sm btn-outline-info me-2">
                     Посмотреть на сайте
                 </a>
             <?php endif; ?>
@@ -75,6 +64,16 @@ $adminRoute = $data['adminRoute'] ?? 'admin';
                     <?= htmlspecialchars($post['content'] ?? '') ?>
                 </textarea>
             </div>
+
+            <?php if ($articleType === 'post'): ?>
+            <div class="mb-3">
+                <label for="postExcerpt" class="form-label">Комментарий</label>
+                <textarea id="postComment" name="comment" class="form-control" rows="5">
+                    <?= htmlspecialchars($post['comment'] ?? '') ?>
+                </textarea>
+                <div class="form-text">Комментарий от администрации.</div>
+            </div>
+            <?php endif ?>
             
             <div class="mb-3">
                 <label for="postExcerpt" class="form-label">Цитата/Анонс</label>

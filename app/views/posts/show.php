@@ -51,17 +51,19 @@
     <?php endif ?>
 
     <?php if ($is_post): ?>
-    <!-- Информационный блок -->
-    <div class="admin-block">
-        <div class="admin-block-icon-container">
-            <!-- Иконка 20x20px -->
-            <img src="/assets/pic/admin-block-icon.png" alt="Инфо" width="20" height="20">
+        <?php if (!empty(trim($post['comment'] ?? ''))): ?>
+        <!-- Информационный блок -->
+        <div class="admin-block">
+            <div class="admin-block-icon-container">
+                <!-- Иконка 20x20px -->
+                <img src="/assets/pic/admin-block-icon.png" alt="Инфо" width="20" height="20">
+            </div>
+            <div class="admin-block-text-container">
+                <div class="admin-block-title">Комментарий от администрации</div>
+                <div class="admin-block-description"><?= htmlspecialchars($post['comment']) ?></div>
+            </div>
         </div>
-        <div class="admin-block-text-container">
-            <div class="admin-block-title">Комментарий от администрации</div>
-            <div class="admin-block-description">Приятно, граждане, наблюдать, как элементы политического процесса формируют глобальную экономическую сеть и при этом — заблокированы в рамках своих собственных рациональных ограничений.</div>
-        </div>
-    </div>
+        <?php endif ?>
     
     <!-- Блок реакций -->
     <div class="post_reactions">
@@ -70,7 +72,7 @@
             <img src="/assets/pic/ponravilos.png" alt="Нравится" class="icon reaction-icon">
         </a>
         <span class="spacer_small"></span> <!-- Промежуток 15px -->
-        <span class="reaction_count like_count">433331</span>
+        <span class="reaction_count like_count">0</span>
         <span class="spacer_large"></span> <!-- Промежуток 35px -->
 
         <!-- Дизлайк -->
@@ -78,9 +80,8 @@
             <img src="/assets/pic/ne_ponravilos.png" alt="Не нравится" class="icon reaction-icon">
         </a>
         <span class="spacer_small"></span> <!-- Промежуток 15px -->
-        <span class="reaction_count dislike_count">99964</span>
+        <span class="reaction_count dislike_count">0</span>
         <span class="spacer_large"></span> <!-- Промежуток 35px -->
-        <!-- <a href="#"><img src="pic/pereslat.png" alt="Поделиться" class="icon"></a> -->
 
         <!-- Кнопка Поделиться -->
         <div class="share-dropdown">

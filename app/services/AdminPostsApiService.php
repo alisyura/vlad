@@ -32,6 +32,7 @@ class AdminPostsApiService
         $metaDescription = trim($postData['meta_description'] ?? '');
         $metaKeywords = trim($postData['meta_keywords'] ?? '');
         $excerpt = trim($postData['excerpt'] ?? '');
+        $comment = trim($postData['comment'] ?? '');
         $selectedCategories = $postData['categories'] ?? [];
 
         $selectedTags = $postData['tags'] ?? [];
@@ -45,7 +46,7 @@ class AdminPostsApiService
             'content' => $content, 'url' => $url, 'status' => $status,
             'metaTitle' => $metaTitle, 'metaDescription' => $metaDescription,
             'metaKeywords' => $metaKeywords, 'excerpt' => $excerpt, 
-            'selectedCategories' => $selectedCategories,
+            'selectedCategories' => $selectedCategories, 'comment' => $comment,
             'tagsString' => $tagsString, 'thumbnailUrl' => $thumbnailUrl];
     }
 
@@ -60,7 +61,7 @@ class AdminPostsApiService
         'content' => $content, 'url' => $url, 'status' => $status,
         'metaTitle' => $metaTitle, 'metaDescription' => $metaDescription,
         'metaKeywords' => $metaKeywords, 'excerpt' => $excerpt, 
-        'selectedCategories' => $selectedCategories,
+        'selectedCategories' => $selectedCategories, 'comment' => $comment,
         'tagsString' => $tagsString, 'thumbnailUrl' => $thumbnailUrl] = $this->parseUserData($postData);
 
         $errors=[];
@@ -90,6 +91,7 @@ class AdminPostsApiService
             'meta_description' => $metaDescription,
             'meta_keywords' => $metaKeywords,
             'excerpt' => $excerpt,
+            'comment' => $comment,
             'thumbnail_url' => $thumbnailUrl,
         ];
 
@@ -110,7 +112,7 @@ class AdminPostsApiService
         'content' => $content, 'status' => $status,
         'metaTitle' => $metaTitle, 'metaDescription' => $metaDescription,
         'metaKeywords' => $metaKeywords, 'excerpt' => $excerpt, 
-        'selectedCategories' => $selectedCategories,
+        'selectedCategories' => $selectedCategories, 'comment' => $comment,
         'tagsString' => $tagsString, 'thumbnailUrl' => $thumbnailUrl] = $this->parseUserData($postData);
 
         if (null === $postId)
@@ -142,6 +144,7 @@ class AdminPostsApiService
             'meta_description' => $metaDescription,
             'meta_keywords' => $metaKeywords,
             'excerpt' => $excerpt,
+            'comment' => $comment,
             'thumbnail_url' => $thumbnailUrl,
         ];
 
