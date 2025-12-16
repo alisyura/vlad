@@ -36,6 +36,7 @@ class ContactMailerService
         try {
             // Настройки сервера
             $mail->isSMTP();
+            $mail->CharSet = 'UTF-8';
             $mail->Host = $host;
             $mail->SMTPAuth = true;
             $mail->Username = $username;
@@ -71,13 +72,27 @@ class ContactMailerService
             }
             
             // Content
-            $mail->isHTML(false); // Отправляем как обычный текст
+            $mail->isHTML(true);
             $mail->Subject = "Сообщение с сайта от: " . htmlspecialchars($data['name']);
-            $mail->Body = "Имя: {$data['name']}\n";
-            $mail->Body .= "Email: {$data['email']}\n";
-            $mail->Body .= "Тема: {$data['title']}\n\n";
-            $mail->Body .= "Сообщение:\n{$data['text']}\n\n";
-            $mail->Body .= "-- Конец сообщения --";
+
+            $htmlBody = "
+                <h1>Сообщение с сайта</h1>
+                <p><strong>Имя:</strong> " . htmlspecialchars($data['name']) . "</p>
+                <p><strong>Email:</strong> " . htmlspecialchars($data['email']) . "</p>
+                <p><strong>Тема:</strong> " . htmlspecialchars($data['title']) . "</p>
+                <hr>
+                <p><strong>Сообщение:</strong></p>
+                <p>" . nl2br(htmlspecialchars($data['text'])) . "</p>
+                <hr>
+                <small>-- Конец сообщения --</small>
+            ";
+            $mail->Body = $htmlBody;
+
+            $mail->AltBody = "Имя: {$data['name']}\n";
+            $mail->AltBody .= "Email: {$data['email']}\n";
+            $mail->AltBody .= "Тема: {$data['title']}\n\n";
+            $mail->AltBody .= "Сообщение:\n{$data['text']}\n\n";
+            $mail->AltBody .= "-- Конец сообщения --";
 
             $mail->send();
 
@@ -88,7 +103,7 @@ class ContactMailerService
                 [
                     'host' => $host, 
                     'username' => $username, 
-                    'password' => $password, 
+                    'password' => '[REDACTED]', 
                     'port' => $port, 
                     'ErrorInfo' => $mail->ErrorInfo
                 ], $e);

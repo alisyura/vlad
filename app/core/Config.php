@@ -36,7 +36,7 @@ class Config
             'global' => [
                 'ViewsRootPath' => ROOT_PATH . DIRECTORY_SEPARATOR . 'app' . DIRECTORY_SEPARATOR . 'views',
                 // Секретный ключ приложения, используется для шифрования/сессий
-                'APP_KEY' => $_ENV['APP_KEY'] ?? null, 
+                'APP_SECRET_KEY' => $_ENV['APP_SECRET_KEY'] ?? null, 
             ],
             'logger' => [
                 'UseDebugLogger' => true,
@@ -58,7 +58,7 @@ class Config
                 'CacheDir' => ROOT_PATH . DIRECTORY_SEPARATOR . 'cache' . DIRECTORY_SEPARATOR . 'pages' . DIRECTORY_SEPARATOR
             ],
             'admin' => [
-                'AdminRoute' => 'adm',
+                'AdminRoute' => 'eryfbh',
                 'PostsPerPage' => 10,
                 'EnableCreateCategory' => false,
                 'EnableEditCategory' => false,

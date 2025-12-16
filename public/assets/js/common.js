@@ -81,3 +81,10 @@ window.getFreshCsrfToken = async function() {
         return null;
     }
 }
+
+/**
+ * Создает неблокирующую задержку.
+ */
+function delay(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}

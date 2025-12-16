@@ -7,6 +7,7 @@ class ContactFormManager {
         this.form = document.getElementById(this.config.formId);
         this.sendBtn = document.getElementById(this.config.sendBtnId);
         this.errorElement = document.getElementById(this.config.errorElementId);
+        this.overlay = document.getElementById(this.config.loadingOverlayId);
 
         this.dragAndDropHandler = new DragAndDropHandler(
             this.config.uploadAreaId,
@@ -28,6 +29,23 @@ class ContactFormManager {
         this.sendBtn.addEventListener('click', (e) => this.handleFormSubmit(e));
     }
 
+    // Показать оверлей
+    showLoadingOverlay() {
+        if (this.overlay) {
+            this.overlay.style.display = 'flex';
+            // Блокируем прокрутку, если нужно
+            document.body.style.overflow = 'hidden'; 
+        }
+    }
+
+    // Скрыть оверлей
+    hideLoadingOverlay() {
+        if (this.overlay) {
+            this.overlay.style.display = 'none';
+            document.body.style.overflow = '';
+        }
+    }
+
     async handleFormSubmit(e) {
         e.preventDefault();
         this.hideError();
@@ -39,26 +57,36 @@ class ContactFormManager {
         }
 
         try {
+            this.showLoadingOverlay();
+            
             const csrfToken = await getFreshCsrfToken();
             if (!csrfToken) {
                 showToast('Не удалось получить токен, попробуйте снова.');
+                this.hideLoadingOverlay();
                 return;
             }
-            
-            const response = await fetch(this.config.apiUrl, {
+
+            const fetchPromise = fetch(this.config.apiUrl, {
                 method: 'POST',
                 headers: {
-                    'X-Requested-With': 'XMLHttpRequest', // Часто используется для определения AJAX-запроса
-                    'X-CSRF-TOKEN': csrfToken // Добавляем токен
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRF-TOKEN': csrfToken
                 },
                 body: formData,
             });
+
+            // Промис для минимальной видимости оверлея (400 мс)
+            const minTimePromise = delay(400);
+            // Ждем, пока оба промиса завершатся. [response] берется из первого промиса.
+            const [response] = await Promise.all([fetchPromise, minTimePromise]);
 
             // if (!response.ok) {
             //     throw new Error('Ошибка сети');
             // }
 
             const result = await response.json();
+
+            this.hideLoadingOverlay();
 
             if (result.success) {
                 showToast('Ваше сообщение успешно отправлено!');
@@ -68,10 +96,11 @@ class ContactFormManager {
                 const errorMessage = 'Сообщение не отправлено\n\n' + errorMessages.join('\n');
                 showToast(errorMessage);
             }
-
         } catch (error) {
             console.error('Ошибка:', error);
             this.showError('Произошла ошибка при отправке. Попробуйте позже.');
+        } finally {
+            this.hideLoadingOverlay();
         }
     }
 
@@ -177,6 +206,7 @@ document.addEventListener("DOMContentLoaded", function () {
         fileInputId: 'contact-file-upload',
         uploadTitleId: 'contactUploadTitle',
         textareaId: 'kontaktMsgText',
+        loadingOverlayId: 'loadingOverlay',
         charCounterSelector: '.contact-char-counter',
         apiUrl: '/api/send_msg',
         allowedFileTypes: ['image/png', 'image/jpeg', 'image/jpg', 'image/gif'],

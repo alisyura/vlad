@@ -65,3 +65,10 @@
         </div>
     </div>
 </div>
+
+<div id="loadingOverlay" style="display: none;">
+    <div class="spinner-container">
+        <div class="spinner"></div> 
+        <p class="loading-message">Сообщение отправляется...</p>
+    </div>
+</div>
