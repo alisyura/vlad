@@ -217,6 +217,17 @@ class AdminPostsApiController extends BaseAdminController
 
         try {
             $this->postsApiService->editArticle($postData, $articleType);
+            
+            if ($postData['status'] === PostModelAdmin::STATUS_PUBLISHED)
+            {
+                $prefix = ($articleType === 'page') ? 'page/' : '';
+                $uri = '/' . $prefix . $postData['url'] . '.html';
+                PageCacheMiddleware::invalidate($uri);
+                if ($articleType === 'post')
+                {
+                    PageCacheMiddleware::invalidate("/");
+                }
+            }
 
             $adminRoute = $this->getAdminRoute();
             $msgText = ($articleType == 'post' ? 'Пост успешно обновлен' : 'Страница успешно обновлена');

@@ -59,7 +59,7 @@ class PageCacheMiddleware implements MiddlewareInterface
      */
     private function fillCacheSettings(): array
     {
-        $cacheDir = Config::get('cache.CacheDir');
+        $cacheDir = self::getCacheDir();
         $settings = $this->settingsService->getMassSeoSettings([
             'cache_enabled',
             'cache_lifetime'
@@ -76,6 +76,15 @@ class PageCacheMiddleware implements MiddlewareInterface
                 'cacheLifetime' => $cacheLifetime];
     }
 
+    private static function getCacheDir(): string
+    {
+        return Config::get('cache.CacheDir');
+    }
+
+    private static function getCacheFilename($cacheDir, $cacheKey): string
+    {
+        return $cacheDir . $cacheKey . '.html';
+    }
 
     /**
      * Обрабатывает входящий HTTP-запрос.
@@ -92,14 +101,24 @@ class PageCacheMiddleware implements MiddlewareInterface
         }
 
         $cacheKey = $this->getCacheKey(); // Уникальный ключ для текущего запроса
-        $cacheFile = $this->cacheDir . $cacheKey . '.html';
+        $cacheFile = self::getCacheFilename($this->cacheDir, $cacheKey);
 
         // Проверяем, существует ли кэш и не истек ли срок его жизни
         if (file_exists($cacheFile) && (time() - filemtime($cacheFile)) < $this->cacheLifetime) {
             // Кэш найден и актуален, отдаем его
             // Устанавливаем заголовки (опционально, для лучшего UX)
             header('X-Cache: HIT');
-            header('Content-Type: text/html; charset=utf-8');
+            // Читаем первые 10 символов файла, чтобы узнать тип
+            $handle = fopen($cacheFile, 'r');
+            $start = fread($handle, 10);
+            fclose($handle);
+
+            if (str_contains($start, '<?xml')) {
+                header('Content-Type: application/xml; charset=utf-8');
+            } else {
+                header('Content-Type: text/html; charset=utf-8');
+            }
+
             // Выводим содержимое кэша
             readfile($cacheFile);
             // Останавливаем дальнейшее выполнение
@@ -128,6 +147,11 @@ class PageCacheMiddleware implements MiddlewareInterface
         // Создаем уникальный ключ кэша на основе URI запроса
         // Можно также учитывать query parameters, если они важны
         $uri = $this->request->server('REQUEST_URI');
+        return self::encryptUri($uri);
+    }
+
+    private static function encryptUri($uri): string
+    {
         // Убираем query string для простоты, если она не влияет на содержимое
         $uri = strtok($uri, '?'); 
         // Хешируем, чтобы получить безопасное имя файла
@@ -152,12 +176,16 @@ class PageCacheMiddleware implements MiddlewareInterface
             return;
         }
 
-        // Эта функция будет вызвана автоматически в конце скрипта
-         // благодаря register_shutdown_function
         $content = ob_get_contents(); // Получаем весь сгенерированный HTML
+        if (!headers_sent()) {
+            header('X-Cache: MISS');
+        }
         ob_end_flush(); // Отправляем его в браузер как обычно
 
         if ($content !== false && trim($content) !== '') {
+            // Теперь в кэше будет лежать сжатая версия
+            $content = $this->minifyHtml($content);
+
             // Сохраняем содержимое в файл кэша
             // Убедитесь, что директория существует
             $dir = dirname($cacheFile);
@@ -165,9 +193,34 @@ class PageCacheMiddleware implements MiddlewareInterface
                 mkdir($dir, 0755, true);
             }
             file_put_contents($cacheFile, $content);
-            header('X-Cache: MISS');
-            // Опционально: логируем, что кэш был сохранен
-            // Logger::info("Page cache saved: " . $cacheFile);
         }
+    }
+
+    private function minifyHtml(string $html): string 
+    {
+        $search = [
+            '/(?<=>)\s+(?=<)/', // Удаляем пробелы между тегами
+            '//s',  // Удаляем HTML-комментарии
+        ];
+        $replace = ['', '']; // Между тегами лучше заменять на пустоту
+        
+        return trim(preg_replace($search, $replace, $html));
+    }
+
+    /**
+     * Удаляет файл кэша для конкретного URI.
+     * @param string $uri Например, '/p3' или '/blog/my-post'
+     */
+    public static function invalidate(string $uri): bool
+    {
+        $cacheDir = self::getCacheDir();
+        $cacheKey = self::encryptUri($uri);
+        $cacheFile = self::getCacheFilename($cacheDir, $cacheKey);
+
+        if (file_exists($cacheFile)) {
+            return unlink($cacheFile);
+        }
+        
+        return false;
     }
 }

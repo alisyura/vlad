@@ -409,7 +409,7 @@ function debugPDO($sql, $params) {
 
 function asset(string $path): string {
     // Абсолютный путь к файлу на сервере
-    $absolutePath = $_SERVER['DOCUMENT_ROOT'] . '/public/assets/' . ltrim($path, '/');
+    $absolutePath = $_SERVER['DOCUMENT_ROOT'] . '/assets/' . ltrim($path, '/');
     
     // Базовый URL (без версии)
     $url = '/assets/' . ltrim($path, '/');

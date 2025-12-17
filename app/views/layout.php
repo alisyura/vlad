@@ -32,11 +32,11 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700&display=swap" rel="stylesheet">
 
-    <link rel="stylesheet" href="/assets/css/styles.css" />
-    <link rel="stylesheet" href="/assets/css/common.css" />
-    <link rel="stylesheet" href="/assets/css/menu.css" />
-    <link rel="stylesheet" href="/assets/css/new_pub.css" />
-    <link rel="stylesheet" href="/assets/css/react.css" />
+    <link rel="stylesheet" href="<?= asset('css/styles.css'); ?>" />
+    <link rel="stylesheet" href="<?= asset('css/common.css'); ?>" />
+    <link rel="stylesheet" href="<?= asset('css/menu.css'); ?>" />
+    <link rel="stylesheet" href="<?= asset('css/new_pub.css'); ?>" />
+    <link rel="stylesheet" href="<?= asset('css/react.css'); ?>" />
     <?php if (!empty($exportData['styles']) && is_array($exportData['styles'])): ?>
         <?php foreach ($exportData['styles'] as $style): ?>
             <link rel="stylesheet" href="<?= asset("css/{$style}") ?>" />
