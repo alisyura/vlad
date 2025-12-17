@@ -8,35 +8,44 @@ class Config
     private static $isInitialized = false;
 
     /**
-     * Выполняет инициализацию настроек, считывая их из $_ENV.
-     * Вызывается только один раз.
+     * Выполняет инициализацию настроек.
+     * Теперь принимает массив данных (обычно $_ENV или $_SERVER) напрямую.
+     *
+     * @param array|null $data Данные окружения
      */
-    private static function initialize()
+    public static function initialize(?array $data = null)
     {
-        if (self::$isInitialized) {
+        // Если конфиг уже инициализирован, не пересобираем его
+        if (self::$isInitialized && $data === null) {
             return;
         }
 
-        // --- НАЧАЛО КОНФИГА ---
+        // Если данные не переданы явно, пытаемся взять их из глобальных массивов
+        // Но приоритет отдаем тому, что пришло в аргументе.
+        $source = $data ?? $_ENV;
+
+        // На всякий случай проверяем $_SERVER, если в $source пусто
+        if (empty($source['DB_HOST']) && isset($_SERVER['DB_HOST'])) {
+            $source = $_SERVER;
+        }
+
         self::$config = [
             'db' => [
-                'DB_HOST' => $_ENV['DB_HOST'] ?? 'localhost',
-                'DB_NAME' => $_ENV['DB_NAME'] ?? 'vlad',
-                'DB_USER' => $_ENV['DB_USER'] ?? 'vlad',
-                'DB_PASS' => $_ENV['DB_PASS'] ?? 'vlad'
+                'DB_HOST' => $source['DB_HOST'] ?? 'localhost',
+                'DB_NAME' => $source['DB_NAME'] ?? '',
+                'DB_USER' => $source['DB_USER'] ?? '',
+                'DB_PASS' => $source['DB_PASS'] ?? ''
             ],
             'posts' => [
                 'exerpt_len' => 200,
-                'posts_per_page' => 5,
+                'posts_per_page' => 10,
                 'max_urls_in_sitemap' => 50000,
                 'allowed_tags' => '<p><b><i><strong><em><a><img><br><span><s><ul><li><ol><div>',
-                // кол-во тэгов на странице поиска тэгов, когда ее тока открыли. без поиска
                 'count_tags_without_query' => 10
             ],
             'global' => [
-                'ViewsRootPath' => ROOT_PATH . DIRECTORY_SEPARATOR . 'app' . DIRECTORY_SEPARATOR . 'views',
-                // Секретный ключ приложения, используется для шифрования/сессий
-                'APP_SECRET_KEY' => $_ENV['APP_SECRET_KEY'] ?? null, 
+                'ViewsRootPath' => defined('ROOT_PATH') ? ROOT_PATH . DIRECTORY_SEPARATOR . 'app' . DIRECTORY_SEPARATOR . 'views' : '',
+                'APP_SECRET_KEY' => $source['APP_SECRET_KEY'] ?? null, 
             ],
             'logger' => [
                 'UseDebugLogger' => true,
@@ -44,7 +53,7 @@ class Config
                 'UseWarningLogger' => true,
                 'UseErrorLogger' => true,
                 'UseCriticalLogger' => true,
-                'LogPath' => ROOT_PATH . DIRECTORY_SEPARATOR . 'logs'
+                'LogPath' => defined('ROOT_PATH') ? ROOT_PATH . DIRECTORY_SEPARATOR . 'logs' : 'logs'
             ],
             'upload' => [
                 'UploadDir' => 'uploads',
@@ -55,7 +64,7 @@ class Config
                 'UploadedMinWidth' => 400
             ],
             'cache' => [
-                'CacheDir' => ROOT_PATH . DIRECTORY_SEPARATOR . 'cache' . DIRECTORY_SEPARATOR . 'pages' . DIRECTORY_SEPARATOR
+                'CacheDir' => defined('ROOT_PATH') ? ROOT_PATH . DIRECTORY_SEPARATOR . 'cache' . DIRECTORY_SEPARATOR . 'pages' . DIRECTORY_SEPARATOR : ''
             ],
             'admin' => [
                 'AdminRoute' => 'eryfbh',
@@ -63,20 +72,18 @@ class Config
                 'EnableCreateCategory' => false,
                 'EnableEditCategory' => false,
                 'AdminRoleName' => 'Administrator',
-                // урлы страниц, которые не будут показаны в списке страниц в админке
                 'PagesToExclude' => ['sitemap', 'kontakty'],
                 'PostsToExclude' => [],
                 'TagsPerPage' => 10,
             ],
             'mail' => [
-                'AdminEmail' => $_ENV['MAIL_ADMIN_USERNAME'] ?? 'admin@admin.ru',
-                'MailFrom' => $_ENV['MAIL_FROM_USERNAME'] ?? 'noreply@admin.ru',
-                'pw' => $_ENV['MAIL_PASSWORD'] ?? 'default_password',
-                'SMTPServer' => $_ENV['MAIL_HOST'] ?? 'localhost',
-                'SMTPPort' => (int)($_ENV['MAIL_PORT'] ?? 465)
+                'AdminEmail' => $source['MAIL_ADMIN_USERNAME'] ?? 'admin@admin.ru',
+                'MailFrom' => $source['MAIL_FROM_USERNAME'] ?? 'noreply@admin.ru',
+                'pw' => $source['MAIL_PASSWORD'] ?? 'default_password',
+                'SMTPServer' => $source['MAIL_HOST'] ?? 'localhost',
+                'SMTPPort' => (int)($source['MAIL_PORT'] ?? 465)
             ]
         ];
-        // --- КОНЕЦ КОНФИГА ---
 
         self::$isInitialized = true;
     }

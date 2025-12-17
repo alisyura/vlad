@@ -21,11 +21,13 @@ try {
     $dotenv = Dotenv\Dotenv::createImmutable($projectRoot);
     $dotenv->load(); 
 
+    Config::initialize($_ENV);
+
     // Dotenv загружает все в $_ENV и getenv().
     // Сравниваем со строкой 'true', чтобы получить булево значение.
     $isDebug = $_ENV['APP_DEBUG'] ?? 'false'; // Используем 'false' как безопасное значение по умолчанию
     define('APP_DEBUG', $isDebug === 'true' || $isDebug === '1');
-    
+	
     // Проверить, что критические переменные установлены
     $dotenv->required(['DB_HOST', 'DB_NAME', 'DB_USER', 'DB_PASS'])->notEmpty();
 } catch (\Exception $e) {
