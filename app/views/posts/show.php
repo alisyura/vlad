@@ -14,7 +14,7 @@
 
     <?php if ($is_post): ?>
     <div class="post_full_bookmark">
-        <span><?= htmlspecialchars($post['id']) ?></span>
+        <span>№ <?= htmlspecialchars($post['id']) ?></span>
     </div>
 
     <!-- Блок post_date_category -->
