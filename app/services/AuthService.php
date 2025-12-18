@@ -94,6 +94,15 @@ class AuthService
             null !== $userLogin && is_string($userLogin) && !empty($userLogin) &&
             null !== $userName && is_string($userName) && !empty($userName)
         ) {
+            // ПРОВЕРКА ВРЕМЕНИ АКТИВНОСТИ
+            $lastActivity = $this->session->get('last_activity');
+            $timeoutSeconds = (int)Config::get('admin.AutoLogoutMinutes') * 60;
+
+            if ($lastActivity && (time() - $lastActivity > $timeoutSeconds)) {
+                $this->logout(); 
+                return false;
+            }
+            
             $userIp = $this->session->get('user_ip');
             $userAgent = $this->session->get('user_agent');
             // Проверка IP-адреса и User-Agent для защиты от угона сессии
@@ -101,6 +110,8 @@ class AuthService
                 null !== $userIp && $userIp === $this->request->getClientIp() &&
                 null !== $userAgent && $userAgent === $this->request->getUserAgent()
             ) {
+                // Если всё прошло — обновляем время активности
+                $this->session->set('last_activity', time());
                 return true;
             }
         }

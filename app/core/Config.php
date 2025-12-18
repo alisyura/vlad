@@ -75,7 +75,7 @@ class Config
                 'PagesToExclude' => ['sitemap', 'kontakty'],
                 'PostsToExclude' => [],
                 'TagsPerPage' => 10,
-                'LoginAttempts' => 3,
+                'LoginAttempts' => 5,
                 'LoginBlockMinutes' => 120,
                 'AutoLogoutMinutes' => 30
             ],
