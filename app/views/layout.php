@@ -50,17 +50,17 @@
         <nav class="menu">
             <div class="logo-block">
                 <div class="logo-site-block">
-                    <img class="logo" alt="Логотип" src="/assets/pic/logo.png" />
+                    <img class="logo" alt="Логотип" src="<?= asset('pic/logo.png'); ?>" />
                     <div class="text-block">
-                        <img class="site-name" alt="Название сайта" src="/assets/pic/site-name.png" />
+                        <img class="site-name" alt="Название сайта" src="<?= asset('pic/site-name.png'); ?>" />
                         <p class="slogan">портал сатиры, юмора и<br />хорошего настроения</p>
                     </div>
                 </div>
                 <div class="mobile-menu">
                     <div class="menu-toggle">
-                        <div class="hamburger-button"><img src="/assets/pic/hamburger.png" width="30" height="20" /></div>
+                        <div class="hamburger-button"><img src="<?= asset('pic/hamburger.png'); ?>" width="30" height="20" /></div>
                         <!-- Кнопка гамбургера -->
-                        <div class="close-button"><img src="/assets/pic/krestik.png" width="30" height="20" /></div>
+                        <div class="close-button"><img src="<?= asset('pic/krestik.png'); ?>" width="30" height="20" /></div>
                         <!-- Кнопка гамбургера -->
                     </div>
                 </div>
@@ -71,39 +71,39 @@
                 <div class="mobilemenu-container">
                     <div class="menu-block"itemscope itemtype="http://schema.org/SiteNavigationElement">
                         <div class="menu-item">
-                            <img src="/assets/pic/menu/glavnaya.png" alt="Главная" />
+                            <img src="<?= asset('pic/menu/glavnaya.png'); ?>" alt="Главная" />
                             <a itemprop="url" href="/">Главная</a>
                         </div>
                         <div class="menu-item">
-                            <img src="/assets/pic/menu/anekdoty.png" alt="Анекдоты" />
+                            <img src="<?= asset('pic/menu/anekdoty.png'); ?>" alt="Анекдоты" />
                             <a itemprop="url" href="/cat/anekdoty">Анекдоты</a>
                         </div>
                         <div class="menu-item">
-                            <img src="/assets/pic/menu/veselaya_rifma.png" alt="Веселая рифма" />
+                            <img src="<?= asset('pic/menu/veselaya_rifma.png'); ?>" alt="Веселая рифма" />
                             <a itemprop="url" href="/cat/veselaya_rifma">Веселая рифма</a>
                         </div>
                         <div class="menu-item">
-                            <img src="/assets/pic/menu/citatnik.png" alt="Цитатник" />
+                            <img src="<?= asset('pic/menu/citatnik.png'); ?>" alt="Цитатник" />
                             <a itemprop="url" href="/cat/citatnik">Цитатник</a>
                         </div>
                         <div class="menu-item">
-                            <img src="/assets/pic/menu/istorii.png" alt="Истории" />
+                            <img src="<?= asset('pic/menu/istorii.png'); ?>" alt="Истории" />
                             <a itemprop="url" href="/cat/istorii">Истории</a>
                         </div>
                         <div class="menu-item">
-                            <img src="/assets/pic/menu/kartinki.png" alt="Картинки" />
+                            <img src="<?= asset('pic/menu/kartinki.png'); ?>" alt="Картинки" />
                             <a itemprop="url" href="/cat/kartinki">Картинки</a>
                         </div>
                         <div class="menu-item">
-                            <img src="/assets/pic/menu/video.png" alt="Видео" />
+                            <img src="<?= asset('pic/menu/video.png'); ?>" alt="Видео" />
                             <a itemprop="url" href="/cat/video">Видео</a>
                         </div>
                         <div class="menu-item">
-                            <img src="/assets/pic/menu/tegi.png" alt="Тэги" />
+                            <img src="<?= asset('pic/menu/tegi.png'); ?>" alt="Тэги" />
                             <a itemprop="url" href="/cat/tegi-results.html">Тэги</a>
                         </div>
                         <div class="menu-item">
-                            <img src="/assets/pic/menu/luchshee.png" alt="Лучшее" />
+                            <img src="<?= asset('pic/menu/luchshee.png'); ?>" alt="Лучшее" />
                             <a itemprop="url" href="/cat/luchshee">Лучшее</a>
                         </div>
                     </div>
@@ -116,7 +116,7 @@
                         <a href="/page/policy.html">Пользовательское соглашение</a>
 
                         <div class="sitemap-block">
-                            <img class="icon" src="/assets/pic/sitemap.png" alt="Карта сайта" /> <!-- Иконка -->
+                            <img class="icon" src="<?= asset('pic/sitemap.png'); ?>" alt="Карта сайта" /> <!-- Иконка -->
                             <a href="/page/sitemap.html">Карта сайта</a> <!-- Текст -->
                         </div>
                     </div>
@@ -171,11 +171,11 @@
         <!-- Правая часть - Реклама -->
         <div class="ad">
             <!-- <div class="ad_block">
-                <img src="/assets/pic/ad_block.png">
+                <img src="<?= asset('pic/ad_block.png'); ?>">
             </div>
 
             <div class="ad_block">
-                <img src="/assets/pic/ad_block.png">
+                <img src="<?= asset('pic/ad_block.png'); ?>">
             </div> -->
         </div>
     </div>
@@ -192,7 +192,7 @@
             <div class="info-block">
                 <div class="icon-container">
                     <!-- Иконка 20x20px -->
-                    <img src="/assets/pic/info-icon.png" alt="Инфо" width="20" height="20" />
+                    <img src="<?= asset('pic/info-icon.png'); ?>" alt="Инфо" width="20" height="20" />
                 </div>
                 <div class="text-container">
                     <div class="info-title">Уважаемый пользователь!</div>
@@ -224,7 +224,7 @@
             <!-- Блок загрузки файла -->
             <div class="upload-block">
                 <div class="upload-content" id="uploadArea">
-                    <img src="/assets/pic/upload-icon.png" alt="Загрузка" width="13" height="20" />
+                    <img src="<?= asset('pic/upload-icon.png'); ?>" alt="Загрузка" width="13" height="20" />
                     <div class="upload-title" id="uploadTitle">Загрузка файла</div>
                     <div class="upload-description">Нажмите на область или перенесите файл с компьютера</div>
                     <div class="upload-hints">

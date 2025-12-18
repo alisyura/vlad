@@ -43,7 +43,7 @@
             <!-- Блок загрузки файла -->
             <div class="contact-upload-block">
                 <div class="contact-upload-content" id="contactUploadArea">
-                    <img src="/assets/pic/upload-icon.png" alt="Загрузка" width="13" height="20">
+                    <img src="<?= asset('pic/upload-icon.png'); ?>" alt="Загрузка" width="13" height="20">
                     <div class="contact-upload-title" id="contactUploadTitle">Загрузка файла</div>
                     <div class="contact-upload-description">Нажмите на область или перенесите файл с компьютера</div>
                     <div class="contact-upload-hints">

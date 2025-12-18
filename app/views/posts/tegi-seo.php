@@ -10,7 +10,7 @@
                 itemtype="http://schema.org/SearchAction">
 
                 <span class="search-icon icon" aria-hidden="true">
-                    <img src="/assets/pic/poisk.png" alt="Лупа" width="20" height="20">
+                    <img src="<?= asset('pic/poisk.png'); ?>" alt="Лупа" width="20" height="20">
                 </span>
 
                 <input type="text" id="tegi-search-input" class="tegi-search-input" 
@@ -22,7 +22,7 @@
                 </button>
             </form>
             <button onclick="clearTagInputSearch()" type="button" class="clear-icon icon" aria-label="Очистить поле поиска">
-                <img src="/assets/pic/sbros-poiska.png" alt="Очистить" width="20" height="20">
+                <img src="<?= asset('pic/sbros-poiska.png'); ?>" alt="Очистить" width="20" height="20">
             </button>
         </div>
 

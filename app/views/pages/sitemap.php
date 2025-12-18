@@ -11,7 +11,7 @@
         <div class="section-part">
             <div class="category-link">
                 <span class="spacer"></span> <!-- Промежуток 25px -->
-                <img src="/assets/pic/menu/glavnaya.png" alt="Главная" class="icon" />
+                <img src="<?= asset('pic/menu/glavnaya.png'); ?>" alt="Главная" class="icon" />
                 <span class="spacer_small"></span> <!-- Промежуток 10px -->
                 <a href="/" class="sitemap-link">Главная</a>
             </div>
@@ -22,7 +22,7 @@
             <div class="section-part" data-category="<?= htmlspecialchars($category['url']) ?>">
                 <div class="category-link">
                     <span class="spacer"></span> <!-- Промежуток 25px -->
-                    <img src="/assets/pic/menu/<?= $category['url'] ?>.png" alt="<?= $category['name'] ?>" class="icon" />
+                    <img src="<?= asset('pic/menu/' . htmlspecialchars($category['url']) . '.png') ?>" alt="<?= $category['name'] ?>" class="icon" />
                     <span class="spacer_small"></span> <!-- Промежуток 10px -->
                     <a href="/cat/<?= $category['url'] ?>" class="sitemap-link"><?= $category['name'] ?></a>
                 </div>
@@ -60,7 +60,7 @@
         <div class="section-part">
             <div class="category-link">
                 <span class="spacer"></span> <!-- Промежуток 25px -->
-                <img src="/assets/pic/page.png" alt="Страницы" class="icon" />
+                <img src="<?= asset('pic/page.png'); ?>" alt="Страницы" class="icon" />
                 <span class="spacer_small"></span> <!-- Промежуток 10px -->
                 <a href="/" class="sitemap-link">Страницы</a>
             </div>
