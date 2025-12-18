@@ -31,7 +31,9 @@ class UserModel extends BaseModel {
                 u.active AS active,
                 u.built_in AS built_in,
                 r.name AS role_name,
-                r.id AS role_id
+                r.id AS role_id,
+                u.failed_attempts AS failed_attempts,
+                u.lockout_until AS lockout_until
             FROM users u
             INNER JOIN roles r ON r.id = u.role_id
             WHERE 1=1"; // Начальное условие для удобства
@@ -59,6 +61,41 @@ class UserModel extends BaseModel {
         $stmt->execute($params);
 
         return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Обнуляет счетчик неудачных попыток и снимает блокировку
+     */
+    public function resetFailedAttempts($userId): void
+    {
+        $stmt = $this->db->prepare("
+            UPDATE users SET failed_attempts = 0, lockout_until = NULL WHERE id = :user_id
+        ");
+        $stmt->execute([
+            ':user_id' => $userId
+        ]);
+    }
+
+    /**
+     * Прибавляет попытку и ставит блок, если лимит превышен
+     */
+    public function registerFailedAttempt($userId, $currentAttempts, $maxAttempts, $blockMinutes): void
+    {
+        $newAttempts = $currentAttempts + 1;
+        $lockoutUntil = null;
+
+        if ($newAttempts >= $maxAttempts) {
+            $lockoutUntil = date('Y-m-d H:i:s', strtotime("+$blockMinutes minutes"));
+        }
+
+        $stmt = $this->db->prepare("
+            UPDATE users SET failed_attempts = :attempts, lockout_until = :lockout WHERE id = :user_id
+        ");
+        $stmt->execute([
+            ':attempts' => $newAttempts,
+            ':lockout'  => $lockoutUntil,
+            ':user_id'  => $userId
+        ]);
     }
 
     public function getRolesList() {

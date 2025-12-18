@@ -28,7 +28,22 @@ class AuthService
 
         $user = $this->userModel->getUser(login: $login, onlyActive: true);
         
-        if ($user && password_verify($password, $user['password'])) {
+        if (!$user) {
+            return false;
+        }
+
+        // ПРОВЕРКА БЛОКИРОВКИ
+        // Если дата разблокировки установлена и она ещё в будущем — не пускаем.
+        if (!empty($user['lockout_until']) && strtotime($user['lockout_until']) > time()) {
+            return false; 
+        }
+
+        if (password_verify($password, $user['password'])) {
+            // --- ПАРОЛЬ ВЕРНЫЙ ---
+
+            // Сбрасываем счетчик ошибок в базе
+            $this->userModel->resetFailedAttempts((int)$user['id']);
+
             $this->session->regenerateId(true);
 
             // Обновляем CSRF-токен после входа
@@ -42,8 +57,20 @@ class AuthService
             $this->session->set('user_agent', $_SERVER['HTTP_USER_AGENT']);
             $this->session->set('user_name', (string)$user['name']);
 
+            // Запоминаем время входа для автовыхода через 30 мин
+            $this->session->set('last_activity', time());
+
             return true;
         }
+
+        // --- ПАРОЛЬ НЕВЕРНЫЙ ---
+        // Увеличиваем счетчик ошибок в базе (создадим этот метод в модели следующим шагом)
+        $this->userModel->registerFailedAttempt(
+            (int)$user['id'], 
+            (int)$user['failed_attempts'],
+            (int)Config::get('admin.LoginAttempts'),
+            (int)Config::get('admin.LoginBlockMinutes')
+        );
 
         // В случае неудачной попытки нужно увеличить счетчик
         // failed_login_attempts для данного логина.

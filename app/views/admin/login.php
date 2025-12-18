@@ -25,6 +25,11 @@
                 >
             </div>
 
+            <div style="display:none !important; visibility:hidden !important;">
+                <label>Оставьте это поле пустым</label>
+                <input type="text" name="middle_name" tabindex="-1" autocomplete="off">
+            </div>
+
             <div class="form-group">
                 <label for="password" class="form-label">Пароль</label>
                 <input 

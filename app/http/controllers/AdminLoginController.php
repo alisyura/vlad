@@ -15,6 +15,13 @@ class AdminLoginController extends BaseAdminController
     public function login(): Response {
         if ($this->getRequest()->getMethod() === 'POST') {
             // --- Проверка и обработка POST ---
+            // ПРОВЕРКА "МЁДА" (Honeypot)
+            $honey = $this->getRequest()->post('middle_name');
+            if (!empty($honey)) {
+                // Если бот заполнил поле, просто выкидываем его
+                return $this->getResponseFactory()->createHtmlResponse('Forbidden', 403);
+            }
+            
             $token = $this->getRequest()->post('csrf_token') ?? '';
             if (!CSRF::validateToken($token)) {
                 // После неудачной проверки нужно обновить токен

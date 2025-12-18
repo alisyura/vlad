@@ -75,6 +75,9 @@ class Config
                 'PagesToExclude' => ['sitemap', 'kontakty'],
                 'PostsToExclude' => [],
                 'TagsPerPage' => 10,
+                'LoginAttempts' => 3,
+                'LoginBlockMinutes' => 120,
+                'AutoLogoutMinutes' => 30
             ],
             'mail' => [
                 'AdminEmail' => $source['MAIL_ADMIN_USERNAME'] ?? 'admin@admin.ru',
