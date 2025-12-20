@@ -111,24 +111,49 @@ class MediaLibrary {
         const ul = document.createElement('ul');
         ul.className = 'pagination pagination-sm justify-content-center';
 
+        const range = 2; // Сколько страниц показывать по бокам от текущей
+        let pages = [];
+
+        // Собираем список номеров страниц, которые точно хотим видеть
         for (let i = 1; i <= totalPages; i++) {
-            // Простая логика: рисуем все кнопки (для 25 картинок на стр. их вряд ли будет 100)
+            if (
+                i === 1 || // Первая
+                i === totalPages || // Последняя
+                (i >= this.currentPage - range && i <= this.currentPage + range) // Соседи
+            ) {
+                pages.push(i);
+            }
+        }
+
+        // Отрисовываем кнопки с учетом пропусков (троеточий)
+        let lastPage = 0;
+        pages.forEach(page => {
+            // Если между страницами есть разрыв больше чем в одну цифру — ставим троеточие
+            if (lastPage !== 0 && page - lastPage > 1) {
+                const li = document.createElement('li');
+                li.className = 'page-item disabled';
+                li.innerHTML = '<span class="page-link">...</span>';
+                ul.appendChild(li);
+            }
+
             const li = document.createElement('li');
-            li.className = `page-item ${i === this.currentPage ? 'active' : ''}`;
+            li.className = `page-item ${page === this.currentPage ? 'active' : ''}`;
             
             const btn = document.createElement('button');
             btn.className = 'page-link';
             btn.type = 'button';
-            btn.innerText = i;
+            btn.innerText = page;
             btn.addEventListener('click', (e) => {
                 e.preventDefault();
-                this.loadItems(i);
+                this.loadItems(page);
                 document.getElementById('mediaGalleryContainer').scrollTop = 0;
             });
 
             li.appendChild(btn);
             ul.appendChild(li);
-        }
+            lastPage = page;
+        });
+
         nav.appendChild(ul);
         this.paginationContainer.appendChild(nav);
     }
