@@ -12,9 +12,25 @@ class MediaService
         $this->authService = $authService;
     }
 
-    public function list(): array
+    public function list(int $page): array
     {
-        return $this->model->getMedialist();
+        $limit = (int) Config::get('media.MediaPageSize');
+        $totalItems = $this->model->countTotalMedia();
+        $totalPages = ceil($totalItems / $limit);
+        if ($totalPages < 1) $totalPages = 1; // Чтобы не было 0 страниц, если база пуста
+        if ($page < 1) {
+            $page = 1; 
+        } elseif ($page > $totalPages) {
+            $page = $totalPages;
+        }
+        $offset = ($page - 1) * $limit;
+        $resMediaList = $this->model->getMedialist($limit, $offset);
+
+        return [
+            'mediaList' => $resMediaList, 
+            'totalPages' => $totalPages, 
+            'currentPage' => $page
+        ];
     }
 
     public function upload(array $file, string $alt): array

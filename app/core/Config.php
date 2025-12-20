@@ -63,6 +63,10 @@ class Config
                 'UploadedMinHeight' => 300,
                 'UploadedMinWidth' => 400
             ],
+            'media' => [
+                // Кол-во картинок на странице в медиатеке
+                'MediaPageSize' => 25
+            ],
             'cache' => [
                 'CacheDir' => defined('ROOT_PATH') ? ROOT_PATH . DIRECTORY_SEPARATOR . 'cache' . DIRECTORY_SEPARATOR . 'pages' . DIRECTORY_SEPARATOR : ''
             ],

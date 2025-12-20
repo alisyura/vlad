@@ -10,18 +10,38 @@ class AdminMediaModel extends BaseModel {
     /**
      * Запрос к базе данных для получения всех изображений
      */
-    public function getMediaList()
+    public function getMediaList(int $limit, int $offset): array
     {
         $sql = "SELECT file_path AS url, alt_text AS alt
                 FROM media 
                 WHERE status='published'
-                ORDER BY updated_at DESC";
+                ORDER BY updated_at DESC
+                LIMIT :limit OFFSET :offset";
         try {
             $stmt = $this->db->prepare($sql);
+            $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+            $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
             $stmt->execute();
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
         } catch (PDOException $e) {
-            Logger::error("Error fetching media list: " . $e->getMessage());
+            Logger::error("Error fetching media list: ", ['limit' => $limit, 'offset' => $offset], $e);
+            throw $e;
+        }
+    }
+
+    /**
+     * Запрос к базе данных для получения количества всех изображений
+     */
+    public function countTotalMedia(): int 
+    {
+        $sql = "SELECT COUNT(*) FROM media WHERE status='published'";
+        
+        try {
+            $stmt = $this->db->prepare($sql);
+            $stmt->execute();
+            return (int)$stmt->fetchColumn();
+        } catch (PDOException $e) {
+            Logger::error("Error counting media: ", [], $e);
             throw $e;
         }
     }

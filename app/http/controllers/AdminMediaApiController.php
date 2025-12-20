@@ -16,12 +16,24 @@ class AdminMediaApiController extends BaseAdminController
 
     public function list(): Response
     {
-        try {
-            $media = $this->mediaService->list();
+        $curPage = $this->getRequest()->page;
 
-            return $this->renderJson('', 200, ['mediaList' => $media]);
+        try {
+            $curPage = filter_var($curPage, FILTER_VALIDATE_INT, [
+                'options' => [
+                    'min_range' => 1
+                ]
+            ]);
+            if ($curPage === false) {
+                $curPage = 1;
+            }
+            
+            $media = $this->mediaService->list($curPage);
+
+            //return $this->renderJson('', 200, ['mediaList' => $media]);
+            return $this->renderJson('', 200, $media);
         } catch (Throwable $e) {
-            Logger::error('AdminMediaApiController.list. Сбой при получении списка картинок', [], $e);
+            Logger::error('AdminMediaApiController.list. Сбой при получении списка картинок', ['curPage' => $curPage], $e);
             throw new HttpException('Сбой при получении списка картинок', 500, $e, HttpException::JSON_RESPONSE);
         }
     }

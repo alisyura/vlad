@@ -5,14 +5,16 @@
  */
 class MediaLibrary {
     constructor(config) {
-        this.adminRoute = config.adminRoute || 'admin';
+        this.adminRoute = config.adminRoute;
+        this.currentPage = 1;
+
         this.modalElement = document.getElementById('mediaModal');
         this.mediaModal = new bootstrap.Modal(this.modalElement);
         this.mediaGallery = document.getElementById('mediaGallery');
+        this.paginationContainer = document.getElementById('mediaPagination');
         this.insertMediaBtn = document.getElementById('insertMediaBtn');
         this.uploadForm = document.getElementById('mediaUploadForm');
         
-        // Переменные для управления выбором
         this.currentCallback = null;
         this.selectedUrl = null;
         this.selectedAlt = null;
@@ -36,11 +38,11 @@ class MediaLibrary {
         }
     }
 
-    // Открыть медиатеку
+    // Открыть медиатеку и загрузить первую страницу
     open(callback) {
         this.currentCallback = callback;
         this.resetSelection();
-        this.loadItems();
+        this.loadItems(1);
         this.mediaModal.show();
     }
 
@@ -48,11 +50,14 @@ class MediaLibrary {
         this.selectedUrl = null;
         this.selectedAlt = null;
         this.insertMediaBtn.disabled = true;
-        this.mediaGallery.querySelectorAll('img').forEach(img => img.classList.remove('selected'));
+        if (this.mediaGallery) {
+            this.mediaGallery.querySelectorAll('img').forEach(img => img.classList.remove('selected'));
+        }
     }
 
-    async loadItems() {
-        const url = `/${this.adminRoute}/media/api/list`;
+    async loadItems(page = 1) {
+        this.currentPage = page;
+        const url = `/${this.adminRoute}/media/api/list?page=${this.currentPage}`;
         console.log(url);
         try {
             const response = await fetch(url, {
@@ -62,9 +67,10 @@ class MediaLibrary {
 
             if (data.success) {
                 this.renderGallery(data.mediaList);
+                this.renderPagination(data.totalPages);
             }
         } catch (error) {
-            console.error('Ошибка медиатеки:', error);
+            console.error('Ошибка загрузки медиатеки:', error);
             alert(error.message);
         }
     }
@@ -74,7 +80,13 @@ class MediaLibrary {
         items.forEach(item => {
             const col = document.createElement('div');
             col.className = 'col media-item';
-            col.innerHTML = `<img src="${item.url}" class="img-thumbnail" alt="${item.alt}" data-url="${item.url}">`;
+            col.innerHTML = `
+                <img src="${item.url}" 
+                     class="img-thumbnail" 
+                     alt="${item.alt}" 
+                     data-url="${item.url}" 
+                     style="aspect-ratio: 1/1; object-fit: cover; cursor: pointer;">
+            `;
             
             // Клик (выделение)
             col.addEventListener('click', () => this.selectItem(col.querySelector('img')));
@@ -87,6 +99,38 @@ class MediaLibrary {
 
             this.mediaGallery.appendChild(col);
         });
+    }
+
+    renderPagination(totalPages) {
+        if (!this.paginationContainer) return;
+        this.paginationContainer.innerHTML = '';
+
+        if (totalPages <= 1) return;
+
+        const nav = document.createElement('nav');
+        const ul = document.createElement('ul');
+        ul.className = 'pagination pagination-sm justify-content-center';
+
+        for (let i = 1; i <= totalPages; i++) {
+            // Простая логика: рисуем все кнопки (для 25 картинок на стр. их вряд ли будет 100)
+            const li = document.createElement('li');
+            li.className = `page-item ${i === this.currentPage ? 'active' : ''}`;
+            
+            const btn = document.createElement('button');
+            btn.className = 'page-link';
+            btn.type = 'button';
+            btn.innerText = i;
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.loadItems(i);
+                document.getElementById('mediaGalleryContainer').scrollTop = 0;
+            });
+
+            li.appendChild(btn);
+            ul.appendChild(li);
+        }
+        nav.appendChild(ul);
+        this.paginationContainer.appendChild(nav);
     }
 
     selectItem(img) {
@@ -128,12 +172,13 @@ class MediaLibrary {
             
             if (response.ok) {
                 this.uploadForm.reset();
-                await this.loadItems();
+                await this.loadItems(1);
             } else {
                 alert('Ошибка: ' + (data.message || 'Загрузка не удалась'));
             }
         } catch (error) {
             console.error(error);
+            alert('Загрузка не удалась');
         }
     }
 
@@ -148,10 +193,15 @@ class MediaLibrary {
     }
 
     clearPreview() {
-        document.getElementById('postImageInput').value = '';
-        document.getElementById('postImagePreview').src = '';
-        document.getElementById('selectedImagePreview').style.display = 'none';
-        document.getElementById('removeImageBtn').style.display = 'none';
+        const input = document.getElementById('postImageInput');
+        const preview = document.getElementById('postImagePreview');
+        const container = document.getElementById('selectedImagePreview');
+        const removeImageBtn = document.getElementById('removeImageBtn');
+
+        if (input) input.value = '';
+        if (preview) preview.src = '';
+        if (container) container.style.display = 'none';
+        if (removeImageBtn) removeImageBtn.style.display = 'none';
     }
 }
 

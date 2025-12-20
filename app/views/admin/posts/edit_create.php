@@ -207,7 +207,7 @@ $adminRoute = $data['adminRoute'] ?? 'admin';
 </form>
 
 <div class="modal fade" id="mediaModal" tabindex="-1" aria-labelledby="mediaModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-xl">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="mediaModalLabel">Медиатека</h5>
@@ -236,11 +236,13 @@ $adminRoute = $data['adminRoute'] ?? 'admin';
                 <hr>
                 <h5>Выбрать из существующих</h5>
                 
-                <div id="mediaGalleryContainer" style="max-height: 45vh; overflow-y: auto;">
+                <div id="mediaGalleryContainer" style="max-height: 60vh; overflow-y: auto; overflow-x: hidden;">
                     <div class="row row-cols-2 row-cols-sm-3 row-cols-md-4 row-cols-lg-5 g-3" id="mediaGallery">
                         </div>
                 </div>
                 
+            </div>
+            <div id="mediaPagination" class="d-flex justify-content-center mt-4 mb-2">
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
