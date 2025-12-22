@@ -32,11 +32,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700&display=swap" rel="stylesheet">
 
-    <link rel="stylesheet" href="<?= asset('css/styles.css'); ?>" />
-    <link rel="stylesheet" href="<?= asset('css/common.css'); ?>" />
-    <link rel="stylesheet" href="<?= asset('css/menu.css'); ?>" />
-    <link rel="stylesheet" href="<?= asset('css/new_pub.css'); ?>" />
-    <link rel="stylesheet" href="<?= asset('css/react.css'); ?>" />
+    <link rel="stylesheet" href="/assets/css/style-builder.php?v=<?= filemtime('assets/css/style-builder.php') ?>">
     <?php if (!empty($exportData['styles']) && is_array($exportData['styles'])): ?>
         <?php foreach ($exportData['styles'] as $style): ?>
             <link rel="stylesheet" href="<?= asset("css/{$style}") ?>" />
@@ -254,12 +250,7 @@
     </div>
 
     <!-- Скрипты -->
-    <script src="<?= asset("js/menu.js") ?>" defer></script>
-    <script src="<?= asset("js/common.js") ?>" defer></script>
-    <script src="<?= asset("js/textarea_charcounter.js") ?>" defer></script>
-    <script src="<?= asset("js/drag_n_drop_file.js") ?>" defer></script>
-    <script src="<?= asset("js/new_pub.js") ?>" defer></script>
-    <script src="<?= asset("js/vote_share.js") ?>" defer></script>
+    <script defer src="/assets/js/js-builder.php?v=<?= filemtime('assets/js/js-builder.php') ?>"></script>
 
     <?php if (!empty($exportData['jss']) && is_array($exportData['jss'])): ?>
         <?php foreach ($exportData['jss'] as $js): ?>

@@ -236,7 +236,7 @@ $adminRoute = $data['adminRoute'] ?? 'admin';
                 <hr>
                 <h5>Выбрать из существующих</h5>
                 
-                <div id="mediaGalleryContainer" style="max-height: 60vh; overflow-y: auto; overflow-x: hidden;">
+                <div id="mediaGalleryContainer">
                     <div class="row row-cols-2 row-cols-sm-3 row-cols-md-4 row-cols-lg-5 g-3" id="mediaGallery">
                         </div>
                 </div>
