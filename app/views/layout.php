@@ -28,15 +28,19 @@
 
     <link rel="manifest" href="/site.webmanifest">
 
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700&display=swap" rel="stylesheet">
-
     <link rel="stylesheet" href="/assets/css/style-builder.php?v=<?= filemtime('assets/css/style-builder.php') ?>">
     <?php if (!empty($exportData['styles']) && is_array($exportData['styles'])): ?>
-        <?php foreach ($exportData['styles'] as $style): ?>
-            <link rel="stylesheet" href="<?= asset("css/{$style}") ?>" />
-        <?php endforeach ?>
+        <style type="text/css">
+            <?php foreach ($exportData['styles'] as $style): ?>
+                <?php 
+                    $filePath = public_path("assets/css/{$style}");
+                    if (file_exists($filePath)): 
+                        echo "\n/* --- Build: {$style} --- */\n";
+                        echo file_get_contents($filePath);
+                    endif; 
+                ?>
+            <?php endforeach ?>
+        </style>
     <?php endif ?>
 </head>
 

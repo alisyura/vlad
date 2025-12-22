@@ -538,3 +538,9 @@ function buildQueryString(array $filterData, string $sortBy, string $sortOrder, 
     $queryParamsSeparator = $includeSort ? '?' : '&';
     return !empty($queryString) ? $queryParamsSeparator . $queryString : '';
 }
+
+function public_path($path = '') {
+    // __DIR__ здесь должен указывать на папку, где лежит index.php 
+    // (или поднимись выше на уровень через /../ если нужно)
+    return $_SERVER['DOCUMENT_ROOT'] . ($path ? DIRECTORY_SEPARATOR . ltrim($path, '\/') : '');
+}

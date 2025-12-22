@@ -17,6 +17,7 @@ $shouldMinify=Config::get('cache.MinificateCSS');
 
 // Список твоих файлов в нужном порядке
 $files = [
+    'fonts.css',
     'styles.css',
     'common.css',
     'menu.css',
