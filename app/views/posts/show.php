@@ -30,7 +30,7 @@
     <?php endif ?>
 
     <!-- Заголовок поста -->
-    <h1 class="post_preview_header" itemprop="headline"><?= htmlspecialchars($post['title']) ?></h1>
+    <!-- <h1 class="post_preview_header" itemprop="headline"><?= htmlspecialchars($post['title']) ?></h1> -->
 
     <!-- Текст поста -->
     <div class="post_full_text" itemprop="articleBody">

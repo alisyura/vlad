@@ -41,7 +41,7 @@
         </div>
 
         <!-- Заголовок поста -->
-        <h3 itemprop="headline" class="post_preview_header"><?= htmlspecialchars($post['title']) ?></h3>
+        <!-- <h3 itemprop="headline" class="post_preview_header"><?= htmlspecialchars($post['title']) ?></h3> -->
 
         <!-- Текстовый превью поста -->
         <div class="post_text_preview">
