@@ -260,8 +260,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // 3. TinyMCE
     tinymce.init({
         selector: '#postContent',
-        plugins: 'link  lists code media emoticons wordcount',
-        toolbar: 'undo redo | bold italic underline strikethrough | forecolor backcolor | alignleft aligncenter alignright alignjustify | bullist numlist | link mycustomimage | emoticons | code',
+        plugins: 'link lists code media emoticons wordcount',
+        toolbar: 'undo redo | blocks | bold italic underline strikethrough | colors_group | align | bullist numlist | link mycustomimage | emoticons | code',
+        block_formats: 'Paragraph=p; Heading 2=h2; Heading 3=h3; Heading 4=h4; Heading 5=h5; Heading 6=h6',
         menubar: false,
         height: 600,
         language: 'ru',
@@ -271,6 +272,12 @@ document.addEventListener('DOMContentLoaded', () => {
         convert_urls: false,
         branding: false,
         setup: function(editor) {
+            editor.ui.registry.addGroupToolbarButton('colors_group', {
+            icon: 'color-picker',
+            tooltip: 'Цвета',
+            items: 'forecolor backcolor'
+            });
+
             editor.ui.registry.addButton('mycustomimage', {
                 icon: 'image',
                 onAction: () => {
