@@ -45,7 +45,6 @@ class Config
             ],
             'global' => [
                 'ViewsRootPath' => defined('ROOT_PATH') ? ROOT_PATH . DIRECTORY_SEPARATOR . 'app' . DIRECTORY_SEPARATOR . 'views' : '',
-                'APP_SECRET_KEY' => $source['APP_SECRET_KEY'] ?? null, 
             ],
             'logger' => [
                 'UseDebugLogger' => true,
@@ -91,6 +90,13 @@ class Config
                 'pw' => $source['MAIL_PASSWORD'] ?? 'default_password',
                 'SMTPServer' => $source['MAIL_HOST'] ?? 'localhost',
                 'SMTPPort' => (int)($source['MAIL_PORT'] ?? 465)
+            ],
+            'security' => [
+                'APP_SECRET_KEY' => $source['APP_SECRET_KEY'] ?? null, 
+                'LogFilename' => 'security_alerts.log',
+                'NonceFilesDir' => defined('ROOT_PATH') ? ROOT_PATH . DIRECTORY_SEPARATOR . 'nonces' : 'nonces',
+                'NonceDriver' => 'file', // redis, file, mysql
+                'MaxDriftSeconds' => 60
             ]
         ];
 

@@ -10,8 +10,29 @@
  */
 class ResponseFactory
 {
+    public function createSecureResponse(array $data = [], string $secretKey = '', int $statusCode = 200, array $headers = []): Response
+    {
+        // Возвращает стандартный Html
+        return new \App\Framework\Security\SecureResponse($secretKey, $data, $statusCode, $headers);
+    }
+
     /**
-     * Создает базовый ответ (обычно HTML или Text).
+     * Создает базовый Text ответ.
+     *
+     * Использует класс TextResponse (или ваш основной класс, наследующий AbstractResponse).
+     * @param string $content Тело ответа.
+     * @param int $statusCode HTTP-код статуса.
+     * @param array $headers Заголовки.
+     * @return TextResponse
+     */
+    public function createTextResponse(string $content = '', int $statusCode = 200, array $headers = []): Response
+    {
+        // Возвращает стандартный Html
+        return new TextResponse($content, $statusCode, $headers);
+    }
+
+    /**
+     * Создает базовый HTML ответ.
      *
      * Использует класс HtmlResponse (или ваш основной класс, наследующий AbstractResponse).
      * @param string $content Тело ответа.

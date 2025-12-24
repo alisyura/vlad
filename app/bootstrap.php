@@ -88,3 +88,11 @@ $container->bind(SettingsService::class, SettingsService::class);
 $container->bind(SettingsValidator::class, SettingsValidator::class);
 $container->bind(AdminSettingsApiController::class, AdminSettingsApiController::class);
 $container->bind(AdminCacheApiController::class, AdminCacheApiController::class);
+
+$container->bind(Response::class, Response::class);
+$container->bind(HtmlResponse::class, HtmlResponse::class);
+$container->bind(EmptyResponse::class, EmptyResponse::class);
+$container->bind(JsonResponse::class, JsonResponse::class);
+$container->bind(RedirectResponse::class, RedirectResponse::class);
+$container->bind(TextResponse::class, TextResponse::class);
+$container->bind(XmlResponse::class, XmlResponse::class);

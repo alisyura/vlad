@@ -69,6 +69,17 @@ abstract class BaseController {
 
     /**
      * Вспомогательный метод для рендеринга шаблона и немедленного 
+     * оборачивания результата в TextResponse.
+     */
+    protected function renderText(string $textContent, array $data = [], 
+        int $httpCode = 200): Response
+    {
+        $content = $textContent ?? '';
+        return $this->getResponseFactory()->createTextResponse($content, $httpCode);
+    }
+
+    /**
+     * Вспомогательный метод для рендеринга шаблона и немедленного 
      * оборачивания результата в HtmlResponse.
      */
     protected function renderHtml(string $templatePath, array $data = [], 
@@ -92,5 +103,16 @@ abstract class BaseController {
             ...($additionalData ?? [])
         ]; 
         return $this->getResponseFactory()->createJsonResponse($response, $statusCode);
+    }
+
+    protected function renderSecure(array $data, string $secretKey = '', 
+        int $statusCode = 200, array $additionalData = []): Response
+    {
+        $response = [
+            'success' => $statusCode === 200, 
+            ...($data ?? []),
+            ...($additionalData ?? [])
+        ]; 
+        return $this->getResponseFactory()->createSecureResponse($response, $secretKey, $statusCode);
     }
 }

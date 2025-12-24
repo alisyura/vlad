@@ -1,9 +1,10 @@
 <?php
 
-namespace App\Framework; // Рекомендуется использовать namespace
+namespace App\Framework\Security;
 
 use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Exception\GuzzleException;
+use Logger;
 
 /**
  * Клиент для безопасного взаимодействия с внешним API.
@@ -107,31 +108,39 @@ class SimpleSecureClient
                 'json' => $requestData,
                 'auth' => [$this->username, $this->password, 'basic'],
                 'timeout' => self::TIMEOUT,
-                // Если не нужно выбрасывать исключения для 4xx/5xx: 'http_errors' => false,
             ]);
 
-            $statusCode = $response->getStatusCode();
             $body = $response->getBody()->getContents();
+            $decoded = json_decode($body, true);
 
-            // Проверка тела ответа
-            $decodedResponse = json_decode($body, true);
             if (json_last_error() !== JSON_ERROR_NONE) {
-                 // Выбрасываем исключение, если тело не является валидным JSON
-                 throw new \RuntimeException(
-                     'Ошибка декодирования JSON ответа: ' . json_last_error_msg() . 
-                     '. Статус: ' . $statusCode
-                 );
+                throw new \RuntimeException('Ошибка декодирования JSON ответа');
             }
 
+            // --- Проверка подписи сервера ---
+            if (!isset($decoded['payload']) || !isset($decoded['signature'])) {
+                throw new \RuntimeException('Ответ сервера не содержит подписи');
+            }
+
+            $expectedSignature = hash_hmac(
+                self::HASH_ALGO, 
+                json_encode($decoded['payload'], JSON_UNESCAPED_UNICODE), 
+                $this->signatureKey
+            );
+
+            if (!hash_equals($expectedSignature, $decoded['signature'])) {
+                throw new \RuntimeException('Критическая ошибка: Подпись сервера не совпадает!');
+            }
+            // --- Конец проверки подписи ---
+
             return [
-                'status'   => $statusCode,
-                'response' => $decodedResponse
+                'status'   => $response->getStatusCode(),
+                'success' => $decoded['success'],
+                'response' => $decoded['payload']
             ];
 
         } catch (GuzzleException $e) {
-            // GuzzleException обрабатывает все сетевые ошибки, тайм-ауты, 
-            // а также ошибки 4xx (ClientException) и 5xx (ServerException) по умолчанию.
-            // Мы перебрасываем его для обработки в вызывающем коде.
+            Logger::error('Ошибка', ['status' => $response->getStatusCode(), 'success' => $decoded['success']], $e);
             throw $e; 
         }
     }

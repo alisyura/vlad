@@ -12,7 +12,7 @@ class JsonResponse extends Response
      */
     public function __construct(array $data, int $statusCode = 200, array $headers = [])
     {
-        $content = json_encode($data, JSON_THROW_ON_ERROR); 
+        $content = json_encode($data, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR); 
         
         parent::__construct($content, $statusCode, $headers);
     }
