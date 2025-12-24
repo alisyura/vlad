@@ -45,9 +45,9 @@
 
         <!-- Текстовый превью поста -->
         <div class="post_text_preview">
-            <?php if ($show_read_next): ?>
+            <?php if (($post['is_excerpted'] ?? 0) !== 0): ?>
             <div itemprop="description"><?= get_clean_description(create_excerpt($post['content'])) ?></div>
-            <a href="/<?= $post['url'] ?>.html" class="text_link">Читать ></a>
+            <a href="/<?= $post['url'] ?>.html" class="text_link">Читать далее &gt;</a>
             <?php else: ?>
             <div itemprop="articleBody"><?= strip_tags_from_html($post['content']) ?></div>
             <?php endif ?>

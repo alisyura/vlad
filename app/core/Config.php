@@ -38,10 +38,12 @@ class Config
             ],
             'posts' => [
                 'exerpt_len' => 200,
+                'ExcerptCategories' => ['istorii'],
                 'posts_per_page' => 10,
                 'max_urls_in_sitemap' => 50000,
                 'allowed_tags' => '<p><b><i><strong><em><a><img><br><span><s><ul><li><ol><div>',
-                'count_tags_without_query' => 10
+                'count_tags_without_query' => 10,
+                'LikesCountLuchshee' => 2 // кол-во лайков у поста для вывода его в категории Лучшее
             ],
             'global' => [
                 'ViewsRootPath' => defined('ROOT_PATH') ? ROOT_PATH . DIRECTORY_SEPARATOR . 'app' . DIRECTORY_SEPARATOR . 'views' : '',

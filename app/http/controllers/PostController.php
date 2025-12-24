@@ -148,22 +148,25 @@ class PostController extends BaseController {
     */
     public function index($page = 1): Response {
         try {
-            $posts_per_page = Config::get('posts.posts_per_page');
-            $total_posts = $this->model->countAllPosts();
+            $postsPerPage = Config::get('posts.posts_per_page');
+            $totalPosts = $this->model->countAllPostsForHome();
 
             // для генерации ссылки перехода на след/пред страницу < или >
             // для главной страницы передаем пустую строку, чтобы не создалась ссылка
             // с двумя слэшами //p ...
-            $base_page_url = "";
+            $basePageUrl = "";
 
             // Генерируем массив ссылок для умной пагинации
-            $paginParams = $this->paginService->calculatePaginationParams($posts_per_page, $page, 
-                $total_posts, $base_page_url);
+            $paginParams = $this->paginService->calculatePaginationParams($postsPerPage, $page, 
+                $totalPosts, $basePageUrl);
             
-            ['totalPages' => $total_pages, 
-                    'paginationLinks' => $pagination_links] = $paginParams;
+            ['totalPages' => $totalPages, 
+                    'paginationLinks' => $paginationLinks] = $paginParams;
 
-            $posts = $this->model->getAllPosts($posts_per_page, $page);
+            $excerptLen = Config::get('posts.exerpt_len') + 50;
+            $excerptCategories = Config::get('posts.ExcerptCategories');
+            $posts = $this->model->getAllPostsForHome($postsPerPage, $excerptLen,
+                $excerptCategories, $page);
 
             $baseUrl = $this->getRequest()->getBaseUrl();
 
@@ -176,15 +179,14 @@ class PostController extends BaseController {
                 'posts' => $posts,
                 'show_caption' => false,
                 'url' => $baseUrl,
-                'show_read_next' => false,
                 'pagination' => [
                     'current_page' => $page,
-                    'total_pages' => $total_pages,
-                    'total_posts' => $total_posts,
-                    'posts_per_page' => $posts_per_page,
+                    'total_pages' => $totalPages,
+                    'total_posts' => $totalPosts,
+                    'posts_per_page' => $postsPerPage,
                 ],
-                'pagination_links' => $pagination_links,
-                'base_page_url' => $base_page_url,
+                'pagination_links' => $paginationLinks,
+                'base_page_url' => $basePageUrl,
                 'export' => [
                     'page_type' => 'home',
                     'title' => $seoSettings['index_page_title']['value'],
@@ -213,10 +215,9 @@ class PostController extends BaseController {
     /*
     * Список постов из раздела меню
     */
-    public function showBySection($cat_url, $show_link_next, $page = 1) {
+    private function showBySection($cat_url, $total_posts, $posts, $page = 1): Response {
         try {
             $posts_per_page = Config::get('posts.posts_per_page');
-            $total_posts = $this->model->countAllPostsByCategory($cat_url);
             
             // для генерации ссылки перехода на след/пред страницу < или >
             $base_page_url = "/cat/{$cat_url}";
@@ -227,8 +228,6 @@ class PostController extends BaseController {
             
             ['totalPages' => $total_pages, 
                     'paginationLinks' => $pagination_links] = $paginParams;
-
-            $posts = $this->model->getAllPostsByCategory($cat_url, $show_link_next, $posts_per_page, $page);
 
             $baseUrl = $this->getRequest()->getBaseUrl();
 
@@ -250,7 +249,6 @@ class PostController extends BaseController {
                 'caption' => $caption,
                 'caption_desc' => $caption_desc,
                 'url' => $baseUrl,
-                'show_read_next' => $show_link_next,
                 'pagination' => [
                     'current_page' => $page,
                     'total_pages' => $total_pages,
@@ -279,8 +277,49 @@ class PostController extends BaseController {
 
             return $this->renderHtml('posts/index.php', $contentData);
         } catch (Throwable $e) {
-            Logger::error("Error in showBySection: ", ['cat_url' => $cat_url, 'show_link_next' => $show_link_next, 'page' => $page], $e);
+            Logger::error("Error in showBySection: ", ['cat_url' => $cat_url, 'page' => $page], $e);
             throw new HttpException('Ошибка получения списка постов по разделу', 500, $e);
+        }
+    }
+
+    /*
+    * Список постов из раздела меню
+    */
+    public function showPostsInSection($catUrl, $page = 1): Response {
+        try {
+            $totalPosts = $this->model->countAllPostsByCategory($catUrl);
+            
+            $postsPerPage = Config::get('posts.posts_per_page');
+            $excerptLen = Config::get('posts.exerpt_len') + 50;
+            $excerptCategories = Config::get('posts.ExcerptCategories');
+            $posts = $this->model->getAllPostsByCategory($postsPerPage, $excerptLen, 
+                $excerptCategories, $catUrl, $page);
+
+            return $this->showBySection($catUrl, $totalPosts, $posts, $page);
+        } catch (Throwable $e) {
+            Logger::error("Error in showBySection: ", ['cat_url' => $catUrl, 'page' => $page], $e);
+            throw new HttpException('Ошибка получения списка постов по разделу', 500, $e);
+        }
+    }
+
+    /*
+    * Список постов из раздела меню Лучшее
+    */
+    public function showPostsInSectionLuchshee($catUrl, $page = 1): Response {
+        try {
+            $minLikes = Config::get('posts.LikesCountLuchshee');
+            $totalPosts = $this->model->countAllPostsByCategory(null, $minLikes);
+
+            $postsPerPage = Config::get('posts.posts_per_page');
+            $excerptLen = Config::get('posts.exerpt_len') + 50;
+            $excerptCategories = Config::get('posts.ExcerptCategories');
+            $posts = $this->model->getAllPostsByCategory($postsPerPage, $excerptLen, 
+                $excerptCategories, null, $page,  $minLikes);
+
+            return $this->showBySection($catUrl, $totalPosts, $posts, $page);
+        } catch (Throwable $e) {
+            Logger::error("Error in showBySectionLuchshee: ", ['cat_url' => $catUrl, 'page' => $page], $e);
+            throw new HttpException('Ошибка получения списка постов по разделу Лучшее', 500, $e);
         }
     }
 
@@ -302,7 +341,10 @@ class PostController extends BaseController {
             ['totalPages' => $total_pages, 
                     'paginationLinks' => $pagination_links] = $paginParams;
 
-            $posts = $this->model->getAllPostsByTag($tag_url, $posts_per_page, $page);
+            $excerptLen = Config::get('posts.exerpt_len') + 50;
+            $excerptCategories = Config::get('posts.ExcerptCategories');
+            $posts = $this->model->getAllPostsByTag($tag_url, $posts_per_page, 
+                $excerptLen, $excerptCategories, $page);
 
             $baseUrl = $this->getRequest()->getBaseUrl();
             $tag_name = (!empty($posts) ? ($posts[0]['tag_name'] ?? '') : '');
@@ -322,7 +364,6 @@ class PostController extends BaseController {
                 'caption' => $caption,
                 'caption_desc' => $caption_desc,
                 'url' => $baseUrl,
-                'show_read_next' => false,
                 'pagination' => [
                     'current_page' => $page,
                     'total_pages' => $total_pages,

@@ -24,7 +24,7 @@ class PostModelClient {
      *
      * @return int Общее количество постов.
      */
-    public function countAllPosts() {
+    public function countAllPostsForHome() {
         $stmt = $this->db->query("
             SELECT COUNT(*) as total 
             FROM posts 
@@ -60,70 +60,74 @@ class PostModelClient {
     /**
      * Подсчитывает количество опубликованных постов, связанных с определенной категорией.
      *
-     * @param string $category_url URL-адрес категории.
+     * @param string|null $category_url URL-адрес категории.
+     * @param int|null $min_likes Обирает посты с мин кол-вом лайков.
      * @return int Количество постов, связанных с категорией.
      */
-    public function countAllPostsByCategory($category_url) {
-        $stmt = $this->db->prepare("
-            SELECT COUNT(*) as total 
-            FROM posts p
-            INNER JOIN post_category pc ON p.id = pc.post_id
-            INNER JOIN categories c ON pc.category_id = c.id
-            WHERE p.status = 'published' 
-              AND p.article_type = 'post'
-              AND c.url = :category_url
-        ");
-    
-        $stmt->execute([':category_url' => $category_url]);
+    public function countAllPostsByCategory(?string $category_url = null, ?int $min_likes = null) 
+    {
+        // Переиспользуем наш новый приватный метод!
+        [$whereSql, $params] = $this->prepareWhereConditions($category_url, $min_likes);
+
+        // Если есть категория, нужен JOIN, если нет - считаем по всей таблице
+        $joinSql = ($category_url !== null) 
+            ? "INNER JOIN post_category pc ON p.id = pc.post_id INNER JOIN categories c ON pc.category_id = c.id" 
+            : "";
+
+        $sql = "SELECT COUNT(*) as total FROM posts p $joinSql WHERE $whereSql";
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute($params);
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
-    
-        return (int)$row['total'];
+
+        return (int)($row['total'] ?? 0);
     }
 
     /**
      * Получает список всех опубликованных постов с поддержкой пагинации.
      *
-     * @param int $posts_per_page Количество постов на страницу.
+     * @param int $postsPerPage Количество постов на страницу.
+     * @param int $excerptLen Длина анонса.
+     * @param array $excerptCategories Массив урл категорий у которых выводить анонс.
      * @param int $page Номер страницы (по умолчанию 1).
      * @return array Массив ассоциативных массивов с данными о постах.
      */
-    public function getAllPosts($posts_per_page, $page = 1) {
-        // Вычисляем offset
-        $offset = ($page - 1) * $posts_per_page;
-
-        $sql = "
-            SELECT 
-                p.id AS id,
-                p.url AS url,
-                p.title AS title,
-                p.content AS content,
-                p.updated_at AS updated_at,
-                c.url AS category_url,
-                c.name AS category_name,
-                m.file_path AS image,
-                p.likes_count AS likes,
-                p.dislikes_count AS dislikes
-            FROM
-                posts AS p
-            INNER JOIN
-                post_category AS pc ON pc.post_id = p.id
-            INNER JOIN
-                categories AS c ON c.id = pc.category_id
-            LEFT JOIN
-                media AS m ON m.id = p.thumbnail_media_id
-            WHERE
-                p.status = 'published' AND
-                p.article_type = 'post'
-            ORDER BY
-                p.updated_at DESC
-            LIMIT :limit OFFSET :offset";
+    public function getAllPostsForHome(int $postsPerPage, int $excerptLen, 
+        array $excerptCategories, int $page = 1): array
+    {
+        $offset = ($page - 1) * $postsPerPage;
         
-             //echo debugPDO($sql, ['limit' => $posts_per_page, 'offset' => $offset]);
-        $stmt = $this->db->prepare($sql);
-        $stmt->bindValue(':limit', $posts_per_page, PDO::PARAM_INT);
-        $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
-        $stmt->execute();
+        // 1. Условия для главной (обычно без фильтра по категории и лайкам, но статус 'published')
+        // Мы можем вызвать prepareWhereConditions(null, null)
+        [$whereSql, $params] = $this->prepareWhereConditions(null, null);
+        
+        $params[':limit'] = $postsPerPage;
+        $params[':offset'] = $offset;
 
+        // 2. Логика анонсов (теперь с исправленными именами параметров внутри)
+        $contentLogic = $this->prepareContentLogic($excerptCategories, $excerptLen, $params);
+
+        $sql = "SELECT p.id, p.url, p.title, p.updated_at,
+                    p.likes_count AS likes, p.dislikes_count AS dislikes,
+                    m.file_path AS image, c.url AS category_url, c.name AS category_name,
+                    {$contentLogic['content']} AS content, 
+                    {$contentLogic['is_excerpted']} AS is_excerpted
+                FROM posts AS p
+                -- Используем LEFT JOIN, так как на главной могут быть посты из разных категорий
+                LEFT JOIN post_category AS pc ON pc.post_id = p.id
+                LEFT JOIN categories AS c ON c.id = pc.category_id
+                LEFT JOIN media AS m ON m.id = p.thumbnail_media_id
+                WHERE $whereSql
+                ORDER BY p.updated_at DESC 
+                LIMIT :limit OFFSET :offset";
+
+        $stmt = $this->db->prepare($sql);
+        
+        foreach ($params as $key => $value) {
+            $stmt->bindValue($key, $value, is_int($value) ? PDO::PARAM_INT : PDO::PARAM_STR);
+        }
+        
+        $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
     
@@ -247,125 +251,151 @@ class PostModelClient {
     /**
      * Извлекает список опубликованных постов для указанной категории с поддержкой пагинации.
      *
-     * @param string $cat_url URL-адрес категории.
-     * @param bool $show_link_next Определяет, возвращать полный контент или отрывок.
-     * @param int $posts_per_page Количество постов на страницу.
+     * @param int $postsPerPage Количество постов на страницу.
+     * @param int $excerptLen Длина анонса.
+     * @param array $excerptCategories Массив урл категорий у которых выводить анонс.
+     * @param string|null $catUrl URL-адрес категории.
      * @param int $page Номер страницы (по умолчанию 1).
+     * @param int|null $minLikes Обирает посты с мин кол-вом лайков.
      * @return array Массив ассоциативных массивов с данными о постах.
      */
-    public function getAllPostsByCategory(string $cat_url, bool $show_link_next,
-        int $posts_per_page, int $page = 1): array
+    public function getAllPostsByCategory(int $postsPerPage, int $excerptLen, 
+        array $excerptCategories, ?string $catUrl = null, int $page = 1, 
+        ?int $minLikes = null): array
     {
-        $excerpt_len = Config::get('posts.exerpt_len') + 50;
-        $offset = ($page - 1) * $posts_per_page;
+        $offset = ($page - 1) * $postsPerPage;
+        
+        // Собираем параметры и условия через вспомогательный метод
+        [$whereSql, $params] = $this->prepareWhereConditions($catUrl, $minLikes);
+        
+        $params[':limit'] = $postsPerPage;
+        $params[':offset'] = $offset;
 
-        $sql = "
-            SELECT
-                p.id,
-                p.url AS url,
-                p.title AS title,
-                IF(:show_excerpt, SUBSTRING(p.content, 1, :excerpt_len), p.content) AS content,
-                p.updated_at AS updated_at,
-                c.url AS category_url,
-                c.name AS category_name,
-                m.file_path AS image,
-                p.likes_count AS likes,
-                p.dislikes_count AS dislikes
-            FROM
-                posts AS p
-            INNER JOIN
-                post_category AS pc ON pc.post_id = p.id
-            INNER JOIN
-                categories AS c ON c.id = pc.category_id
-            LEFT JOIN
-                media AS m ON m.id = p.thumbnail_media_id
-            WHERE
-                p.status = 'published' AND
-                p.article_type = 'post' AND
-                c.url = :cat_url
-            ORDER BY
-                p.updated_at DESC
-            LIMIT :limit OFFSET :offset";
+        // Логика обрезки
+        $contentLogic = $this->prepareContentLogic($excerptCategories, $excerptLen, $params);
 
-        Logger::debug(debugPDO($sql, [
-            ':cat_url' => $cat_url,
-            ':limit' => $posts_per_page,
-            ':offset' => $offset,
-            ':show_excerpt' => (int) $show_link_next,
-            ':excerpt_len' => $excerpt_len
-        ]));
+        $sql = "SELECT p.id, p.url, p.title, p.updated_at,
+                    p.likes_count AS likes, p.dislikes_count AS dislikes,
+                    m.file_path AS image, c.url AS category_url, c.name AS category_name,
+                    {$contentLogic['content']} AS content, 
+                    {$contentLogic['is_excerpted']} AS is_excerpted
+                FROM posts AS p
+                LEFT JOIN post_category AS pc ON pc.post_id = p.id
+                LEFT JOIN categories AS c ON c.id = pc.category_id
+                LEFT JOIN media AS m ON m.id = p.thumbnail_media_id
+                WHERE $whereSql
+                ORDER BY p.updated_at DESC 
+                LIMIT :limit OFFSET :offset";
 
         $stmt = $this->db->prepare($sql);
-        $stmt->execute([
-            ':cat_url' => $cat_url,
-            ':limit' => $posts_per_page,
-            ':offset' => $offset,
-            ':show_excerpt' => $show_link_next,
-            ':excerpt_len' => $excerpt_len
-        ]);
+        foreach ($params as $key => $value) {
+            $stmt->bindValue($key, $value, is_int($value) ? PDO::PARAM_INT : PDO::PARAM_STR);
+        }
+        $stmt->execute();
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    private function prepareWhereConditions(?string $cat_url, ?int $min_likes): array
+    {
+        $clauses = ["p.status = 'published'", "p.article_type = 'post'"];
+        $params = [];
+
+        if ($cat_url !== null) {
+            $clauses[] = "c.url = :cat_url";
+            $params[':cat_url'] = $cat_url;
+        }
+        if ($min_likes !== null) {
+            $clauses[] = "p.likes_count >= :min_likes";
+            $params[':min_likes'] = $min_likes;
+        }
+
+        return [implode(" AND ", $clauses), $params];
+    }
+
+    private function prepareContentLogic(array $categories, ?int $excerpt_len, array &$params): array
+    {
+        if ($excerpt_len === null || empty($categories)) {
+            return ['content' => 'p.content', 'is_excerpted' => '0'];
+        }
+
+        $quoted = "'" . implode("','", array_map('addslashes', $categories)) . "'";
+        
+        // Создаем два разных плейсхолдера с одним и тем же значением
+        $params[':ex_len_content'] = $excerpt_len;
+        $params[':ex_len_flag'] = $excerpt_len;
+
+        return [
+            'content' => "CASE 
+                WHEN c.url IN ($quoted) THEN SUBSTRING(p.content, 1, :ex_len_content) 
+                ELSE p.content 
+            END",
+            'is_excerpted' => "CASE 
+                WHEN c.url IN ($quoted) AND CHAR_LENGTH(p.content) > :ex_len_flag THEN 1 
+                ELSE 0 
+            END"
+        ];
     }
 
     /**
      * Извлекает список опубликованных постов для указанного тега с поддержкой пагинации.
      *
-     * @param string $tag_url URL-адрес тега.
-     * @param int $posts_per_page Количество постов на страницу.
+     * @param string $tagUrl URL-адрес тега.
+     * @param int $postsPerPage Количество постов на страницу.
+     * @param int $excerptLen Длина анонса.
+     * @param array $excerptCategories Массив урл категорий у которых выводить анонс.
      * @param int $page Номер страницы (по умолчанию 1).
      * @return array Массив ассоциативных массивов с данными о постах.
      */
-    public function getAllPostsByTag(string $tag_url, int $posts_per_page, int $page = 1): array
+    public function getAllPostsByTag(string $tagUrl, int $postsPerPage, 
+        int $excerptLen, array $excerptCategories, int $page = 1): array
     {
-        $offset = ($page - 1) * $posts_per_page;
+        $offset = ($page - 1) * $postsPerPage;
+
+        // 1. Используем наш метод для базовых условий (status, article_type)
+        // Передаем null в категорию и лайки, так как здесь фильтр по тегу
+        [$whereSql, $params] = $this->prepareWhereConditions(null, null);
+        
+        // Добавляем специфичное условие для тега
+        $whereSql .= " AND t.url = :tag_url";
+        $params[':tag_url'] = $tagUrl;
+        $params[':limit'] = $postsPerPage;
+        $params[':offset'] = $offset;
+
+        // 2. Логика анонсов (использует те же CASE WHEN)
+        $contentLogic = $this->prepareContentLogic($excerptCategories, $excerptLen, $params);
 
         $sql = "
             SELECT 
-                p.id,
-                p.url AS url,
-                p.title AS title,
-                p.content AS content,
+                p.id, p.url, p.title,
+                {$contentLogic['content']} AS content,
+                {$contentLogic['is_excerpted']} AS is_excerpted,
                 DATE_FORMAT(p.updated_at, '%Y-%m-%d') AS updated_at,
                 p.meta_description AS description,
-                t.url AS tag_url,
-                t.name AS tag_name,
-                c.url AS category_url,
-                c.name AS category_name,
+                t.url AS tag_url, t.name AS tag_name,
+                c.url AS category_url, c.name AS category_name,
                 m.file_path AS image,
-                p.likes_count AS likes,
-                p.dislikes_count AS dislikes,
+                p.likes_count AS likes, p.dislikes_count AS dislikes,
                 u.name AS user_name
-            FROM
-                posts AS p
-            INNER JOIN
-                post_tag AS pt ON pt.post_id = p.id
-            INNER JOIN
-                tags AS t ON t.id = pt.tag_id
-            INNER JOIN
-                post_category AS pc ON pc.post_id = p.id
-            INNER JOIN
-                categories AS c ON c.id = pc.category_id
-            LEFT JOIN
-                media AS m ON m.id = p.thumbnail_media_id
-            LEFT JOIN
-                users AS u ON u.id = p.user_id
-            WHERE
-                p.status = 'published' AND
-                p.article_type = 'post' AND
-                t.url = :tag_url
-            ORDER BY
-                p.updated_at DESC
+            FROM posts AS p
+            INNER JOIN post_tag AS pt ON pt.post_id = p.id
+            INNER JOIN tags AS t ON t.id = pt.tag_id
+            INNER JOIN post_category AS pc ON pc.post_id = p.id
+            INNER JOIN categories AS c ON c.id = pc.category_id
+            LEFT JOIN media AS m ON m.id = p.thumbnail_media_id
+            LEFT JOIN users AS u ON u.id = p.user_id
+            WHERE $whereSql
+            ORDER BY p.updated_at DESC
             LIMIT :limit OFFSET :offset";
 
         $stmt = $this->db->prepare($sql);
         
-        // Передаем все параметры одним массивом в метод execute()
-        $stmt->execute([
-            ':tag_url' => $tag_url,
-            ':limit' => $posts_per_page,
-            ':offset' => $offset
-        ]);
+        // Привязываем параметры с проверкой типов (для LIMIT/OFFSET)
+        foreach ($params as $key => $value) {
+            $stmt->bindValue($key, $value, is_int($value) ? PDO::PARAM_INT : PDO::PARAM_STR);
+        }
 
+        $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 }

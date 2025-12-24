@@ -64,11 +64,19 @@ $router->addRoute('/tag\/([0-9a-zA-Z-_]+)(?:\/p(\d+))?',
         return $controller->showByTag($tagUrl, max(1, (int)$page));
 }, ['PageCacheMiddleware']);
 
+// Список постов раздела Лучшее
+$router->addRoute('/cat/luchshee(?:\/p(\d+))?', 
+    function(Container $container, $page = 1): Response {
+        $controller = $container->make(PostController::class);
+        // Передаем 'luchshee' строкой
+        return $controller->showPostsInSectionLuchshee('luchshee', max(1, (int)$page));
+}, ['PageCacheMiddleware']);
+
 // Список постов по разделу
-$router->addRoute('/cat\/(anekdoty|veselaya_rifma|citatnik|istorii|kartinki|video|luchshee)(?:\/p(\d+))?', 
+$router->addRoute('/cat\/(anekdoty|veselaya_rifma|citatnik|istorii|kartinki|video)(?:\/p(\d+))?', 
     function(Container $container, $cat_url, $page = 1): Response {
         $controller = $container->make(PostController::class);
-        return $controller->showBySection($cat_url, $cat_url === 'istorii', max(1, (int)$page));
+        return $controller->showPostsInSection($cat_url, max(1, (int)$page));
 }, ['PageCacheMiddleware']);
 
 
