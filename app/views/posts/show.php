@@ -38,7 +38,7 @@
     </div>
 
     <?php if ($is_post && isset($post_image)): ?>
-    <img loading="lazy" class="post_preview_oblozhka" alt="Обложка поста" src="<?= htmlspecialchars($post_image) ?>" itemprop="image">
+    <img fetchpriority="high" class="img-fluid post_preview_oblozhka" alt="<?= htmlspecialchars($post['title'] ?? 'Обложка поста') ?>" src="<?= htmlspecialchars($post_image) ?>" itemprop="image">
     <?php endif ?>
 
     <?php  if (isset($post['tags'])): ?>

@@ -54,7 +54,7 @@
         </div>
 
         <?php if (isset($post['image'])): ?>
-        <img loading="lazy" class="post_preview_oblozhka" alt="Обложка поста" src="<?= htmlspecialchars($url).htmlspecialchars($post['image']) ?>" itemprop="image">
+        <img loading="lazy" class="img-fluid post_preview_oblozhka" alt="<?= htmlspecialchars($post['title'] ?? 'Обложка поста') ?>" src="<?= htmlspecialchars($url).htmlspecialchars($post['image']) ?>" itemprop="image">
         <?php endif ?>
 
         <!-- Блок реакций -->

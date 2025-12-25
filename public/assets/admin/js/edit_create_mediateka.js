@@ -260,7 +260,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // 3. TinyMCE
     tinymce.init({
         selector: '#postContent',
-        plugins: 'link lists code media emoticons wordcount',
+        plugins: 'link lists code media emoticons wordcount paste',
         toolbar: 'undo redo | blocks | bold italic underline strikethrough | colors_group | align | bullist numlist | link mycustomimage | emoticons | code',
         block_formats: 'Paragraph=p; Heading 2=h2; Heading 3=h3; Heading 4=h4; Heading 5=h5; Heading 6=h6',
         menubar: false,
@@ -271,6 +271,8 @@ document.addEventListener('DOMContentLoaded', () => {
         license_key: 'gpl',
         convert_urls: false,
         branding: false,
+        paste_as_text: true,
+        paste_data_images: false, // Чтобы не вставляли картинки мимо медиатеки
         setup: function(editor) {
             editor.ui.registry.addGroupToolbarButton('colors_group', {
             icon: 'color-picker',
@@ -282,14 +284,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 icon: 'image',
                 onAction: () => {
                     myMedia.open((url, alt) => {
-                        editor.insertContent(`<img src="${url}" alt="${alt}">`);
+                        editor.insertContent(`<img src="${url}" alt="${alt}" decoding="async" loading="lazy" class="img-fluid">`);
                     });
                 }
             });
 
             editor.addCommand('mceImage', () => {
                 myMedia.open((url, alt) => {
-                    editor.insertContent(`<img src="${url}" alt="${alt}">`);
+                    editor.insertContent(`<img src="${url}" alt="${alt}" decoding="async" loading="lazy" class="img-fluid">`);
                 });
             });
         }
