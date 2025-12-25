@@ -140,7 +140,7 @@ class SimpleSecureClient
             ];
 
         } catch (GuzzleException $e) {
-            Logger::error('Ошибка', ['status' => $response->getStatusCode(), 'success' => $decoded['success']], $e);
+            Logger::error('Ошибка', $requestData, $e);
             throw $e; 
         }
     }

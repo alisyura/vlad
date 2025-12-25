@@ -4,7 +4,9 @@ namespace App\Http\Controllers\Integration;
 
 use Response;
 use App\Framework\Security\SecureRequest;
-use App\Framework\Security\FileNonceStorage;
+use App\Framework\Security\NonceStorageInterface;
+use Request;
+use RuntimeException;
 
 /**
  * @deprecated Данный контроллер находится в разработке. 
@@ -14,23 +16,36 @@ use App\Framework\Security\FileNonceStorage;
 class EndpointServerApiController extends \BaseController
 {
     use \App\Traits\DevelopmentWarning;
+    private NonceStorageInterface $storage;
+    private Request $request;
+    private \PDO $db;
 
-    public function __construct(\ResponseFactory $responseFactory)
+    public function __construct(\ResponseFactory $responseFactory, 
+        NonceStorageInterface $storage,
+        Request $request, \PDO $db)
     {
         parent::__construct(null, null, $responseFactory);
+        $this->storage = $storage;
+        $this->request = $request;
+        $this->db = $db;
     }
     
     public function process(): \Response
     {
-        $secretKey = \Config::get('security.APP_SECRET_KEY');
         $maxDrift = \Config::get('security.MaxDriftSeconds'); // Максимальное время жизни запроса в секундах
 
         try {
             // создаем объект запроса. 
             // Если подпись неверна или время вышло — он сам выкинет Exception.
-            $storage = new FileNonceStorage(\Config::get('security.NonceFilesDir'));
-            $request = new SecureRequest($secretKey, $maxDrift, $storage);
-            $incomingData = $request->getData();
+            $clientLogin = $this->request->server('PHP_AUTH_USER', '');
+            if (!empty($clientLogin))
+            {
+                throw new RuntimeException('Client user name empty');
+            }
+            $secretKey = $this->getSecretKeyByLogin($clientLogin);
+            $secRequest = new SecureRequest($secretKey, $maxDrift, $this->storage);
+            $incomingData = $secRequest->getData();
+            
 
             // --- бизнес-логика здесь ---
             // Например:
@@ -52,6 +67,11 @@ class EndpointServerApiController extends \BaseController
                     ]
                 ], $secretKey, $e->getCode() ?: 500);
         }
+    }
+
+    private function getSecretKeyByLogin($login): string
+    {
+        return \Config::get('security.APP_SECRET_KEY');
     }
 }
     

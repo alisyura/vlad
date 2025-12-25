@@ -96,3 +96,10 @@ $container->bind(JsonResponse::class, JsonResponse::class);
 $container->bind(RedirectResponse::class, RedirectResponse::class);
 $container->bind(TextResponse::class, TextResponse::class);
 $container->bind(XmlResponse::class, XmlResponse::class);
+
+if (Config::isDev())
+{
+    $container->bind(App\Framework\Security\NonceStorageInterface::class, function() {
+        return new App\Framework\Security\FileNonceStorage(\Config::get('security.NonceFilesDir'));
+    });
+}
