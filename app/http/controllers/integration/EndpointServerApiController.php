@@ -38,12 +38,12 @@ class EndpointServerApiController extends \BaseController
             // создаем объект запроса. 
             // Если подпись неверна или время вышло — он сам выкинет Exception.
             $clientLogin = $this->request->server('PHP_AUTH_USER', '');
-            if (!empty($clientLogin))
+            if (empty($clientLogin))
             {
                 throw new RuntimeException('Client user name empty');
             }
             $secretKey = $this->getSecretKeyByLogin($clientLogin);
-            $secRequest = new SecureRequest($secretKey, $maxDrift, $this->storage);
+            $secRequest = new SecureRequest($secretKey, $maxDrift, $this->storage, $this->request);
             $incomingData = $secRequest->getData();
             
 
@@ -52,19 +52,15 @@ class EndpointServerApiController extends \BaseController
             $orderId = $incomingData['order_id'] ?? 0;
 
             return $this->renderSecure([
-                    'payload' => [
-                        'message' => "Заказ #$orderId обработан",
-                        'received' => $incomingData
-                    ]
+                    'message' => "Заказ #$orderId обработан",
+                    'received' => $incomingData
                 ], $secretKey);
         } catch (\Throwable $e) {
             // Если что-то пошло не так (взломали подпись или протухло время)
             // Отправляем подписанную ошибку
 
             return $this->renderSecure([
-                    'payload' => [
-                        'error' => $e->getMessage()
-                    ]
+                    'error' => $e->getMessage()
                 ], $secretKey, $e->getCode() ?: 500);
         }
     }

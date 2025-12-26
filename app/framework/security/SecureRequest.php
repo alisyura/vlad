@@ -8,74 +8,98 @@ class SecureRequest
     private string $secretKey;
     private int $maxDrift;
     private NonceStorageInterface $nonceStorage;
+    private \Request $request;
 
-    public function __construct(string $secretKey, int $maxDrift, NonceStorageInterface $nonceStorage)
+    public function __construct(string $secretKey, int $maxDrift, 
+        NonceStorageInterface $nonceStorage, \Request $request)
     {
         $this->secretKey = $secretKey;
         $this->maxDrift = $maxDrift;
         $this->nonceStorage = $nonceStorage;
+        $this->request = $request;
         $this->parseIncomingRequest();
+    }
+
+    private function getHttpHeader(string $originalHeaderName, string $Prefix): string
+    {
+        $fullName = rtrim($Prefix, '_') . '_' . str_replace('-', '_', $originalHeaderName);
+        return $this->request->server(mb_strtoupper($fullName), '');
     }
 
     private function parseIncomingRequest(): void
     {
-        $rawInput = file_get_contents('php://input');
-        $input = json_decode($rawInput, true);
+        // 1. Получаем заголовки (учитываем, что в PHP они обычно в $_SERVER с префиксом HTTP_)
+        $signature = $this->getHttpHeader(SecureResponse::HEADER_SIGNATURE, 'Http');
+        $nonce     = $this->getHttpHeader(SecureResponse::HEADER_NONCE, 'Http');
+        $timestamp = $this->getHttpHeader(SecureResponse::HEADER_TIMESTAMP, 'Http');
+        $username  = $this->getHttpHeader(SecureResponse::HEADER_USERNAME, 'Http');
 
-        if (!$input || !isset($input['payload'], $input['signature'])) {
-            $this->logSecurityIncident('Malformed Request', ['raw_body' => mb_substr($rawInput, 0, 500)]);
-            throw new \Exception("Неверная структура запроса", 400);
+        // 2. Получаем сырое тело запроса
+        $rawInput = file_get_contents('php://input');
+        
+        if (empty($signature) || empty($nonce) || empty($timestamp)) {
+            $allHeaders = $this->request->allHeaders();
+            $this->logSecurityIncident('Missing Security Headers', [
+                'user' => $username,
+                'headers' => array_filter($allHeaders, fn($key) => str_starts_with($key, 'X-'), ARRAY_FILTER_USE_KEY)
+            ]);
+            throw new \Exception("Отсутствуют необходимые заголовки безопасности", 400);
         }
 
-        $jsonToVerify = json_encode($input['payload'], JSON_UNESCAPED_UNICODE);
-        $expectedSig = hash_hmac('sha256', $jsonToVerify, $this->secretKey);
+        // 3. Проверка подписи (Важно: порядок склейки должен совпадать с клиентом!)
+        // Строка: [JSON тело][Nonce][Timestamp]
+        $stringToVerify = $rawInput . $nonce . $timestamp;
+        $expectedSig = hash_hmac('sha256', $stringToVerify, $this->secretKey);
 
-        // Проверка подписи
-        if (!hash_equals($expectedSig, $input['signature'])) {
+        if (!hash_equals($expectedSig, $signature)) {
             $this->logSecurityIncident('Invalid Signature', [
-                'payload' => $input['payload'],
-                'received_sig' => $input['signature']
+                'user' => $username,
+                'expected' => $expectedSig,
+                'received' => $signature
             ]);
             throw new \Exception("Ошибка безопасности: подпись не совпадает", 403);
         }
 
-        // Проверка времени
-        if (abs(time() - ($input['payload']['timestamp'] ?? 0)) > $this->maxDrift) {
-            $this->logSecurityIncident('Request Expired', ['timestamp' => $input['payload']['timestamp'] ?? 0]);
+        // 4. Проверка временного окна (защита от устаревших запросов)
+        if (abs(time() - $timestamp) > $this->maxDrift) {
+            $this->logSecurityIncident('Request Expired', ['timestamp' => $timestamp]);
             throw new \Exception("Запрос просрочен", 403);
         }
 
-        $nonce = $input['payload']['nonce'] ?? '';
-
+        // 5. Проверка Nonce (защита от повторов)
         if (!$this->nonceStorage->validateAndStore($nonce, 60)) {
-            throw new \Exception("Nonce уже использован. Повторный запрос отклонен.", 403);
+            $this->logSecurityIncident('Replay Attack Detected', ['nonce' => $nonce]);
+            throw new \Exception("Повторный запрос отклонен (Nonce уже использован)", 403);
         }
 
-        // Если всё ок, сохраняем чистые данные
-        $this->data = $input['payload']['data'] ?? [];
+        // 6. Декодируем чистые бизнес-данные
+        $decoded = json_decode($rawInput, true);
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            throw new \Exception("Некорректный JSON в теле запроса", 400);
+        }
+
+        $this->data = $decoded ?? [];
     }
 
     private function logSecurityIncident(string $reason, array $context): void
     {
-        // Путь к папке логов (на уровень выше public, например в /logs)
+        // Логика логирования остается прежней, она у тебя написана хорошо
         $logDir = \Config::get('logger.LogPath');
         $logFile = $logDir . DIRECTORY_SEPARATOR . \Config::get('security.LogFilename');
 
-        // Создаем папку, если её нет
         if (!is_dir($logDir)) {
             mkdir($logDir, 0755, true);
         }
 
         $logData = [
-            'date'   => date('Y-m-d H:i:s'),
-            'ip'     => $_SERVER['REMOTE_ADDR'] ?? 'unknown',
-            'reason' => $reason,
-            'context'=> $context,
-            'ua'     => $_SERVER['HTTP_USER_AGENT'] ?? 'none'
+            'date'    => date('Y-m-d H:i:s'),
+            'ip'      => $this->request->server('REMOTE_ADDR', 'unknown'),
+            'reason'  => $reason,
+            'context' => $context,
+            'ua'      => $this->request->server('HTTP_USER_AGENT', 'none')
         ];
 
-        // Записываем в файл
-        file_put_contents($logFile, json_encode($logData, JSON_UNESCAPED_UNICODE) . PHP_EOL, FILE_APPEND);
+        file_put_contents($logFile, json_encode($logData, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES) . PHP_EOL, FILE_APPEND);
     }
 
     public function getData(): array

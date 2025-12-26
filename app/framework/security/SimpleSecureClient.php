@@ -6,15 +6,11 @@ use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Exception\GuzzleException;
 use Logger;
 
-/**
- * Клиент для безопасного взаимодействия с внешним API.
- * Использует Basic Auth для аутентификации и HMAC-SHA256 для подписи/целостности данных (включая Nonce и Timestamp).
- */
 class SimpleSecureClient
 {
     private const HASH_ALGO = 'sha256';
-    private const TIMEOUT = 30;
-    private const NONCE_LENGTH = 16; // 16 байт = 32 символа в hex
+    private const TIMEOUT = 120;
+    private const NONCE_LENGTH = 16;
 
     private ClientInterface $httpClient;
     private string $apiUrl;
@@ -22,9 +18,6 @@ class SimpleSecureClient
     private string $password;
     private string $signatureKey;
 
-    /**
-     * @param ClientInterface $httpClient Должен быть экземпляром GuzzleHttp\Client или его mock-ом.
-     */
     public function __construct(
         ClientInterface $httpClient,
         string $apiUrl,
@@ -39,150 +32,107 @@ class SimpleSecureClient
         $this->signatureKey = $signatureKey;
     }
 
-    /**
-     * Отправляет подписанные данные на внешний API.
-     *
-     * @param array $data Основные данные для отправки.
-     * @param string $action Имя вызываемого действия.
-     * @return array Результат запроса (статус и декодированный ответ).
-     * @throws \RuntimeException В случае ошибок кодирования или генерации Nonce.
-     * @throws \Exception В случае сетевых или HTTP-ошибок.
-     */
     public function send(array $data, string $action = ''): array
     {
-        // 1. Подготовка данных: Nonce, Timestamp и Payload
-        try {
-            $nonce = $this->generateNonce(self::NONCE_LENGTH);
-        } catch (\Exception $e) {
-            throw new \RuntimeException('Не удалось сгенерировать Nonce: ' . $e->getMessage(), 0, $e);
+        // 1. Генерируем метаданные
+        $nonce = bin2hex(random_bytes(self::NONCE_LENGTH));
+        $timestamp = time();
+
+        // 2. Готовим тело запроса (теперь тут только чистые данные)
+        $bodyJson = json_encode($data, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES);
+        if ($bodyJson === false) {
+            throw new \RuntimeException('Ошибка кодирования JSON: ' . json_last_error_msg());
         }
 
-        $payload = [
-            'data'      => $data,
-            'timestamp' => time(),
-            'action'    => $action,
-            'nonce'     => $nonce,
-        ];
-        
-        // 2. Кодирование и Подпись (HMAC)
-        $json = json_encode($payload, JSON_UNESCAPED_UNICODE);
-        if ($json === false) {
-            throw new \RuntimeException('Ошибка кодирования JSON для подписи: ' . json_last_error_msg());
-        }
+        /** * 3. Формируем строку для подписи. 
+         * Важно, чтобы сервер собирал её в таком же порядке:
+         * подпись = hmac(body + nonce + timestamp)
+         */
+        $stringToSign = $bodyJson . $nonce . $timestamp;
+        $signature = hash_hmac(self::HASH_ALGO, $stringToSign, $this->signatureKey);
 
-        $signature = hash_hmac(self::HASH_ALGO, $json, $this->signatureKey);
-
-        $requestData = [
-            'payload'   => $payload,
-            'signature' => $signature
+        // 4. Формируем заголовки
+        $headers = [
+            SecureResponse::HEADER_USERNAME  => $this->username,
+            SecureResponse::HEADER_SIGNATURE => $signature,
+            SecureResponse::HEADER_NONCE     => $nonce,
+            SecureResponse::HEADER_TIMESTAMP => $timestamp,
+            SecureResponse::HEADER_ACTION    => $action, // Если action важен для маршрутизации
+            'Accept'      => 'application/json',
         ];
 
-        // 3. Отправка через Guzzle и Обработка
-        return $this->executeRequest($requestData);
+        return $this->executeRequest($data, $headers);
     }
 
-    /**
-     * Генерирует криптографически стойкий nonce.
-     * @param int $length Длина Nonce в байтах.
-     * @return string
-     * @throws \Exception
-     */
-    private function generateNonce(int $length): string
-    {
-        // Используем random_bytes для криптографически стойкой генерации
-        return bin2hex(random_bytes($length));
-    }
-    
     /**
      * Выполняет HTTP-запрос, используя Guzzle.
      *
-     * @param array $requestData Данные для отправки (payload и signature).
+     * @param array $data Данные для отправки.
+     * @param array $headers Заголовки (X-Signature, X-Nonce, X-Timestamp, X-Username).
      * @return array
      * @throws GuzzleException
      * @throws \RuntimeException
      */
-    private function executeRequest(array $requestData): array
+    private function executeRequest(array $data, array $headers): array
     {
         try {
+            // 1. Отправляем запрос
+            // 'json' автоматически установит Content-Type: application/json
+            // 'auth' добавит стандартный заголовок Authorization: Basic ...
             $response = $this->httpClient->request('POST', $this->apiUrl, [
-                'json' => $requestData,
-                'auth' => [$this->username, $this->password, 'basic'],
+                'headers' => $headers,
+                'json'    => $data, 
+                'auth'    => [$this->username, $this->password, 'basic'],
                 'timeout' => self::TIMEOUT,
             ]);
 
-            $body = $response->getBody()->getContents();
-            $decoded = json_decode($body, true);
+            // 2. Получаем сырое тело ответа для проверки подписи
+            $rawBody = $response->getBody()->getContents();
+            
+            // 3. Извлекаем подпись сервера из заголовков
+            $serverSignature = $response->getHeaderLine(SecureResponse::HEADER_RESPONSE_SIG);
 
-            if (json_last_error() !== JSON_ERROR_NONE) {
-                throw new \RuntimeException('Ошибка декодирования JSON ответа');
+            if (empty($serverSignature)) {
+                throw new \RuntimeException('Ответ сервера не содержит подписи в заголовках');
             }
 
-            // --- Проверка подписи сервера ---
-            if (!isset($decoded['payload']) || !isset($decoded['signature'])) {
-                throw new \RuntimeException('Ответ сервера не содержит подписи');
-            }
-
+            // 4. Проверяем подпись сервера (простая схема: подпись только от тела)
             $expectedSignature = hash_hmac(
                 self::HASH_ALGO, 
-                json_encode($decoded['payload'], JSON_UNESCAPED_UNICODE), 
+                $rawBody, 
                 $this->signatureKey
             );
 
-            if (!hash_equals($expectedSignature, $decoded['signature'])) {
+            if (!hash_equals($expectedSignature, $serverSignature)) {
+                // Логируем инцидент безопасности (без данных в целях безопасности, или аккуратно)
+                Logger::error('Критическая ошибка: Подпись сервера не совпадает!', [
+                    'expected' => $expectedSignature,
+                    'received' => $serverSignature
+                ]);
                 throw new \RuntimeException('Критическая ошибка: Подпись сервера не совпадает!');
             }
-            // --- Конец проверки подписи ---
+
+            // 5. Декодируем ответ для возврата в бизнес-логику
+            $decoded = json_decode($rawBody, true);
+
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                throw new \RuntimeException('Ошибка декодирования JSON ответа: ' . json_last_error_msg());
+            }
 
             return [
                 'status'   => $response->getStatusCode(),
-                'success' => $decoded['success'],
-                'response' => $decoded['payload']
+                'success'  => $decoded['success'] ?? true, // если сервер возвращает флаг успеха
+                'response' => $decoded
             ];
 
         } catch (GuzzleException $e) {
-            Logger::error('Ошибка', $requestData, $e);
+            // Логируем сетевые ошибки или 4xx/5xx ответы
+            Logger::error('Ошибка при вызове внешнего API', [
+                'url'    => $this->apiUrl,
+                'user'   => $this->username,
+                'error'  => $e->getMessage()
+            ]);
             throw $e; 
         }
     }
 }
-
-
-
-// composer require guzzlehttp/guzzle
-
-// использование
-
-// use GuzzleHttp\Client;
-// use App\Framework\SimpleSecureClient;
-
-// // 1. Инициализация HTTP-клиента
-// $guzzleClient = new Client([
-//     // Дополнительные настройки Guzzle, если нужны
-// ]); 
-
-// // 2. Инициализация вашего Secure Client
-// $client = new SimpleSecureClient(
-//     $guzzleClient,
-//     'https://server/hs/api',
-//     'логин',
-//     'пароль',
-//     'ключ-для-подписи_32_символа_abcdefg'
-// );
-
-// // 3. Отправка запроса с обработкой ошибок
-// try {
-//     $result = $client->send([
-//         'order_id' => 123,
-//         'amount' => 500.00
-//     ], 'create_payment');
-
-//     echo "Статус HTTP: " . $result['status'] . "\n";
-//     print_r($result['response']);
-
-// } catch (\GuzzleHttp\Exception\ClientException $e) {
-//     // Ошибка 4xx (например, 401 Unauthorized, 404 Not Found)
-//     echo "Ошибка клиента API: " . $e->getResponse()->getStatusCode() . " - " . $e->getMessage() . "\n";
-// } catch (\Exception $e) {
-//     // Другие ошибки (сеть, Nonce, JSON-кодирование/декодирование)
-//     echo "Произошла критическая ошибка: " . $e->getMessage() . "\n";
-// }
