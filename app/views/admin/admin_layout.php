@@ -87,12 +87,12 @@
                                 </a>
                             </li>
                         <?php endif ?>
-                        <!-- <li class="nav-item">
-                            <a class="nav-link <?= ($active ?? '') === 'pics' ? 'active' : '' ?>" 
-                               href="/<?= $adminRoute ?>/pics">
-                                Картинки
+                        <li class="nav-item">
+                            <a class="nav-link <?= ($active ?? '') === 'mediateka' ? 'active' : '' ?>" 
+                               href="/<?= $adminRoute ?>/mediateka">
+                                Медиатека изображений
                             </a>
-                        </li>-->
+                        </li>
                         <li class="nav-item">
                             <a class="nav-link <?= ($active ?? '') === 'settings' ? 'active' : '' ?>" 
                                href="/<?= $adminRoute ?>/settings">

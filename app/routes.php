@@ -219,6 +219,13 @@ $router->addRoute("/$adminRoute/(post|page)s/api/check-url",
 
 // Маршруты для работы с медиа изображениями
 
+// Открыть форму списка картинок из левого меню
+$router->addRoute("/$adminRoute/mediateka", 
+    function(Container $container): Response {
+        $controller = $container->make(AdminMediaController::class);
+        return $controller->show();
+}, ['UserAuthenticatedMiddleware']);
+
 // Получение списка картинок
 $router->addRoute("/$adminRoute/media/api/list", 
     function(Container $container): Response {

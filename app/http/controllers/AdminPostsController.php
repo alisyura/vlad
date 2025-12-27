@@ -280,12 +280,13 @@ class AdminPostsController extends BaseAdminController
                 'formAction' => $formAction,
                 'styles' => [
                     'edit_create.css',
-                    'edit_create_mediateka.css'
+                    'mediateka.css'
                 ],
                 'jss' => [
                     'absolute' => 'tinymce/tinymce.min.js',
                     'edit_create_tag_selector.js',
-                    'edit_create_mediateka.js',
+                    'medialibrary.js',
+                    'edit_create_medialibrary_init.js',
                     'edit_create.js',
                     'common.js'
                 ]
