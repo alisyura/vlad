@@ -240,6 +240,19 @@ $router->addRoute("/$adminRoute/media/api/upload",
         return $controller->upload();
 }, ['UserAuthenticatedMiddleware', 'AjaxMiddleware', 'CsrfMiddleware'], ['method' => 'POST']);
 
+// Обновление картинки
+$router->addRoute("/$adminRoute/media/api/update-img", 
+    function(Container $container):Response {
+        $controller = $container->make(AdminMediaApiController::class);
+        return $controller->update();
+}, ['UserAuthenticatedMiddleware', 'AjaxMiddleware', 'CsrfMiddleware'], ['method' => 'PATCH']);
+
+// Удаление картинки
+$router->addRoute("/$adminRoute/media/api/delete-img", 
+    function(Container $container):Response {
+        $controller = $container->make(AdminMediaApiController::class);
+        return $controller->delete();
+}, ['UserAuthenticatedMiddleware', 'AjaxMiddleware', 'CsrfMiddleware'], ['method' => 'DELETE']);
 
 
 // Формы для тэгов

@@ -206,11 +206,150 @@ class MediaLibrary {
         document.getElementById('detailPath').value = img.dataset.url;
         document.getElementById('detailAlt').value = img.alt;
 
+        // 1. Кнопка сохранения Alt-текста
+        const saveBtn = document.getElementById('saveAltBtn');
+        if (saveBtn) {
+            // Очищаем старый обработчик и вешаем новый
+            saveBtn.onclick = () => this.saveAlt(); 
+        }
+        
         // Вешаем обработчик на кнопку удаления (подготовим его позже)
         const deleteBtn = document.getElementById('deleteMediaBtn');
         if (deleteBtn) {
             deleteBtn.onclick = () => this.handleDelete(img.dataset.url);
         }
+    }
+
+    async saveAlt() {
+        const file = document.getElementById('detailPath');
+        const alt = document.getElementById('detailAlt');
+
+        if (!alt || !file) return;
+        const altText = alt.value.trim();
+        const fileUrl = file.value;
+        
+        // Добавляем CSRF токен, если он есть в мета-тегах
+        const csrfToken = document.querySelector('meta[name="csrf_token"]')?.content;
+        if (!csrfToken) {
+            alert('Не найден CSRF токен.');
+            return;
+        }
+
+        try {
+            // Выполняем запрос к серверу
+            const response = await fetch(`/${this.adminRoute}/media/api/update-img`, {
+                method: 'PATCH',
+                body: JSON.stringify({
+                    fileUrl: fileUrl,
+                    altText: altText
+                }),
+                headers: { 
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRF-TOKEN': csrfToken,
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            const data = await this.parseResponse(response);
+            
+            if (data.success) {
+                // Находим картинку в основной сетке (слева) по её data-url
+                const imgInGrid = this.mediaGallery.querySelector(`img[data-url="${fileUrl}"]`);
+                if (imgInGrid) {
+                    // Обновляем ей alt прямо в DOM, чтобы данные были актуальны без перезагрузки
+                    imgInGrid.alt = altText;
+                }
+                
+                // Обновляем переменную класса, если нужно
+                this.selectedAlt = altText;
+
+                alert('Изображение успешно обновлено!');
+            } else {
+                alert('Ошибка при сохранении: ' + (data.message || 'Неизвестная ошибка'));
+            }
+        } catch (error) {
+            console.error('Ошибка запроса:', error);
+            alert('Не удалось связаться с сервером для обновления изображения');
+        }
+    }
+
+    handleDelete(fileUrl) {
+        const modalElem = document.getElementById('confirmDeleteModal');
+        if (!modalElem) return;
+
+        // Инициализируем модалку Bootstrap
+        const bsModal = new bootstrap.Modal(modalElem);
+        
+        // Меняем текст в теле модалки, чтобы было понятно, что удаляем файл
+        const modalBody = document.getElementById('confirmModalBody');
+        if (modalBody) {
+            // Используем innerHTML вместо innerText
+            modalBody.innerHTML = 'Вы действительно хотите удалить этот файл? <b class="text-danger">Это действие нельзя отменить</b>.';
+        }
+
+        const confirmBtn = document.getElementById('confirmDeleteBtn');
+
+        // Показываем окно
+        bsModal.show();
+
+        // Вешаем обработчик на кнопку "Да, удалить"
+        confirmBtn.onclick = async () => {
+            // Блокируем кнопку на время запроса
+            confirmBtn.disabled = true;
+            confirmBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Удаление...';
+
+            try {
+                await this.executeDelete(fileUrl);
+                bsModal.hide(); // Закрываем только при успехе
+            } catch (error) {
+                console.error('Ошибка при удалении:', error);
+                alert('Произошла ошибка при связи с сервером');
+            } finally {
+                // Возвращаем кнопку в исходное состояние
+                confirmBtn.disabled = false;
+                confirmBtn.innerText = 'Да, удалить';
+            }
+        };
+    }
+
+    async executeDelete(fileUrl) {
+        const csrfToken = document.querySelector('meta[name="csrf_token"]')?.content;
+        if (!csrfToken) {
+            alert('Не найден CSRF токен.');
+            return;
+        }
+
+        const response = await fetch(`/${this.adminRoute}/media/api/delete-img`, {
+            method: 'DELETE',
+            body: JSON.stringify({ fileUrl: fileUrl }),
+            headers: { 
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRF-TOKEN': csrfToken,
+                'Content-Type': 'application/json'
+             }
+        });
+
+        const data = await this.parseResponse(response);
+
+        if (data.success) {
+            // Очищаем панель деталей
+            this.clearDetailsPanel();
+            
+            // Обновляем текущую страницу галереи
+            await this.loadItems(this.currentPage);
+            
+            // Тут можно добавить какой-нибудь Toast-уведомление об успехе
+        } else {
+            alert('Ошибка: ' + (data.message || 'Не удалось удалить файл'));
+        }
+    }
+
+    clearDetailsPanel() {
+        const content = document.getElementById('detailsContent');
+        const placeholder = document.getElementById('detailsPlaceholder');
+        if (content) content.style.display = 'none';
+        if (placeholder) placeholder.style.display = 'block';
+        this.selectedUrl = null;
     }
 
     handleInsert() {

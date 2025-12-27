@@ -1,13 +1,13 @@
 <div class="container-fluid mt-4">
+    <h1 class="h2"><?= $pageTitle ?></h1>
     <div class="row">
         <div class="col-lg-9 col-md-8">
             <div class="card shadow-sm border-0">
-                <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
-                    <h5 class="mb-0 fw-bold">Управление медиафайлами</h5>
-                    <form id="adminUploadForm" class="d-flex gap-2">
-                        <input type="file" id="adminFileInput" class="form-control form-control-sm" accept="image/*" required>
-                        <input type="text" id="adminAltInput" class="form-control form-control-sm" placeholder="Alt-текст" required>
-                        <button type="submit" class="btn btn-primary btn-sm">Загрузить</button>
+                <div class="card-header bg-white py-3">
+                    <form id="adminUploadForm" class="d-flex gap-2 w-100">
+                        <input type="file" id="adminFileInput" class="form-control form-control-sm flex-grow-1" accept="image/*" required>
+                        <input maxlength="200" type="text" id="adminAltInput" class="form-control form-control-sm flex-grow-1" placeholder="Alt-текст" required>                        
+                        <button type="submit" class="btn btn-primary btn-sm px-4">Загрузить</button>
                     </form>
                 </div>
                 <div class="card-body">
@@ -52,3 +52,9 @@
         </div>
     </div>
 </div>
+
+<?php
+
+include __DIR__ . '/../common/modal_confirm.php';
+
+?>

@@ -5,11 +5,16 @@ class MediaService
 {
     private AdminMediaModel $model;
     private AuthService $authService;
+    private PDO $db;
+    private Request $request;
 
-    public function __construct(AdminMediaModel $model, AuthService $authService)
+    public function __construct(AdminMediaModel $model, AuthService $authService,
+        PDO $db, Request $request)
     {
         $this->model = $model;
         $this->authService = $authService;
+        $this->db = $db;
+        $this->request = $request;
     }
 
     public function list(int $page): array
@@ -253,5 +258,81 @@ class MediaService
         }
 
         return $tempFile;
+    }
+
+    public function update(string $fileUrl, string $altText): bool
+    {
+        if (empty($fileUrl)) {
+            throw new MediaException('Урл картинки не получен');
+        }
+
+        return $this->model->update($fileUrl, $altText);
+    }
+
+    public function delete(string $fileUrl): bool
+    {
+        if (empty($fileUrl)) {
+            throw new MediaException('Урл картинки не получен');
+        }
+
+        $absoluteFilePath = $this->validateFileUrlToDelete($fileUrl);
+
+        try {
+            $this->db->beginTransaction();
+
+            // 1. Удаляем из базы
+            if (!$this->model->delete($fileUrl)) {
+                // Если в базе записи нет, то и удалять нечего — откатываемся
+                $this->db->rollBack();
+                return false;
+            }
+
+            // 2. Удаляем файл с диска
+            if (file_exists($absoluteFilePath)) {
+                // Если файл есть, но не удаляется — БРОСАЕМ ошибку для Rollback
+                if (!unlink($absoluteFilePath)) {
+                    Logger::error("Не удалось удалить файл: ", ['absoluteFilePath' => $absoluteFilePath]);
+                    throw new MediaException('Ошибка при удалении файла.');
+                }
+            }
+
+            // Если дошли сюда — всё супер
+            $this->db->commit();
+            return true;
+
+        } catch (Throwable $e) {
+            // Любой чих (от БД или unlink) — всё возвращаем как было
+            if ($this->db->inTransaction()) {
+                $this->db->rollBack();
+            }
+            throw $e;
+        }
+    }
+
+    private function validateFileUrlToDelete(string $fileUrl): string
+    {
+        // Убираем попытки обмана через ../ (Path Traversal)
+        $cleanPath = str_replace(['../', './'], '', $fileUrl);
+
+        // Белый список: файл ДОЛЖЕН начинаться с /assets/uploads/
+        $allowedPrefix = '/assets/uploads/';
+        if (strpos($cleanPath, $allowedPrefix) !== 0) {
+            throw new MediaException('Попытка несанкционированного удаления');
+        }
+
+        $DocumentRoot = $this->request->server('DOCUMENT_ROOT');
+
+        // Собираем полный путь
+        $absolutePath = $DocumentRoot . $cleanPath;
+
+        // Финальная проверка через realpath (на случай хитрых симлинков)
+        $realPath = realpath($absolutePath);
+        $uploadsBase = realpath($DocumentRoot . $allowedPrefix);
+
+        if (!$realPath || strpos($realPath, $uploadsBase) !== 0) {
+            throw new MediaException('Файл не найден или доступ запрещен');
+        }
+
+        return $realPath;
     }
 }

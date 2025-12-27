@@ -97,4 +97,44 @@ class AdminMediaModel extends BaseModel {
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
         return $result ? (int) $result['id'] : null;
     }
+
+    /**
+     * Обновляет изображение по его URL
+     * @param string $fileUrl Путь к файлу (file_path)
+     * @param string $altText Новое описание
+     * @return bool
+     */
+    public function update(string $filePath, string $altText): bool
+    {
+        $sql = "UPDATE media 
+                SET alt_text = :alt_text, updated_at = NOW() 
+                WHERE file_path = :file_path";
+        
+        try {
+            $stmt = $this->db->prepare($sql);
+            return $stmt->execute([
+                ':alt_text' => $altText,
+                ':file_path' => $filePath
+            ]);
+        } catch (PDOException $e) {
+            Logger::error("Error updating img: ", ['file_path' => $filePath, 'alt_text' => $altText], $e);
+            throw $e;
+        }
+    }
+
+    /**
+     * Удаляет запись (проверяет rowCount для точности)
+     */
+    public function delete(string $fileUrl): bool
+    {
+        $sql = "DELETE FROM media WHERE file_path = :file_path";
+        try {
+            $stmt = $this->db->prepare($sql);
+            $stmt->execute([':file_path' => $fileUrl]);
+            return $stmt->rowCount() > 0;
+        } catch (PDOException $e) {
+            Logger::error("Error deleting media record: ", ['url' => $fileUrl], $e);
+            throw $e;
+        }
+    }
 }

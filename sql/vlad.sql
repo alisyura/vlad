@@ -17,6 +17,32 @@
 /*M!100616 SET @OLD_NOTE_VERBOSITY=@@NOTE_VERBOSITY, NOTE_VERBOSITY=0 */;
 
 --
+-- Table structure for table `api_nonces`
+--
+
+DROP TABLE IF EXISTS `api_nonces`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `api_nonces` (
+  `nonce_hash` char(32) NOT NULL,
+  `expires_at` int(10) unsigned NOT NULL,
+  PRIMARY KEY (`nonce_hash`),
+  KEY `expires_at` (`expires_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `api_nonces`
+--
+
+LOCK TABLES `api_nonces` WRITE;
+/*!40000 ALTER TABLE `api_nonces` DISABLE KEYS */;
+set autocommit=0;
+/*!40000 ALTER TABLE `api_nonces` ENABLE KEYS */;
+UNLOCK TABLES;
+commit;
+
+--
 -- Table structure for table `categories`
 --
 
@@ -115,7 +141,7 @@ CREATE TABLE `media` (
   KEY `idx_media_user_id` (`user_id`),
   KEY `idx_post_image` (`id`),
   CONSTRAINT `media_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE SET NULL
-) ENGINE=InnoDB AUTO_INCREMENT=110 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=121 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -166,12 +192,22 @@ INSERT INTO `media` VALUES
 (101,2,'77571f16930f11f080ce26ac9352cb05_1.jpg','/assets/uploads/2025/10/77571f16930f11f080ce26ac9352cb05_1.jpg','image/jpeg',59159,'','2025-10-14 12:32:21','2025-10-14 12:32:21','published'),
 (102,2,'03-povtoryayte-za-mnoy-polnoe-vypolnenie-kompleksa-1-variant-muzyki-1-100_04_40_29nepodvizhnoe-izobrazhenie001.jpg','/assets/uploads/2025/10/03-povtoryayte-za-mnoy-polnoe-vypolnenie-kompleksa-1-variant-muzyki-1-100_04_40_29nepodvizhnoe-izobrazhenie001.jpg','image/jpeg',47178,'asd','2025-10-14 13:26:11','2025-10-14 13:26:11','published'),
 (103,2,'kandinsky-download-1721245873358.png','/assets/uploads/2025/10/kandinsky-download-1721245873358.png','image/png',736424,'sedrewr','2025-10-14 13:46:42','2025-10-14 13:46:42','published'),
-(104,2,'03-povtoryayte-za-mnoy-polnoe-vypolnenie-kompleksa-1-variant-muzyki-1-100_04_40_29nepodvizhnoe-izobrazhenie001_3.jpg','/assets/uploads/2025/10/03-povtoryayte-za-mnoy-polnoe-vypolnenie-kompleksa-1-variant-muzyki-1-100_04_40_29nepodvizhnoe-izobrazhenie001_3.jpg','image/jpeg',47178,'sdf','2025-10-14 13:55:39','2025-10-14 13:55:39','published'),
 (105,2,'1761331737.png','/assets/uploads/2025/10/1761331737.png','image/png',608405,'','2025-10-25 14:35:16','2025-10-25 14:35:16','published'),
 (106,2,'1761331737_1.png','/assets/uploads/2025/10/1761331737_1.png','image/png',608405,'','2025-10-25 14:36:59','2025-10-25 14:36:59','published'),
 (107,2,'chatgpt-image-26-okt-2025-g-15_36_48.png','/assets/uploads/2025/10/chatgpt-image-26-okt-2025-g-15_36_48.png','image/png',151844,'','2025-10-27 16:53:47','2025-10-27 16:53:47','published'),
 (108,2,'1761999978.png','/assets/uploads/2025/11/1761999978.png','image/png',526743,'78ybiu','2025-11-01 14:53:50','2025-11-01 14:53:50','published'),
-(109,2,'1761999978_1.png','/assets/uploads/2025/11/1761999978_1.png','image/png',526743,'4y45y6546','2025-11-01 14:54:01','2025-11-01 14:54:01','published');
+(109,2,'1761999978_1.png','/assets/uploads/2025/11/1761999978_1.png','image/png',526743,'4y45y6546','2025-11-01 14:54:01','2025-11-01 14:54:01','published'),
+(110,2,'most.jpg','/assets/uploads/2025/12/most.jpg','image/jpeg',68129,'','2025-12-17 22:37:04','2025-12-17 22:37:04','published'),
+(111,2,'1766201957.png','/assets/uploads/2025/12/1766201957.png','image/png',597270,'мост','2025-12-20 12:04:52','2025-12-20 12:04:52','published'),
+(112,2,'1766204718.png','/assets/uploads/2025/12/1766204718.png','image/png',300646,'аниме','2025-12-20 12:05:04','2025-12-20 12:05:04','published'),
+(113,2,'111.jpg','/assets/uploads/2025/12/111.jpg','image/jpeg',84361,'картинки проба','2025-12-25 13:41:45','2025-12-25 13:41:45','published'),
+(114,2,'image.png','/assets/uploads/2025/12/image.png','image/png',339475,'sss','2025-12-27 12:19:15','2025-12-27 12:19:15','published'),
+(115,2,'1766348098.png','/assets/uploads/2025/12/1766348098.png','image/png',297256,'werwer','2025-12-27 12:21:19','2025-12-27 12:21:19','published'),
+(116,2,'iynrk50zdmnczrejjjhw9ziqvlk6dclfqmrj8xdkjeexkrhhkhv8zksblqg7rsh4taudi03i5zmffnmrjgivnbfz.jpg','/assets/uploads/2025/12/iynrk50zdmnczrejjjhw9ziqvlk6dclfqmrj8xdkjeexkrhhkhv8zksblqg7rsh4taudi03i5zmffnmrjgivnbfz.jpg','image/jpeg',84062,'выаыв','2025-12-27 12:50:04','2025-12-27 12:50:04','published'),
+(117,2,'s0vj0k2hdake40xtap2jzpffm6lkzbmwiiujylbd7bfrumshgrommfblyutwgi14eawuxcs3dxkpc9rq-pp2io-e.jpg','/assets/uploads/2025/12/s0vj0k2hdake40xtap2jzpffm6lkzbmwiiujylbd7bfrumshgrommfblyutwgi14eawuxcs3dxkpc9rq-pp2io-e.jpg','image/jpeg',77147,'333333','2025-12-27 12:50:28','2025-12-27 12:50:28','published'),
+(118,2,'image_1.png','/assets/uploads/2025/12/image_1.png','image/png',339475,'sdfsdfs','2025-12-27 12:50:55','2025-12-27 12:50:55','published'),
+(119,2,'image_2.png','/assets/uploads/2025/12/image_2.png','image/png',339475,'цукцук','2025-12-27 12:53:49','2025-12-27 12:53:49','published'),
+(120,2,'s0vj0k2hdake40xtap2jzpffm6lkzbmwiiujylbd7bfrumshgrommfblyutwgi14eawuxcs3dxkpc9rq-pp2io-e_1.jpg','/assets/uploads/2025/12/s0vj0k2hdake40xtap2jzpffm6lkzbmwiiujylbd7bfrumshgrommfblyutwgi14eawuxcs3dxkpc9rq-pp2io-e_1.jpg','image/jpeg',77147,'фывфв','2025-12-27 12:54:20','2025-12-27 12:54:20','published');
 /*!40000 ALTER TABLE `media` ENABLE KEYS */;
 UNLOCK TABLES;
 commit;
@@ -273,9 +309,17 @@ INSERT INTO `post_category` VALUES
 (440,3),
 (441,3),
 (442,3),
+(445,3),
+(446,3),
+(448,3),
+(449,3),
+(450,3),
+(453,3),
+(456,3),
+(459,3),
+(460,3),
 (4,4),
 (278,4),
-(282,4),
 (293,4),
 (321,4),
 (324,4),
@@ -296,6 +340,7 @@ INSERT INTO `post_category` VALUES
 (435,4),
 (436,4),
 (437,4),
+(444,4),
 (198,5),
 (216,5),
 (217,5),
@@ -331,6 +376,7 @@ INSERT INTO `post_category` VALUES
 (278,7),
 (312,7),
 (366,7),
+(443,7),
 (197,8),
 (215,8),
 (216,8),
@@ -433,6 +479,7 @@ INSERT INTO `post_tag` VALUES
 (365,7),
 (377,7),
 (424,7),
+(449,7),
 (3,8),
 (197,8),
 (198,8),
@@ -484,6 +531,7 @@ INSERT INTO `post_tag` VALUES
 (361,12),
 (384,12),
 (281,14),
+(270,16),
 (283,16),
 (291,16),
 (293,16),
@@ -505,6 +553,7 @@ INSERT INTO `post_tag` VALUES
 (323,19),
 (327,19),
 (333,19),
+(270,20),
 (283,20),
 (284,21),
 (285,22),
@@ -698,7 +747,7 @@ CREATE TABLE `post_votes` (
   KEY `post_votes_ibfk_2` (`visitor_id`),
   CONSTRAINT `post_votes_ibfk_1` FOREIGN KEY (`post_id`) REFERENCES `posts` (`id`) ON DELETE CASCADE,
   CONSTRAINT `post_votes_ibfk_2` FOREIGN KEY (`visitor_id`) REFERENCES `visitors` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=89 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=93 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -710,7 +759,11 @@ LOCK TABLES `post_votes` WRITE;
 set autocommit=0;
 INSERT INTO `post_votes` VALUES
 (87,384,11,'2025-11-03 14:27:29','2025-11-03 14:27:29','like'),
-(88,439,11,'2025-12-09 15:33:22','2025-12-09 15:33:22','like');
+(88,439,11,'2025-12-09 15:33:22','2025-12-09 15:33:22','like'),
+(89,450,12,'2025-12-17 19:47:45','2025-12-17 19:47:45','like'),
+(90,442,12,'2025-12-17 19:56:50','2025-12-17 19:56:50','like'),
+(91,449,12,'2025-12-17 22:37:10','2025-12-17 22:37:10','like'),
+(92,453,12,'2025-12-17 22:37:12','2025-12-17 22:37:12','dislike');
 /*!40000 ALTER TABLE `post_votes` ENABLE KEYS */;
 UNLOCK TABLES;
 commit;
@@ -811,7 +864,7 @@ CREATE TABLE `posts` (
   CONSTRAINT `fk_posts_thumbnail_media` FOREIGN KEY (`thumbnail_media_id`) REFERENCES `media` (`id`) ON DELETE SET NULL,
   CONSTRAINT `fk_posts_video_link` FOREIGN KEY (`video_link_id`) REFERENCES `video_links` (`id`) ON DELETE SET NULL ON UPDATE CASCADE,
   CONSTRAINT `posts_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=443 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=461 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -882,7 +935,7 @@ INSERT INTO `posts` VALUES
 (267,'predlozhennyy-material-2025-07-28-201000',2,'Пост от 28.07.2025','sdfdfgdsfgdfgdsgdfdfsg','',NULL,NULL,NULL,'2025-07-28 17:10:00','2025-07-28 17:10:00','',NULL,NULL,'index','published','post',0,1),
 (268,'predlozhennyy-material-2025-07-28-201159',2,'Пост от 28.07.2025','смитсмитсмитсмитсми','',NULL,NULL,NULL,'2025-07-28 17:11:59','2025-07-28 17:11:59','',NULL,NULL,'index','published','post',16,0),
 (269,'predlozhennyy-material-2025-08-05-165354',2,'Пост от 05.08.2025','asfdasdfsadfsadfsadf','',NULL,NULL,NULL,'2025-08-05 13:53:54','2025-08-05 13:53:54','',NULL,NULL,'index','published','post',2,0),
-(270,'predlozhennyy-material-2025-08-06-173232',2,'Пост от 06.08.2025','в ва dfsg вап вап вапвыап','',NULL,NULL,NULL,'2025-08-06 14:32:32','2025-08-06 14:32:32','',NULL,NULL,'index','published','post',2,2),
+(270,'predlozhennyy-material-2025-08-06-173232',2,'Пост от 06.08.2025','<p>в ва dfsg вап вап вапвыап</p>\n<p>ыва</p>\n<p>ыва</p>\n<p>ывавы</p>\n<p>fsdfdsf</p>\n<p>ываыв</p>\n<p>fsd</p>\n<p>fsdfsdfsdfsdfsdfsdfsdfsdf fdgh df dt tr tert etrert ert er tert erter tert ert erter terter ter tert</p>\n<p>ыва</p>\n<p>ывавы</p>\n<p>fsdfdsf</p>\n<p>ываыв</p>\n<p>fsd</p>\n<p>fsdfsdfsdfsdfsdfsdfsdfsdf fdgh df dt tr tert etrert ert er tert erter te</p>\n<p>ыва</p>\n<p>ывавы</p>\n<p>fsdfdsf</p>\n<p>ываыв</p>\n<p>fsd</p>\n<p>fsdfsdfsdfsdfsdfsdfsdfsdf fdgh df dt tr tert etrert ert er tert erter te</p>\n<p>ыва</p>\n<p>ывавы</p>\n<p>fsdfdsf</p>\n<p>ываыв</p>\n<p>fsd</p>\n<p>fsdfsdfsdfsdfsdfsdfsdfsdf fdgh df dt tr tert etrert ert er tert erter te</p>\n<p>ыва</p>\n<p>ывавы</p>\n<p>fsdfdsf</p>\n<p>ываыв</p>\n<p>fsd</p>\n<p>fsdfsdfsdfsdfsdfsdfsdfsdf fdgh df dt tr tert etrert ert er tert erter te</p>\n<p>ыва</p>\n<p>ывавы</p>\n<p>fsdfdsf</p>\n<p>ываыв</p>\n<p>fsd</p>\n<p>fsdfsdfsdfsdfsdfsdfsdfsdf fdgh df dt tr tert etrert ert er tert erter te</p>','','',NULL,NULL,'2025-08-06 14:32:32','2025-12-24 20:55:23','','','','index','published','post',2,2),
 (271,'predlozhennyy-material-2025-08-08-202043',2,'Пост от 08.08.2025','asdasasdas','',NULL,NULL,NULL,'2025-08-08 17:20:43','2025-08-08 17:20:43','',NULL,NULL,'index','pending','post',0,0),
 (272,'4645645',2,'4645645','','',NULL,NULL,NULL,'2025-08-10 15:28:23','2025-08-10 15:28:23','','','','index','draft','post',0,0),
 (273,'prv-apr-ap',2,'прв апр ап','','',NULL,NULL,NULL,'2025-08-10 15:30:21','2025-08-10 15:30:21','','','','index','draft','post',0,0),
@@ -894,7 +947,7 @@ INSERT INTO `posts` VALUES
 (279,'3tertewrw',2,'3tertewrw','','',NULL,NULL,NULL,'2025-08-10 15:56:27','2025-08-10 15:56:27','','','','index','draft','post',0,0),
 (280,'vapkekue',2,'вапкекуе','','',NULL,NULL,NULL,'2025-08-10 16:13:34','2025-08-10 16:13:34','','','','index','draft','post',0,0),
 (281,'464564565464',2,'464564565464','','',NULL,27,NULL,'2025-08-10 16:19:38','2025-08-10 16:19:38','','','','index','draft','post',0,0),
-(282,'proraprparap',2,'прорапрпарап','Сидят два друга в баре. Один, Вася, грустный-грустный. Другой, Петя, спрашивает:\r\n— Вась, ты чего такой кислый?\r\n— Да понимаешь, вчера с женой поссорился. Долго ругались, потом она говорит: «Всё, я от тебя ухожу! У меня есть три мужчины, которые ждут моего звонка. Один из них — начальник, он предложил мне повышение. Второй — коллега, он предложил мне работу в другом городе. А третий… Ну, третий просто ждёт».\r\n— Ну и что? — спрашивает Петя.\r\n— А я, дурак, ей говорю: «Ну и звони своим трём мужикам! А я найду себе трёх женщин, которые ждут моего звонка!»\r\n— И что?\r\n— Звоню одной. Спрашиваю: «Мам, как дела?» Вторая — сестра, третья — тётя. А теперь сижу и думаю… А жена-то, наверное, уже ушла.','dgdfgdfgdf',NULL,25,NULL,'2025-08-10 16:21:56','2025-08-10 16:21:56','','вапвапавп','вапвап','index','published','post',2,0),
+(282,'proraprparap',2,'прорапрпарап','<p>Сидят два друга в баре. Один, Вася, грустный-грустный. Другой, Петя, спрашивает: &mdash; Вась, ты чего такой кислый? &mdash; Да понимаешь, вчера с женой поссорился. Долго ругались, потом она говорит: &laquo;Всё, я от тебя ухожу! У меня есть три мужчины, которые ждут моего звонка. Один из них &mdash; начальник, он предложил мне повышение. Второй &mdash; коллега, он предложил мне работу в другом городе. А третий&hellip; Ну, третий просто ждёт&raquo;. &mdash; Ну и что? &mdash; спрашивает Петя. &mdash; А я, дурак, ей говорю: &laquo;Ну и звони своим трём мужикам! А я найду себе трёх женщин, которые ждут моего звонка!&raquo; &mdash; И что? &mdash; Звоню одной. Спрашиваю: &laquo;Мам, как дела?&raquo; Вторая &mdash; сестра, третья &mdash; тётя. А теперь сижу и думаю&hellip; А жена-то, наверное, уже ушла.</p>','dgdfgdfgdf','',25,NULL,'2025-08-10 16:21:56','2025-12-24 19:47:36','','вапвапавп','вапвап','index','published','post',2,0),
 (283,'proba',2,'проба','','',NULL,NULL,NULL,'2025-08-10 16:26:37','2025-08-10 16:26:37','','','','index','draft','post',0,0),
 (284,'ukeuke',2,'укеуке','','',NULL,NULL,NULL,'2025-08-10 16:36:13','2025-08-10 16:36:13','','','','index','draft','post',0,0),
 (285,'fsdfdsf',2,'fsdfdsf','','',NULL,NULL,NULL,'2025-08-10 16:36:54','2025-08-10 16:36:54','','','','index','draft','post',0,0),
@@ -1008,7 +1061,7 @@ INSERT INTO `posts` VALUES
 (413,'56-75467',2,'56 75467','<p>5467564</p>','',NULL,NULL,NULL,'2025-10-11 16:40:39','2025-10-13 15:31:45','','','','index','draft','post',0,0),
 (416,'456435632',2,'456435632','<p>sfdfwserfwerwer</p>','',NULL,NULL,NULL,'2025-10-13 17:31:24','2025-10-13 17:31:24','','','','index','draft','post',0,0),
 (417,'23432434',2,'23432434','<p>sdf</p>','',NULL,NULL,NULL,'2025-10-13 17:33:26','2025-10-13 17:33:26','','','','index','draft','post',0,0),
-(418,'sdfsadfsdf',2,'sdfsadfsdf','<p>sdafsdf</p>\n<p>sda</p>\n<p>а</p>\n<p>ыва</p>\n<p>sd</p>\n<p>а</p>\n<p>ы</p>','',NULL,NULL,NULL,'2025-10-14 12:16:10','2025-10-14 12:16:32','','','','index','published','post',1,0),
+(418,'sdfsadfsdf',2,'sdfsadfsdf','<p>sdafsdf</p>\n<p>sda</p>\n<p>а</p>\n<p>ыва</p>\n<p>sd</p>\n<p>а</p>\n<p>ы</p>','','sdfsdfdsf',NULL,NULL,'2025-10-14 12:16:10','2025-12-18 13:18:16','','','','index','published','post',1,0),
 (419,'predlozhennyy-material-2025-10-14-153221',2,'Пост от 14.10.2025','<p>sferfwerwerwersss</p>','',NULL,101,NULL,'2025-10-14 12:32:21','2025-10-25 14:12:32','','','','index','published','post',0,1),
 (420,'werewr345',2,'werewr345','<p>sfsdfs</p>','',NULL,NULL,NULL,'2025-10-25 14:12:13','2025-10-25 14:12:13','','','','index','draft','post',0,0),
 (421,'predlozhennyy-material-2025-10-25-173516',2,'Пост от 25.10.2025','<p>sfrewrewert</p>','',NULL,105,NULL,'2025-10-25 14:35:16','2025-11-04 16:08:34','','','','index','draft','post',0,0),
@@ -1031,7 +1084,24 @@ INSERT INTO `posts` VALUES
 (439,'novyj-anek',2,'новый анек','<p>мчсмчсмсчм</p>','',NULL,NULL,NULL,'2025-12-09 15:21:30','2025-12-09 15:21:30','','','','index','published','post',1,0),
 (440,'eshche-anekdotik',2,'еще анекдотик','<p>явыаываыаы</p>','',NULL,NULL,NULL,'2025-12-09 15:32:49','2025-12-09 15:34:25','','','','index','published','post',0,0),
 (441,'novejshij',2,'новейший','<p>выва</p>','',NULL,NULL,NULL,'2025-12-09 16:52:12','2025-12-09 16:52:12','','','','index','published','post',0,0),
-(442,'sio-1',2,'sio 1','<p>вавыа</p>','',NULL,NULL,NULL,'2025-12-09 16:52:53','2025-12-09 16:52:53','','','','index','published','post',0,0);
+(442,'sio-1',2,'sio 1','<p>вавыа</p>','',NULL,NULL,NULL,'2025-12-09 16:52:53','2025-12-09 16:52:53','','','','index','published','post',1,0),
+(443,'wrwerwere',2,'wrwerwere','<p>sadfasdfasdf</p>','',NULL,NULL,NULL,'2025-12-16 15:36:48','2025-12-16 15:36:48','','','','index','draft','post',0,0),
+(444,'sadfasdf',2,'sadfasdf','<p>asdff</p>','',NULL,NULL,NULL,'2025-12-16 15:40:49','2025-12-16 15:40:49','','','','index','draft','post',0,0),
+(445,'123123',2,'123123','<p>1231231</p>','','',NULL,NULL,'2025-12-16 15:41:10','2025-12-16 15:41:10','','','','index','draft','post',0,0),
+(446,'sadasd',2,'sadasd','<p>asd</p>','','asdasdas   12312321',NULL,NULL,'2025-12-16 15:41:39','2025-12-16 15:51:53','','','','index','published','post',0,0),
+(447,'ewrwer',2,'ewrwer','<p>werwerewr</p>','','',NULL,NULL,'2025-12-16 16:04:57','2025-12-17 22:03:16','','','','index','published','page',0,0),
+(448,'erterte',2,'ertert','<p>wertwer</p>','','',NULL,NULL,'2025-12-16 16:07:53','2025-12-16 16:08:01','','','','index','draft','post',0,0),
+(449,'sdfdsf',2,'sdfdsf','<p>sdfgg</p>','','',NULL,NULL,'2025-12-16 16:12:58','2025-12-17 21:14:57','','','','index','published','post',1,0),
+(450,'ewrtert',2,'ewrtert','<p>dsfgsdfg</p>','','',NULL,NULL,'2025-12-16 16:13:10','2025-12-17 23:18:02','','','','index','published','post',1,0),
+(451,'predlozhennyy-material-2025-12-17-225515',2,'Пост от 17.12.2025','sadasdasdasdasdasdasd','',NULL,NULL,NULL,'2025-12-17 19:55:15','2025-12-17 19:55:15',NULL,NULL,NULL,'index','pending','post',0,0),
+(452,'predlozhennyy-material-2025-12-17-225541',2,'Пост от 17.12.2025','asdasdasdasdasd','',NULL,NULL,NULL,'2025-12-17 19:55:41','2025-12-17 19:55:41',NULL,NULL,NULL,'index','pending','post',0,0),
+(453,'predlozhennyy-material-2025-12-17-225603',2,'Пост от 17.12.2025','<p>asdasdasdasdasdasd</p>','','',NULL,NULL,'2025-12-17 19:56:03','2025-12-17 20:25:18','','','','index','published','post',0,1),
+(454,'predlozhennyy-material-2025-12-18-013631',2,'Пост от 18.12.2025','werwerwerwerwr','',NULL,NULL,NULL,'2025-12-17 22:36:31','2025-12-17 22:36:31',NULL,NULL,NULL,'index','pending','post',0,0),
+(455,'predlozhennyy-material-2025-12-18-013704',2,'Пост от 18.12.2025','sfdsfsdfsdfdsfs','',NULL,110,NULL,'2025-12-17 22:37:04','2025-12-17 22:37:04',NULL,NULL,NULL,'index','pending','post',0,0),
+(456,'sdfsdfsdfsdf',2,'sdfsdf','<p>sdfdsf</p>','','',NULL,NULL,'2025-12-18 16:00:06','2025-12-18 16:00:06','','','','index','draft','post',0,0),
+(457,'predlozhennyy-material-2025-12-22-185635',2,'Пост от 22.12.2025','фывфывфывфывфывфыв','',NULL,NULL,NULL,'2025-12-22 15:56:35','2025-12-22 15:56:35',NULL,NULL,NULL,'index','pending','post',0,0),
+(459,'kartinki-proba',2,'картинки проба','<p>картинки проба<img src=\"/assets/uploads/2025/12/111.jpg\" alt=\"картинки проба\" loading=\"lazy\" class=\"img-fluid\"></p>','','',NULL,NULL,'2025-12-25 13:49:45','2025-12-25 13:49:45','','','','index','published','post',0,0),
+(460,'sdfsdf2',2,'sdfsdf','<p>sdfsdfs</p>','','',NULL,NULL,'2025-12-27 04:23:42','2025-12-27 04:23:42','','','','index','draft','post',0,0);
 /*!40000 ALTER TABLE `posts` ENABLE KEYS */;
 UNLOCK TABLES;
 commit;
@@ -1357,6 +1427,41 @@ UNLOCK TABLES;
 commit;
 
 --
+-- Table structure for table `user_secret_keys`
+--
+
+DROP TABLE IF EXISTS `user_secret_keys`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `user_secret_keys` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `user_id` int(11) NOT NULL,
+  `secret_key` varchar(255) NOT NULL,
+  `active` tinyint(1) NOT NULL DEFAULT 1,
+  `valid_until` date NOT NULL,
+  `created_at` timestamp NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `idx_secret_key` (`secret_key`),
+  KEY `idx_valid_until` (`valid_until`),
+  KEY `idx_active` (`active`),
+  KEY `idx_user_active` (`user_id`,`active`),
+  CONSTRAINT `fk_user_secrets_user_id` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_uca1400_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `user_secret_keys`
+--
+
+LOCK TABLES `user_secret_keys` WRITE;
+/*!40000 ALTER TABLE `user_secret_keys` DISABLE KEYS */;
+set autocommit=0;
+/*!40000 ALTER TABLE `user_secret_keys` ENABLE KEYS */;
+UNLOCK TABLES;
+commit;
+
+--
 -- Table structure for table `users`
 --
 
@@ -1372,8 +1477,11 @@ CREATE TABLE `users` (
   `password` varchar(255) NOT NULL,
   `role_id` int(11) NOT NULL,
   `active` tinyint(1) NOT NULL DEFAULT 1,
+  `is_api_user` tinyint(4) NOT NULL DEFAULT 0,
   `created_at` timestamp NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `failed_attempts` int(11) NOT NULL DEFAULT 0 COMMENT 'кол-во ошибочных попыток залогиниться',
+  `lockout_until` datetime DEFAULT NULL COMMENT 'логин заблокирован до',
   PRIMARY KEY (`id`),
   UNIQUE KEY `email` (`email`),
   UNIQUE KEY `login` (`login`),
@@ -1392,12 +1500,12 @@ LOCK TABLES `users` WRITE;
 /*!40000 ALTER TABLE `users` DISABLE KEYS */;
 set autocommit=0;
 INSERT INTO `users` VALUES
-(2,1,'Супер-Администратор','admin','alisura@gmail.com','$2y$10$1aY2DsdoQqjEJH.Ui3Quj.Il1ljGbbcftPcnmxg7uQimdPY.57I5C',1,1,'2025-04-01 12:08:57','2025-10-13 17:27:53'),
-(8,0,'sadf','sadf','sfdasd@asefse131.rt','$2y$10$A5ynCgrDN.cGytSZwd4PN.fU84l/Pf434u/0wF3GhNRuvnx6qlg7K',2,1,'2025-09-03 14:20:31','2025-11-24 20:07:59'),
-(10,0,'Рожа5','rozha','rozha3@mail.ru','$2y$10$eVSSxcE/A1AeguIBqTM0GuOnwVyQy.dv3JowhZ4IVv7xFELCW31Cy',2,1,'2025-09-05 14:18:17','2025-11-03 16:26:47'),
-(12,0,'wqewqewq','rof','123mon@mail.ru','$2y$10$ORw9CiPn5ypIZiKCq.2zFuQR6ZPJ7riPoK0MYDYroFAA9hjR4co2a',2,1,'2025-09-13 20:51:47','2025-11-03 16:14:25'),
-(16,0,'1232','234234','rozha32@mail.ru','$2y$10$1edLNzJ/95OMIaPf7aI5xe31l2/4Re9/YQZXMVICtY4OmhtIGTFiO',1,1,'2025-10-23 14:27:04','2025-10-23 15:55:13'),
-(17,0,'12321','123213','qwe@sad.riu','$2y$10$W/mY0rVmLrJS9p/XgcMkA.LTZV.8o8y8gQIdkc29gsuWPnPvfpq8a',1,1,'2025-10-23 14:37:27','2025-10-23 16:13:46');
+(2,1,'Супер-Администратор','admin','alisura@gmail.com','$2y$10$1aY2DsdoQqjEJH.Ui3Quj.Il1ljGbbcftPcnmxg7uQimdPY.57I5C',1,1,0,'2025-04-01 12:08:57','2025-12-18 15:43:57',0,NULL),
+(8,0,'sadf','sadf','sfdasd@asefse131.rt','$2y$10$A5ynCgrDN.cGytSZwd4PN.fU84l/Pf434u/0wF3GhNRuvnx6qlg7K',2,1,0,'2025-09-03 14:20:31','2025-11-24 20:07:59',0,NULL),
+(10,0,'Рожа5','rozha','rozha3@mail.ru','$2y$10$eVSSxcE/A1AeguIBqTM0GuOnwVyQy.dv3JowhZ4IVv7xFELCW31Cy',2,1,0,'2025-09-05 14:18:17','2025-11-03 16:26:47',0,NULL),
+(12,0,'wqewqewq','rof','123mon@mail.ru','$2y$10$ORw9CiPn5ypIZiKCq.2zFuQR6ZPJ7riPoK0MYDYroFAA9hjR4co2a',2,1,0,'2025-09-13 20:51:47','2025-11-03 16:14:25',0,NULL),
+(16,0,'1232','234234','rozha32@mail.ru','$2y$10$1edLNzJ/95OMIaPf7aI5xe31l2/4Re9/YQZXMVICtY4OmhtIGTFiO',1,1,0,'2025-10-23 14:27:04','2025-10-23 15:55:13',0,NULL),
+(17,0,'12321','123213','qwe@sad.riu','$2y$10$W/mY0rVmLrJS9p/XgcMkA.LTZV.8o8y8gQIdkc29gsuWPnPvfpq8a',1,1,0,'2025-10-23 14:37:27','2025-10-23 16:13:46',0,NULL);
 /*!40000 ALTER TABLE `users` ENABLE KEYS */;
 UNLOCK TABLES;
 commit;
@@ -1469,7 +1577,7 @@ CREATE TABLE `visitors` (
   `uuid` char(40) NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `uuid_unique` (`uuid`)
-) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -1480,7 +1588,8 @@ LOCK TABLES `visitors` WRITE;
 /*!40000 ALTER TABLE `visitors` DISABLE KEYS */;
 set autocommit=0;
 INSERT INTO `visitors` VALUES
-(11,'v_06e09651-ef16-457f-b39d-61fd19251bdf');
+(11,'v_06e09651-ef16-457f-b39d-61fd19251bdf'),
+(12,'v_6e5ba3f2-40ae-47a8-a36c-be7387811e5e');
 /*!40000 ALTER TABLE `visitors` ENABLE KEYS */;
 UNLOCK TABLES;
 commit;
@@ -1494,4 +1603,4 @@ commit;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*M!100616 SET NOTE_VERBOSITY=@OLD_NOTE_VERBOSITY */;
 
--- Dump completed on 2025-12-15 17:23:37
+-- Dump completed on 2025-12-27 16:39:50

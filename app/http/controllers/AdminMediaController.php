@@ -4,14 +4,12 @@
 
 class AdminMediaController extends BaseAdminController
 {
-    private DashboardModel $model;
     private AuthService $authService;
 
-    public function __construct(View $view, DashboardModel $model, 
-        AuthService $authService, ResponseFactory $responseFactory)
+    public function __construct(View $view, AuthService $authService, 
+        ResponseFactory $responseFactory)
     {
         parent::__construct(null, $view, $responseFactory);
-        $this->model = $model;
         $this->authService = $authService;
     }
 
@@ -23,14 +21,11 @@ class AdminMediaController extends BaseAdminController
             // Получаем данные для dashboard
             $data = [
                 'adminRoute' => $this->getAdminRoute(),
-                'user_name' => $userName,
-                'title' => 'Dashboard',
-                'active' => 'dashboard', // для подсветки в меню
+                // для вывода кнопки раздела пользователи в левом меню
                 'isUserAdmin' => $this->authService->isUserAdmin(),
-                'posts_count' => $this->model->getPostsCount(),
-                'pages_count' => $this->model->getPagesCount(),
-                'users_count' => $this->model->getUsersCount(),
-                'recent_activities' => $this->model->getRecentActivities(),
+                'user_name' => $userName,
+                'pageTitle' => 'Управление медиафайлами',
+                'active' => 'mediateka', // для подсветки в меню
                 'styles' => [
                     'mediateka.css'
                 ],
@@ -43,8 +38,8 @@ class AdminMediaController extends BaseAdminController
             // Здесь загружаем данные для админ-панели
             return $this->renderHtml('admin/media/mediateka.php', $data);
         } catch(Throwable $e) {
-            Logger::error('Ошибка при открытии Dashboard', [], $e);
-            throw new HttpException('Сбой при открытии Dashboard', 500, $e);
+            Logger::error('Ошибка при открытии Медиатеки', [], $e);
+            throw new HttpException('Сбой при открытии Медиатеки', 500, $e);
         }
     }
 }
