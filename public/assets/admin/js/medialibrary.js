@@ -11,7 +11,7 @@ class MediaLibrary {
 
         // Элементы модалки
         this.modalElement = document.getElementById('mediaModal');
-        this.mediaModal = new bootstrap.Modal(this.modalElement);
+        this.mediaModal = this.modalElement ? new bootstrap.Modal(this.modalElement) : null;
 
         // Универсальные контейнеры: ищем либо админские, либо модальные
         this.mediaGallery = document.getElementById('adminMediaGallery') || document.getElementById('mediaGallery');
@@ -34,8 +34,10 @@ class MediaLibrary {
     }
 
     initEventListeners() {
-        // Кнопка вставки в модалке
-        this.insertMediaBtn.addEventListener('click', () => this.handleInsert());
+        // Кнопка вставки (есть только в модалке)
+        if (this.insertMediaBtn) {
+            this.insertMediaBtn.addEventListener('click', () => this.handleInsert());
+        }
 
         // Форма загрузки
         if (this.uploadForm) {
@@ -170,33 +172,79 @@ class MediaLibrary {
     }
 
     selectItem(img) {
+        // Убираем выделение у всех и выделяем текущую
         this.mediaGallery.querySelectorAll('img').forEach(i => i.classList.remove('selected'));
         img.classList.add('selected');
+        
+        // Сохраняем данные в переменные класса
         this.selectedUrl = img.dataset.url.replace('../../', '/');
         this.selectedAlt = img.alt;
-        this.insertMediaBtn.disabled = false;
+        
+        // Если есть кнопка "Вставить" (модалка), активируем её
+        if (this.insertMediaBtn) {
+            this.insertMediaBtn.disabled = false;
+        }
+
+        // Если мы в режиме админки, обновляем правую панель
+        if (this.isAdminMode) {
+            this.updateDetailsPanel(img);
+        }
+    }
+
+    updateDetailsPanel(img) {
+        const detailsContent = document.getElementById('detailsContent');
+        const placeholder = document.getElementById('detailsPlaceholder');
+        
+        if (!detailsContent || !placeholder) return;
+
+        // Показываем контент, прячем заглушку
+        placeholder.style.display = 'none';
+        detailsContent.style.display = 'block';
+
+        // Заполняем данные
+        document.getElementById('detailPreview').src = img.src;
+        document.getElementById('detailPath').value = img.dataset.url;
+        document.getElementById('detailAlt').value = img.alt;
+
+        // Вешаем обработчик на кнопку удаления (подготовим его позже)
+        const deleteBtn = document.getElementById('deleteMediaBtn');
+        if (deleteBtn) {
+            deleteBtn.onclick = () => this.handleDelete(img.dataset.url);
+        }
     }
 
     handleInsert() {
         if (this.selectedUrl && this.currentCallback) {
             this.currentCallback(this.selectedUrl, this.selectedAlt);
-            this.mediaModal.hide();
+            // Закрываем модалку только если она существует
+            if (this.mediaModal) {
+                this.mediaModal.hide();
+            }
         }
     }
 
     async handleUpload(event) {
         event.preventDefault();
-        const fileInput = document.getElementById('mediaUpload');
-        const altInput = document.getElementById('altText');
-        const file = fileInput.files[0];
-        const alt = altInput.value;
+        
+        // Берем текущую форму, которая вызвала событие
+        const form = event.currentTarget;
+        // Ищем инпуты внутри этой конкретной формы (а не по всему документу)
+        const fileInput = form.querySelector('input[type="file"]');
+        const altInput = form.querySelector('input[type="text"]');
+        
+        const file = fileInput ? fileInput.files[0] : null;
+        const alt = altInput ? altInput.value : '';
 
         if (!file || !alt) return alert('Выберите файл и введите Alt');
 
         const formData = new FormData();
         formData.append('file', file);
         formData.append('alt', alt);
-        formData.append('csrf_token', document.querySelector('meta[name="csrf_token"]')?.content);
+        
+        const csrfToken = document.querySelector('meta[name="csrf_token"]')?.content;
+        if (csrfToken) {
+            formData.append('csrf_token', csrfToken);
+        }
 
         try {
             const response = await fetch(`/${this.adminRoute}/media/api/upload`, {
@@ -204,11 +252,12 @@ class MediaLibrary {
                 body: formData,
                 headers: { 'X-Requested-With': 'XMLHttpRequest' }
             });
+            
             const data = await this.parseResponse(response);
             
             if (response.ok) {
-                this.uploadForm.reset();
-                await this.loadItems(1);
+                form.reset(); // Очищаем именно ту форму, которая сработала
+                await this.loadItems(1); // Перезагружаем список
             } else {
                 alert('Ошибка: ' + (data.message || 'Загрузка не удалась'));
             }
