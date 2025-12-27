@@ -10,6 +10,8 @@ session_set_cookie_params([
 ]);
 session_start();
 
+header_remove('X-Powered-By');
+
 define('ROOT_PATH', dirname(__DIR__));
 
 require __DIR__ . '/../vendor/autoload.php';

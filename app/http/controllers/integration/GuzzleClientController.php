@@ -29,23 +29,6 @@ class GuzzleClientController extends \BaseController
     {
         $secretKey = \Config::get('security.APP_SECRET_KEY');
 
-        $r=[
-            'rrr'=>[4,5,3,2,2],
-            'sdfds'=>'weiruiwuer'
-        ];
-
-        $hmac = $this->signRequest($secretKey, $r);
-
-
-
-        $message = json_encode($r, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-    $builtin = hash_hmac('sha256', $message, $secretKey);
-    $hash_hmac = "Встроенная hash_hmac(): $builtin\n";
-    $res = "Совпадает? " . (hash_equals($hmac, $builtin) ? "ДА" : "НЕТ") . "\n";
-
-        
-        
-
         // 1. Инициализация HTTP-клиента
         $guzzleClient = new Client([
             // Дополнительные настройки Guzzle, если нужны

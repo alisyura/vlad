@@ -30,14 +30,18 @@ class PageCacheMiddleware implements MiddlewareInterface
 
     private SettingsService $settingsService;
 
+    private AuthService $authService;
+
     /**
      * Конструктор.
      * Инициализирует свойства из конфигурации.
      */
-    public function __construct(Request $request, SettingsService $settingsService)
+    public function __construct(Request $request, SettingsService $settingsService,
+        AuthService $authService)
     {
         $this->request = $request;
         $this->settingsService = $settingsService;
+        $this->authService = $authService;
         ['cacheDir' => $this->cacheDir, 
          'cacheEnabled' => $this->useCache,
          'cacheLifetime' => $this->cacheLifetime] = $this->fillCacheSettings();
@@ -64,9 +68,6 @@ class PageCacheMiddleware implements MiddlewareInterface
             'cache_enabled',
             'cache_lifetime'
         ]);
-
-        // $cacheEnabled = (bool)($settings['cache_enabled'] ?? false);
-        // $cacheLifetime = (int)($settings['cache_lifetime'] ?? 3600);
 
         $cacheEnabled = (bool) Config::getConfigValue($settings, 'cache_enabled', false);
         $cacheLifetime = (int) Config::getConfigValue($settings, 'cache_lifetime', 3600);
@@ -107,20 +108,32 @@ class PageCacheMiddleware implements MiddlewareInterface
         if (file_exists($cacheFile) && (time() - filemtime($cacheFile)) < $this->cacheLifetime) {
             // Кэш найден и актуален, отдаем его
             // Устанавливаем заголовки (опционально, для лучшего UX)
-            header('X-Cache: HIT');
-            // Читаем первые 10 символов файла, чтобы узнать тип
-            $handle = fopen($cacheFile, 'r');
-            $start = fread($handle, 10);
-            fclose($handle);
-
-            if (str_contains($start, '<?xml')) {
-                header('Content-Type: application/xml; charset=utf-8');
-            } else {
-                header('Content-Type: text/html; charset=utf-8');
+            
+            if ($this->authService->isUserAdmin())
+            {
+                // для админа кэш не используем. продолжаем выполнять контроллер
+                return true;
             }
 
-            // Выводим содержимое кэша
-            readfile($cacheFile);
+            // Удаляем всё, что PHP наставил по умолчанию (включая no-cache и версию PHP)
+            header_remove(); 
+            header('Cache-Control: public, max-age='.$this->cacheLifetime); // Разрешаем браузеру хранить. Время из конфига
+            header('Content-Type: text/html; charset=utf-8');
+            header('X-Cache: HIT-GZ'); // Пометим, что это сжатый хит
+
+            $this->setContentType($cacheFile);
+
+            $supportsGzip = str_contains($this->request->server('HTTP_ACCEPT_ENCODING', ''), 'gzip');
+
+            if ($supportsGzip) {
+                header('Content-Encoding: gzip');
+                // Выводим содержимое кэша
+                readfile($cacheFile);
+            } else {
+                // Если вдруг не поддерживает - распаковываем обратно перед отдачей
+                echo gzdecode(file_get_contents($cacheFile));
+            }
+
             // Останавливаем дальнейшее выполнение
             exit; //так как выводим из кэша, return не нужен
         } else {
@@ -134,6 +147,20 @@ class PageCacheMiddleware implements MiddlewareInterface
             
              // Сообщаем роутеру, что нужно продолжить выполнение
              return true;
+        }
+    }
+
+    private function setContentType(string $cacheFile): void
+    {
+        // Читаем первые 10 символов файла, чтобы узнать тип
+        $handle = fopen($cacheFile, 'r');
+        $start = fread($handle, 10);
+        fclose($handle);
+
+        if (str_contains($start, '<?xml')) {
+            header('Content-Type: application/xml; charset=utf-8');
+        } else {
+            header('Content-Type: text/html; charset=utf-8');
         }
     }
 
@@ -192,7 +219,10 @@ class PageCacheMiddleware implements MiddlewareInterface
             if (!is_dir($dir)) {
                 mkdir($dir, 0755, true);
             }
-            file_put_contents($cacheFile, $content);
+
+            $compressedContent = gzencode($content, 9);
+
+            file_put_contents($cacheFile, $compressedContent);
         }
     }
 

@@ -12,11 +12,6 @@
 class AjaxMiddleware implements MiddlewareInterface
 {
     /**
-     * Позволяет отправлять JSON-ответы об ошибке.
-     */
-    use JsonResponseTrait;
-
-    /**
      * @var Request Объект, содержащий данные текущего HTTP-запроса.
      */
     private Request $request;
@@ -43,8 +38,7 @@ class AjaxMiddleware implements MiddlewareInterface
     public function handle(?array $param = null): bool
     {
         if (!$this->request->isAjax()) {
-            $this->sendErrorJsonResponse('Неверный формат запроса.', 403);
-            exit;
+            throw new HttpException('Неверный формат запроса.', 403, null, HttpException::JSON_RESPONSE);
         }
         
         return true;
