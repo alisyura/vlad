@@ -206,6 +206,7 @@ $adminRoute = $data['adminRoute'] ?? 'admin';
     </div>
 </form>
 
+<!-- Модальное окно медиатеки -->
 <div class="modal fade" id="mediaModal" tabindex="-1" aria-labelledby="mediaModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-xl modal-dialog-scrollable">
         <div class="modal-content">
@@ -215,24 +216,24 @@ $adminRoute = $data['adminRoute'] ?? 'admin';
             </div>
             
             <div class="modal-body p-3">
-            <h5>Загрузить новое изображение</h5>
-            <div class="mb-3 p-3 border rounded">
-                <form id="mediaUploadForm" enctype="multipart/form-data">
-                    <div class="row align-items-end">
-                        <div class="col-md-6 mb-3 mb-md-0">
-                            <!-- <label for="mediaUpload" class="form-label">Файл</label> -->
-                            <input class="form-control" type="file" id="mediaUpload" name="file" accept="image/*" required>
+                <h5>Загрузить новое изображение</h5>
+                <div class="mb-3 p-3 border rounded">
+                    <form id="mediaUploadForm" enctype="multipart/form-data">
+                        <div class="row align-items-end">
+                            <div class="col-md-6 mb-3 mb-md-0">
+                                <!-- <label for="mediaUpload" class="form-label">Файл</label> -->
+                                <input class="form-control" type="file" id="mediaUpload" name="file" accept="image/*" required>
+                            </div>
+                            <div class="col-md-4 mb-3 mb-md-0">
+                                <!-- <label for="altText" class="form-label">Alt-текст</label> -->
+                                <input class="form-control" type="text" id="altText" name="alt" placeholder="Описание для SEO и доступности" required>
+                            </div>
+                            <div class="col-md-2">
+                                <button type="submit" class="btn btn-primary w-100">Добавить</button>
+                            </div>
                         </div>
-                        <div class="col-md-4 mb-3 mb-md-0">
-                            <!-- <label for="altText" class="form-label">Alt-текст</label> -->
-                            <input class="form-control" type="text" id="altText" name="alt" placeholder="Описание для SEO и доступности" required>
-                        </div>
-                        <div class="col-md-2">
-                            <button type="submit" class="btn btn-primary w-100">Добавить</button>
-                        </div>
-                    </div>
-                </form>
-            </div>
+                    </form>
+                </div>
                 <hr>
                 <h5>Выбрать из существующих</h5>
                 
@@ -252,3 +253,56 @@ $adminRoute = $data['adminRoute'] ?? 'admin';
     </div>
 </div>
 
+<!-- Модальное окно для вставки видео -->
+ <div class="modal fade" id="videoEmbedModal" tabindex="-1" aria-labelledby="videoEmbedModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+      
+      <div class="modal-header">
+        <h5 class="modal-title" id="videoEmbedModalLabel">Вставка видео с хостинга</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+      </div>
+      
+      <div class="modal-body">
+        <div class="mb-3">
+          <p class="mb-1 fw-semibold text-body">
+            Вставьте ссылку на видео (YouTube, Rutube и др.). Система автоматически создаст код плеера.
+          </p>
+        </div>
+        
+        <div class="mt-3">
+            <div class="pt-2">
+                <div class="mb-2 fw-bold">Поддерживается:</div>
+                <div class="d-flex flex-wrap gap-2 mb-3">
+                    <span class="badge text-bg-danger fs-6">YouTube</span>
+                    <span class="badge text-bg-primary fs-6">Rutube</span>
+                    <span class="badge text-bg-info text-white fs-6">Vimeo</span>
+                    <span class="badge text-bg-primary fs-6">VK</span>
+                    <span class="badge text-bg-warning fs-6">OK</span>
+                    <span class="badge text-bg-info text-white fs-6">Mail.ru</span>
+                </div>
+                
+                <div class="alert alert-info border-0 shadow-sm">
+                    <div class="fs-6">
+                        <strong>💡 Для Mail.ru:</strong> копируйте «Код для вставки» (iframe) на сайте видеохостинга и вставляйте его целиком.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <hr class="my-4">
+        
+        <div class="form-group">
+          <label for="video-url" class="form-label fw-bold">URL видео:</label>
+          <input type="text" class="form-control form-control-lg" id="video-url" placeholder="https://www.youtube.com/watch?v=...">
+        </div>
+      </div>
+      
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Отмена</button>
+        <button type="button" class="btn btn-primary px-4" id="video-modal-insert">Вставить</button>
+      </div>
+      
+    </div>
+  </div>
+</div>

@@ -286,8 +286,11 @@ class AdminPostsController extends BaseAdminController
                     'absolute' => 'tinymce/tinymce.min.js',
                     'edit_create_tag_selector.js',
                     'medialibrary.js',
-                    'edit_create_medialibrary_init.js',
                     'edit_create.js',
+                    'video_provider.js',
+                    'video_manager.js',
+                    'video_embed_processor.js',
+                    'edit_create_tinymce_init.js',
                     'common.js'
                 ]
             ];
@@ -373,13 +376,18 @@ class AdminPostsController extends BaseAdminController
                 ],
                 'styles' => [
                     'edit_create.css',
-                    'edit_create_mediateka.css'
+                    'edit_create_mediateka.css',
+                    'mediateka.css'
                 ],
                 'jss' => [
                     'absolute' => 'tinymce/tinymce.min.js',
                     'edit_create_tag_selector.js',
-                    'edit_create_mediateka.js',
+                    'medialibrary.js',
                     'edit_create.js',
+                    'video_provider.js',
+                    'video_manager.js',
+                    'video_embed_processor.js',
+                    'edit_create_tinymce_init.js',
                     'common.js'
                 ]
             ];
