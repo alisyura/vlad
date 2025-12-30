@@ -97,7 +97,7 @@ class Config
                 'APP_SECRET_KEY' => $source['APP_SECRET_KEY'] ?? null, 
                 'LogFilename' => 'security_alerts.log',
                 'NonceFilesDir' => defined('ROOT_PATH') ? ROOT_PATH . DIRECTORY_SEPARATOR . 'nonces' : 'nonces',
-                'NonceDriver' => 'file', // redis, file, mysql
+                'NonceDriver' => 'mysql', // redis, file, mysql
                 'MaxDriftSeconds' => 60
             ]
         ];

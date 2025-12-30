@@ -35,7 +35,7 @@ class SecureRequest
         $username  = $this->getHttpHeader(SecureResponse::HEADER_USERNAME, 'Http');
 
         // 2. Получаем сырое тело запроса
-        $rawInput = file_get_contents('php://input');
+        $rawInput = $this->request->getBody(); //file_get_contents('php://input');
         
         if (empty($signature) || empty($nonce) || empty($timestamp)) {
             $allHeaders = $this->request->allHeaders();

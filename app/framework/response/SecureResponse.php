@@ -2,9 +2,7 @@
 
 namespace App\Framework\Security;
 
-use Response;
-
-class SecureResponse extends Response
+class SecureResponse extends \JsonResponse
 {
     // Имена заголовков
     public const HEADER_USERNAME = 'X-API-Username';
@@ -28,16 +26,6 @@ class SecureResponse extends Response
         $headers[self::HEADER_RESPONSE_SIG] = $signature;
 
         // 4. Передаем всё в родительский класс Response
-        parent::__construct($jsonContent, $statusCode, $headers);
-    }
-
-    /**
-     * Переопределяет заголовки по умолчанию, устанавливая Content-Type для JSON.
-     */
-    protected function getDefaultHeaders(): array
-    {
-        return [
-            'Content-Type' => 'application/json; charset=UTF-8',
-        ];
+        parent::__construct($data, $statusCode, $headers);
     }
 }

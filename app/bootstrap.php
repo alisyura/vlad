@@ -99,7 +99,48 @@ $container->bind(XmlResponse::class, XmlResponse::class);
 
 if (Config::isDev())
 {
-    $container->bind(App\Framework\Security\NonceStorageInterface::class, function() {
-        return new App\Framework\Security\FileNonceStorage(\Config::get('security.NonceFilesDir'));
-    });
+    $container->singleton(
+        App\Framework\Security\NonceStorageFactory::class,
+        function($container) {
+            $driver = Config::get('security.NonceDriver');
+            $redis = null;
+            $pdo = null;
+            $filesDir = null;
+            
+             [$redis, $pdo, $filesDir] = match ($driver) {
+                'mysql', 'mariadb' => [
+                    null,
+                    $container->make(\PDO::class),
+                    null
+                ],
+                'file' => [
+                    null,
+                    null,
+                    Config::get('security.NonceFilesDir')
+                ],
+                'redis' => [
+                    null, // или можно попробовать создать Redis
+                    null,
+                    null
+                ],
+                default => [null, null, null]
+            };
+            
+            return new App\Framework\Security\NonceStorageFactory(
+                $redis,
+                $pdo,
+                $filesDir
+            );
+        }
+    );
+
+    $container->bind(
+        App\Framework\Security\NonceStorageInterface::class,
+        function($container) {
+            $factory = $container->make(
+                App\Framework\Security\NonceStorageFactory::class
+            );
+            return $factory->create();
+        }
+    );
 }
