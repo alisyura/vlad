@@ -99,6 +99,11 @@ class Config
                 'NonceFilesDir' => defined('ROOT_PATH') ? ROOT_PATH . DIRECTORY_SEPARATOR . 'nonces' : 'nonces',
                 'NonceDriver' => 'mysql', // redis, file, mysql
                 'MaxDriftSeconds' => 60
+            ],
+            'remoterestapi' => [
+                'Url' => 'http://vlad.local/api/endpoint',
+                'Login' => 'vladlogin',
+                'Pw' => ''
             ]
         ];
 

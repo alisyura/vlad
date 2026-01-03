@@ -9,6 +9,7 @@ class SecureRequest
     private int $maxDrift;
     private NonceStorageInterface $nonceStorage;
     private \Request $request;
+    private string $action;
 
     public function __construct(string $secretKey, int $maxDrift, 
         NonceStorageInterface $nonceStorage, \Request $request)
@@ -25,6 +26,11 @@ class SecureRequest
         return $this->secretKey;
     }
     
+    public function getAction(): string
+    {
+        return $this->action;
+    }
+
     private function getHttpHeader(string $originalHeaderName, string $Prefix): string
     {
         $fullName = rtrim($Prefix, '_') . '_' . str_replace('-', '_', $originalHeaderName);
@@ -38,11 +44,14 @@ class SecureRequest
         $nonce     = $this->getHttpHeader(SecureResponse::HEADER_NONCE, 'Http');
         $timestamp = $this->getHttpHeader(SecureResponse::HEADER_TIMESTAMP, 'Http');
         $username  = $this->getHttpHeader(SecureResponse::HEADER_USERNAME, 'Http');
+        $this->action    = $this->getHttpHeader(SecureResponse::HEADER_ACTION, 'Http');
 
         // 2. Получаем сырое тело запроса
-        $rawInput = $this->request->getBody(); //file_get_contents('php://input');
+        $rawInput = $this->request->getBody();
         
-        if (empty($signature) || empty($nonce) || empty($timestamp)) {
+        if (empty($signature) || empty($nonce) || empty($timestamp) 
+            || empty($username) || empty($this->action))
+        {
             $allHeaders = $this->request->allHeaders();
             $this->logSecurityIncident('Missing Security Headers', [
                 'user' => $username,
@@ -53,7 +62,7 @@ class SecureRequest
 
         // 3. Проверка подписи (Важно: порядок склейки должен совпадать с клиентом!)
         // Строка: [JSON тело][Nonce][Timestamp]
-        $stringToVerify = $rawInput . $nonce . $timestamp;
+        $stringToVerify = $rawInput . $nonce . $timestamp . $username . $this->action;
         $expectedSig = hash_hmac('sha256', $stringToVerify, $this->secretKey);
 
         if (!hash_equals($expectedSig, $signature)) {

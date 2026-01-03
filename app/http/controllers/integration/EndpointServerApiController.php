@@ -2,13 +2,10 @@
 
 namespace App\Http\Controllers\Integration;
 
+use App\Services\RestApiServerProcessorService;
 use Response;
-use App\Framework\Security\SecureRequest;
-use App\Framework\Security\NonceStorageInterface;
-use App\Framework\Security\SecureRequestFactory;
 use Logger;
 use Request;
-use RuntimeException;
 
 /**
  * @deprecated Данный контроллер находится в разработке. 
@@ -19,57 +16,26 @@ class EndpointServerApiController extends \BaseController
 {
     use \App\Traits\DevelopmentWarning;
 
-    private NonceStorageInterface $storage;
-    private Request $request;
-    private SecureRequestFactory $secureRequestFactory;
-    private \PDO $db;
+    private RestApiServerProcessorService $service;
 
-    public function __construct(\ResponseFactory $responseFactory, 
-        NonceStorageInterface $storage, SecureRequestFactory $secureRequestFactory,
-        Request $request, \PDO $db)
+    public function __construct(\ResponseFactory $responseFactory,
+        Request $request, RestApiServerProcessorService $service)
     {
-        parent::__construct(null, null, $responseFactory);
-        $this->storage = $storage;
-        $this->request = $request;
-        $this->secureRequestFactory = $secureRequestFactory;
-        $this->db = $db;
+        parent::__construct($request, null, $responseFactory);
+        $this->service = $service;
     }
     
-    public function process(): \Response
+    public function process(): Response
     {
-        $clientLogin = $this->request->server('PHP_AUTH_USER', '');
+        $clientLogin = $this->getRequest()->server('PHP_AUTH_USER', '');
         $secretKey = null;
-        $secRequest = null;
 
         try {
-            if (empty($clientLogin)) {
-                throw new RuntimeException(
-                    'Authentication required', 
-                    401 // HTTP 401 Unauthorized
-                );
-            }
+            $result = $this->service->processApiRequest($clientLogin);
+            $secretKey = $result[RestApiServerProcessorService::SECRET_KET_COLUMN];
+            unset($result[RestApiServerProcessorService::SECRET_KET_COLUMN]);
 
-            $secRequest = $this->secureRequestFactory->createForLogin($clientLogin);
-
-            $incomingData = $secRequest->getData();          
-            // Валидация обязательных полей
-            if (empty($incomingData['order_id'])) {
-                throw new RuntimeException(
-                    'Order ID is required', 
-                    400 // HTTP 400 Bad Request
-                );
-            }
-
-            // --- бизнес-логика здесь ---
-            // Например:
-            $orderId = (int)$incomingData['order_id'];
-            $result = $this->processOrder($orderId, $incomingData);
-
-            return $this->renderSecure([
-                    'message' => "Заказ #$orderId обработан",
-                    'received' => $incomingData,
-                    'data' => $result
-                ], $secRequest->getSecretKey());
+            return $this->renderSecure($result, $secretKey);
         } catch (\Throwable $e) {
             // Если что-то пошло не так (взломали подпись или протухло время)
             // Отправляем подписанную ошибку
@@ -81,10 +47,7 @@ class EndpointServerApiController extends \BaseController
                 $e);
 
             // Безопасное получение ключа
-            $errorKey = $secretKey ?? 'default_error_key';
-            if ($secRequest !== null && method_exists($secRequest, 'getSecretKey')) {
-                $errorKey = $secRequest->getSecretKey();
-            }
+            $errorKey = $secretKey ?? $this->service->getSecretKey();
 
             // Определяем HTTP статус
             $httpStatus = $e->getCode() >= 400 && $e->getCode() < 600 
@@ -125,22 +88,6 @@ class EndpointServerApiController extends \BaseController
         
         // В режиме разработки показываем больше информации
         return sprintf('%s: %s', get_class($e), $message);
-    }
-
-    private function processOrder(int $orderId, array $data): array
-    {
-        // бизнес-логика здесь
-        // Например:
-        // 1. Проверка существования заказа
-        // 2. Обновление статуса
-        // 3. Логирование
-        // 4. etc.
-        
-        return [
-            'processed_at' => date('Y-m-d H:i:s'),
-            'order_id' => $orderId,
-            'status' => 'processed'
-        ];
     }
 }
     

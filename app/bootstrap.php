@@ -99,6 +99,43 @@ $container->bind(XmlResponse::class, XmlResponse::class);
 
 if (Config::isDev())
 {
+    // api client
+    $container->bind(App\Framework\Security\SecureClient::class,
+        function()
+        {
+            $secretKey = \Config::get('security.APP_SECRET_KEY');
+            $endpointUrlApi = \Config::get('remoterestapi.Url');
+            $loginRestApi = \Config::get('remoterestapi.Login');
+            $pwRestApi = \Config::get('remoterestapi.Pw');
+
+            // Инициализация HTTP-клиента
+            $guzzleClient = new GuzzleHttp\Client([
+                // Дополнительные настройки Guzzle, если нужны
+            ]); 
+
+            // Инициализация Secure Client
+            return new App\Framework\Security\SecureClient(
+                $guzzleClient,
+                $endpointUrlApi,
+                $loginRestApi,
+                $pwRestApi,
+                $secretKey
+            );
+        });
+        
+    // api server
+
+    $container->bind(App\Services\RestApiServerProcessorService::class, function($container) {
+        return new App\Services\RestApiServerProcessorService(
+            $container->make(App\Framework\Security\SecureRequestFactory::class),
+            [
+                $container->make(\App\Handlers\CreatePaymentHandler::class),
+                $container->make(\App\Handlers\CancelPaymentHandler::class),
+                // ... другие handlers
+            ]
+        );
+    });
+
     $container->singleton(
         App\Framework\Security\NonceStorageFactory::class,
         function($container) {

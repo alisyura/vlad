@@ -20,11 +20,6 @@ class SecureRequestFactory
         $this->storage = $storage;
         $this->request = $request;
     }
-    
-    public function getSecretKey(): string
-    {
-        return $this->secretKey;
-    }
 
     public function create(?string $clientLogin = null): SecureRequest
     {

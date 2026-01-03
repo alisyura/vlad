@@ -2,9 +2,8 @@
 
 namespace App\Http\Controllers\Integration;
 
-use GuzzleHttp\Client;
-use App\Framework\Security\SimpleSecureClient;
 use Response;
+use App\Services\RestApiClientService;
 
 /**
  * @deprecated Данный контроллер находится в разработке. 
@@ -15,42 +14,23 @@ class GuzzleClientController extends \BaseController
 {
     use \App\Traits\DevelopmentWarning;
 
-    public function __construct(\ResponseFactory $responseFactory)
+    private RestApiClientService $clientService;
+
+    public function __construct(\ResponseFactory $responseFactory, 
+        RestApiClientService $clientService)
     {
         parent::__construct(null, null, $responseFactory);
-    }
-
-    public function signRequest(string $secretKey, array $data): string {
-        $json = json_encode($data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-        return CustomHMAC256::hmac_sha256_hex($secretKey, $json);
+        $this->clientService = $clientService;
     }
 
     public function callApi(): Response
     {
-        $secretKey = \Config::get('security.APP_SECRET_KEY');
-
-        // 1. Инициализация HTTP-клиента
-        $guzzleClient = new Client([
-            // Дополнительные настройки Guzzle, если нужны
-        ]); 
-
-        // 2. Инициализация вашего Secure Client
-        $client = new SimpleSecureClient(
-            $guzzleClient,
-            'http://vlad.local/api/endpoint',
-            'логин',
-            'пароль',
-            $secretKey
-        );
-
         // временный вывод сообщения в браузер
         $outText = '';
 
         try {
-            $result = $client->send([
-                'order_id' => 123,
-                'amount' => 500.00
-            ], 'create_payment');
+            
+            $result = $this->clientService->createPayment(500);
 
             $outText = "Статус HTTP: " . $result['status'] . "\n";
             $outText .= print_r($result['response'], true);

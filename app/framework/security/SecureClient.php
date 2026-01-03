@@ -6,7 +6,7 @@ use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Exception\GuzzleException;
 use Logger;
 
-class SimpleSecureClient
+class SecureClient
 {
     private const HASH_ALGO = 'sha256';
     private const TIMEOUT = 120;
@@ -37,6 +37,7 @@ class SimpleSecureClient
         // 1. Генерируем метаданные
         $nonce = bin2hex(random_bytes(self::NONCE_LENGTH));
         $timestamp = time();
+        $username = $this->username;
 
         // 2. Готовим тело запроса (теперь тут только чистые данные)
         $bodyJson = json_encode($data, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES);
@@ -46,14 +47,14 @@ class SimpleSecureClient
 
         /** * 3. Формируем строку для подписи. 
          * Важно, чтобы сервер собирал её в таком же порядке:
-         * подпись = hmac(body + nonce + timestamp)
+         * подпись = hmac(body + nonce + timestamp + username + action)
          */
-        $stringToSign = $bodyJson . $nonce . $timestamp;
+        $stringToSign = $bodyJson . $nonce . $timestamp . $username . $action;
         $signature = hash_hmac(self::HASH_ALGO, $stringToSign, $this->signatureKey);
 
         // 4. Формируем заголовки
         $headers = [
-            SecureResponse::HEADER_USERNAME  => $this->username,
+            SecureResponse::HEADER_USERNAME  => $username,
             SecureResponse::HEADER_SIGNATURE => $signature,
             SecureResponse::HEADER_NONCE     => $nonce,
             SecureResponse::HEADER_TIMESTAMP => $timestamp,
