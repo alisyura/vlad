@@ -19,4 +19,11 @@ class RestApiClientService
                 'amount' => $amount
             ], 'create_payment');
     }
+
+    public function cancelPayment(int $paymentId): array
+    {
+        return $this->secureClient->send([
+                'payment_id' => $paymentId
+            ], 'cancel_payment');
+    }
 }

@@ -125,16 +125,28 @@ if (Config::isDev())
         
     // api server
 
-    $container->bind(App\Services\RestApiServerProcessorService::class, function($container) {
-        return new App\Services\RestApiServerProcessorService(
-            $container->make(App\Framework\Security\SecureRequestFactory::class),
-            [
-                $container->make(\App\Handlers\CreatePaymentHandler::class),
-                $container->make(\App\Handlers\CancelPaymentHandler::class),
-                // ... другие handlers
-            ]
-        );
+    // АВТОРЕГИСТРАЦИЯ HANDLERS!
+    $handlersDir = __DIR__ . '/Handlers';
+    $handlerClasses = \App\Handlers\AutoHandlerDiscovery::discoverWithFilter($handlersDir);
+
+    $container->bind(App\Services\RestApiServerProcessorService::class, 
+        function($container) use ($handlerClasses) {
+            // Создаем instances всех handlers
+            $handlers = array_map(
+                fn($className) => $container->make($className),
+                $handlerClasses
+            );
+            
+            return new App\Services\RestApiServerProcessorService(
+                $container->make(App\Framework\Security\SecureRequestFactory::class),
+                $handlers
+            );
     });
+
+    // Регистрируем каждый handler (чтобы container->make() работал)
+    foreach ($handlerClasses as $handlerClass) {
+        $container->bind($handlerClass, $handlerClass);
+    }
 
     $container->singleton(
         App\Framework\Security\NonceStorageFactory::class,
