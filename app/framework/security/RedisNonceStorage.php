@@ -27,4 +27,10 @@ class RedisNonceStorage implements NonceStorageInterface
         // Если результат false, значит такой nonce в базе уже есть (Replay Attack!)
         return (bool)$result;
     }
+
+    public function invalidate(string $nonce): void
+    {
+        $key = $this->prefix . $nonce;
+        $this->redis->del($key);
+    }
 }

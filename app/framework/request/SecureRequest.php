@@ -20,6 +20,11 @@ class SecureRequest
         $this->parseIncomingRequest();
     }
 
+    public function getSecretKey(): string
+    {
+        return $this->secretKey;
+    }
+    
     private function getHttpHeader(string $originalHeaderName, string $Prefix): string
     {
         $fullName = rtrim($Prefix, '_') . '_' . str_replace('-', '_', $originalHeaderName);

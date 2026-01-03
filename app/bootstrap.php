@@ -134,7 +134,7 @@ if (Config::isDev())
         }
     );
 
-    $container->bind(
+    $container->singleton(
         App\Framework\Security\NonceStorageInterface::class,
         function($container) {
             $factory = $container->make(
@@ -143,4 +143,12 @@ if (Config::isDev())
             return $factory->create();
         }
     );
+
+    $container->singleton(App\Framework\Security\SecureRequestFactory::class, 
+        function($container) {
+            return new App\Framework\Security\SecureRequestFactory(
+                $container->make(App\Framework\Security\NonceStorageInterface::class),
+                $container->make(Request::class)
+            );
+    });
 }
