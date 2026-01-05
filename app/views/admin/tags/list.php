@@ -80,6 +80,26 @@
                     <label for="login">УРЛ (изменить будет нельзя):</label>
                     <input type="text" class="form-control" id="url" name="url" required>
                 </div>
+                <div class="form-group">
+                    <label for="login">Заголовок страницы (caption):</label>
+                    <input type="text" class="form-control" id="caption" name="caption">
+                </div>
+                <div class="form-group">
+                    <label for="login">Подзаголовок страницы (caption_desc):</label>
+                    <input type="text" class="form-control" id="caption_desc" name="caption_desc">
+                </div>
+                <div class="form-group">
+                    <label for="login">Заголовок страницы для поисковика (title):</label>
+                    <input type="text" class="form-control" id="title" name="title">
+                </div>
+                <div class="form-group">
+                    <label for="login">Описание страницы для поисковика (description):</label>
+                    <input type="text" class="form-control" id="description" name="description">
+                </div>
+                <div class="form-group">
+                    <label for="login">Ключевые слова для поисковика (keywords):</label>
+                    <input type="text" class="form-control" id="keywords" name="keywords">
+                </div>
                 <button type="button" class="btn btn-primary mt-10px">Создать тэг</button>
             </form>
         </div>

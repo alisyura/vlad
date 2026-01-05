@@ -6,14 +6,17 @@ class AdminTagsController extends BaseAdminController
     private TagsModel $tagsModel;
     private AuthService $authService;
     private PaginationService $paginService;
+    private TagService $tagService;
 
     public function __construct(Request $request, View $view, AuthService $authService, 
-        TagsModel $tagsModel, PaginationService $paginService, ResponseFactory $responseFactory)
+        TagsModel $tagsModel, PaginationService $paginService, 
+        ResponseFactory $responseFactory, TagService $tagService)
     {
         parent::__construct($request, $view, $responseFactory);
         $this->tagsModel = $tagsModel;
         $this->paginService = $paginService;
         $this->authService = $authService;
+        $this->tagService = $tagService;
     }
 
     public function list($currentPage = 1): Response
@@ -71,14 +74,7 @@ class AdminTagsController extends BaseAdminController
             $data['styles'] = ['tags.css'];
             $data['jss'] = ['tags.js'];
             
-            // Получаем данные конкретного пользователя для формы редактирования
-            $tag = $this->tagsModel->getTag(id: $tagId);
-            if (empty($tag))
-            {
-                throw new HttpException('Тэг не найден.', 404);
-            }
-            
-            $data['tag_to_edit'] = $tag;
+            $data['tag_to_edit'] = $this->tagService->getTag(id: $tagId);
 
             return $this->renderHtml('admin/tags/edit.php', $data);
         } catch(Throwable $e) {

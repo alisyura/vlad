@@ -4,12 +4,15 @@
 class AdminTagsApiController extends BaseAdminController
 {
     private TagsModel $tagsModel;
+    private TagService $tagService;
 
-    public function __construct(Request $request, TagsModel $tagsModel, ?View $view = null,
-        ResponseFactory $responseFactory)
+    public function __construct(Request $request, TagsModel $tagsModel, 
+        ?View $view = null, ResponseFactory $responseFactory,
+        TagService $tagService)
     {
         parent::__construct($request, $view, $responseFactory);
         $this->tagsModel = $tagsModel;
+        $this->tagService = $tagService;
     }
 
     /**
@@ -61,7 +64,7 @@ class AdminTagsApiController extends BaseAdminController
             }
 
             // Попытка создать тэг
-            if ($this->tagsModel->createTags([$inputJson])) {
+            if ($this->tagService->createTags([$inputJson])) {
                 return $this->renderJson('Тэг успешно создан.');
             } else {
                 throw new HttpException('Не удалось создать тэг.', 500);
@@ -85,7 +88,7 @@ class AdminTagsApiController extends BaseAdminController
         $inputJson = $this->getRequest()->getJson();
 
         try {
-            $tag = $this->tagsModel->getTag($tagId);
+            $tag = $this->tagService->getTag(id: $tagId);
             if (empty($tag))
             {
                 throw new HttpException('Тэг не найден.', 404, null, HttpException::JSON_RESPONSE);
@@ -102,11 +105,16 @@ class AdminTagsApiController extends BaseAdminController
             // Подготовка данных для обновления
             $updateData = [
                 'id' => $tagId,
-                'name' => $inputJson['name']        
+                'name' => $inputJson['name'],
+                'caption' => $inputJson['caption'],
+                'caption_desc' => $inputJson['caption_desc'],
+                'title' => $inputJson['title'],
+                'description' => $inputJson['description'],
+                'keywords' => $inputJson['keywords']
             ];
 
             // Обновляем данные пользователя в базе данных
-            $this->tagsModel->updateTags([$updateData]);
+            $this->tagService->updateTags([$updateData]);
 
             return $this->renderJson('Тэг успешно обновлен.');
         } catch(Throwable $e) {

@@ -86,47 +86,6 @@ class TagsModel extends BaseModel {
     }
 
     /**
-     * Возвращает тег по его ID или URL.
-     *
-     * @param int|null $id ID тега.
-     * @param string|null $url URL тега.
-     * @return array|null Возвращает массив с данными тега или null, если тег не найден.
-     */
-    public function getTag(?int $id = null, ?string $url = null): ?array
-    {
-        $where = [];
-        $binds = [];
-        
-        if ($id !== null) {
-            $where[] = "id = :id";
-            $binds[':id'] = $id;
-        }
-
-        if ($url !== null) {
-            $where[] = "url = :url";
-            $binds[':url'] = $url;
-        }
-
-        if (empty($where)) {
-            return null; // Нет параметров для поиска
-        }
-
-        $sql = "SELECT id, url, name FROM tags WHERE " . implode(" AND ", $where);
-        
-        $stmt = $this->db->prepare($sql);
-        
-        foreach ($binds as $key => $value) {
-            $stmt->bindValue($key, $value);
-        }
-
-        $stmt->execute();
-        
-        $tag = $stmt->fetch(PDO::FETCH_ASSOC);
-
-        return $tag ?: null;
-    }
-
-    /**
      * Проверяет, заняты ли указанное имя тега и/или URL.
      *
      * @param string $name Имя тега для проверки.
@@ -169,22 +128,18 @@ class TagsModel extends BaseModel {
         ];
     }
 
+
     /**
      * Создает несколько тегов за один запрос.
      *
      * @param array $tags Массив с массивами данных тегов, каждый из которых содержит 'name' и 'url'.
      * @return bool Возвращает true в случае успеха, false в противном случае.
      */
-    public function createTags(array $tags): bool
+    public function create(array $tags): bool
     {
-        if (empty($tags)) {
-            return false;
-        }
-
         $placeholders = [];
         $binds = [];
         
-        // Динамически создаем строку с заполнителями
         foreach ($tags as $index => $tag) {
             $placeholders[] = "(:name{$index}, :url{$index})";
             $binds[":name{$index}"] = $tag['name'];
@@ -192,7 +147,6 @@ class TagsModel extends BaseModel {
         }
 
         $sql = "INSERT INTO tags (name, url) VALUES " . implode(", ", $placeholders);
-
         $stmt = $this->db->prepare($sql);
         
         foreach ($binds as $key => $value) {
@@ -202,70 +156,217 @@ class TagsModel extends BaseModel {
         return $stmt->execute();
     }
 
-    /**
-     * Массовое обновление данных тегов.
-     * Этот метод выполняет все обновления в одном SQL-запросе с помощью оператора CASE.
-     * Он был изменен, чтобы обеспечить уникальные имена для всех именованных параметров.
-     *
-     * @param array $tagsData Массив с данными для обновления тегов.
-     * @return bool Возвращает true в случае успеха, false в противном случае.
-     */
-    public function updateTags(array $tagsData): void
+    public function updateNames(array $tagsData): bool
     {
-        if (empty($tagsData)) {
-            throw new TagsException('updateTags. tagsData empty');
+        $caseClauses = [];
+        $inPlaceholders = [];
+        $binds = [];
+
+        foreach ($tagsData as $index => $tagData) {
+            $caseIdParam = ":case_id_{$index}";
+            $nameParam = ":name_{$index}";
+            $inIdParam = ":in_id_{$index}";
+            
+            $caseClauses[] = "WHEN id = {$caseIdParam} THEN {$nameParam}";
+            $inPlaceholders[] = $inIdParam;
+            
+            $binds[$caseIdParam] = $tagData['id'];
+            $binds[$nameParam] = $tagData['name'];
+            $binds[$inIdParam] = $tagData['id'];
         }
 
-        $this->db->beginTransaction();
+        $sql = "UPDATE tags SET `name` = CASE " . implode(" ", $caseClauses) . " END 
+                WHERE id IN (" . implode(",", $inPlaceholders) . ")";
 
-        try {
-            $caseClauses = [];
-            $inPlaceholders = [];
-            $binds = [];
-
-            foreach ($tagsData as $index => $tagData) {
-                if (!isset($tagData['id']) || !isset($tagData['name'])) {
-                    continue; // Пропускаем некорректные записи
-                }
-                
-                // Создаем уникальные имена параметров
-                $caseIdParam = ":case_id_{$index}";
-                $nameParam = ":name_{$index}";
-                $inIdParam = ":in_id_{$index}";
-                
-                $caseClauses[] = "WHEN id = {$caseIdParam} THEN {$nameParam}";
-                $inPlaceholders[] = $inIdParam;
-                
-                // Связываем каждое уникальное имя с данными
-                $binds[$caseIdParam] = $tagData['id'];
-                $binds[$nameParam] = $tagData['name'];
-                $binds[$inIdParam] = $tagData['id'];
-            }
-            
-            if (empty($caseClauses)) {
-                throw new TagsException('updateTags. No valid tagsData items found. ' . json_encode($tagsData));
-            }
-
-            $sql = "UPDATE tags SET `name` = CASE " . implode(" ", $caseClauses) . " END WHERE id IN (" . implode(",", $inPlaceholders) . ")";
-
-            $stmt = $this->db->prepare($sql);
-            
-            foreach ($binds as $key => $value) {
-                $stmt->bindValue($key, $value);
-            }
-            
-            $stmt->execute();
-
-            $this->db->commit();
-        } catch (Throwable $e) {
-            if ($this->db->inTransaction())
-            {
-                $this->db->rollBack();
-            }
-            Logger::error('Error in updateTags. ', $tagsData, $e);
-            throw $e;
+        $stmt = $this->db->prepare($sql);
+        
+        foreach ($binds as $key => $value) {
+            $stmt->bindValue($key, $value);
         }
+        
+        return $stmt->execute();
     }
+    
+    public function getByIds(array $ids): array
+    {
+        $placeholders = implode(',', array_fill(0, count($ids), '?'));
+        $sql = "SELECT id, url FROM tags WHERE id IN ($placeholders)";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute($ids);
+        
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+    
+    public function getByUrls(array $urls): array
+    {
+        $placeholders = implode(',', array_fill(0, count($urls), '?'));
+        $sql = "SELECT id, url, name FROM tags WHERE url IN ($placeholders)";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute($urls);
+        
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+    
+    /**
+     * Возвращает тег по его ID или URL.
+     *
+     * @param int|null $id ID тега.
+     * @param string|null $url URL тега.
+     * @return array|null Возвращает массив с данными тега или null, если тег не найден.
+     */
+    public function find(?int $id = null, ?string $url = null): ?array
+    {
+        $where = [];
+        $binds = [];
+        
+        if ($id !== null) {
+            $where[] = "id = :id";
+            $binds[':id'] = $id;
+        }
+
+        if ($url !== null) {
+            $where[] = "url = :url";
+            $binds[':url'] = $url;
+        }
+
+        if (empty($where)) {
+            return null;
+        }
+
+        $sql = "SELECT id, url, name FROM tags WHERE " . implode(" AND ", $where);
+        $stmt = $this->db->prepare($sql);
+        
+        foreach ($binds as $key => $value) {
+            $stmt->bindValue($key, $value);
+        }
+        
+        $stmt->execute();
+        return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
+    }
+    
+    public function getSeoSettings(int $tagId): array
+    {
+        $sql = "SELECT `key`, `value` FROM seo_settings WHERE tag_id = :tag_id";
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindValue(':tag_id', $tagId);
+        $stmt->execute();
+        
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+    
+    // Массовые операции для SEO
+    public function bulkDeleteSeoSettings(array $settings): bool
+    {
+        if (empty($settings)) {
+            return false;
+        }
+        
+        $conditions = [];
+        $binds = [];
+        
+        foreach ($settings as $index => $setting) {
+            $conditions[] = "(tag_id = :tag_id{$index} AND `key` = :key{$index})";
+            $binds[":tag_id{$index}"] = $setting['tag_id'];
+            $binds[":key{$index}"] = $setting['key'];
+        }
+        
+        $sql = "DELETE FROM seo_settings WHERE " . implode(" OR ", $conditions);
+        $stmt = $this->db->prepare($sql);
+        
+        foreach ($binds as $key => $value) {
+            $stmt->bindValue($key, $value);
+        }
+        
+        return $stmt->execute();
+    }
+    
+    public function bulkInsertSeoSettings(array $settings): bool
+    {
+        if (empty($settings)) {
+            return false;
+        }
+        
+        $values = [];
+        $binds = [];
+        
+        foreach ($settings as $index => $setting) {
+            $values[] = "('Tegi', '', :tag_id{$index}, :key{$index}, :value{$index})";
+            $binds[":tag_id{$index}"] = $setting['tag_id'];
+            $binds[":key{$index}"] = $setting['key'];
+            $binds[":value{$index}"] = $setting['value'];
+        }
+        
+        $sql = "INSERT INTO seo_settings (group_name, comment, tag_id, `key`, `value`) 
+                VALUES " . implode(", ", $values);
+        
+        $stmt = $this->db->prepare($sql);
+        
+        foreach ($binds as $key => $value) {
+            $stmt->bindValue($key, $value);
+        }
+        
+        return $stmt->execute();
+    }
+    
+    public function bulkUpdateSeoSettings(array $settings): bool
+    {
+        if (empty($settings)) {
+            return false;
+        }
+        
+        $caseClauses = [];
+        $ids = [];
+        $binds = [];
+        
+        foreach ($settings as $index => $setting) {
+            $caseClauses[] = "WHEN id = :id{$index} THEN :value{$index}";
+            $ids[] = ":in_id{$index}";
+            $binds[":id{$index}"] = $setting['id'];
+            $binds[":value{$index}"] = $setting['value'];
+            $binds[":in_id{$index}"] = $setting['id'];
+        }
+        
+        $sql = "UPDATE seo_settings SET `value` = CASE " . implode(" ", $caseClauses) . " END 
+                WHERE id IN (" . implode(",", $ids) . ")";
+        
+        $stmt = $this->db->prepare($sql);
+        
+        foreach ($binds as $key => $value) {
+            $stmt->bindValue($key, $value);
+        }
+        
+        return $stmt->execute();
+    }
+    
+    public function getExistingSeoSettings(array $settings): array
+    {
+        if (empty($settings)) {
+            return [];
+        }
+        
+        $conditions = [];
+        $binds = [];
+        
+        foreach ($settings as $index => $setting) {
+            $conditions[] = "(tag_id = :tag_id{$index} AND `key` = :key{$index})";
+            $binds[":tag_id{$index}"] = $setting['tag_id'];
+            $binds[":key{$index}"] = $setting['key'];
+        }
+        
+        $sql = "SELECT id, tag_id, `key` FROM seo_settings 
+                WHERE " . implode(" OR ", $conditions);
+        
+        $stmt = $this->db->prepare($sql);
+        
+        foreach ($binds as $key => $value) {
+            $stmt->bindValue($key, $value);
+        }
+        
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+
 
     /**
      * Удаляет несколько тегов по их ID.
