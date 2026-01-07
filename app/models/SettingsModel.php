@@ -8,6 +8,24 @@ class SettingsModel extends BaseModel {
         parent::__construct($db);
     }
 
+    /**
+     * Формирует SQL-условие IN для фильтрации по ключам и привязывает значения к параметрам запроса
+     * 
+     * Метод генерирует строку вида "AND s.`key` IN (:k_prefix0, :k_prefix1, ...)" 
+     * для использования в подготовленных выражениях SQL, предотвращая SQL-инъекции.
+     * 
+     * @param array $keys Массив ключей для фильтрации
+     * @param string $prefix Префикс для именованных плейсхолдеров (используется для уникальности при множественных вызовах)
+     * @param array &$params Ссылка на массив параметров запроса, в который будут добавлены значения ключей
+     * 
+     * @return string SQL-условие IN или пустая строка, если массив ключей пуст
+     * 
+     * @example
+     * $params = [];
+     * $condition = bindKeyPlaceholders(['cat', 'dog'], 'g', $params);
+     * // Результат: "AND s.`key` IN (:k_g0, :k_g1)"
+     * // $params = [':k_g0' => 'cat', ':k_g1' => 'dog']
+     */ 
     private function bindKeyPlaceholders(array $keys, string $prefix, array &$params): string
     {
         if (empty($keys)) {
