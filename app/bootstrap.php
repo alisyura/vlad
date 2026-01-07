@@ -97,7 +97,7 @@ $container->bind(RedirectResponse::class, RedirectResponse::class);
 $container->bind(TextResponse::class, TextResponse::class);
 $container->bind(XmlResponse::class, XmlResponse::class);
 
-if (Config::isDev())
+if (Config::get('remoterestapi.EnableRestApi'))
 {
     // api client
     $container->bind(App\Framework\Security\SecureClient::class,

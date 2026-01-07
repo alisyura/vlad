@@ -101,6 +101,7 @@ class Config
                 'MaxDriftSeconds' => 60
             ],
             'remoterestapi' => [
+                'EnableRestApi' => false,
                 'Url' => 'http://vlad.local/api/endpoint',
                 'Login' => 'vladlogin',
                 'Pw' => ''

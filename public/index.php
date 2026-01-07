@@ -61,4 +61,8 @@ ErrorHandler::register();
 // --- Роутинг ---
 $router = new Router($respFact, $errorHandler);
 require_once __DIR__ . '/../app/routes.php';
+if (Config::get('remoterestapi.EnableRestApi'))
+{
+    require_once __DIR__ . '/../app/apiroutes.php';
+}
 $router->dispatch($container);
