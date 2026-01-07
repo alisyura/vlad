@@ -3,7 +3,7 @@
 
 class AdminSettingsController extends BaseAdminController
 {
-    private SettingsService $settingsService;
+    private AdminSeoSettingsService $settingsService;
     private ListModel $listmodel; 
     private AuthService $authService;
 
@@ -11,7 +11,7 @@ class AdminSettingsController extends BaseAdminController
         Request $request, 
         View $view, 
         ResponseFactory $responseFactory,
-        SettingsService $settingsService,
+        AdminSeoSettingsService $settingsService,
         ListModel $listmodel, 
         AuthService $authService)
     {

@@ -143,6 +143,7 @@ class TagsController extends BaseController
      *
      * @throws Throwable В случае непредвиденной ошибки во время отображения.
      * @return Response
+     * @deprecated
      */
     public function showTagFilter(): Response {
         $requestUrl = $this->getRequest()->getRequestUrl();

@@ -5,12 +5,12 @@
 class TagService
 {
     private TagsModel $tagModel;
-    private SeoSettingsService $seoService;
+    private AdminSeoSettingsService $seoService;
     private PDO $db;
     
     public function __construct(
         TagsModel $tagModel,
-        SeoSettingsService $seoService,
+        AdminSeoSettingsService $seoService,
         PDO $db
     ) {
         $this->tagModel = $tagModel;

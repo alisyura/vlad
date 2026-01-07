@@ -3,10 +3,10 @@
 
 class AdminSettingsApiController extends BaseAdminController
 {
-    private SettingsService $settingsService;
+    private AdminSeoSettingsService $settingsService;
     private AuthService $authService;
 
-    public function __construct(Request $request, SettingsService $settingsService, 
+    public function __construct(Request $request, AdminSeoSettingsService $settingsService, 
         ResponseFactory $responseFactory, AuthService $authService)
     {
         parent::__construct($request, null, $responseFactory);
