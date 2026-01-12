@@ -36,6 +36,7 @@ class LinkValidator
             'rutube.ru',
             'ok.ru',
             'mail.ru',
+            'vkvideo.ru'
         ];
 
         // 3. Извлекаем домен из ссылки.

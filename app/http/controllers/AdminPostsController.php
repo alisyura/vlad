@@ -357,6 +357,7 @@ class AdminPostsController extends BaseAdminController
             $publishButtonTitle = 'Обновить ' . ($articleType == 'post' ? 'пост' : 'страницу');
 
             $data = [
+                'isEditForm' => true,
                 'adminRoute' => $adminRoute,
                 'articleType' => $articleType,
                 'user_name' => $userName,

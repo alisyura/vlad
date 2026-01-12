@@ -60,7 +60,8 @@ class PostModelAdmin extends BaseModel {
                     GROUP_CONCAT(DISTINCT c.name ORDER BY c.name SEPARATOR ';;') AS category_names,
                     GROUP_CONCAT(DISTINCT t.id ORDER BY t.name SEPARATOR ',') AS tag_ids,
                     GROUP_CONCAT(DISTINCT t.name ORDER BY t.name SEPARATOR ';;') AS tag_names,
-                    m.file_path as thumbnail_url
+                    m.file_path AS thumbnail_url,
+                    v.url AS video_url
                 FROM posts p
                 JOIN users u ON p.user_id = u.id
                 LEFT JOIN post_category pc ON p.id = pc.post_id
@@ -68,6 +69,7 @@ class PostModelAdmin extends BaseModel {
                 LEFT JOIN post_tag pt ON p.id = pt.post_id
                 LEFT JOIN tags t ON pt.tag_id = t.id
                 LEFT JOIN media m ON p.thumbnail_media_id = m.id
+                LEFT JOIN video_links v ON v.id = p.video_link_id
                 WHERE p.id = :id AND p.article_type = :article_type
                 GROUP BY p.id";
 

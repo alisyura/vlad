@@ -58,6 +58,15 @@ $adminRoute = $data['adminRoute'] ?? 'admin';
                 <div class="form-text">Оставьте пустым для автоматической генерации из заголовка.</div>
             </div>
 
+            <?php if ((($isEditForm ?? false) === true) && (!empty(trim($post['video_url'] ?? '')))): ?>
+            <div class="mb-3">
+                <label for="videoUrl" class="form-label">Ссылка на видео</label>
+                <input type="text" class="form-control" id="videoUrl" name="videoUrl" 
+                       disabled
+                       value="<?= htmlspecialchars($post['video_url'] ?? '') ?>">
+            </div>
+            <?php endif ?>
+
             <div class="mb-3">
                 <label for="postContent" class="form-label">Содержание статьи</label>
                 <textarea id="postContent" name="content" class="form-control" rows="15">
