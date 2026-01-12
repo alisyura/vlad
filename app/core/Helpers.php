@@ -544,3 +544,31 @@ function public_path($path = '') {
     // (или поднимись выше на уровень через /../ если нужно)
     return $_SERVER['DOCUMENT_ROOT'] . ($path ? DIRECTORY_SEPARATOR . ltrim($path, '\/') : '');
 }
+
+
+if (!function_exists('class_basename')) {
+    function class_basename($class): string
+    {
+        $class = is_object($class) ? get_class($class) : $class;
+        return basename(str_replace('\\', '/', $class));
+    }
+}
+
+if (!function_exists('snake_case')) {
+    function snake_case(string $value): string
+    {
+        if (!ctype_lower($value)) {
+            $value = preg_replace('/\s+/u', '', $value);
+            $value = mb_strtolower(preg_replace('/(.)(?=[A-Z])/u', '$1_', $value));
+        }
+        return $value;
+    }
+}
+
+if (!function_exists('studly_case')) {
+    function studly_case(string $value): string
+    {
+        $value = ucwords(str_replace(['-', '_'], ' ', $value));
+        return str_replace(' ', '', $value);
+    }
+}
