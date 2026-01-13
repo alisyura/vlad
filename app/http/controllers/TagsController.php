@@ -76,14 +76,9 @@ class TagsController extends BaseController
 
         try
         {
-            if (empty($tagName)) {
-                $tags = $this->model->findPublishedPostTagsByName('');
-                $countTagsToShow = Config::get('posts.count_tags_without_query');
-                $tags = array_slice($tags, 0, $countTagsToShow);
-            }
-            else {
-                $tags = $this->model->findPublishedPostTagsByName($tagName);
-            }
+            $maxTagsInResult = Config::get('posts.maxTagsInResult');
+
+            $tags = $this->model->findPublishedPostTagsByName($tagName, $maxTagsInResult);
 
             $URL = $this->getRequest()->getBaseUrl();
 

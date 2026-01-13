@@ -42,7 +42,7 @@ class Config
                 'posts_per_page' => 10,
                 'max_urls_in_sitemap' => 50000,
                 'allowed_tags' => '<p><b><i><strong><em><a><img><br><span><s><ul><li><ol><div><iframe>',
-                'count_tags_without_query' => 10,
+                'maxTagsInResult' => 0, // кол-во отображаемых тэгов на странице поиска по тэгам. <=0 - показать все
                 'LikesCountLuchshee' => 2 // кол-во лайков у поста для вывода его в категории Лучшее
             ],
             'global' => [

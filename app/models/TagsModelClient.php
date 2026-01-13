@@ -28,9 +28,10 @@ class TagsModelClient {
      * Результаты отсортированы по популярности в порядке убывания.
      *
      * @param string $query Строка для поиска в именах тегов.
+     * @param ?int $maxResults Максимальное кол-во получаемых тэгов (null или <=0 - получает все доступные тэги).
      * @return array Массив ассоциативных массивов с данными тегов (url, name, popularity).
      */
-    public function findPublishedPostTagsByName(string $query)
+    public function findPublishedPostTagsByName(string $query, ?int $maxResults = null)
     {
         $sql = "SELECT 
                     t.url,
@@ -50,8 +51,19 @@ class TagsModelClient {
                     t.url, t.name
                 ORDER BY 
                     popularity DESC";
+        
+        // Добавляем LIMIT только если передан допустимый лимит
+        if ($maxResults !== null && $maxResults > 0) {
+            $sql .= " LIMIT :limit";
+        }
+        
         $stmt = $this->db->prepare($sql);
         $stmt->bindValue(':tag_name', '%' . $query . '%', PDO::PARAM_STR);
+        
+        if ($maxResults !== null && $maxResults > 0) {
+            $stmt->bindValue(':limit', $maxResults, PDO::PARAM_INT);
+        }
+        
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
