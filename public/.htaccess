@@ -1,6 +1,10 @@
 <IfModule mod_rewrite.c>
     RewriteEngine On
     
+    # Перенаправляем на домен без www
+    RewriteCond %{HTTP_HOST} ^www\.(.+)$ [NC]
+    RewriteRule ^(.*)$ https://%1/$1 [R=301,L]
+
     # Если запрашиваемый путь существует как файл на диске,
     # прекратить обработку правил и отдать файл напрямую.
     RewriteCond %{REQUEST_FILENAME} -f
