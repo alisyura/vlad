@@ -8,7 +8,7 @@ class TextResponse extends Response
     protected function getDefaultHeaders(): array
     {
         return [
-            'Content-Type' => 'text/plain; charset=UTF-8',
+            'Content-Type' => 'text/plain; charset=utf-8',
         ];
     }
 }

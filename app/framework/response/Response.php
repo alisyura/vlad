@@ -45,7 +45,7 @@ abstract class Response
     protected function getDefaultHeaders(): array
     {
         return [
-            'Content-Type' => 'text/html; charset=UTF-8',
+            'Content-Type' => 'text/html; charset=utf-8',
         ];
     }
     
@@ -85,6 +85,18 @@ abstract class Response
     public function addHeader(string $key, string $value): self
     {
         $this->headers[$key] = $value;
+        return $this;
+    }
+
+    public function removeHeader(string $key): self
+    {
+        // Запрещаем удаление некоторых важных заголовков
+        $protectedHeaders = ['Content-Type', 'Location', 'Set-Cookie'];
+        
+        if (!in_array($key, $protectedHeaders, true)) {
+            unset($this->headers[$key]);
+        }
+        
         return $this;
     }
 

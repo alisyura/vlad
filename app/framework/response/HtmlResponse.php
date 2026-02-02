@@ -8,7 +8,7 @@ class HtmlResponse extends Response
     protected function getDefaultHeaders(): array
     {
         return [
-            'Content-Type' => 'text/html; charset=UTF-8',
+            'Content-Type' => 'text/html; charset=utf-8',
         ];
     }
 }

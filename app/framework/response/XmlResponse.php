@@ -38,7 +38,7 @@ class XmlResponse extends Response
     protected function getDefaultHeaders(): array
     {
         return [
-            'Content-Type' => 'application/xml; charset=UTF-8',
+            'Content-Type' => 'application/xml; charset=utf-8',
         ];
     }
     

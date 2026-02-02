@@ -23,7 +23,7 @@ class JsonResponse extends Response
     protected function getDefaultHeaders(): array
     {
         return [
-            'Content-Type' => 'application/json; charset=UTF-8',
+            'Content-Type' => 'application/json; charset=utf-8',
         ];
     }
 }

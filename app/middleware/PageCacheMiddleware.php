@@ -97,8 +97,9 @@ class PageCacheMiddleware implements MiddlewareInterface
     public function handle(?array $param = null): bool
     {
         // Убедимся, что это GET-запрос
-        if (!$this->useCache || $this->request->server('REQUEST_METHOD') !== 'GET') {
-            return true; // Продолжаем выполнение для POST и других
+        $method = $this->request->server('REQUEST_METHOD');
+        if (!$this->useCache || !in_array($method, ['GET', 'HEAD'])) {
+            return true;
         }
 
         $cacheKey = $this->getCacheKey(); // Уникальный ключ для текущего запроса
@@ -113,6 +114,15 @@ class PageCacheMiddleware implements MiddlewareInterface
             {
                 // для админа кэш не используем. продолжаем выполнять контроллер
                 return true;
+            }
+
+            if ($method === 'HEAD') {
+                // Для HEAD запроса: только заголовки, без тела
+                header_remove(); 
+                header('Cache-Control: public, max-age='.$this->cacheLifetime);
+                header('Content-Type: text/html; charset=utf-8');
+                header('X-Cache: HIT-GZ');
+                exit; // Выходим, тело не отправляем
             }
 
             // Удаляем всё, что PHP наставил по умолчанию (включая no-cache и версию PHP)

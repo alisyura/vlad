@@ -49,7 +49,13 @@ class Router {
                         // Преобразуем все в верхний регистр
                         $allowedMethods = array_map('strtoupper', $allowedMethods);
                             
-                        if (!in_array($requestMethod, $allowedMethods)) {
+                        $isHeadRequest = ($requestMethod === 'HEAD');
+                        $supportsGet = in_array('GET', $allowedMethods);
+
+                        if ($isHeadRequest && $supportsGet) {
+                            // Разрешаем HEAD для GET-маршрутов
+                            $requestMethod = 'GET'; // Временно подменяем для выполнения
+                        } elseif (!in_array($requestMethod, $allowedMethods)) {
                             continue;
                             // Очищаем буфер, чтобы убрать любой нежелательный вывод 
                             // (например, от старого контроллера, который выбросил исключение).
@@ -114,6 +120,12 @@ class Router {
                     array_unshift($matches, $container); // вставляем первым параметром
                     
                     $response = call_user_func_array($handler, $matches);
+                    // ✅ ОБРАБОТКА HEAD: удаляем тело ответа
+                    if ($isHeadRequest && $response instanceof Response) {
+                        $response->setContent('');
+                        $response->removeHeader('Content-Length');
+                    }
+                    
                     if ($response instanceof Response) {
                         // ОЧИЩАЕМ буфер. Если контроллер вернул Response, 
                         // любой предыдущий вывод (от старого контроллера или middleware)
