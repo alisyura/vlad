@@ -286,7 +286,7 @@ class SiteTester:
 
 # Пример использования
 if __name__ == "__main__":
-    tester = SiteTester(base_url="https://smehbook.ru")
+    tester = SiteTester(base_url="http://vlad.local")
     
     # Тестируемые URL
     test_urls = [
@@ -295,7 +295,7 @@ if __name__ == "__main__":
         "/page/kontakty.html",
         "/robots.txt",
         "/sitemap.xml",
-        "/assets/css/style-builder.php?v=1766423954"
+        "/assets/css/style-builder.php?v=1766423805"
     ]
     
     # Тестируем все URL

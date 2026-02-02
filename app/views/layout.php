@@ -28,7 +28,7 @@
 
     <link rel="manifest" href="/site.webmanifest">
 
-    <link rel="stylesheet" href="/assets/css/style-builder.php?v=<?= filemtime('assets/css/style-builder.php') ?>">
+    <link rel="stylesheet" href="/css-generator.php?v=<?= filemtime('css-generator.php') ?>">
     <?php if (!empty($exportData['styles']) && is_array($exportData['styles'])): ?>
         <style type="text/css">
             <?php foreach ($exportData['styles'] as $style): ?>
