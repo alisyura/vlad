@@ -29,7 +29,7 @@ class TestResult:
     headers: Dict
     error: Optional[str] = None
 
-class SiteTester:
+class HeadGetTester:
     def __init__(self, base_url: str = "http://vlad.local"):
         self.base_url = base_url.rstrip('/')
         self.session = requests.Session()
@@ -209,7 +209,7 @@ class SiteTester:
         <html>
         <head>
             <meta charset="utf-8">
-            <title>QA Test Report - {site}</title>
+            <title>QA HEAD GET Test Report - {site}</title>
             <style>
                 body {{ font-family: Arial, sans-serif; margin: 20px; }}
                 h1 {{ color: #333; }}
@@ -224,7 +224,7 @@ class SiteTester:
             </style>
         </head>
         <body>
-            <h1>QA Test Report</h1>
+            <h1>QA HEAD GET Requests Test Report</h1>
             <p><strong>Site:</strong> {site}</p>
             <p><strong>Date:</strong> {date}</p>
             
@@ -236,7 +236,7 @@ class SiteTester:
             <h2>Test Results</h2>
         """.format(
             site=self.base_url,
-            date=datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            date=datetime.now().strftime("%d/%m/%Y %H:%M:%S"),
             total_tests=len(results),
             passed=sum(1 for r in results.values() if not r['issues']),
             failed=sum(1 for r in results.values() if r['issues'])
@@ -299,7 +299,7 @@ class SiteTester:
 
 # Пример использования
 if __name__ == "__main__":
-    tester = SiteTester(base_url="http://vlad.local")
+    tester = HeadGetTester(base_url="https://smehbook.ru")
     
     # Тестируемые URL
     test_urls = [
