@@ -295,7 +295,7 @@ if __name__ == "__main__":
         "/page/kontakty.html",
         "/robots.txt",
         "/sitemap.xml",
-        "/assets/css/style-builder.php?v=1766423805"
+        "/css-generator.php?v=1770030372"
     ]
     
     # Тестируем все URL
