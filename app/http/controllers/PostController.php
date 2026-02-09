@@ -175,6 +175,13 @@ class PostController extends BaseController {
                 'index_page_description',
                 'index_page_keywords']);
             
+            if ($page == 1) {
+                $robots = "index, follow";
+            }
+            else {
+                $robots = "noindex, follow";
+            }
+            
             $contentData = [
                 'posts' => $posts,
                 'show_caption' => false,
@@ -196,7 +203,7 @@ class PostController extends BaseController {
                     'url' => $baseUrl,
                     'image' => $baseUrl . asset('pic/logo.png'),
                     'posts' => $posts,
-                    'robots' => 'index, follow',
+                    'robots' => $robots,
                     'styles' => [
                         'list.css'
                     ],

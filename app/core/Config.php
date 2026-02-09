@@ -71,7 +71,8 @@ class Config
             'cache' => [
                 'CacheDir' => defined('ROOT_PATH') ? ROOT_PATH . DIRECTORY_SEPARATOR . 'cache' . DIRECTORY_SEPARATOR . 'pages' . DIRECTORY_SEPARATOR : '',
                 'MinificateCSS' => true,
-                'MinificateJS' => true
+                'MinificateJS' => true,
+                'MinificateHtml' => true
             ],
             'admin' => [
                 'AdminRoute' => 'eryfbh',

@@ -220,8 +220,12 @@ class PageCacheMiddleware implements MiddlewareInterface
         ob_end_flush(); // Отправляем его в браузер как обычно
 
         if ($content !== false && trim($content) !== '') {
-            // Теперь в кэше будет лежать сжатая версия
-            $content = $this->minifyHtml($content);
+            $minifyHtml = Config::get('cache.MinificateHtml') ?? true;
+
+            if ($minifyHtml) {
+                // Теперь в кэше будет лежать сжатая версия
+                $content = $this->minifyHtml($content);
+            }
 
             // Сохраняем содержимое в файл кэша
             // Убедитесь, что директория существует
