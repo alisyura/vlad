@@ -28,6 +28,14 @@
 
     <link rel="manifest" href="/site.webmanifest">
 
+    <?php if (trim($exportData['opengraph'] ?? '') !== ''): ?>
+        <?= "\n{$exportData['opengraph']}\n" ?>
+    <?php endif ?>
+
+    <?php if (trim($exportData['canonical'] ?? '') !== ''): ?>
+        <link rel="canonical" href="<?= $exportData['canonical'] ?>">
+    <?php endif ?>
+
     <link rel="stylesheet" href="/css-generator.php?v=<?= filemtime('css-generator.php') ?>">
     <?php if (!empty($exportData['styles']) && is_array($exportData['styles'])): ?>
         <style type="text/css">

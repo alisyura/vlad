@@ -105,26 +105,30 @@ class SitemapController extends BaseController {
                 'sitemap_keywords',
                 'sitemap_description']);
             
-            $title = $seoSettings['sitemap_title'];
+            $title = $seoSettings['sitemap_title'] ?? '';
             $keywords = $seoSettings['sitemap_keywords'] ?? $seoSettings['index_page_keywords'];
             $description = $seoSettings['sitemap_description'] ?? $seoSettings['index_page_description'];
             $title = is_array($title) ? $title['value'] : 'Карта сайта';
             $keywords = $keywords['value'];
             $description = $description['value'];
 
+            $canonical = $URL;
+            $opengraph = generateOpenGraph([
+                    'page_type' => 'sitemap',
+                    'site_name' => $seoSettings['index_page_title']['value'],
+                    'title' => $title,
+                    'description' => $description,
+                    'image' => $URL . asset('pic/logo.png')
+                ], $this->getRequest());
+
             $contentData = [
                 'data' => $result,
                 'full_url' => $this->getRequest()->getRequestUrl(),
                 'is_post' => false,
                 'export' => [
-                    'page_type' => 'sitemap',
-                    'title' => $title,
-                    'site_name' => $seoSettings['index_page_title']['value'],
-                    'keywords' => $keywords,
-                    'description' => $description,
-                    'url' => $URL,
-                    'image' => $URL . asset('pic/logo.png'),
                     'robots' => 'index, follow',
+                    'opengraph' => $opengraph,
+                    'canonical' => $canonical,
                     'styles' => [
                         'sitemap.css'
                     ],

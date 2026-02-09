@@ -56,20 +56,26 @@ class PostController extends BaseController {
                 $metaTitle = $post['title'];
             }
 
+            $canonical = $URL;
+            $opengraph = generateOpenGraph([
+                    'page_type' => 'post',
+                    'site_name' => $seoSettings['index_page_title']['value'],
+                    'title' => $metaTitle,
+                    'description' => $post['meta_description'] ?? '',
+                    'image' => sprintf("%s%s", $baseUrl, asset('pic/logo.png')),
+                    'tags' => $this->getCombinedTags($post),
+                    'category' => $post['category_name'] ?? null
+                ], $this->getRequest());
+
             $renderParams =[
                 'post' => $post,
                 'full_url' => $URL,
                 'tags_baseUrl' => sprintf("%s/tag/", $baseUrl),
                 'is_post' => true,
                 'export' => [
-                    'page_type' => 'post',
-                    'site_name' => $seoSettings['index_page_title']['value'],
-                    'title' => $metaTitle, //$post['meta_title'] . ' | ' . $seoSettings['index_page_title']['value'],
-                    'keywords' => $post['meta_keywords'],
-                    'description' => $post['meta_description'],
-                    'url' => $baseUrl,
-                    'image' => sprintf("%s%s", $baseUrl, asset('pic/logo.png')),
                     'robots' => 'index, follow',
+                    'opengraph' => $opengraph,
+                    'canonical' => $canonical,
                     'styles' => [
                         'detail.css'
                     ],
@@ -112,20 +118,25 @@ class PostController extends BaseController {
                 $metaTitle = $page['title'];
             }
 
+            $canonical = $URL;
+            $opengraph = generateOpenGraph([
+                    'page_type' => 'post',
+                    'site_name' => $seoSettings['index_page_title']['value'],
+                    'title' => $metaTitle,
+                    'description' => $page['meta_description'] ?? '',
+                    'image' => sprintf("%s%s", $baseUrl, asset('pic/logo.png')),
+                    'tags' => $this->getCombinedTags($page)
+                ], $this->getRequest());
+
             $contentData = [
                 'post' => $page,
                 'full_url' => $URL,
                 'tags_baseUrl' => sprintf("%s/tag/", $baseUrl),
                 'is_post' => false,
                 'export' => [
-                    'page_type' => 'post',
-                    'site_name' => $seoSettings['index_page_title']['value'],
-                    'title' => $metaTitle, //$page['meta_title'] . ' | ' . $seoSettings['index_page_title']['value'],
-                    'keywords' => $page['meta_keywords'],
-                    'description' => $page['meta_description'],
-                    'url' => $baseUrl,
-                    'image' => sprintf("%s%s", $baseUrl, asset('pic/logo.png')),
                     'robots' => 'index, follow',
+                    'opengraph' => $opengraph,
+                    'canonical' => $canonical,
                     'styles' => [
                         'detail.css'
                     ],
@@ -175,12 +186,21 @@ class PostController extends BaseController {
                 'index_page_description',
                 'index_page_keywords']);
             
+            $canonical = null;
             if ($page == 1) {
                 $robots = "index, follow";
+                $canonical = $baseUrl;
             }
             else {
                 $robots = "noindex, follow";
             }
+            $opengraph = generateOpenGraph([
+                    'page_type' => 'home',
+                    'title' => $seoSettings['index_page_title']['value'],
+                    'site_name' => $seoSettings['index_page_title']['value'],
+                    'description' => $seoSettings['index_page_description']['value'],
+                    'image' => $baseUrl . asset('pic/logo.png')
+                ], $this->getRequest());
             
             $contentData = [
                 'posts' => $posts,
@@ -195,15 +215,10 @@ class PostController extends BaseController {
                 'pagination_links' => $paginationLinks,
                 'base_page_url' => $basePageUrl,
                 'export' => [
-                    'page_type' => 'home',
-                    'title' => $seoSettings['index_page_title']['value'],
-                    'site_name' => $seoSettings['index_page_title']['value'],
-                    'keywords' => $seoSettings['index_page_keywords']['value'],
-                    'description' => $seoSettings['index_page_description']['value'],
-                    'url' => $baseUrl,
-                    'image' => $baseUrl . asset('pic/logo.png'),
                     'posts' => $posts,
                     'robots' => $robots,
+                    'opengraph' => $opengraph,
+                    'canonical' => $canonical,
                     'styles' => [
                         'list.css'
                     ],
@@ -249,6 +264,14 @@ class PostController extends BaseController {
             {
                 $title = "$category_name | " . $seoTitle;
             }
+
+            $opengraph = generateOpenGraph([
+                    'page_type' => 'home',
+                    'title' => $title,
+                    'site_name' => $seoTitle,
+                    'description' => $description,
+                    'image' => $baseUrl . asset('pic/logo.png')
+                ], $this->getRequest());
             
             $contentData = [
                 'posts' => $posts,
@@ -265,15 +288,9 @@ class PostController extends BaseController {
                 'pagination_links' => $pagination_links,
                 'base_page_url' => $base_page_url,
                 'export' => [
-                    'page_type' => 'home',
-                    'site_name' => $seoTitle,
-                    'title' => $title,
-                    'keywords' => $keywords,
-                    'description' => $description,
-                    'url' => $baseUrl,
-                    'image' => sprintf("%s/assets/pic/logo.png", $baseUrl),
                     'posts' => $posts,
                     'robots' => 'noindex, follow',
+                    'opengraph' => $opengraph,
                     'styles' => [
                         'list.css'
                     ],
@@ -365,6 +382,14 @@ class PostController extends BaseController {
                 $title = "$tag_name | " . $seoTitle;
             }
 
+            $opengraph = generateOpenGraph([
+                    'page_type' => 'home',
+                    'title' => $title,
+                    'site_name' => $seoTitle,
+                    'description' => $description,
+                    'image' => $baseUrl . asset('pic/logo.png')
+                ], $this->getRequest());
+
             $contentData = [
                 'posts' => $posts,
                 'show_caption' => true,
@@ -380,15 +405,9 @@ class PostController extends BaseController {
                 'pagination_links' => $pagination_links,
                 'base_page_url' => $base_page_url,
                 'export' => [
-                    'page_type' => 'home',
-                    'site_name' => $seoTitle,
-                    'title' => $title,
-                    'keywords' => $keywords,
-                    'description' => $description,
-                    'url' => $this->getRequest()->getRequestUrl(),
-                    'image' => sprintf("%s/assets/pic/logo.png", $baseUrl),
                     'posts' => $posts,
                     'robots' => 'noindex, follow',
+                    'opengraph' => $opengraph,
                     'styles' => [
                         'list.css'
                     ],
@@ -475,5 +494,16 @@ class PostController extends BaseController {
             'caption' => $caption, 
             'caption_desc' => $caption_desc, 
             'seoTitle' => $seoTitle];
+    }
+
+    private function getCombinedTags($data): ?string
+    {
+        $tags = null;
+        if (isset($data['tags']) && is_array($data['tags'])) {
+            $tagNames = array_column($data['tags'], 'name');
+            $tags = !empty($tagNames) ? implode(', ', $tagNames) : null;
+        }
+
+        return $tags;
     }
 }

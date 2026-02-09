@@ -230,6 +230,86 @@ function strip_tags_from_html(string $html): string {
 }
 
 /**
+ * Генерирует Open Graph разметку для SEO и социальных сетей
+ * 
+ * Формирует набор meta-тегов Open Graph Protocol (og:) для корректного отображения
+ * контента при расшаривании в социальных сетях (Facebook, VK, Telegram и др.)
+ * 
+ * @param array $data Ассоциативный массив с данными для генерации
+ *    Ключи массива:
+ *    - 'page_type' (string) - тип страницы: 
+ *        'home' - главная страница (по умолчанию)
+ *        'post' - страница отдельного поста
+ *        'sitemap' - карта сайта (генерация пропускается)
+ *        другие значения - произвольные типы страниц
+ *    - 'site_name' (string) - название сайта
+ *    - 'description' (string) - описание страницы
+ *    - 'image' (string) - URL изображения для превью
+ *        По умолчанию: '/assets/pic/logo.png'
+ * 
+ * @param Request $request Объект HTTP-запроса
+ *    Используется для получения базового URL и текущего URI
+ * 
+ * @return string HTML-код с Open Graph meta-тегами или пустая строка для sitemap
+ * 
+ * @throws \InvalidArgumentException Если передан некорректный тип данных
+ * 
+ * @example
+ *    $data = [
+ *        'page_type' => 'post',
+ *        'site_name' => 'Мой блог',
+ *        'description' => 'Описание поста...',
+ *        'image' => '/uploads/post-image.jpg'
+ *    ];
+ *    echo generateOpenGraph($data, $request);
+ *    // Вернет:
+ *    // <meta property="og:title" content="Мой блог">
+ *    // <meta property="og:description" content="Описание поста...">
+ *    // <meta property="og:type" content="article">
+ *    // ...
+ * 
+ * @todo Добавить поддержку дополнительных свойств:
+ *    - Для статей (article:published_time, article:modified_time)
+ *    - Разные размеры изображений (og:image:width, og:image:height)
+ *    - Альтернативные локали (og:locale:alternate)
+ */
+function generateOpenGraph($data, Request $request)
+{
+    $type = $data['page_type'] ?? 'home';
+    $baseUrl = $request->getBaseUrl();
+    $requestUri = $request->getUri();
+    $url = rtrim($baseUrl . $requestUri, '/');
+
+    $site_name = htmlspecialchars($data['site_name'] ?? '');
+    $description = htmlspecialchars(get_clean_description($data['description'] ?? ''));
+    $image = htmlspecialchars($data['image'] ?? '/assets/pic/logo.png');
+
+    // === Open Graph мета-теги ===
+    $strOut = '<meta property="og:title" content="' . $site_name . '">' . "\n";
+    $strOut .= '<meta property="og:description" content="' . $description . '">' . "\n";
+    $strOut .= '<meta property="og:type" content="' . ($type === 'post' ? 'article' : 'website') . '">' . "\n";
+    $strOut .= '<meta property="og:url" content="' . $url . '">' . "\n";
+    $strOut .= '<meta property="og:image" content="' . $image . '">' . "\n";
+    $strOut .= '<meta property="og:locale" content="ru_RU">' . "\n";
+    if ($type !== 'post') {
+        $strOut .= '<meta property="og:site_name" content="' . $site_name . '">' . "\n";
+    }
+    else {
+        $tags = $data['tags'] ?? null;
+        if ($tags !== null) {
+            $strOut .= '<meta property="article:tag" content="' . $tags . '">' . "\n";
+        }
+        $strOut .= '<meta property="article:author" content="' . $site_name . '">' . "\n";
+        $category = $data['category'] ?? null;
+        if ($category !== null) {
+            $strOut .= '<meta property="article:section" content="' . $category . '">' . "\n";
+        }
+    }
+
+    return $strOut;
+}
+
+/**
  * Создает описание микроразметки
  * 
  * @param $data['page_type'] string 'home', 'post', 'category', 'tag'

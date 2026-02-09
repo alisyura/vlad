@@ -97,6 +97,15 @@ class TagsController extends BaseController
             $keywords = $keywords['value'];
             $description = $description['value'];
 
+            $canonical = $URL;
+            $opengraph = generateOpenGraph([
+                    'page_type' => 'tegi',
+                    'site_name' => $seoSettings['index_page_title']['value'],
+                    'title' => $title,
+                    'description' => $description,
+                    'image' => $URL . asset('pic/logo.png')
+                ], $this->getRequest());
+
             $contentData = [
                 'show_caption' => true,
                 'full_url' => $this->getRequest()->getRequestUrl(),
@@ -106,15 +115,10 @@ class TagsController extends BaseController
                 'search_tag' => $tagName,
                 'is_post' => false,
                 'export' => [
-                    'page_type' => 'tegi',
-                    'title' => $title,
-                    'site_name' => $seoSettings['index_page_title']['value'],
-                    'keywords' => $keywords,
-                    'description' => $description,
-                    'url' => $URL . $this->getRequest()->getUri(),
-                    'image' => $URL . asset('pic/logo.png'),
                     'urlTemplate' => sprintf('%s/cat/tegi-results.html?q={search_term_string}', $URL),
                     'robots' => 'noindex, follow',
+                    'opengraph' => $opengraph,
+                    'canonical' => $canonical,
                     'styles' => [
                         'tegi.css'
                     ],
