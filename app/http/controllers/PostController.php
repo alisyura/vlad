@@ -88,7 +88,10 @@ class PostController extends BaseController {
                 $renderParams['post_image'] = sprintf("%s%s", $baseUrl, $post['image']);
             }
 
-            return $this->renderHtml('posts/show.php', $renderParams);
+            $tplPath = $post['category_url'] === 'veselaya_rifma' 
+                ? 'posts/show_copy.php' 
+                : 'posts/show.php';
+            return $this->renderHtml($tplPath, $renderParams);
         } catch (HttpException $e) {
             throw $e;
         } catch (Throwable $e) {
@@ -299,7 +302,10 @@ class PostController extends BaseController {
                 ]
             ];
 
-            return $this->renderHtml('posts/index.php', $contentData);
+            $tplPath = $cat_url === 'veselaya_rifma' 
+                ? 'posts/index_copy.php' 
+                : 'posts/index.php';
+            return $this->renderHtml($tplPath, $contentData);
         } catch (Throwable $e) {
             Logger::error("Error in showBySection: ", ['cat_url' => $cat_url, 'page' => $page], $e);
             throw new HttpException('Ошибка получения списка постов по разделу', 500, $e);
