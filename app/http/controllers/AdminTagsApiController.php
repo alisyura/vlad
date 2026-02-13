@@ -63,6 +63,17 @@ class AdminTagsApiController extends BaseAdminController
                 throw new HttpException('Урл тэга занят.', 409, null, HttpException::JSON_RESPONSE);
             }
 
+            $inputJson['robots'] = $inputJson['robots'] ?? 'noindex, follow';
+            $robotsAllowedValues = ['noindex, follow', 
+                    'noindex, nofollow', 
+                    'index, follow', 
+                    'index, nofollow'
+                ];
+            if (!in_array($inputJson['robots'], $robotsAllowedValues))
+            {
+                throw new HttpException('Некорректное значение robots.', 409, null, HttpException::JSON_RESPONSE);
+            }
+
             // Попытка создать тэг
             if ($this->tagService->createTags([$inputJson])) {
                 return $this->renderJson('Тэг успешно создан.');
@@ -102,6 +113,17 @@ class AdminTagsApiController extends BaseAdminController
                 }
             }
 
+            $inputJson['robots'] = $inputJson['robots'] ?? 'noindex, follow';
+            $robotsAllowedValues = ['noindex, follow', 
+                    'noindex, nofollow', 
+                    'index, follow', 
+                    'index, nofollow'
+                ];
+            if (!in_array($inputJson['robots'], $robotsAllowedValues))
+            {
+                throw new HttpException('Некорректное значение robots.', 409, null, HttpException::JSON_RESPONSE);
+            }
+
             // Подготовка данных для обновления
             $updateData = [
                 'id' => $tagId,
@@ -110,7 +132,8 @@ class AdminTagsApiController extends BaseAdminController
                 'caption_desc' => $inputJson['caption_desc'],
                 'title' => $inputJson['title'],
                 'description' => $inputJson['description'],
-                'keywords' => $inputJson['keywords']
+                'keywords' => $inputJson['keywords'],
+                'robots' => $inputJson['robots']
             ];
 
             // Обновляем данные пользователя в базе данных

@@ -17,6 +17,11 @@ class PostController extends BaseController {
     private SettingsService $settingsService;
 
     /**
+     * Сервис для получения данных тэга
+     */
+    private TagService $tagService;
+
+    /**
      * Конструктор класса PostController.
      *
      * @param Request $request Объект HTTP запроса, внедряемый через Dependency Injection.
@@ -27,12 +32,14 @@ class PostController extends BaseController {
      * @param SettingsService $settingsService Сервис для получения сео настроек, внедряется через Dependency Injection.
      */
     public function __construct(Request $request, View $view, PostModelClient $postModel,
-        ResponseFactory $responseFactory, PaginationService $paginService, SettingsService $settingsService)
+        ResponseFactory $responseFactory, PaginationService $paginService, 
+        SettingsService $settingsService, TagService $tagService)
     {
         parent::__construct($request, $view, $responseFactory);
         $this->model = $postModel;
         $this->paginService = $paginService;
         $this->settingsService = $settingsService;
+        $this->tagService = $tagService;
     }
 
     /*
@@ -396,6 +403,9 @@ class PostController extends BaseController {
                     'image' => $baseUrl . asset('pic/logo.png')
                 ], $this->getRequest());
 
+            $tagInfo = $this->tagService->getTag(url: $tag_url);
+            $robots = $tagInfo['robots'] ?? 'noindex, follow';
+
             $contentData = [
                 'posts' => $posts,
                 'show_caption' => true,
@@ -412,7 +422,7 @@ class PostController extends BaseController {
                 'base_page_url' => $base_page_url,
                 'export' => [
                     'posts' => $posts,
-                    'robots' => 'noindex, follow',
+                    'robots' => $robots,
                     'opengraph' => $opengraph,
                     'styles' => [
                         'list.css'

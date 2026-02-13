@@ -53,6 +53,12 @@ class AdminTagsController extends BaseAdminController
             $data['base_page_url'] = $basePageUrl;
             $data['styles'] = ['tags.css'];
             $data['jss'] = ['tags.js'];
+            $data['robotsList'] = [
+                    'noindex, follow', 
+                    'noindex, nofollow', 
+                    'index, follow', 
+                    'index, nofollow'
+                ];
 
             return $this->renderHtml('admin/tags/list.php', $data);
         } catch(Throwable $e) {
@@ -75,6 +81,12 @@ class AdminTagsController extends BaseAdminController
             $data['jss'] = ['tags.js'];
             
             $data['tag_to_edit'] = $this->tagService->getTag(id: $tagId);
+            $data['robotsList'] = [
+                    'noindex, follow', 
+                    'noindex, nofollow', 
+                    'index, follow', 
+                    'index, nofollow'
+                ];
 
             return $this->renderHtml('admin/tags/edit.php', $data);
         } catch(Throwable $e) {

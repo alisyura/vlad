@@ -141,12 +141,13 @@ class TagsModel extends BaseModel {
         $binds = [];
         
         foreach ($tags as $index => $tag) {
-            $placeholders[] = "(:name{$index}, :url{$index})";
+            $placeholders[] = "(:name{$index}, :url{$index}, :robots{$index})";
             $binds[":name{$index}"] = $tag['name'];
             $binds[":url{$index}"] = $tag['url'];
+            $binds[":robots{$index}"] = $tag['robots'];
         }
 
-        $sql = "INSERT INTO tags (name, url) VALUES " . implode(", ", $placeholders);
+        $sql = "INSERT INTO tags (name, url, robots) VALUES " . implode(", ", $placeholders);
         $stmt = $this->db->prepare($sql);
         
         foreach ($binds as $key => $value) {
@@ -159,23 +160,40 @@ class TagsModel extends BaseModel {
     public function updateNames(array $tagsData): bool
     {
         $caseClauses = [];
+        $robotsCaseClauses = [];
         $inPlaceholders = [];
         $binds = [];
 
         foreach ($tagsData as $index => $tagData) {
-            $caseIdParam = ":case_id_{$index}";
-            $nameParam = ":name_{$index}";
-            $inIdParam = ":in_id_{$index}";
+            // Уникальные плейсхолдеры для каждого использования
+            $nameIdParam = ":name_id_{$index}";      // для name CASE
+            $robotsIdParam = ":robots_id_{$index}";  // для robots CASE
+            $inIdParam = ":in_id_{$index}";          // для IN()
+            $nameParam = ":name_val_{$index}";
+            $robotsParam = ":robots_val_{$index}";
             
-            $caseClauses[] = "WHEN id = {$caseIdParam} THEN {$nameParam}";
+            $caseClauses[] = "WHEN id = {$nameIdParam} THEN {$nameParam}";
+            $robotsCaseClauses[] = "WHEN id = {$robotsIdParam} THEN {$robotsParam}";
             $inPlaceholders[] = $inIdParam;
             
-            $binds[$caseIdParam] = $tagData['id'];
-            $binds[$nameParam] = $tagData['name'];
+            // Биндим все уникальные плейсхолдеры
+            $binds[$nameIdParam] = $tagData['id'];
+            $binds[$robotsIdParam] = $tagData['id'];
             $binds[$inIdParam] = $tagData['id'];
+            $binds[$nameParam] = $tagData['name'];
+            $binds[$robotsParam] = $tagData['robots'];
         }
 
-        $sql = "UPDATE tags SET `name` = CASE " . implode(" ", $caseClauses) . " END 
+        $sql = "UPDATE tags 
+                SET 
+                    `name` = CASE 
+                        " . implode(" ", $caseClauses) . "
+                        ELSE `name`
+                    END,
+                    `robots` = CASE 
+                        " . implode(" ", $robotsCaseClauses) . "
+                        ELSE `robots`
+                    END
                 WHERE id IN (" . implode(",", $inPlaceholders) . ")";
 
         $stmt = $this->db->prepare($sql);
@@ -233,7 +251,7 @@ class TagsModel extends BaseModel {
             return null;
         }
 
-        $sql = "SELECT id, url, name FROM tags WHERE " . implode(" AND ", $where);
+        $sql = "SELECT id, url, name, robots FROM tags WHERE " . implode(" AND ", $where);
         $stmt = $this->db->prepare($sql);
         
         foreach ($binds as $key => $value) {
