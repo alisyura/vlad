@@ -1,4 +1,9 @@
 /* Стиль блока post_preview */
+
+/* Заголовок (при категории) */
+div div h1.caption {
+    font-size: 18px;
+}
 .post_preview {
     background-color: #ffffff;
     border-radius: 10px; /* Закругление углов */
