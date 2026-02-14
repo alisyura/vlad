@@ -132,7 +132,7 @@ class PostModelAdmin extends BaseModel {
                             meta_description = :meta_description,
                             meta_keywords = :meta_keywords,
                             thumbnail_media_id = :thumbnail_media_id,
-                            updated_at = :updated_at,
+                          --  updated_at = :updated_at,
                             
                             -- УСЛОВНОЕ ОБНОВЛЕНИЕ URL:
                             url = CASE 
@@ -154,7 +154,7 @@ class PostModelAdmin extends BaseModel {
                 ':meta_description' => $postData['meta_description'],
                 ':meta_keywords' => $postData['meta_keywords'],
                 ':thumbnail_media_id' => $thumbnailMediaId,
-                ':updated_at' => date('Y-m-d H:i:s'),
+                //':updated_at' => date('Y-m-d H:i:s'),
                 ':article_type' => $postData['article_type'],
                 
                 // ПАРАМЕТРЫ ДЛЯ УСЛОВНОГО ОБНОВЛЕНИЯ:
