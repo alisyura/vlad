@@ -28,7 +28,9 @@
                                 <td><?= htmlspecialchars($tag['post_count']) ?></td>
                                 <td>
                                     [ <a href="/<?= $adminRoute ?>/tags/edit/<?= htmlspecialchars($tag['id']) ?>">Редактировать</a> ]
-                                    [ <a href="#" class="action-link" data-action="delete" data-id="<?= htmlspecialchars($tag['id']) ?>">Удалить</a> ]
+                                    <?php if (($tag['builtin'] ?? 0) === 0): ?>
+                                        [ <a href="#" class="action-link" data-action="delete" data-id="<?= htmlspecialchars($tag['id']) ?>">Удалить</a> ]
+                                    <?php endif ?>
                                 </td>
                             </tr>
                         <?php endforeach; ?>

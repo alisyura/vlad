@@ -158,7 +158,7 @@ class AdminTagsApiController extends BaseAdminController
     {
         try {
             // Обновляем статус пользователя в базе данных
-            $this->tagsModel->deleteTags([$tagId]);
+            $this->tagService->deleteTags([$tagId]);
 
             return $this->renderJson('Тэг успешно удален.');
         } catch(Throwable $e) {

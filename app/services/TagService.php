@@ -110,6 +110,19 @@ class TagService
         }
     }
 
+    public function deleteTags(array $tagIds): void
+    {
+        $tags = $this->tagModel->getByIds($tagIds);
+        $filteredTags = array_filter($tags, fn($tag) => $tag['builtin'] != 0);
+
+        if (!empty($filteredTags))
+        {
+            throw new TagsException('Нельзя удалить встроенные тэги');
+        }
+
+        $this->tagModel->deleteTags($tagIds);
+    }
+
     private function executeSeoOperations(array $operations): void
     {
         // Удаление

@@ -65,7 +65,8 @@ class TagsModel extends BaseModel {
                 t.id,
                 t.url,
                 t.name,
-                COUNT(p_t.post_id) AS post_count
+                COUNT(p_t.post_id) AS post_count,
+                t.builtin
             FROM
                 tags t
             LEFT JOIN
@@ -208,7 +209,7 @@ class TagsModel extends BaseModel {
     public function getByIds(array $ids): array
     {
         $placeholders = implode(',', array_fill(0, count($ids), '?'));
-        $sql = "SELECT id, url FROM tags WHERE id IN ($placeholders)";
+        $sql = "SELECT id, url, builtin FROM tags WHERE id IN ($placeholders)";
         $stmt = $this->db->prepare($sql);
         $stmt->execute($ids);
         
