@@ -273,6 +273,12 @@ class AdminPostsController extends BaseAdminController
                 'is_new_post' => true,
                 'categories' => $this->listmodel->getAllCategories(),
                 'tags' => $this->listmodel->getAllTags(),
+                'robotsList' => [
+                    'index, follow',
+                    'noindex, follow', 
+                    'noindex, nofollow',
+                    'index, nofollow'
+                ],
                 'returnToListUrl' => [
                     'url' => $returnToListUrl,
                     'title' => $returnToListTitle
@@ -371,6 +377,12 @@ class AdminPostsController extends BaseAdminController
                 'tags' => $this->listmodel->getAllTags(),
                 'is_new_post' => $postData['status'] == PostModelAdmin::STATUS_PENDING,
                 'formAction' => $formAction,
+                'robotsList' => [
+                    'index, follow',
+                    'noindex, follow', 
+                    'noindex, nofollow',
+                    'index, nofollow'
+                ],
                 'returnToListUrl' => [
                         'url' => $returnToListUrl,
                         'title' => $returnToListTitle

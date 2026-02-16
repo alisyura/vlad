@@ -46,110 +46,69 @@ class PostController extends BaseController {
     * Страница post
     */
     public function showPost($post_url): Response {
-        try {
-            $post = $this->model->getPostByUrl($post_url);
-            if (!$post) {
-                throw new HttpException('Пост не найден', 404);
-            }
-
-            $baseUrl= $this->getRequest()->getBaseUrl();
-            $URL = sprintf("%s/%s", $baseUrl, $post['url']).'.html';
-        
-            $seoSettings = $this->settingsService->getMassSeoSettings([
-                'index_page_title']);
-            
-            $metaTitle = trim($post['meta_title'] ?? '');
-            if ($metaTitle === '') {
-                $metaTitle = $post['title'];
-            }
-            $metaDescription = $post['meta_description'] ?? '';
-            $metaKeywords = $post['meta_keywords'] ?? '';
-
-            $canonical = $URL;
-            $opengraph = generateOpenGraph([
-                    'page_type' => 'post',
-                    'site_name' => $seoSettings['index_page_title']['value'],
-                    'title' => $metaTitle,
-                    'description' => $metaDescription,
-                    'image' => sprintf("%s%s", $baseUrl, asset('pic/logo.png')),
-                    'tags' => $this->getCombinedTags($post),
-                    'category' => $post['category_name'] ?? null
-                ], $this->getRequest());
-
-            $renderParams =[
-                'post' => $post,
-                'full_url' => $URL,
-                'tags_baseUrl' => sprintf("%s/tag/", $baseUrl),
-                'is_post' => true,
-                'export' => [
-                    'title' => $metaTitle,
-                    'description' => $metaDescription,
-                    'keywords' => $metaKeywords,
-                    'robots' => 'index, follow',
-                    'opengraph' => $opengraph,
-                    'canonical' => $canonical,
-                    'styles' => [
-                        'detail.css'
-                    ],
-                    'jss' => [
-                    ]
-                ]
-            ];
-
-            if (isset($post['image'])) {
-                $renderParams['post_image'] = sprintf("%s%s", $baseUrl, $post['image']);
-            }
-
-            $tplPath = $post['category_url'] === 'veselaya_rifma' 
-                ? 'posts/show_copy.php' 
-                : 'posts/show.php';
-            return $this->renderHtml($tplPath, $renderParams);
-        } catch (HttpException $e) {
-            throw $e;
-        } catch (Throwable $e) {
-            Logger::error("Error in showPost: ", ['post_url' => $post_url], $e);
-            throw new HttpException('Ошибка при открытии поста', 500, $e);
-        }
+        return $this->showContent($post_url, 'post');
     }
 
     /*
     * Страница page
     */
     public function showPage($page_url): Response {
+        return $this->showContent($page_url, 'page');
+    }
+
+    private function showContent($url, $type = 'post'): Response {
         try {
-            $page = $this->model->getPageByUrl($page_url);
-            if (!$page) {
-                throw new HttpException('Страница не найдена', 404);
+            if ($type === 'post') {
+                $content = $this->model->getPostByUrl($url);
+                $notFoundMessage = 'Пост не найден';
+                $errorMessage = 'Ошибка при открытии поста';
+                $isPost = true;
+            } else {
+                $content = $this->model->getPageByUrl($url);
+                $notFoundMessage = 'Страница не найдена';
+                $errorMessage = 'Ошибка при открытии страницы';
+                $isPost = false;
             }
 
-            $baseUrl= $this->getRequest()->getBaseUrl();
-            $URL = sprintf("%s/%s", $baseUrl, $page['url']).'.html';
+            if (!$content) {
+                throw new HttpException($notFoundMessage, 404);
+            }
+
+            $baseUrl = $this->getRequest()->getBaseUrl();
+            $URL = sprintf("%s/%s", $baseUrl, $content['url']).'.html';
         
             $seoSettings = $this->settingsService->getMassSeoSettings([
                 'index_page_title']);
-
-            $metaTitle = trim($page['meta_title'] ?? '');
+            
+            $metaTitle = trim($content['meta_title'] ?? '');
             if ($metaTitle === '') {
-                $metaTitle = $page['title'];
+                $metaTitle = $content['title'];
             }
-            $metaDescription = $page['meta_description'] ?? '';
-            $metaKeywords = $page['meta_keywords'] ?? '';
+            $metaDescription = $content['meta_description'] ?? '';
+            $metaKeywords = $content['meta_keywords'] ?? '';
 
             $canonical = $URL;
-            $opengraph = generateOpenGraph([
-                    'page_type' => 'post',
-                    'site_name' => $seoSettings['index_page_title']['value'],
-                    'title' => $metaTitle,
-                    'description' => $metaDescription,
-                    'image' => sprintf("%s%s", $baseUrl, asset('pic/logo.png')),
-                    'tags' => $this->getCombinedTags($page)
-                ], $this->getRequest());
+            
+            $ogParams = [
+                'page_type' => 'post',
+                'site_name' => $seoSettings['index_page_title']['value'],
+                'title' => $metaTitle,
+                'description' => $metaDescription,
+                'image' => sprintf("%s%s", $baseUrl, asset('pic/logo.png')),
+                'tags' => $this->getCombinedTags($content)
+            ];
+            
+            if ($type === 'post') {
+                $ogParams['category'] = $content['category_name'] ?? null;
+            }
+            
+            $opengraph = generateOpenGraph($ogParams, $this->getRequest());
 
-            $contentData = [
-                'post' => $page,
+            $renderParams = [
+                'post' => $content,
                 'full_url' => $URL,
                 'tags_baseUrl' => sprintf("%s/tag/", $baseUrl),
-                'is_post' => false,
+                'is_post' => $isPost,
                 'export' => [
                     'title' => $metaTitle,
                     'description' => $metaDescription,
@@ -160,17 +119,25 @@ class PostController extends BaseController {
                     'styles' => [
                         'detail.css'
                     ],
-                    'jss' => [
-                    ]
+                    'jss' => []
                 ]
             ];
 
-            return $this->renderHtml('posts/show.php', $contentData);
+            if ($type === 'post' && isset($content['image'])) {
+                $renderParams['post_image'] = sprintf("%s%s", $baseUrl, $content['image']);
+            }
+
+            $tplPath = 'posts/show.php';
+            if ($type === 'post' && $content['category_url'] === 'veselaya_rifma') {
+                $tplPath = 'posts/show_copy.php';
+            }
+
+            return $this->renderHtml($tplPath, $renderParams);
         } catch (HttpException $e) {
             throw $e;
         } catch (Throwable $e) {
-            Logger::error("Error in showPage: ", ['page_url' => $page_url], $e);
-            throw new HttpException('Ошибка при открытии страницы', 500, $e);
+            Logger::error("Error in showContent: ", [$type.'_url' => $url], $e);
+            throw new HttpException($errorMessage, 500, $e);
         }
     }
 

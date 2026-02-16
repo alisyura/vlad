@@ -96,6 +96,17 @@ $adminRoute = $data['adminRoute'] ?? 'admin';
                 <div class="card-header">SEO Опции</div>
                 <div class="card-body">
                     <div class="mb-3">
+                        <label for="robots">Индексация страницы для поисковика (robots):</label>
+                        <select class="form-control" id="robots" name="robots" required>
+                            <?php foreach ($robotsList as $robotsValue): 
+                                $selected = (($post['robots'] ?? null) === $robotsValue) ? 'selected' : ''; ?>
+                                <option <?= $selected ?> value="<?= htmlspecialchars($robotsValue) ?>">
+                                    <?= htmlspecialchars($robotsValue) ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div class="mb-3">
                         <label for="metaTitle" class="form-label">Мета-заголовок (title)</label>
                         <input type="text" class="form-control" id="metaTitle" name="meta_title"
                                value="<?= htmlspecialchars($post['meta_title'] ?? '') ?>">
