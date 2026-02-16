@@ -62,13 +62,15 @@ class PostController extends BaseController {
             if ($metaTitle === '') {
                 $metaTitle = $post['title'];
             }
+            $metaDescription = $post['meta_description'] ?? '';
+            $metaKeywords = $post['meta_keywords'] ?? '';
 
             $canonical = $URL;
             $opengraph = generateOpenGraph([
                     'page_type' => 'post',
                     'site_name' => $seoSettings['index_page_title']['value'],
                     'title' => $metaTitle,
-                    'description' => $post['meta_description'] ?? '',
+                    'description' => $metaDescription,
                     'image' => sprintf("%s%s", $baseUrl, asset('pic/logo.png')),
                     'tags' => $this->getCombinedTags($post),
                     'category' => $post['category_name'] ?? null
@@ -80,6 +82,9 @@ class PostController extends BaseController {
                 'tags_baseUrl' => sprintf("%s/tag/", $baseUrl),
                 'is_post' => true,
                 'export' => [
+                    'title' => $metaTitle,
+                    'description' => $metaDescription,
+                    'keywords' => $metaKeywords,
                     'robots' => 'index, follow',
                     'opengraph' => $opengraph,
                     'canonical' => $canonical,
@@ -127,13 +132,15 @@ class PostController extends BaseController {
             if ($metaTitle === '') {
                 $metaTitle = $page['title'];
             }
+            $metaDescription = $page['meta_description'] ?? '';
+            $metaKeywords = $page['meta_keywords'] ?? '';
 
             $canonical = $URL;
             $opengraph = generateOpenGraph([
                     'page_type' => 'post',
                     'site_name' => $seoSettings['index_page_title']['value'],
                     'title' => $metaTitle,
-                    'description' => $page['meta_description'] ?? '',
+                    'description' => $metaDescription,
                     'image' => sprintf("%s%s", $baseUrl, asset('pic/logo.png')),
                     'tags' => $this->getCombinedTags($page)
                 ], $this->getRequest());
@@ -144,6 +151,9 @@ class PostController extends BaseController {
                 'tags_baseUrl' => sprintf("%s/tag/", $baseUrl),
                 'is_post' => false,
                 'export' => [
+                    'title' => $metaTitle,
+                    'description' => $metaDescription,
+                    'keywords' => $metaKeywords,
                     'robots' => 'index, follow',
                     'opengraph' => $opengraph,
                     'canonical' => $canonical,
@@ -195,6 +205,9 @@ class PostController extends BaseController {
                 'index_page_title',
                 'index_page_description',
                 'index_page_keywords']);
+            $title = $seoSettings['index_page_title']['value'] ?? '';
+            $keywords = $seoSettings['index_page_keywords']['value'] ?? '';
+            $description = $seoSettings['index_page_description']['value'] ?? '';
             
             $canonical = null;
             if ($page == 1) {
@@ -206,9 +219,9 @@ class PostController extends BaseController {
             }
             $opengraph = generateOpenGraph([
                     'page_type' => 'home',
-                    'title' => $seoSettings['index_page_title']['value'],
-                    'site_name' => $seoSettings['index_page_title']['value'],
-                    'description' => $seoSettings['index_page_description']['value'],
+                    'title' => $title,
+                    'site_name' => $title,
+                    'description' => $description,
                     'image' => $baseUrl . asset('pic/logo.png')
                 ], $this->getRequest());
             
@@ -225,6 +238,9 @@ class PostController extends BaseController {
                 'pagination_links' => $paginationLinks,
                 'base_page_url' => $basePageUrl,
                 'export' => [
+                    'title' => $title,
+                    'description' => $description,
+                    'keywords' => $keywords,
                     'posts' => $posts,
                     'robots' => $robots,
                     'opengraph' => $opengraph,
@@ -298,6 +314,9 @@ class PostController extends BaseController {
                 'pagination_links' => $pagination_links,
                 'base_page_url' => $base_page_url,
                 'export' => [
+                    'title' => $title,
+                    'description' => $description,
+                    'keywords' => $keywords,
                     'posts' => $posts,
                     'robots' => 'noindex, follow',
                     'opengraph' => $opengraph,
@@ -421,6 +440,9 @@ class PostController extends BaseController {
                 'pagination_links' => $pagination_links,
                 'base_page_url' => $base_page_url,
                 'export' => [
+                    'title' => $title,
+                    'description' => $description,
+                    'keywords' => $keywords,
                     'posts' => $posts,
                     'robots' => $robots,
                     'opengraph' => $opengraph,
