@@ -1,7 +1,7 @@
 /* Стиль блока post_preview */
 
 /* Заголовок (при категории) */
-div div h1.caption {
+h1.caption {
     font-size: 18px;
 }
 .post_preview {

@@ -2,7 +2,7 @@
 <!-- Заголовок (при категории) -->
 <div style="background-color: #fafaf8; margin-top: 20px; padding: 20px; border-radius: 10px;">
     <div style="font-weight: bold; font-size: 18px;">
-        <?= htmlspecialchars($caption) ?>
+        <h1 class="caption"><?= htmlspecialchars($caption) ?></h1>
     </div>
     <?php if (trim($caption_desc ?? '') !== ''): ?>
     <div class="post_text_preview">

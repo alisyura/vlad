@@ -2,6 +2,16 @@
 
 class PostController extends BaseController {
     /**
+     * Тип контента пост
+     */
+    private const ARTICLE_POST = 'post';
+
+    /**
+     * Тип контента страница
+     */
+    private const ARTICLE_PAGE = 'page';
+
+    /**
      * Экземпляр модели
      */
     private PostModelClient $model;
@@ -46,19 +56,19 @@ class PostController extends BaseController {
     * Страница post
     */
     public function showPost($post_url): Response {
-        return $this->showContent($post_url, 'post');
+        return $this->showContent($post_url, self::ARTICLE_POST);
     }
 
     /*
     * Страница page
     */
     public function showPage($page_url): Response {
-        return $this->showContent($page_url, 'page');
+        return $this->showContent($page_url, self::ARTICLE_PAGE);
     }
 
-    private function showContent($url, $type = 'post'): Response {
+    private function showContent($url, $type = self::ARTICLE_POST): Response {
         try {
-            if ($type === 'post') {
+            if ($type === self::ARTICLE_POST) {
                 $content = $this->model->getPostByUrl($url);
                 $notFoundMessage = 'Пост не найден';
                 $errorMessage = 'Ошибка при открытии поста';
@@ -98,7 +108,7 @@ class PostController extends BaseController {
                 'tags' => $this->getCombinedTags($content)
             ];
             
-            if ($type === 'post') {
+            if ($type === self::ARTICLE_POST) {
                 $ogParams['category'] = $content['category_name'] ?? null;
             }
             
@@ -123,14 +133,11 @@ class PostController extends BaseController {
                 ]
             ];
 
-            if ($type === 'post' && isset($content['image'])) {
+            if ($type === self::ARTICLE_POST && isset($content['image'])) {
                 $renderParams['post_image'] = sprintf("%s%s", $baseUrl, $content['image']);
             }
 
             $tplPath = 'posts/show.php';
-            if ($type === 'post' && $content['category_url'] === 'veselaya_rifma') {
-                $tplPath = 'posts/show_copy.php';
-            }
 
             return $this->renderHtml($tplPath, $renderParams);
         } catch (HttpException $e) {
@@ -295,10 +302,7 @@ class PostController extends BaseController {
                 ]
             ];
 
-            $tplPath = $cat_url === 'veselaya_rifma' 
-                ? 'posts/index_copy.php' 
-                : 'posts/index.php';
-            return $this->renderHtml($tplPath, $contentData);
+            return $this->renderHtml('posts/index.php' , $contentData);
         } catch (Throwable $e) {
             Logger::error("Error in showBySection: ", ['cat_url' => $cat_url, 'page' => $page], $e);
             throw new HttpException('Ошибка получения списка постов по разделу', 500, $e);
