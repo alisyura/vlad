@@ -41,7 +41,7 @@ class AdminTagsApiController extends BaseAdminController
      * @route POST /admin/tags/api/create
      * @return Response
      */
-    public function create(): Response
+    public function create(string $taxonomyType): Response
     {
         $inputJson = $this->getRequest()->getJson();
 
@@ -57,10 +57,10 @@ class AdminTagsApiController extends BaseAdminController
             // Проверка уникальности урла
             $checkUniqnessResult = $this->tagsModel->checkTagUniqueness($inputJson['name'], $inputJson['url']);
             if ($checkUniqnessResult['name_exists']) {
-                throw new HttpException('Имя тэга занято.', 409, null, HttpException::JSON_RESPONSE);
+                throw new HttpException('Имя таксономии занято.', 409, null, HttpException::JSON_RESPONSE);
             }
             if ($checkUniqnessResult['url_exists']) {
-                throw new HttpException('Урл тэга занят.', 409, null, HttpException::JSON_RESPONSE);
+                throw new HttpException('Урл таксономии занят.', 409, null, HttpException::JSON_RESPONSE);
             }
 
             $inputJson['robots'] = $inputJson['robots'] ?? 'noindex, follow';
@@ -76,17 +76,17 @@ class AdminTagsApiController extends BaseAdminController
 
             // Попытка создать тэг
             if ($this->tagService->createTags([$inputJson])) {
-                return $this->renderJson('Тэг успешно создан.');
+                return $this->renderJson('Таксономия успешно создана.');
             } else {
-                throw new HttpException('Не удалось создать тэг.', 500);
+                throw new HttpException('Не удалось создать таксономию.', 500);
             }
         } catch(Throwable $e) {
-            Logger::error('Ошибка при создании тэга: ', $inputJson, $e);
+            Logger::error('Ошибка при создании таксономии: ', ['taxonomyType' => $taxonomyType, ...($inputJson)], $e);
             if ($e instanceof HttpException)
             {
                 throw $e;
             }
-            throw new HttpException('Сбой при создании тэга', 500, $e, HttpException::JSON_RESPONSE);
+            throw new HttpException('Сбой при создании таксономии ' . $taxonomyType, 500, $e, HttpException::JSON_RESPONSE);
         }
     }
 
@@ -94,15 +94,15 @@ class AdminTagsApiController extends BaseAdminController
      * @route PUT /admin/tags/api/edit
      * @return Response
      */
-    public function edit($tagId): Response
+    public function edit($taxonomyId, string $taxonomyType): Response
     {
         $inputJson = $this->getRequest()->getJson();
 
         try {
-            $tag = $this->tagService->getTag(id: $tagId);
+            $tag = $this->tagService->getTag(id: $taxonomyId);
             if (empty($tag))
             {
-                throw new HttpException('Тэг не найден.', 404, null, HttpException::JSON_RESPONSE);
+                throw new HttpException('Таксономия не найдена.', 404, null, HttpException::JSON_RESPONSE);
             }
 
             // Проверяем наличие необходимых данных
@@ -126,7 +126,7 @@ class AdminTagsApiController extends BaseAdminController
 
             // Подготовка данных для обновления
             $updateData = [
-                'id' => $tagId,
+                'id' => $taxonomyId,
                 'name' => $inputJson['name'],
                 'caption' => $inputJson['caption'],
                 'caption_desc' => $inputJson['caption_desc'],
@@ -139,14 +139,14 @@ class AdminTagsApiController extends BaseAdminController
             // Обновляем данные пользователя в базе данных
             $this->tagService->updateTags([$updateData]);
 
-            return $this->renderJson('Тэг успешно обновлен.');
+            return $this->renderJson('Таксономия успешно обновлена.');
         } catch(Throwable $e) {
-            Logger::error('Ошибка при редактировании тэга: ', $inputJson, $e);
+            Logger::error('Ошибка при редактировании таксономии: ', ['taxonomyType' => $taxonomyType, ...($inputJson)], $e);
             if ($e instanceof HttpException)
             {
                 throw $e;
             }
-            throw new HttpException('Сбой при редактировании тэга', 500, $e, HttpException::JSON_RESPONSE);
+            throw new HttpException('Сбой при редактировании таксономии ' . $taxonomyType, 500, $e, HttpException::JSON_RESPONSE);
         }
     }
 
@@ -154,16 +154,16 @@ class AdminTagsApiController extends BaseAdminController
      * @route DELETE /admin/tags/api/block/$userId
      * @return Response
      */
-    public function delete($tagId): Response
+    public function delete($tagId, string $taxonomyType): Response
     {
         try {
             // Обновляем статус пользователя в базе данных
             $this->tagService->deleteTags([$tagId]);
 
-            return $this->renderJson('Тэг успешно удален.');
+            return $this->renderJson('Таксономия успешно удалена.');
         } catch(Throwable $e) {
-            Logger::error('Ошибка при удалении тэга: ', ['tagId' => $tagId], $e);
-            throw new HttpException('Сбой при удалении тэга', 500, $e, HttpException::JSON_RESPONSE);
+            Logger::error('Ошибка при удалении таксономии: ', ['taxonomyType' => $taxonomyType, 'tagId' => $tagId], $e);
+            throw new HttpException('Сбой при удалении таксономии' . $taxonomyType, 500, $e, HttpException::JSON_RESPONSE);
         }
     }
 }

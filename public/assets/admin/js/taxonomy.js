@@ -1,8 +1,10 @@
-class TagsDashboard {
-    constructor() {
+class TaxonomyDashboard {
+    constructor(taxonomyType) {
+        this.taxonomyType = taxonomyType;
+
         // Получаем ссылки на DOM-элементы
-        this.createTagForm = document.getElementById('create-tag-form');
-        this.editTagForm = document.getElementById('edit-tag-form'); 
+        this.createTaxonomyForm = document.getElementById('create-taxonomy-form');
+        this.editTaxonomyForm = document.getElementById('edit-taxonomy-form'); 
         this.actionLinksContainer = document.querySelector('.table tbody');
         const actionModalElement = document.getElementById('actionModal');
         if (actionModalElement) {
@@ -20,15 +22,11 @@ class TagsDashboard {
 
         this.urlInput = document.getElementById('url');
 
-        // this.editUserIdInput = document.getElementById('tag_id');
         this.editNameInput = document.getElementById('name');
         this.editUrlInput = document.getElementById('url');
-        // this.editRoleSelect = document.getElementById('role');
-        // this.editPasswordInput = document.getElementById('password');
-        // this.editConfirmPasswordInput = document.getElementById('confirm_password');
 
         // Переменные для хранения данных действия
-        this.tagIdToActOn = null;
+        this.taxonomyIdToActOn = null;
         this.actionToPerform = null;
 
         // Инициализируем обработчики событий
@@ -37,13 +35,13 @@ class TagsDashboard {
 
     initEventListeners() {
         // Обработчик для создания тэга
-        if (this.createTagForm) {
-            this.createTagForm.querySelector('button[type="button"]').addEventListener('click', this.handleCreateTagSubmit.bind(this));
+        if (this.createTaxonomyForm) {
+            this.createTaxonomyForm.querySelector('button[type="button"]').addEventListener('click', this.handleCreateTaxonomySubmit.bind(this));
         }
 
         // Обработчик для редактирования тэга
-        if (this.editTagForm) {
-            this.editTagForm.querySelector('button[type="button"]').addEventListener('click', this.handleEditTagSubmit.bind(this));
+        if (this.editTaxonomyForm) {
+            this.editTaxonomyForm.querySelector('button[type="button"]').addEventListener('click', this.handleEditTaxonomySubmit.bind(this));
         }
 
         // Обработчик кликов по таблице (для 'edit', 'block', 'unblock', 'delete')
@@ -63,12 +61,12 @@ class TagsDashboard {
     }
 
     // Создание нового тэга. Обработка отправки формы
-    async handleCreateTagSubmit(e) {
+    async handleCreateTaxonomySubmit(e) {
         e.preventDefault();
 
         this.urlInput.value = this.transliterate(this.urlInput.value);
 
-        const formData = new FormData(this.createTagForm);
+        const formData = new FormData(this.createTaxonomyForm);
         const data = Object.fromEntries(formData.entries());
 
         // Проверяем, что поля 'name' и 'url' не пустые
@@ -85,7 +83,7 @@ class TagsDashboard {
         }
 
         try {
-            const response = await fetch(`/${adminRoute}/tags/api/create`, {
+            const response = await fetch(`/${adminRoute}/taxonomy/${this.taxonomyType}/api/create`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -114,7 +112,7 @@ class TagsDashboard {
 
             if (result.success) {
                 alert('Тэг успешно создан!');
-                this.createTagForm.reset();
+                this.createTaxonomyForm.reset();
                 window.location.reload(); 
             } else {
                 alert('Ошибка: ' + result.message);
@@ -127,10 +125,10 @@ class TagsDashboard {
 
 
     // НОВОЕ: Обработчик отправки формы редактирования
-    async handleEditTagSubmit(e) {
+    async handleEditTaxonomySubmit(e) {
         e.preventDefault();
     
-        const formData = new FormData(this.editTagForm);
+        const formData = new FormData(this.editTaxonomyForm);
         const data = Object.fromEntries(formData.entries());
     
         // Проверяем, что поля 'name' не пустое
@@ -147,7 +145,7 @@ class TagsDashboard {
         }
     
         try {
-            const response = await fetch(`/${adminRoute}/tags/api/edit/${data.tag_id}`, {
+            const response = await fetch(`/${adminRoute}/taxonomy/${this.taxonomyType}/api/edit/${data.taxonomy_id}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -169,7 +167,7 @@ class TagsDashboard {
     
             if (result.success) {
                 alert('Тэг успешно обновлен!');
-                window.location.href = `/${adminRoute}/tags`;
+                window.location.href = `/${adminRoute}/taxonomy/${this.taxonomyType}`;
             } else {
                 alert('Ошибка: ' + result.message);
             }
@@ -212,7 +210,7 @@ class TagsDashboard {
 
         e.preventDefault();
         
-        this.tagIdToActOn = link.dataset.id;
+        this.taxonomyIdToActOn = link.dataset.id;
         this.actionToPerform = link.dataset.action;
 
         if (!this.actionModal)
@@ -263,7 +261,7 @@ class TagsDashboard {
 
         
         try {
-            const response = await fetch(`/${adminRoute}/tags/api/${this.actionToPerform}/${this.tagIdToActOn}`, {
+            const response = await fetch(`/${adminRoute}/taxonomy/${this.taxonomyType}/api/${this.actionToPerform}/${this.taxonomyIdToActOn}`, {
                 method: method,
                 headers: {
                     'Content-Type': 'application/json',
@@ -299,7 +297,7 @@ class TagsDashboard {
             console.error('Ошибка:', error);
             alert('Произошла ошибка при выполнении действия.');
         } finally {
-            this.tagIdToActOn = null;
+            this.taxonomyIdToActOn = null;
             this.actionToPerform = null;
         }
     }
@@ -307,5 +305,17 @@ class TagsDashboard {
 
 // Создаём и запускаем экземпляр класса при загрузке страницы
 document.addEventListener('DOMContentLoaded', () => {
-    new TagsDashboard();
+    // Получаем путь из URL
+    const path = window.location.pathname; // например: /eryfbh/taxonomy/tags или /eryfbh/taxonomy/tags/p3
+    
+    // Разбиваем путь на части
+    const parts = path.split('/').filter(part => part !== '');
+    // parts = ['eryfbh', 'taxonomy', 'tags'] или ['eryfbh', 'taxonomy', 'tags', 'p3']
+    
+    // Получаем второй элемент (индекс 1) - это и есть нужное значение
+    const taxonomyType = parts[2]; // 'tags' или другое значение
+    
+    console.log('Taxonomy type:', taxonomyType);
+
+    new TaxonomyDashboard(taxonomyType);
 });

@@ -53,8 +53,8 @@ class AuthService
             $this->session->set('user_id', (int)$user['id']); // Приводим к целому числу
             $this->session->set('is_admin', (bool)($user['role_name'] === Config::get('admin.AdminRoleName'))); // Приводим к булевому типу
             $this->session->set('user_login', (string)$user['login']); // Приводим к строковому типу
-            $this->session->set('user_ip', $_SERVER['REMOTE_ADDR']);
-            $this->session->set('user_agent', $_SERVER['HTTP_USER_AGENT']);
+            $this->session->set('user_ip', $this->request->getClientIp());
+            $this->session->set('user_agent', $this->request->getUserAgent());
             $this->session->set('user_name', (string)$user['name']);
 
             // Запоминаем время входа для автовыхода через 30 мин
@@ -106,9 +106,11 @@ class AuthService
             $userIp = $this->session->get('user_ip');
             $userAgent = $this->session->get('user_agent');
             // Проверка IP-адреса и User-Agent для защиты от угона сессии
+            $getClientIp = $this->request->getClientIp();
+            $getUserAgent = $this->request->getUserAgent();
             if (
-                null !== $userIp && $userIp === $this->request->getClientIp() &&
-                null !== $userAgent && $userAgent === $this->request->getUserAgent()
+                null !== $userIp && $userIp === $getClientIp &&
+                null !== $userAgent && $userAgent === $getUserAgent
             ) {
                 // Если всё прошло — обновляем время активности
                 $this->session->set('last_activity', time());

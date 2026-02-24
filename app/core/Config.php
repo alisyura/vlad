@@ -82,7 +82,7 @@ class Config
                 'AdminRoleName' => 'Administrator',
                 'PagesToExclude' => ['sitemap', 'kontakty'],
                 'PostsToExclude' => [],
-                'TagsPerPage' => 10,
+                'TaxonomiesPerPage' => 10,
                 'LoginAttempts' => 5,
                 'LoginBlockMinutes' => 120,
                 'AutoLogoutMinutes' => 30

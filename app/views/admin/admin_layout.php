@@ -75,7 +75,7 @@
                         </li>
                         <li class="nav-item">
                             <a class="nav-link <?= ($active ?? '') === 'tags' ? 'active' : '' ?>" 
-                               href="/<?= $adminRoute ?>/tags">
+                               href="/<?= $adminRoute ?>/taxonomy/tags">
                                 Тэги
                             </a>
                         </li>

@@ -7,7 +7,7 @@
     <div class="row">
 
         <div class="col-md-8">
-            <h2>Список тэгов</h2>
+            <h2><?= htmlspecialchars($taxonomyListTitle) ?></h2>
             <table class="table table-striped">
                 <thead>
                     <tr>
@@ -17,19 +17,19 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <?php if (empty($tags)): ?>
+                    <?php if (empty($taxonomies)): ?>
                         <tr>
-                            <td colspan="3">Тэги не найдены.</td>
+                            <td colspan="3"><?= htmlspecialchars($taxonomyNotFoundMsg) ?></td>
                         </tr>
                     <?php else: ?>
-                        <?php foreach ($tags as $tag): ?>
+                        <?php foreach ($taxonomies as $taxonomy): ?>
                             <tr>
-                                <td><?= htmlspecialchars($tag['name']) ?></td>
-                                <td><?= htmlspecialchars($tag['post_count']) ?></td>
+                                <td><?= htmlspecialchars($taxonomy['name'] ?? '') ?></td>
+                                <td><?= htmlspecialchars($taxonomy['post_count'] ?? '') ?></td>
                                 <td>
-                                    [ <a href="/<?= $adminRoute ?>/tags/edit/<?= htmlspecialchars($tag['id']) ?>">Редактировать</a> ]
-                                    <?php if (($tag['builtin'] ?? 0) === 0): ?>
-                                        [ <a href="#" class="action-link" data-action="delete" data-id="<?= htmlspecialchars($tag['id']) ?>">Удалить</a> ]
+                                    [ <a href="/<?= $adminRoute ?>/taxonomy/<?= htmlspecialchars($taxonomyType ?? '') ?>/edit/<?= htmlspecialchars($taxonomy['id'] ?? '') ?>">Редактировать</a> ]
+                                    <?php if (($taxonomy['builtin'] ?? 0) === 0): ?>
+                                        [ <a href="#" class="action-link" data-action="delete" data-id="<?= htmlspecialchars($taxonomy['id'] ?? '') ?>">Удалить</a> ]
                                     <?php endif ?>
                                 </td>
                             </tr>
@@ -72,8 +72,8 @@
         </div>
         
         <div class="col-md-4">
-            <h2>Создать новый тэг</h2>
-            <form id="create-tag-form">
+            <h2><?= htmlspecialchars($createFormTitle) ?></h2>
+            <form id="create-taxonomy-form">
                 <div class="form-group">
                     <label for="name">Название:</label>
                     <input type="text" class="form-control" id="name" name="name" required>
@@ -112,7 +112,7 @@
                         <?php endforeach; ?>
                     </select>
                 </div>
-                <button type="button" class="btn btn-primary mt-10px">Создать тэг</button>
+                <button type="button" class="btn btn-primary mt-10px"><?= htmlspecialchars($createButtonTitle) ?></button>
             </form>
         </div>
     </div>

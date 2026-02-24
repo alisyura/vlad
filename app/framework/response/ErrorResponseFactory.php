@@ -57,6 +57,7 @@ class ErrorResponseFactory
                 'title' => $title, 
                 'error_message' => $errMsg, 
                 'export' => [
+                    'adminRoute' => Config::get('admin.AdminRoute'),
                     'styles' => [
                         'error_view.css'
                     ],
