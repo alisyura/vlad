@@ -57,7 +57,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Настройки автосохранения
         autosave_interval: '10s',      // сохранять каждые 10 секунд
         autosave_retention: '1440m',      // хранить черновик 24 часа
-        autosave_prefix: 'myblog-draft-', // префикс для хранения в браузере
+        autosave_prefix: 'tinymce-autosave-{path}{query}-{id}-', // префикс для хранения в браузере
         autosave_restore_when_empty: true, // восстанавливать, если редактор пуст
         autosave_ask_before_unload: true,  // спрашивать при закрытии вкладки
         
