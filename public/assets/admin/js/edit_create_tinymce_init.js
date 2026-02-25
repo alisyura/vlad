@@ -40,9 +40,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // 3. TinyMCE
     tinymce.init({
         selector: '#postContent',
-        plugins: 'link lists code media emoticons wordcount paste',
+        plugins: 'link lists code media emoticons wordcount paste autosave',
         toolbar1: 'undo redo | blocks | bold italic underline strikethrough | alignleft aligncenter alignright alignjustify | bullist numlist',
-        toolbar2: 'forecolor backcolor | mycustomimage mycustomvideo | link | emoticons | code',
+        toolbar2: 'forecolor backcolor | mycustomimage mycustomvideo | link | emoticons | code | wordcount restoredraft',
         block_formats: 'Paragraph=p; Heading 2=h2; Heading 3=h3; Heading 4=h4; Heading 5=h5; Heading 6=h6',
         menubar: false,
         height: 600,
@@ -53,6 +53,14 @@ document.addEventListener('DOMContentLoaded', () => {
         convert_urls: false,
         branding: false,
         sandbox_iframes: false,
+
+        // Настройки автосохранения
+        autosave_interval: '10s',      // сохранять каждые 10 секунд
+        autosave_retention: '1440m',      // хранить черновик 24 часа
+        autosave_prefix: 'myblog-draft-', // префикс для хранения в браузере
+        autosave_restore_when_empty: true, // восстанавливать, если редактор пуст
+        autosave_ask_before_unload: true,  // спрашивать при закрытии вкладки
+        
         content_style: `
             body { font-family: sans-serif; font-size: 16px; padding: 10px; }
             .video-outer-container { width: 100%; display: block; }
