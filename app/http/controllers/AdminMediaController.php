@@ -25,7 +25,7 @@ class AdminMediaController extends BaseAdminController
                 'isUserAdmin' => $this->authService->isUserAdmin(),
                 'user_name' => $userName,
                 'pageTitle' => 'Управление медиафайлами',
-                'active' => 'mediateka', // для подсветки в меню
+                'active' => AdminLeftMenuItems::MENU_MEDIATEKA, // для подсветки в меню
                 'styles' => [
                     'mediateka.css'
                 ],

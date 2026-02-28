@@ -38,7 +38,7 @@ class AdminSettingsController extends BaseAdminController
             $data = [
                 'adminRoute' => $this->getAdminRoute(),
                 'title' => 'Список настроек',
-                'active' => "settings", // для подсветки в левом меню
+                'active' => AdminLeftMenuItems::MENU_SETTINGS, // для подсветки в левом меню
                 'user_name' => $this->authService->getUserName(),
                 'isUserAdmin' => $this->authService->isUserAdmin(),
                 'groupedSettingsList' => $groupedSettingsList,
@@ -264,7 +264,8 @@ class AdminSettingsController extends BaseAdminController
                 'builtin' => '0',
                 'adminRoute' => $adminRoute,
                 'user_name' => $this->authService->getUserName(),
-                'active' => "settings", // для подсветки в левом меню
+                'isUserAdmin' => $this->authService->isUserAdmin(),
+                'active' => AdminLeftMenuItems::MENU_SETTINGS, // для подсветки в левом меню
                 'categoriesList' => $this->listmodel->getAllCategories(),
                 'tagsList' => $this->listmodel->getAllTags(),
                 'existingGroupsList' => $this->settingsService->getExistingGroupNames(),

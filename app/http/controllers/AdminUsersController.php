@@ -25,7 +25,7 @@ class AdminUsersController extends BaseAdminController
             // Добавляем данные для шаблона
             $data['adminRoute'] = $this->getAdminRoute();
             $data['user_name'] = $userName;
-            $data['active'] = "users"; // подсветка вкладки левого меню
+            $data['active'] = AdminLeftMenuItems::MENU_USERS; // подсветка вкладки левого меню
             $data['isUserAdmin'] = $this->authService->isUserAdmin();
             $data['styles'] = ['users.css'];
             $data['jss'] = ['users.js'];
@@ -47,7 +47,7 @@ class AdminUsersController extends BaseAdminController
             // Добавляем данные для шаблона
             $data['adminRoute'] = $this->getAdminRoute();
             $data['user_name'] = $userName;
-            $data['active'] = "users"; // подсветка вкладки левого меню
+            $data['active'] = AdminLeftMenuItems::MENU_USERS; // подсветка вкладки левого меню
             $data['isUserAdmin'] = $this->authService->isUserAdmin();
             $data['styles'] = ['users.css'];
             $data['jss'] = ['users.js'];

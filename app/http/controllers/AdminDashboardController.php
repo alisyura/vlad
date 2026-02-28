@@ -25,7 +25,7 @@ class AdminDashboardController extends BaseAdminController
                 'adminRoute' => $this->getAdminRoute(),
                 'user_name' => $userName,
                 'title' => 'Dashboard',
-                'active' => 'dashboard', // для подсветки в меню
+                'active' => AdminLeftMenuItems::MENU_DASHBOARD, // для подсветки в меню
                 'isUserAdmin' => $this->authService->isUserAdmin(),
                 'posts_count' => $this->model->getPostsCount(),
                 'pages_count' => $this->model->getPagesCount(),

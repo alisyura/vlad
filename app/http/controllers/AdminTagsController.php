@@ -60,7 +60,7 @@ class AdminTagsController extends BaseAdminController
             // Добавляем данные для шаблона
             $data['adminRoute'] = $this->getAdminRoute();
             $data['user_name'] = $userName;
-            $data['active'] = "tags"; // подсветка вкладки левого меню
+            $data['active'] = AdminLeftMenuItems::MENU_TAGS; // подсветка вкладки левого меню
             $data['isUserAdmin'] = $this->authService->isUserAdmin();
             $data['createFormTitle'] = $createFormTitle;
             $data['createButtonTitle'] = $createButtonTitle;
@@ -103,7 +103,7 @@ class AdminTagsController extends BaseAdminController
             $data['adminRoute'] = $this->getAdminRoute();
             $data['user_name'] = $userName;
             $data['editFormTitle'] = $editFormTitle;
-            $data['active'] = "tags"; // подсветка вкладки левого меню
+            $data['active'] = AdminLeftMenuItems::MENU_TAGS; // подсветка вкладки левого меню
             $data['isUserAdmin'] = $this->authService->isUserAdmin();
             $data['styles'] = ['taxonomy.css'];
             $data['jss'] = ['taxonomy.js'];

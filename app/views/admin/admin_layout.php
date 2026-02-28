@@ -57,45 +57,45 @@
                     <ul class="nav flex-column">
                         <li class="nav-item">
                             <a class="nav-link <?= ($active ?? '') === 'dashboard' ? 'active' : '' ?>" 
-                               href="/<?= $adminRoute ?>/dashboard">
+                               href="/<?= $adminRoute ?>/<?= AdminLeftMenuItems::MENU_DASHBOARD ?>">
                                 Dashboard
                             </a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link <?= ($active ?? '') === 'posts' ? 'active' : '' ?>" 
-                               href="/<?= $adminRoute ?>/posts">
+                               href="/<?= $adminRoute ?>/<?= AdminLeftMenuItems::MENU_POSTS ?>">
                                 Посты
                             </a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link <?= ($active ?? '') === 'pages' ? 'active' : '' ?>" 
-                               href="/<?= $adminRoute ?>/pages">
+                               href="/<?= $adminRoute ?>/<?= AdminLeftMenuItems::MENU_PAGES ?>">
                                 Страницы
                             </a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link <?= ($active ?? '') === 'tags' ? 'active' : '' ?>" 
-                               href="/<?= $adminRoute ?>/taxonomy/tags">
+                               href="/<?= $adminRoute ?>/taxonomy/<?= AdminLeftMenuItems::MENU_TAGS ?>">
                                 Тэги
                             </a>
                         </li>
                         <?php if ($isUserAdmin): ?>
                             <li class="nav-item">
                                 <a class="nav-link <?= ($active ?? '') === 'users' ? 'active' : '' ?>" 
-                                href="/<?= $adminRoute ?>/users">
+                                href="/<?= $adminRoute ?>/<?= AdminLeftMenuItems::MENU_USERS ?>">
                                     Пользователи
                                 </a>
                             </li>
                         <?php endif ?>
                         <li class="nav-item">
                             <a class="nav-link <?= ($active ?? '') === 'mediateka' ? 'active' : '' ?>" 
-                               href="/<?= $adminRoute ?>/mediateka">
+                               href="/<?= $adminRoute ?>/<?= AdminLeftMenuItems::MENU_MEDIATEKA ?>">
                                 Медиатека изображений
                             </a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link <?= ($active ?? '') === 'settings' ? 'active' : '' ?>" 
-                               href="/<?= $adminRoute ?>/settings">
+                               href="/<?= $adminRoute ?>/<?= AdminLeftMenuItems::MENU_SETTINGS ?>">
                                 Настройки
                             </a>
                         </li> 
