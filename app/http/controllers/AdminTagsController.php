@@ -3,20 +3,20 @@
 
 class AdminTagsController extends BaseAdminController
 {
-    private TagsModel $tagsModel;
     private AuthService $authService;
     private PaginationService $paginService;
-    private TagService $tagService;
+    private TaxonomyService $taxonomyService;
+    private RobotsList $robotsList;
 
     public function __construct(Request $request, View $view, AuthService $authService, 
-        TagsModel $tagsModel, PaginationService $paginService, 
-        ResponseFactory $responseFactory, TagService $tagService)
+        PaginationService $paginService, RobotsList $robotsList,
+        ResponseFactory $responseFactory, TaxonomyService $taxonomyService)
     {
         parent::__construct($request, $view, $responseFactory);
-        $this->tagsModel = $tagsModel;
         $this->paginService = $paginService;
         $this->authService = $authService;
-        $this->tagService = $tagService;
+        $this->taxonomyService = $taxonomyService;
+        $this->robotsList = $robotsList;
     }
 
     public function list($currentPage = 1, $taxonomyType = TaxonomyTypes::TAXONOMY_TAGS): Response
@@ -31,14 +31,14 @@ class AdminTagsController extends BaseAdminController
             $basePageUrl=$this->getRequest()->getBasePageUrl();
 
             $paginParams = $this->paginService->calculatePaginationParams($itemsPerPage, $currentPage,
-                $this->tagsModel->getTotalTagsCount(), $basePageUrl);
+                $this->taxonomyService->getTotalTaxonomiesCount(), $basePageUrl);
             
             ['totalPages' => $totalPages, 
                 'offset' => $offset, 
                 'paginationLinks' => $paginationLinks] = $paginParams;
 
             // Получаем посты для текущей страницы
-            $data['taxonomies'] = $this->tagsModel->getTagsWithPostCount($itemsPerPage, $offset);
+            $data['taxonomies'] = $this->taxonomyService->getTaxonomiesWithPostCount($itemsPerPage, $offset);
 
             $createFormTitle = match($taxonomyType) {
                 TaxonomyTypes::TAXONOMY_TAGS => 'Создать новый тэг',
@@ -75,12 +75,7 @@ class AdminTagsController extends BaseAdminController
             $data['base_page_url'] = $basePageUrl;
             $data['styles'] = ['taxonomy.css'];
             $data['jss'] = ['taxonomy.js'];
-            $data['robotsList'] = [
-                    'noindex, follow', 
-                    'noindex, nofollow', 
-                    'index, follow', 
-                    'index, nofollow'
-                ];
+            $data['robotsList'] = $this->robotsList->getRobotsList();
 
             return $this->renderHtml('admin/taxonomy/list.php', $data);
         } catch(Throwable $e) {
@@ -108,14 +103,9 @@ class AdminTagsController extends BaseAdminController
             $data['styles'] = ['taxonomy.css'];
             $data['jss'] = ['taxonomy.js'];
             
-            $data['taxonomyToEdit'] = $this->tagService->getTag(id: $tagId);
+            $data['taxonomyToEdit'] = $this->taxonomyService->getTag(id: $tagId);
             $data['taxonomyType'] = $taxonomyType;
-            $data['robotsList'] = [
-                    'noindex, follow', 
-                    'noindex, nofollow', 
-                    'index, follow', 
-                    'index, nofollow'
-                ];
+            $data['robotsList'] = $this->robotsList->getRobotsList();
 
             return $this->renderHtml('admin/taxonomy/edit.php', $data);
         } catch(Throwable $e) {

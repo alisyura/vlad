@@ -1,8 +1,8 @@
 <?php
 
-// app/services/TagService.php
+// app/services/TaxonomyService.php
 
-class TagService
+class TaxonomyService
 {
     private TagsModel $tagModel;
     private AdminSeoSettingsService $seoService;
@@ -16,6 +16,16 @@ class TagService
         $this->tagModel = $tagModel;
         $this->seoService = $seoService;
         $this->db = $db;
+    }
+
+    public function getTotalTaxonomiesCount(): int
+    {
+        return $this->tagModel->getTotalTagsCount();
+    }
+
+    public function getTaxonomiesWithPostCount(int $limit, int $offset): array
+    {
+        return $this->tagModel->getTagsWithPostCount($limit, $offset);
     }
 
     /**

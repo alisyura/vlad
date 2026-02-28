@@ -2,16 +2,6 @@
 
 class PostController extends BaseController {
     /**
-     * Тип контента пост
-     */
-    private const ARTICLE_POST = 'post';
-
-    /**
-     * Тип контента страница
-     */
-    private const ARTICLE_PAGE = 'page';
-
-    /**
      * Экземпляр модели
      */
     private PostModelClient $model;
@@ -27,9 +17,9 @@ class PostController extends BaseController {
     private SettingsService $settingsService;
 
     /**
-     * Сервис для получения данных тэга
+     * Сервис для получения данных таксономий
      */
-    private TagService $tagService;
+    private TaxonomyService $taxonomyService;
 
     /**
      * Конструктор класса PostController.
@@ -40,35 +30,36 @@ class PostController extends BaseController {
      * @param ResponseFactory $responseFactory Фабрика для создания объектов Response, внедряемая через Dependency Injection.
      * @param PaginationService $paginService Сервис для вычисления параметров пагинации, внедряется через Dependency Injection.
      * @param SettingsService $settingsService Сервис для получения сео настроек, внедряется через Dependency Injection.
+     * @param TaxonomyService $taxonomyService Сервис для получения таксономий, внедряется через Dependency Injection.
      */
     public function __construct(Request $request, View $view, PostModelClient $postModel,
         ResponseFactory $responseFactory, PaginationService $paginService, 
-        SettingsService $settingsService, TagService $tagService)
+        SettingsService $settingsService, TaxonomyService $taxonomyService)
     {
         parent::__construct($request, $view, $responseFactory);
         $this->model = $postModel;
         $this->paginService = $paginService;
         $this->settingsService = $settingsService;
-        $this->tagService = $tagService;
+        $this->taxonomyService = $taxonomyService;
     }
 
     /*
     * Страница post
     */
     public function showPost($post_url): Response {
-        return $this->showContent($post_url, self::ARTICLE_POST);
+        return $this->showContent($post_url, ArticleTypes::ARTICLE_POST);
     }
 
     /*
     * Страница page
     */
     public function showPage($page_url): Response {
-        return $this->showContent($page_url, self::ARTICLE_PAGE);
+        return $this->showContent($page_url, ArticleTypes::ARTICLE_PAGE);
     }
 
-    private function showContent($url, $type = self::ARTICLE_POST): Response {
+    private function showContent($url, $type = ArticleTypes::ARTICLE_POST): Response {
         try {
-            if ($type === self::ARTICLE_POST) {
+            if ($type === ArticleTypes::ARTICLE_POST) {
                 $content = $this->model->getPostByUrl($url);
                 $notFoundMessage = 'Пост не найден';
                 $errorMessage = 'Ошибка при открытии поста';
@@ -108,7 +99,7 @@ class PostController extends BaseController {
                 'tags' => $this->getCombinedTags($content)
             ];
             
-            if ($type === self::ARTICLE_POST) {
+            if ($type === ArticleTypes::ARTICLE_POST) {
                 $ogParams['category'] = $content['category_name'] ?? null;
             }
             
@@ -133,7 +124,7 @@ class PostController extends BaseController {
                 ]
             ];
 
-            if ($type === self::ARTICLE_POST && isset($content['image'])) {
+            if ($type === ArticleTypes::ARTICLE_POST && isset($content['image'])) {
                 $renderParams['post_image'] = sprintf("%s%s", $baseUrl, $content['image']);
             }
 
@@ -393,7 +384,7 @@ class PostController extends BaseController {
                     'image' => $baseUrl . asset('pic/logo.png')
                 ], $this->getRequest());
 
-            $tagInfo = $this->tagService->getTag(url: $tag_url);
+            $tagInfo = $this->taxonomyService->getTag(url: $tag_url);
             $robots = $tagInfo['robots'] ?? 'noindex, follow';
 
             $contentData = [

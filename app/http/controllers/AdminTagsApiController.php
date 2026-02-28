@@ -4,15 +4,17 @@
 class AdminTagsApiController extends BaseAdminController
 {
     private TagsModel $tagsModel;
-    private TagService $tagService;
+    private TaxonomyService $taxonomyService;
+    private RobotsList $robotsList;
 
     public function __construct(Request $request, TagsModel $tagsModel, 
         ?View $view = null, ResponseFactory $responseFactory,
-        TagService $tagService)
+        TaxonomyService $taxonomyService, RobotsList $robotsList)
     {
         parent::__construct($request, $view, $responseFactory);
         $this->tagsModel = $tagsModel;
-        $this->tagService = $tagService;
+        $this->taxonomyService = $taxonomyService;
+        $this->robotsList = $robotsList;
     }
 
     /**
@@ -64,18 +66,13 @@ class AdminTagsApiController extends BaseAdminController
             }
 
             $inputJson['robots'] = $inputJson['robots'] ?? 'noindex, follow';
-            $robotsAllowedValues = ['noindex, follow', 
-                    'noindex, nofollow', 
-                    'index, follow', 
-                    'index, nofollow'
-                ];
-            if (!in_array($inputJson['robots'], $robotsAllowedValues))
+            if (!$this->robotsList->isValid($inputJson['robots']))
             {
                 throw new HttpException('Некорректное значение robots.', 409, null, HttpException::JSON_RESPONSE);
             }
 
             // Попытка создать тэг
-            if ($this->tagService->createTags([$inputJson])) {
+            if ($this->taxonomyService->createTags([$inputJson])) {
                 return $this->renderJson('Таксономия успешно создана.');
             } else {
                 throw new HttpException('Не удалось создать таксономию.', 500);
@@ -99,7 +96,7 @@ class AdminTagsApiController extends BaseAdminController
         $inputJson = $this->getRequest()->getJson();
 
         try {
-            $tag = $this->tagService->getTag(id: $taxonomyId);
+            $tag = $this->taxonomyService->getTag(id: $taxonomyId);
             if (empty($tag))
             {
                 throw new HttpException('Таксономия не найдена.', 404, null, HttpException::JSON_RESPONSE);
@@ -114,12 +111,7 @@ class AdminTagsApiController extends BaseAdminController
             }
 
             $inputJson['robots'] = $inputJson['robots'] ?? 'noindex, follow';
-            $robotsAllowedValues = ['noindex, follow', 
-                    'noindex, nofollow', 
-                    'index, follow', 
-                    'index, nofollow'
-                ];
-            if (!in_array($inputJson['robots'], $robotsAllowedValues))
+            if (!$this->robotsList->isValid($inputJson['robots']))
             {
                 throw new HttpException('Некорректное значение robots.', 409, null, HttpException::JSON_RESPONSE);
             }
@@ -137,7 +129,7 @@ class AdminTagsApiController extends BaseAdminController
             ];
 
             // Обновляем данные пользователя в базе данных
-            $this->tagService->updateTags([$updateData]);
+            $this->taxonomyService->updateTags([$updateData]);
 
             return $this->renderJson('Таксономия успешно обновлена.');
         } catch(Throwable $e) {
@@ -158,7 +150,7 @@ class AdminTagsApiController extends BaseAdminController
     {
         try {
             // Обновляем статус пользователя в базе данных
-            $this->tagService->deleteTags([$tagId]);
+            $this->taxonomyService->deleteTags([$tagId]);
 
             return $this->renderJson('Таксономия успешно удалена.');
         } catch(Throwable $e) {

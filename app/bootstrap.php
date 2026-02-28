@@ -97,6 +97,8 @@ $container->bind(RedirectResponse::class, RedirectResponse::class);
 $container->bind(TextResponse::class, TextResponse::class);
 $container->bind(XmlResponse::class, XmlResponse::class);
 
+$container->bind(RobotsService::class, RobotsService::class);
+
 $container->bind(App\Framework\Database\QueryBuilder::class, App\Framework\Database\QueryBuilder::class);
 
 if (Config::get('remoterestapi.EnableRestApi'))

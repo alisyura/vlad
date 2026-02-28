@@ -9,11 +9,12 @@ class AdminPostsController extends BaseAdminController
     private ListModel $listmodel;
     private AuthService $authService;
     private PaginationService $pageinationService;
+    private RobotsList $robotsList;
 
     public function __construct(
         Request $request, 
         View $view, 
-        PostModelAdmin $model,
+        PostModelAdmin $model, RobotsList $robotsList,
         ListModel $listmodel, 
         AuthService $authService, 
         PaginationService $pageinationService, ResponseFactory $responseFactory)
@@ -23,6 +24,7 @@ class AdminPostsController extends BaseAdminController
         $this->listmodel = $listmodel;
         $this->authService = $authService;
         $this->pageinationService = $pageinationService;
+        $this->robotsList = $robotsList;
     }
     /**
      * Отображает список постов/страниц в админ-панели с пагинацией.
@@ -273,12 +275,7 @@ class AdminPostsController extends BaseAdminController
                 'is_new_post' => true,
                 'categories' => $this->listmodel->getAllCategories(),
                 'tags' => $this->listmodel->getAllTags(),
-                'robotsList' => [
-                    'index, follow',
-                    'noindex, follow', 
-                    'noindex, nofollow',
-                    'index, nofollow'
-                ],
+                'robotsList' => $this->robotsList->getRobotsList(false),
                 'returnToListUrl' => [
                     'url' => $returnToListUrl,
                     'title' => $returnToListTitle
@@ -377,12 +374,7 @@ class AdminPostsController extends BaseAdminController
                 'tags' => $this->listmodel->getAllTags(),
                 'is_new_post' => $postData['status'] == PostModelAdmin::STATUS_PENDING,
                 'formAction' => $formAction,
-                'robotsList' => [
-                    'index, follow',
-                    'noindex, follow', 
-                    'noindex, nofollow',
-                    'index, nofollow'
-                ],
+                'robotsList' => $this->robotsList->getRobotsList(false),
                 'returnToListUrl' => [
                         'url' => $returnToListUrl,
                         'title' => $returnToListTitle

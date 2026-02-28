@@ -2,7 +2,13 @@
 
 class ArticleTypes
 {
+    /**
+     * Тип контента пост
+     */
     public const ARTICLE_POST = 'post';
+    /**
+     * Тип контента страница
+     */
     public const ARTICLE_PAGE = 'page';
 
     private const ARTICLES = [
