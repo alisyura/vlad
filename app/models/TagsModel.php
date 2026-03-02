@@ -41,9 +41,16 @@ class TagsModel extends BaseModel {
      *
      * @return int
      */
-    public function getTotalTagsCount(): int
+    public function getTotalTaxonomiesCount($taxonomyType): int
     {
-        $sql = "SELECT COUNT(*) FROM tags";
+        // Проверяем, что это валидная таксономия
+        if (!TaxonomyRegistry::isValid($taxonomyType)) {
+            throw new InvalidArgumentException('Invalid taxonomy type');
+        }
+        
+        $tableName = TaxonomyRegistry::getTableName($taxonomyType);
+
+        $sql = "SELECT COUNT(*) FROM {$tableName}";
         $stmt = $this->db->prepare($sql);
         $stmt->execute();
         return (int) $stmt->fetchColumn();
@@ -58,8 +65,17 @@ class TagsModel extends BaseModel {
      * @return array Массив ассоциативных массивов с данными тегов.
      * Пример: [['id' => '1', 'url' => 'php', 'name' => 'PHP', 'post_count' => 15], ...]
      */
-    public function getTagsWithPostCount(int $limit, int $offset): array
+    public function getTaxonomiesWithPostCount(int $limit, int $offset, $taxonomyType): array
     {
+        // Проверяем, что это валидная таксономия
+        if (!TaxonomyRegistry::isValid($taxonomyType)) {
+            throw new InvalidArgumentException('Invalid taxonomy type');
+        }
+        
+        $tableName = TaxonomyRegistry::getTableName($taxonomyType);
+        $linkTableName = TaxonomyRegistry::getLinkTableName($taxonomyType);
+        $idFieldName = TaxonomyRegistry::getIdFieldName($taxonomyType);
+
         $sql = "
             SELECT
                 t.id,
@@ -68,9 +84,9 @@ class TagsModel extends BaseModel {
                 COUNT(p_t.post_id) AS post_count,
                 t.builtin
             FROM
-                tags t
+                {$tableName} t
             LEFT JOIN
-                post_tag p_t ON t.id = p_t.tag_id
+                {$linkTableName} p_t ON t.id = p_t.{$idFieldName}
             GROUP BY
                 t.id
             ORDER BY
@@ -397,7 +413,7 @@ class TagsModel extends BaseModel {
     public function deleteTags(array $tagIds): void
     {
         if (empty($tagIds)) {
-            throw new TagsException('deleteTags. tagIds empty');
+            throw new TaxonomyException('deleteTags. tagIds empty');
         }
 
         $this->db->beginTransaction();

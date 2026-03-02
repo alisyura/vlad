@@ -1,10 +1,10 @@
 <?php
-// app/exceptions/TagsException.php
+// app/exceptions/TaxonomyException.php
 
-class TagsException extends Exception
+class TaxonomyException extends Exception
 {
     /**
-     * Конструктор класса TagsException.
+     * Конструктор класса TaxonomyException.
      * @param string $message Сообщение об ошибке.
      * @param int $code Код ошибки
      * @param Throwable|null $previous Предыдущее исключение, если есть.

@@ -19,7 +19,7 @@ class AdminTaxonomyController extends BaseAdminController
         $this->robotsList = $robotsList;
     }
 
-    public function list($currentPage = 1, $taxonomyType = TaxonomyTypes::TAXONOMY_TAGS): Response
+    public function list($currentPage = 1, $taxonomyType): Response
     {
         $userName = $this->authService->getUserName();
 
@@ -31,30 +31,30 @@ class AdminTaxonomyController extends BaseAdminController
             $basePageUrl=$this->getRequest()->getBasePageUrl();
 
             $paginParams = $this->paginService->calculatePaginationParams($itemsPerPage, $currentPage,
-                $this->taxonomyService->getTotalTaxonomiesCount(), $basePageUrl);
+                $this->taxonomyService->getTotalTaxonomiesCount($taxonomyType), $basePageUrl);
             
             ['totalPages' => $totalPages, 
                 'offset' => $offset, 
                 'paginationLinks' => $paginationLinks] = $paginParams;
 
             // Получаем посты для текущей страницы
-            $data['taxonomies'] = $this->taxonomyService->getTaxonomiesWithPostCount($itemsPerPage, $offset);
+            $data['taxonomies'] = $this->taxonomyService->getTaxonomiesWithPostCount($itemsPerPage, $offset, $taxonomyType);
 
             $createFormTitle = match($taxonomyType) {
-                TaxonomyTypes::TAXONOMY_TAGS => 'Создать новый тэг',
-                TaxonomyTypes::TAXONOMY_CATEGORIES => 'Создать новую категорию'
+                TagsTaxonomy::getId() => 'Создать новый тэг',
+                CategoriesTaxonomy::getId() => 'Создать новую категорию'
             };
             $createButtonTitle = match($taxonomyType) {
-                TaxonomyTypes::TAXONOMY_TAGS => 'Создать тэг',
-                TaxonomyTypes::TAXONOMY_CATEGORIES => 'Создать категорию'
+                TagsTaxonomy::getId() => 'Создать тэг',
+                CategoriesTaxonomy::getId() => 'Создать категорию'
             };
             $taxonomyListTitle = match($taxonomyType) {
-                TaxonomyTypes::TAXONOMY_TAGS => 'Список тэгов',
-                TaxonomyTypes::TAXONOMY_CATEGORIES => 'Список категорий'
+                TagsTaxonomy::getId() => 'Список тэгов',
+                CategoriesTaxonomy::getId() => 'Список категорий'
             };
             $taxonomyNotFoundMsg = match($taxonomyType) {
-                TaxonomyTypes::TAXONOMY_TAGS => 'Тэги не найдены.',
-                TaxonomyTypes::TAXONOMY_CATEGORIES => 'Категории не найдены.'
+                TagsTaxonomy::getId() => 'Тэги не найдены.',
+                CategoriesTaxonomy::getId() => 'Категории не найдены.'
             };
 
             // Добавляем данные для шаблона
@@ -84,14 +84,14 @@ class AdminTaxonomyController extends BaseAdminController
         }
     }
 
-    public function edit(int $tagId, $taxonomyType = TaxonomyTypes::TAXONOMY_TAGS): Response
+    public function edit(int $tagId, $taxonomyType): Response
     {
         $userName = $this->authService->getUserName();
 
         try {
             $editFormTitle = match($taxonomyType) {
-                TaxonomyTypes::TAXONOMY_TAGS => 'Редактирование тэга',
-                TaxonomyTypes::TAXONOMY_CATEGORIES => 'Редактирование категории'
+                TagsTaxonomy::getId() => 'Редактирование тэга',
+                CategoriesTaxonomy::getId() => 'Редактирование категории'
             };
 
             // Добавляем данные для шаблона

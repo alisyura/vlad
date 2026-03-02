@@ -18,14 +18,18 @@ class TaxonomyService
         $this->db = $db;
     }
 
-    public function getTotalTaxonomiesCount(): int
+    public function getTotalTaxonomiesCount(string $taxonomyType): int
     {
-        return $this->tagModel->getTotalTagsCount();
+        return $this->tagModel->getTotalTaxonomiesCount($taxonomyType);
     }
 
-    public function getTaxonomiesWithPostCount(int $limit, int $offset): array
+    public function getTaxonomiesWithPostCount(int $limit, int $offset, string $taxonomyType): array
     {
-        return $this->tagModel->getTagsWithPostCount($limit, $offset);
+        if (empty($taxonomyType))
+        {
+            throw new TaxonomyException('taxonomyType is empty');
+        }
+        return $this->tagModel->getTaxonomiesWithPostCount($limit, $offset, $taxonomyType);
     }
 
     /**
@@ -82,7 +86,7 @@ class TaxonomyService
             
         } catch (\Exception $e) {
             $this->db->rollBack();
-            throw new TagsException("Ошибка создания тегов: " . $e->getMessage());
+            throw new TaxonomyException("Ошибка создания тегов: " . $e->getMessage());
         }
     }
 
@@ -92,7 +96,7 @@ class TaxonomyService
     public function updateTags(array $tagsData): void
     {
         if (empty($tagsData)) {
-            throw new TagsException('tagsData empty');
+            throw new TaxonomyException('tagsData empty');
         }
 
         $this->db->beginTransaction();
@@ -116,7 +120,7 @@ class TaxonomyService
             
         } catch (\Exception $e) {
             $this->db->rollBack();
-            throw new TagsException("Ошибка обновления тегов: " . $e->getMessage());
+            throw new TaxonomyException("Ошибка обновления тегов: " . $e->getMessage());
         }
     }
 
@@ -127,7 +131,7 @@ class TaxonomyService
 
         if (!empty($filteredTags))
         {
-            throw new TagsException('Нельзя удалить встроенные тэги');
+            throw new TaxonomyException('Нельзя удалить встроенные тэги');
         }
 
         $this->tagModel->deleteTags($tagIds);

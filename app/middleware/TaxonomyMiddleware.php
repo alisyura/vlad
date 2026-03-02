@@ -36,7 +36,7 @@ class TaxonomyMiddleware implements MiddlewareInterface
         // taxonomy находится после /eryfbh/ и перед /api/create
         $taxonomy = $parts[2] ?? null;
         
-        if (!$taxonomy || !TaxonomyTypes::isValid($taxonomy)) {
+        if (!$taxonomy || !TaxonomyRegistry::isValid($taxonomy)) {
             throw new HttpException(
                 'Неизвестная таксономия',
                 404,
