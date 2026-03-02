@@ -78,8 +78,8 @@ $container->bind(ListModel::class, ListModel::class);
 $container->bind(AdminMediaModel::class, AdminMediaModel::class);
 $container->bind(AdminPostsApiController::class, AdminPostsApiController::class);
 $container->bind(AdminPostsApiService::class, AdminPostsApiService::class);
-$container->bind(AdminTagsController::class, AdminTagsController::class);
-$container->bind(AdminTagsApiController::class, AdminTagsApiController::class);
+$container->bind(AdminTaxonomyController::class, AdminTaxonomyController::class);
+$container->bind(AdminTaxonomyApiController::class, AdminTaxonomyApiController::class);
 $container->bind(AdminUsersController::class, AdminUsersController::class);
 $container->bind(AdminUsersApiController::class, AdminUsersApiController::class);
 $container->bind(AdminSettingsController::class, AdminSettingsController::class);
@@ -97,7 +97,7 @@ $container->bind(RedirectResponse::class, RedirectResponse::class);
 $container->bind(TextResponse::class, TextResponse::class);
 $container->bind(XmlResponse::class, XmlResponse::class);
 
-$container->bind(RobotsService::class, RobotsService::class);
+$container->bind(RobotsList::class, RobotsList::class);
 
 $container->bind(App\Framework\Database\QueryBuilder::class, App\Framework\Database\QueryBuilder::class);
 

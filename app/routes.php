@@ -260,14 +260,14 @@ $router->addRoute("/$adminRoute/media/api/delete-img",
 // Открыть форму списка тэгов
 $router->addRoute("/$adminRoute/taxonomy/([a-z]+)(?:/p(\d+))?", 
     function(Container $container, string $taxonomy, $page = 1): Response {
-        $controller = $container->make(AdminTagsController::class);
+        $controller = $container->make(AdminTaxonomyController::class);
         return $controller->list($page, $taxonomy);
 }, ['UserAuthenticatedMiddleware']);
 
 // Открыть форму редактирование тэга
 $router->addRoute("/$adminRoute/taxonomy/([a-z]+)/edit/(\d+)", 
     function(Container $container, string $taxonomy, $tagId): Response {
-        $controller = $container->make(AdminTagsController::class);
+        $controller = $container->make(AdminTaxonomyController::class);
         return $controller->edit($tagId, $taxonomy);
 }, ['UserAuthenticatedMiddleware']);
 
@@ -277,28 +277,28 @@ $router->addRoute("/$adminRoute/taxonomy/([a-z]+)/edit/(\d+)",
 // Поиск тэгов по имени (автодополнение при создании поста/страницы)
 $router->addRoute("/$adminRoute/tags/api/search", 
     function(Container $container): Response {
-        $controller = $container->make(AdminTagsApiController::class);
+        $controller = $container->make(AdminTaxonomyApiController::class);
         return $controller->searchTags();
 }, ['UserAuthenticatedMiddleware', 'AjaxMiddleware', 'CsrfMiddleware'], ['method' => 'POST']);
 
 // Создание нового тэга
 $router->addRoute("/$adminRoute/taxonomy/([a-z]+)/api/create", 
     function(Container $container, string $taxonomy): Response {
-        $controller = $container->make(AdminTagsApiController::class);
+        $controller = $container->make(AdminTaxonomyApiController::class);
         return $controller->create($taxonomy);
 }, ['UserAuthenticatedMiddleware', 'AjaxMiddleware', 'CsrfMiddleware', 'TaxonomyMiddleware'], ['method' => 'POST']);
 
 // Редактирование тэга
 $router->addRoute("/$adminRoute/taxonomy/([a-z]+)/api/edit/(\d+)", 
     function(Container $container, string $taxonomy, $tagId): Response {
-        $controller = $container->make(AdminTagsApiController::class);
+        $controller = $container->make(AdminTaxonomyApiController::class);
         return $controller->edit($tagId, $taxonomy);
 }, ['UserAuthenticatedMiddleware', 'AjaxMiddleware', 'CsrfMiddleware', 'TaxonomyMiddleware'], ['method' => 'PUT']);
 
 // Удаление тэга
 $router->addRoute("/$adminRoute/taxonomy/([a-z]+)/api/delete/(\d+)", 
     function(Container $container, string $taxonomy, $tagId): Response {
-        $controller = $container->make(AdminTagsApiController::class);
+        $controller = $container->make(AdminTaxonomyApiController::class);
         return $controller->delete($tagId, $taxonomy);
 }, ['UserAuthenticatedMiddleware', 'AjaxMiddleware', 'CsrfMiddleware', 'TaxonomyMiddleware'], ['method' => 'DELETE']);
 

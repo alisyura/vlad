@@ -1,7 +1,7 @@
 <?php
 // app/controllers/AdminTagsApiController.php
 
-class AdminTagsApiController extends BaseAdminController
+class AdminTaxonomyApiController extends BaseAdminController
 {
     private TagsModel $tagsModel;
     private TaxonomyService $taxonomyService;

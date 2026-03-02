@@ -1,7 +1,7 @@
 <?php
 // app/controllers/AdminTagsController.php
 
-class AdminTagsController extends BaseAdminController
+class AdminTaxonomyController extends BaseAdminController
 {
     private AuthService $authService;
     private PaginationService $paginService;
