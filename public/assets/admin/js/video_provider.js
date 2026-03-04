@@ -11,14 +11,11 @@ class BaseVideoProvider {
     }
 
     wrap(iframe) { 
-        const styledIframe = iframe.replace('<iframe', '<iframe style="position:absolute;top:0;left:0;width:100%;height:100%;border:0;"');
+        // Подгоняем видео под 16/9.
+        // Если формат отличается, добавляются черные полосы
+        const styledIframe = iframe.replace('<iframe', '<iframe style="width: 100%; height: auto; aspect-ratio: 16/9; object-fit: contain; background: black; border:0;"');
     
-        return `
-            <div class="video-outer-container" style="width:100%; max-width:100%; margin:1.5rem 0;">
-                <div class="video-ratio-box" style="position:relative; padding-bottom:56.25%; height:0; overflow:hidden; background:#000;">
-                    ${styledIframe}
-                </div>
-            </div>`;
+        return styledIframe;
     }
 }
 

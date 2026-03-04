@@ -61,11 +61,6 @@ document.addEventListener('DOMContentLoaded', () => {
         autosave_restore_when_empty: true, // восстанавливать, если редактор пуст
         autosave_ask_before_unload: true,  // спрашивать при закрытии вкладки
         
-        content_style: `
-            body { font-family: sans-serif; font-size: 16px; padding: 10px; }
-            .video-outer-container { width: 100%; display: block; }
-            .video-ratio-box { background: #000; }
-        `,
         paste_as_text: true,
         paste_data_images: false, // Чтобы не вставляли картинки мимо медиатеки
         setup: function(editor) {
