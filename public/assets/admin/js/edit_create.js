@@ -6,6 +6,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const postForm = document.querySelector('form');
     const postContentTextarea = document.getElementById('postContent');
 
+    const postDateInput = document.querySelector('#post_date')?.value || '';
+    new DropDownCalendar(postDateInput);
+
     // CSRF-токен берётся только из meta-тега.
     const csrfToken = document.querySelector('meta[name="csrf_token"]')?.content;
 

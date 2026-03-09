@@ -27,6 +27,7 @@ class AdminPostsApiService
         $title = trim($postData['title'] ?? '');
         $content = $postData['content'] ?? '';
         $url = transliterate($postData['url'] ?? '');
+        $postDate = transliterate($postData['post_date'] ?? '');
         $status = $postData['status'] ?? 'draft';
         $metaTitle = trim($postData['meta_title'] ?? '');
         $metaDescription = trim($postData['meta_description'] ?? '');
@@ -43,11 +44,12 @@ class AdminPostsApiService
         return [
             'postId' => $postId, 'urlChangeable' => $urlChangeable, 
             'articleType' => $articleType, 'title' => $title, 
-            'content' => $content, 'url' => $url, 'status' => $status,
-            'metaTitle' => $metaTitle, 'metaDescription' => $metaDescription,
-            'metaKeywords' => $metaKeywords, 'excerpt' => $excerpt, 
-            'selectedCategories' => $selectedCategories, 'comment' => $comment,
-            'tagsString' => $tagsString, 'thumbnailUrl' => $thumbnailUrl];
+            'content' => $content, 'url' => $url, 'postDate' => $postDate, 
+            'status' => $status, 'metaTitle' => $metaTitle, 
+            'metaDescription' => $metaDescription, 'metaKeywords' => $metaKeywords, 
+            'excerpt' => $excerpt, 'selectedCategories' => $selectedCategories, 
+            'comment' => $comment, 'tagsString' => $tagsString, 
+            'thumbnailUrl' => $thumbnailUrl];
     }
 
     public function createArticle(array $postData, string $articleType): int
@@ -59,6 +61,7 @@ class AdminPostsApiService
 
         ['title' => $title, 
         'content' => $content, 'url' => $url, 'status' => $status,
+        'postDate' => $postDate,
         'metaTitle' => $metaTitle, 'metaDescription' => $metaDescription,
         'metaKeywords' => $metaKeywords, 'excerpt' => $excerpt, 
         'selectedCategories' => $selectedCategories, 'comment' => $comment,
@@ -78,12 +81,15 @@ class AdminPostsApiService
             throw new UserDataException('Неверно заполнены поля.', $errors, 400);
         }
 
+        $postDate = $postDate ?? date('d-m-Y');
+        $mysqlDate = $this->convertToMysqlDate($postDate);
             
         $userId = $this->authService->getUserId();
         $dataForModel = [
             'user_id' => $userId,
             'article_type' => $articleType,
             'status' => $status,
+            'postDate' => $mysqlDate,
             'title' => $title,
             'content' => $content,
             'url' => $url,
@@ -110,6 +116,7 @@ class AdminPostsApiService
         ['postId' => $postId, 'urlChangeable' => $urlChangeable, 
         'url' => $url, 'title' => $title, 
         'content' => $content, 'status' => $status,
+        'postDate' => $postDate,
         'metaTitle' => $metaTitle, 'metaDescription' => $metaDescription,
         'metaKeywords' => $metaKeywords, 'excerpt' => $excerpt, 
         'selectedCategories' => $selectedCategories, 'comment' => $comment,
@@ -131,6 +138,9 @@ class AdminPostsApiService
             throw new UserDataException('Неверно заполнены поля.', $errors, 400);
         }
 
+        $postDate = $postDate ?? date('d-m-Y');
+        $mysqlDate = $this->convertToMysqlDate($postDate);
+
         $userId = $this->authService->getUserId();
         $dataForModel = [
             'user_id' => $userId,
@@ -138,6 +148,7 @@ class AdminPostsApiService
             'url' => $url,
             'article_type' => $articleType,
             'status' => $status,
+            'postDate' => $mysqlDate,
             'title' => $title,
             'content' => $content,
             'meta_title' => $metaTitle,
@@ -256,5 +267,20 @@ class AdminPostsApiService
         }
 
         return $this->model->hardDeletePost($postId, $articleType);
+    }
+
+    private function convertToMysqlDate($postDate): string
+    {
+        // Преобразуем
+        $dateTime = DateTime::createFromFormat('d-m-Y', $postDate);
+
+        if ($dateTime) {
+            $mysqlDate = $dateTime->format('Y-m-d H:i:s');
+        } else {
+            // Если формат неправильный, используем текущую дату
+            $mysqlDate = date('Y-m-d H:i:s');
+        }
+
+        return $mysqlDate;
     }
 }

@@ -55,6 +55,7 @@ class PostModelAdmin extends BaseModel {
                     p.meta_description,
                     p.status,
                     p.article_type,
+                    p.created_at,
                     u.name AS author_name,
                     GROUP_CONCAT(DISTINCT c.id ORDER BY c.name SEPARATOR ',') AS category_ids,
                     GROUP_CONCAT(DISTINCT c.name ORDER BY c.name SEPARATOR ';;') AS category_names,
@@ -132,7 +133,8 @@ class PostModelAdmin extends BaseModel {
                             meta_description = :meta_description,
                             meta_keywords = :meta_keywords,
                             thumbnail_media_id = :thumbnail_media_id,
-                          --  updated_at = :updated_at,
+                            updated_at = :updated_at,
+                            created_at = :created_at,
                             
                             -- УСЛОВНОЕ ОБНОВЛЕНИЕ URL:
                             url = CASE 
@@ -154,7 +156,8 @@ class PostModelAdmin extends BaseModel {
                 ':meta_description' => $postData['meta_description'],
                 ':meta_keywords' => $postData['meta_keywords'],
                 ':thumbnail_media_id' => $thumbnailMediaId,
-                //':updated_at' => date('Y-m-d H:i:s'),
+                ':updated_at' => $postData['postDate'],
+                ':created_at' => $postData['postDate'],
                 ':article_type' => $postData['article_type'],
                 
                 // ПАРАМЕТРЫ ДЛЯ УСЛОВНОГО ОБНОВЛЕНИЯ:
@@ -225,7 +228,7 @@ class PostModelAdmin extends BaseModel {
             if (!empty($postData['thumbnail_url'])) {
                 $thumbnailMediaId = $this->mediaModel->getMediaIdByUrl($postData['thumbnail_url']);
             }
-            
+
             // Исправленный SQL-запрос с учетом правильных названий столбцов
             $sql = "INSERT INTO posts (
                         user_id, article_type, status, title, content, url, 
@@ -249,8 +252,8 @@ class PostModelAdmin extends BaseModel {
                 ':meta_description' => $postData['meta_description'],
                 ':meta_keywords' => $postData['meta_keywords'],
                 ':thumbnail_media_id' => $thumbnailMediaId,
-                ':created_at' => date('Y-m-d H:i:s'),
-                ':updated_at' => date('Y-m-d H:i:s')
+                ':created_at' => $postData['postDate'],
+                ':updated_at' => $postData['postDate']
             ]);
             $postId = $this->db->lastInsertId();
 

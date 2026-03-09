@@ -298,7 +298,7 @@ class PostModelClient {
 
     private function prepareWhereConditions(?string $cat_url, ?int $min_likes): array
     {
-        $clauses = ["p.status = 'published'", "p.article_type = 'post'"];
+        $clauses = ["p.created_at <= NOW()", "p.status = 'published'", "p.article_type = 'post'"];
         $params = [];
 
         if ($cat_url !== null) {

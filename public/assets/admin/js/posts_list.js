@@ -301,77 +301,6 @@ class PostDetailsToggle {
     }
 }
 
-class InitFilters {
-    constructor() {
-        this.initCalendar();
-    }
-
-    initCalendar() {
-        flatpickr("#post_date", {
-            // настройки flatpickr
-            locale: "ru", 
-            dateFormat: "d-m-Y", 
-
-            onOpen: (selectedDates, dateStr, instance) => {
-                
-                // Проверяем, существует ли уже контейнер для кнопок
-                if (!instance.calendarContainer.querySelector('.flatpickr-footer-buttons')) {
-                    
-                    // 1. Создаем общий контейнер для кнопок
-                    const footerContainer = document.createElement('div');
-                    footerContainer.className = 'flatpickr-footer-buttons d-flex mt-2 gap-2';
-                    
-                    // 2. Создаем кнопку "СЕГОДНЯ"
-                    const todayBtn = document.createElement('button');
-                    todayBtn.innerHTML = 'Сегодня';
-                    // w-50 делает кнопку в половину ширины, bg-light выделяет ее
-                    todayBtn.className = 'flatpickr-today-button btn btn-sm btn-outline-primary w-50';
-                    
-                    todayBtn.addEventListener('click', (e) => {
-                        e.preventDefault();
-                        
-                        // Установка на текущий месяц/год (используем setDate, чтобы выбрать дату)
-                        instance.setDate(new Date(), true, instance.config.dateFormat);
-                        
-                        // NOTE: В отличие от предыдущего кода, setDate с параметром true
-                        // автоматически перемещает календарь на нужный месяц
-                        // и выбирает дату. 
-                    });
-                    
-                    // 3. Создаем кнопку "СБРОСИТЬ"
-                    const clearBtn = document.createElement('button');
-                    clearBtn.innerHTML = 'Сбросить';
-                    // w-50 делает кнопку в половину ширины, btn-secondary для нейтрального цвета
-                    clearBtn.className = 'flatpickr-clear-button btn btn-sm btn-outline-secondary w-50';
-                    
-                    clearBtn.addEventListener('click', (e) => {
-                        e.preventDefault();
-                        
-                        // Метод flatpickr.clear() очищает поле и закрывает календарь
-                        instance.clear(); 
-                    });
-                    
-                    // 4. Добавляем кнопки в контейнер
-                    footerContainer.appendChild(todayBtn);
-                    footerContainer.appendChild(clearBtn);
-
-                    // 5. Находим корневой контейнер календаря и добавляем футер
-                    const wrapper = instance.calendarContainer;
-                    if (wrapper) {
-                        wrapper.appendChild(footerContainer);
-                    }
-                }
-            },
-            
-            // NOTE: Добавление onClose может быть полезно для сброса фокуса или других действий
-            onClose: (selectedDates, dateStr, instance) => {
-                // Можно добавить здесь логику, которая срабатывает после выбора даты
-            }
-        });
-    }
-
-}
-
 /**
  * Инициализируем классы, когда DOM-дерево полностью загружено.
  */
@@ -379,5 +308,5 @@ document.addEventListener('DOMContentLoaded', () => {
     new PostSelection();
     new PostDetailsToggle();
     new PostActionsModal();
-    new InitFilters();
+    new DropDownCalendar(null);
 });

@@ -130,7 +130,7 @@ $adminRoute = $data['adminRoute'] ?? 'admin';
 
         <div class="col-md-3">
         <div class="card mb-3">
-                <div class="card-header">Публикация</div>
+            <div class="card-header">Публикация</div>
                 <div class="card-body">
                     <div class="mb-3">
                         <label class="form-label">Статус</label>
@@ -147,6 +147,10 @@ $adminRoute = $data['adminRoute'] ?? 'admin';
                             <label class="form-check-label" for="statusPublished">
                                 Опубликовано
                             </label>
+                        </div><hr>
+                        <div class="col-12 col-md-auto">
+                            <input value="<?= htmlspecialchars($post['created_at'] ?? '') ?>" type="text" id="post_date" name="post_date" class="form-control form-control-sm" placeholder="Дата публикации">
+                            <div class="form-text">Дата публикации</div>
                         </div>
                         <!-- <div class="form-check">
                             <input class="form-check-input" type="radio" name="status" id="statusPending" value="pending"

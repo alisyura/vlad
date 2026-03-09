@@ -218,6 +218,7 @@ class AdminPostsController extends BaseAdminController
                     'https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.js',
                     'https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/l10n/ru.js',
                     'https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/plugins/monthSelect/index.js',
+                    'dropdown_calendar.js',
                     'posts_list.js',
                     'common.js'
                 ]
@@ -283,17 +284,22 @@ class AdminPostsController extends BaseAdminController
                 'formAction' => $formAction,
                 'styles' => [
                     'edit_create.css',
-                    'mediateka.css'
+                    'mediateka.css',
+                    'http' => 'https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.css'
                 ],
                 'jss' => [
                     'absolute' => 'tinymce/tinymce.min.js',
                     'edit_create_tag_selector.js',
                     'medialibrary.js',
-                    'edit_create.js',
                     'video_provider.js',
                     'video_manager.js',
                     'video_embed_processor.js',
                     'edit_create_tinymce_init.js',
+                    'https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.js',
+                    'https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/l10n/ru.js',
+                    'https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/plugins/monthSelect/index.js',
+                    'dropdown_calendar.js',
+                    'edit_create.js',
                     'common.js'
                 ]
             ];
@@ -334,6 +340,9 @@ class AdminPostsController extends BaseAdminController
             if ($postData === null) {
                 throw new HttpException('Запись не найдена.', 404);
             }
+
+            // Преобразуем дату из формата БД в формат для отображения
+            $postData['created_at'] = $this->convertDateFromMysql($postData['created_at'] ?? '');
 
             $config = [
                 'post' => [
@@ -382,17 +391,22 @@ class AdminPostsController extends BaseAdminController
                 'styles' => [
                     'edit_create.css',
                     'edit_create_mediateka.css',
-                    'mediateka.css'
+                    'mediateka.css',
+                    'http' => 'https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.css'
                 ],
                 'jss' => [
                     'absolute' => 'tinymce/tinymce.min.js',
                     'edit_create_tag_selector.js',
                     'medialibrary.js',
-                    'edit_create.js',
                     'video_provider.js',
                     'video_manager.js',
                     'video_embed_processor.js',
                     'edit_create_tinymce_init.js',
+                    'https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.js',
+                    'https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/l10n/ru.js',
+                    'https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/plugins/monthSelect/index.js',
+                    'dropdown_calendar.js',
+                    'edit_create.js',
                     'common.js'
                 ]
             ];
@@ -413,5 +427,20 @@ class AdminPostsController extends BaseAdminController
 
             throw new HttpException('Сбой при открытии формы редактирования', 500, $e);
         }
+    }
+
+    /**
+     * Преобразуем дату из формата БД в формат для отображения
+     */
+    private function convertDateFromMysql(string $postCreationDate): string
+    {
+        if (empty($postCreationDate)) {
+            return '';
+        }
+        
+        $dateTime = DateTime::createFromFormat('Y-m-d H:i:s', $postCreationDate) 
+                ?? DateTime::createFromFormat('Y-m-d', $postCreationDate);
+        
+        return $dateTime ? $dateTime->format('d-m-Y') : '';
     }
 }
