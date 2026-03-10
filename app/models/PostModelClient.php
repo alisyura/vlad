@@ -28,7 +28,7 @@ class PostModelClient {
         $stmt = $this->db->query("
             SELECT COUNT(*) as total 
             FROM posts 
-            WHERE status = 'published' AND article_type = 'post'
+            WHERE created_at <= NOW() AND status = 'published' AND article_type = 'post'
         ");
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
         return (int)$row['total'];
@@ -46,9 +46,10 @@ class PostModelClient {
             FROM posts p
             INNER JOIN post_tag pt ON p.id = pt.post_id
             INNER JOIN tags t ON pt.tag_id = t.id
-            WHERE p.status = 'published' 
-              AND p.article_type = 'post'
-              AND t.url = :tag_url
+            WHERE p.created_at <= NOW()
+                AND p.status = 'published' 
+                AND p.article_type = 'post'
+                AND t.url = :tag_url
         ");
         
         $stmt->execute([':tag_url' => $tag_url]);
