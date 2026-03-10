@@ -50,13 +50,23 @@ $adminRoute = $data['adminRoute'] ?? 'admin';
                        value="<?= htmlspecialchars($post['title'] ?? '') ?>" required>
             </div>
 
-            <div class="mb-3">
-                <label for="postUrl" class="form-label">URL (слаг)</label>
-                <input type="text" class="form-control" id="postUrl" name="url" 
-                       <?= !$is_new_post ? 'readonly' : '' ?>
-                       value="<?= htmlspecialchars($post['url'] ?? '') ?>">
-                <div class="form-text">Оставьте пустым для автоматической генерации из заголовка.</div>
+            <div class="row mb-3">
+                <div class="col-md-10">
+                    <label for="postUrl" class="form-label">URL (слаг)</label>
+                    <input type="text" class="form-control" id="postUrl" name="url" 
+                            <?= !$is_new_post ? 'readonly' : '' ?>
+                            value="<?= htmlspecialchars($post['url'] ?? '') ?>">
+                    <div class="form-text">Оставьте пустым для автоматической генерации из заголовка.</div>
+                </div>
+
+                <div class="col-md-2">
+                    <label for="sortOrder" class="form-label">Cортировка</label>
+                    <input type="number" class="form-control" id="sortOrder" name="sort_order" 
+                        value="<?= htmlspecialchars($post['sort_order'] ?? '0') ?>" min="0">
+                    <div class="form-text">Меньше = выше</div>
+                </div>
             </div>
+
 
             <?php if ((($isEditForm ?? false) === true) && (!empty(trim($post['video_url'] ?? '')))): ?>
             <div class="mb-3">
