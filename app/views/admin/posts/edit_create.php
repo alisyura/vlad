@@ -61,7 +61,7 @@ $adminRoute = $data['adminRoute'] ?? 'admin';
 
                 <div class="col-md-2">
                     <label for="sortOrder" class="form-label">Cортировка</label>
-                    <input type="number" class="form-control" id="sortOrder" name="sort_order" 
+                    <input disabled type="number" class="form-control" id="sortOrder" name="sort_order" 
                         value="<?= htmlspecialchars($post['sort_order'] ?? '0') ?>" min="0">
                     <div class="form-text">Меньше = выше</div>
                 </div>
@@ -124,7 +124,7 @@ $adminRoute = $data['adminRoute'] ?? 'admin';
                     </div>
                     <div class="mb-3">
                         <label for="robots">Индексация страницы для поисковика (robots):</label>
-                        <select class="form-control" id="robots" name="robots" required>
+                        <select disabled class="form-control" id="robots" name="robots" required>
                             <?php foreach ($robotsList as $robotsValue): 
                                 $selected = (($post['robots'] ?? null) === $robotsValue) ? 'selected' : ''; ?>
                                 <option <?= $selected ?> value="<?= htmlspecialchars($robotsValue) ?>">

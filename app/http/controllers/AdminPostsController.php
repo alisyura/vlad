@@ -1,6 +1,5 @@
 <?php
 // app/controllers/AdminPostsController.php
-
 class AdminPostsController extends BaseAdminController
 {
     use UrlHelperTrait;
@@ -10,13 +9,14 @@ class AdminPostsController extends BaseAdminController
     private AuthService $authService;
     private PaginationService $pageinationService;
     private RobotsList $robotsList;
+    private AdminPostsService $adminPostsService;
 
     public function __construct(
         Request $request, 
         View $view, 
         PostModelAdmin $model, RobotsList $robotsList,
         ListModel $listmodel, 
-        AuthService $authService, 
+        AuthService $authService, AdminPostsService $adminPostsService,
         PaginationService $pageinationService, ResponseFactory $responseFactory)
     {
         parent::__construct($request, $view, $responseFactory);
@@ -25,6 +25,7 @@ class AdminPostsController extends BaseAdminController
         $this->authService = $authService;
         $this->pageinationService = $pageinationService;
         $this->robotsList = $robotsList;
+        $this->adminPostsService = $adminPostsService;
     }
     /**
      * Отображает список постов/страниц в админ-панели с пагинацией.
@@ -270,7 +271,11 @@ class AdminPostsController extends BaseAdminController
                 'pageTitle' => $pageTitle,
                 'publishButtonTitle' => $publishButtonTitle,
                 'showPostLink' => '',
-                'post' => null,
+                'post' => [
+                    // присоздании поста, нужен только следующий ID
+                    'sort_order' => 
+                    $this->adminPostsService->getNextId(Config::get('db.DB_NAME'))
+                ],
                 'categories' => [],
                 'tags' => [],
                 'is_new_post' => true,

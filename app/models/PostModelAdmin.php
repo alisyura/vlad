@@ -36,6 +36,68 @@ class PostModelAdmin extends BaseModel {
     }
     
     /**
+     * Получает следующий автоинкрементный ID для таблицы posts
+     * 
+     * Метод пытается получить значение AUTO_INCREMENT из системной таблицы information_schema.
+     * Если это не удается (например, нет доступа или таблица пуста), использует запасной метод
+     * с вычислением MAX(id) + 1.
+     *
+     * @param string $databaseName Имя базы данных
+     * @return int Следующий ID, который будет использован при вставке новой записи
+     * @throws RuntimeException Если не указано имя базы данных
+     * @throws PDOException При ошибках выполнения запроса
+     */
+    public function getNextId(string $databaseName): int
+    {
+        if (empty(trim($databaseName)))
+        {
+            throw new InvalidArgumentException('Database name not specified');
+        }
+
+        $sql = "SELECT AUTO_INCREMENT 
+                    FROM information_schema.TABLES 
+                    WHERE TABLE_SCHEMA = :database_name 
+                    AND TABLE_NAME = 'posts'";
+
+        try {
+            $stmt = $this->db->prepare($sql);
+            $stmt->execute([':database_name' => $databaseName]);
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+            
+            // Проверяем, получили ли результат
+            if ($result && isset($result['AUTO_INCREMENT'])) {
+                return (int)$result['AUTO_INCREMENT'];
+            }
+            
+            // Если таблица пустая или нет записей, AUTO_INCREMENT может быть NULL
+            // В этом случае получаем MAX(id) + 1
+            return $this->getNextIdFromMax();
+        } catch (PDOException $e) {
+            Logger::error("getNextId. Error fetching autoincrement next ID.", ['databaseName' => $databaseName], $e);
+            throw $e;
+        }
+    }
+
+    /**
+     * Запасной метод получения следующего ID через MAX(id) + 1
+     * 
+     * Используется, когда information_schema недоступен или не возвращает значение.
+     * Вычисляет следующий ID как максимальное существующее значение + 1.
+     * Если таблица пуста, возвращает 1.
+     *
+     * @return int Следующий ID (MAX(id) + 1) или 1 для пустой таблицы
+     * @throws PDOException При ошибках выполнения запроса
+     */
+    private function getNextIdFromMax(): int
+    {
+        $sql = "SELECT COALESCE(MAX(id), 0) + 1 as next_id FROM posts";
+        $stmt = $this->db->query($sql);
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        
+        return (int)$result['next_id'];
+    }
+
+    /**
      * Получает пост по ID с категориями и тегами.
      * @param int $id ID поста.
      * @param string $articleType Тип поста (post/page).
