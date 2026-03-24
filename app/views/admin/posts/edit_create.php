@@ -124,7 +124,7 @@ $adminRoute = $data['adminRoute'] ?? 'admin';
                     </div>
                     <div class="mb-3">
                         <label for="robots">Индексация страницы для поисковика (robots):</label>
-                        <select disabled class="form-control" id="robots" name="robots" required>
+                        <select class="form-control" id="robots" name="robots" required>
                             <?php foreach ($robotsList as $robotsValue): 
                                 $selected = (($post['robots'] ?? null) === $robotsValue) ? 'selected' : ''; ?>
                                 <option <?= $selected ?> value="<?= htmlspecialchars($robotsValue) ?>">

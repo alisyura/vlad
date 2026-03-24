@@ -34,6 +34,7 @@ class AdminPostsApiService
         $metaKeywords = trim($postData['meta_keywords'] ?? '');
         $excerpt = trim($postData['excerpt'] ?? '');
         $comment = trim($postData['comment'] ?? '');
+        $robots = trim($postData['robots'] ?? '');
         $selectedCategories = $postData['categories'] ?? [];
 
         $selectedTags = $postData['tags'] ?? [];
@@ -45,7 +46,7 @@ class AdminPostsApiService
             'postId' => $postId, 'urlChangeable' => $urlChangeable, 
             'articleType' => $articleType, 'title' => $title, 
             'content' => $content, 'url' => $url, 'postDate' => $postDate, 
-            'status' => $status, 'metaTitle' => $metaTitle, 
+            'status' => $status, 'metaTitle' => $metaTitle, 'robots' => $robots,
             'metaDescription' => $metaDescription, 'metaKeywords' => $metaKeywords, 
             'excerpt' => $excerpt, 'selectedCategories' => $selectedCategories, 
             'comment' => $comment, 'tagsString' => $tagsString, 
@@ -61,7 +62,7 @@ class AdminPostsApiService
 
         ['title' => $title, 
         'content' => $content, 'url' => $url, 'status' => $status,
-        'postDate' => $postDate,
+        'postDate' => $postDate, 'robots' => $robots,
         'metaTitle' => $metaTitle, 'metaDescription' => $metaDescription,
         'metaKeywords' => $metaKeywords, 'excerpt' => $excerpt, 
         'selectedCategories' => $selectedCategories, 'comment' => $comment,
@@ -93,6 +94,7 @@ class AdminPostsApiService
             'title' => $title,
             'content' => $content,
             'url' => $url,
+            'robots' => $robots,
             'meta_title' => $metaTitle,
             'meta_description' => $metaDescription,
             'meta_keywords' => $metaKeywords,
@@ -116,7 +118,7 @@ class AdminPostsApiService
         ['postId' => $postId, 'urlChangeable' => $urlChangeable, 
         'url' => $url, 'title' => $title, 
         'content' => $content, 'status' => $status,
-        'postDate' => $postDate,
+        'postDate' => $postDate, 'robots' => $robots,
         'metaTitle' => $metaTitle, 'metaDescription' => $metaDescription,
         'metaKeywords' => $metaKeywords, 'excerpt' => $excerpt, 
         'selectedCategories' => $selectedCategories, 'comment' => $comment,
@@ -150,6 +152,7 @@ class AdminPostsApiService
             'status' => $status,
             'postDate' => $mysqlDate,
             'title' => $title,
+            'robots' => $robots,
             'content' => $content,
             'meta_title' => $metaTitle,
             'meta_description' => $metaDescription,

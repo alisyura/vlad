@@ -116,6 +116,7 @@ class PostModelAdmin extends BaseModel {
                     p.meta_keywords,
                     p.meta_description,
                     p.status,
+                    p.robots,
                     p.article_type,
                     p.created_at,
                     u.name AS author_name,
@@ -191,6 +192,7 @@ class PostModelAdmin extends BaseModel {
                             content = :content,
                             excerpt = :excerpt,
                             comment = :comment,
+                            robots = :robots,
                             meta_title = :meta_title,
                             meta_description = :meta_description,
                             meta_keywords = :meta_keywords,
@@ -214,6 +216,7 @@ class PostModelAdmin extends BaseModel {
                 ':content' => $postData['content'],
                 ':excerpt' => $postData['excerpt'],
                 ':comment' => $postData['comment'],
+                ':robots' => $postData['robots'],
                 ':meta_title' => $postData['meta_title'],
                 ':meta_description' => $postData['meta_description'],
                 ':meta_keywords' => $postData['meta_keywords'],
@@ -293,11 +296,11 @@ class PostModelAdmin extends BaseModel {
 
             // Исправленный SQL-запрос с учетом правильных названий столбцов
             $sql = "INSERT INTO posts (
-                        user_id, article_type, status, title, content, url, 
+                        user_id, article_type, status, title, content, url, robots,
                         excerpt, comment, meta_title, meta_description, meta_keywords, 
                         thumbnail_media_id, created_at, updated_at)
                     VALUES (
-                        :user_id, :article_type, :status, :title, :content, :url, 
+                        :user_id, :article_type, :status, :title, :content, :url, :robots,
                         :excerpt, :comment, :meta_title, :meta_description, :meta_keywords, 
                         :thumbnail_media_id, :created_at, :updated_at)";
             $stmt = $this->db->prepare($sql);
@@ -308,6 +311,7 @@ class PostModelAdmin extends BaseModel {
                 ':title' => $postData['title'],
                 ':content' => $postData['content'],
                 ':url' => $postData['url'],
+                ':robots' => $postData['robots'],
                 ':excerpt' => $postData['excerpt'],
                 ':comment' => $postData['comment'],
                 ':meta_title' => $postData['meta_title'],

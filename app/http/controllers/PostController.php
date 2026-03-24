@@ -75,6 +75,8 @@ class PostController extends BaseController {
                 throw new HttpException($notFoundMessage, 404);
             }
 
+            $robots = $content['robots'] ?? '';
+
             $baseUrl = $this->getRequest()->getBaseUrl();
             $URL = sprintf("%s/%s", $baseUrl, $content['url']).'.html';
         
@@ -114,7 +116,7 @@ class PostController extends BaseController {
                     'title' => $metaTitle,
                     'description' => $metaDescription,
                     'keywords' => $metaKeywords,
-                    'robots' => 'index, follow',
+                    'robots' => $robots,
                     'opengraph' => $opengraph,
                     'canonical' => $canonical,
                     'styles' => [

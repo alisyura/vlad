@@ -153,6 +153,7 @@ class PostModelClient {
             c.url AS category_url,
             c.name AS category_name,
             m.file_path AS image,
+            p.robots AS robots,
             p.meta_title AS meta_title,
             p.meta_keywords AS meta_keywords,
             p.meta_description AS meta_description,
@@ -199,6 +200,7 @@ class PostModelClient {
             p.content AS content,
             p.updated_at AS updated_at,
             p.meta_title AS meta_title,
+            p.robots AS robots,
             p.meta_keywords AS meta_keywords,
             p.meta_description AS meta_description,
             GROUP_CONCAT(CONCAT(t.name, '|', t.url)) AS tags
