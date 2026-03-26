@@ -28,7 +28,7 @@
         </div>
 
         <div class="post_preview_bookmark">
-            <a href="/<?= htmlspecialchars($post['url']) ?>.html">№ <?= htmlspecialchars($post['id']) ?></a>
+            <a target="_blank" href="/<?= htmlspecialchars($post['url']) ?>.html">№ <?= htmlspecialchars($post['id']) ?></a>
         </div>
         
         <!-- Блок post_date_category -->
