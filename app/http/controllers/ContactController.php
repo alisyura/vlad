@@ -39,7 +39,7 @@ class ContactController extends BaseController
      * Подготавливает данные для шаблона и отображает страницу контактов
      * с помощью объекта ViewAdmin. Обрабатывает возможные исключения.
      *
-     * @return void
+     * @return Response
      */
     public function showKontakty(): Response {
         try {
@@ -96,7 +96,7 @@ class ContactController extends BaseController
      * сообщение с помощью сервиса ContactMailerService. Возвращает JSON-ответ
      * с результатом операции.
      *
-     * @return void
+     * @return Response
      */
     public function sendMsg(): Response
     {

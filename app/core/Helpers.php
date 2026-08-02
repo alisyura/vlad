@@ -169,18 +169,15 @@ function generate_uuid_v4() {
  */
 function get_clean_description($text) {
     // 1. Декодируем ВСЕ HTML-сущности (например, &lt;p&gt; становится <p>, &amp;nbsp; становится символом пробела)
-    $text = html_entity_decode($text, ENT_QUOTES | ENT_HTML5);
+    $text = html_entity_decode($text, ENT_QUOTES | ENT_HTML5, 'UTF-8');
 
     // 2. Удаляем все оставшиеся HTML-теги (<p>, <div> и т.д.)
     $text = strip_tags($text);
 
-    // 3. Удаляем потенциальные лишние пробелы в начале и конце
-    $text = trim($text);
-
-    // 4. Убираем переводы строк
+    // 3. Убираем переводы строк
     $text = preg_replace('/\s+/', ' ', $text);
 
-    return $text;
+    return trim($text);
 }
 
 /**

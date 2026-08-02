@@ -26,9 +26,11 @@ class SitemapModel {
      * Запрос объединяет данные о постах и страницах, сортируя их сначала по типу,
      * затем по ID категории и дате обновления.
      *
+     * @param int $descriptionLength длина описания поста
+     * 
      * @return array Массив данных, готовых для отображения в карте сайта.
      */
-    public function getSitemapData(): array
+    public function getSitemapData(int $descriptionLength = 250): array
     {
         $sql="(
             SELECT 
@@ -38,7 +40,12 @@ class SitemapModel {
                 c.url AS category_url,
                 p.title AS post_title,
                 p.url AS post_url,
-                p.updated_at AS updated_at
+                p.updated_at AS updated_at,
+                CASE 
+                    WHEN p.meta_description IS NOT NULL AND p.meta_description != '' 
+                    THEN p.meta_description
+                    ELSE SUBSTRING(p.content, 1, :length_post)
+                END AS description
             FROM 
                 categories c
             JOIN 
@@ -48,6 +55,7 @@ class SitemapModel {
             WHERE 
                 p.article_type = 'post'
                 AND p.status = 'published'
+                AND c.url NOT IN ('video', 'tegi')  -- исключаем рубрики
         )
         UNION
         (
@@ -58,7 +66,12 @@ class SitemapModel {
                 NULL AS category_url,
                 p.title AS post_title,
                 p.url AS post_url,
-                p.updated_at AS updated_at
+                p.updated_at AS updated_at,
+                CASE 
+                    WHEN p.meta_description IS NOT NULL AND p.meta_description != '' 
+                    THEN p.meta_description
+                    ELSE SUBSTRING(p.content, 1, :length_page)
+                END AS description
             FROM 
                 posts p
             WHERE 
@@ -68,8 +81,14 @@ class SitemapModel {
         ORDER BY 
             FIELD(type, 'post', 'page'), -- Сначала посты, потом страницы
             category_id ASC,
-            updated_at deSC;";
-        $stmt = $this->db->query($sql);
+            updated_at DESC;";
+        
+        $length = (int)$descriptionLength;
+        
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([
+            ':length_post' => $length, 
+            ':length_page' => $length]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 

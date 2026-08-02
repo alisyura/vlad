@@ -1,5 +1,10 @@
 <?php
 
+$router->addRoute('/llms\.txt', function(Container $container): Response {
+    $controller = $container->make(LlmsController::class);
+    return $controller->showLlms();
+}, ['PageCacheMiddleware']);
+
 // Страница карта сайта
 $router->addRoute('/page/sitemap\.html', function(Container $container): Response {
     $controller = $container->make(SitemapController::class);

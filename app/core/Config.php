@@ -47,6 +47,7 @@ class Config
             ],
             'global' => [
                 'ViewsRootPath' => defined('ROOT_PATH') ? ROOT_PATH . DIRECTORY_SEPARATOR . 'app' . DIRECTORY_SEPARATOR . 'views' : '',
+                'LlmsDescriptionLength' => 250
             ],
             'logger' => [
                 'UseDebugLogger' => true,

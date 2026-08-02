@@ -13,6 +13,8 @@
         <meta name="robots" content="noindex, follow" />
     <?php endif ?>
 
+    <link rel="llms" href="/llms.txt" />
+
     <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico">
     <link rel="icon" href="/favicon.svg" type="image/svg+xml">
     

@@ -162,15 +162,26 @@ class PageCacheMiddleware implements MiddlewareInterface
 
     private function setContentType(string $cacheFile): void
     {
-        // Читаем первые 10 символов файла, чтобы узнать тип
-        $handle = fopen($cacheFile, 'r');
-        $start = fread($handle, 10);
-        fclose($handle);
+        $metaFile = $cacheFile . '.meta';
 
-        if (str_contains($start, '<?xml')) {
-            header('Content-Type: application/xml; charset=utf-8');
+        if (file_exists($metaFile)) {
+            // Читаем Content-Type из мета-файла
+            $contentType = file_get_contents($metaFile);
+            header('Content-Type: ' . $contentType);
         } else {
-            header('Content-Type: text/html; charset=utf-8');
+            // Fallback для старых кэшей (без мета-файла)
+            // Распаковываем и проверяем (медленно, но редко)
+            $compressed = file_get_contents($cacheFile);
+            $decompressed = gzdecode($compressed);
+            $start = substr($decompressed, 0, 100);
+            
+            if (str_contains($start, '<?xml')) {
+                header('Content-Type: application/xml; charset=utf-8');
+            } elseif (str_contains($start, '```') || str_starts_with($start, '#')) {
+                header('Content-Type: text/markdown; charset=utf-8');
+            } else {
+                header('Content-Type: text/html; charset=utf-8');
+            }
         }
     }
 
@@ -187,7 +198,7 @@ class PageCacheMiddleware implements MiddlewareInterface
         return self::encryptUri($uri);
     }
 
-    private static function encryptUri($uri): string
+    private static function encryptUri(string $uri): string
     {
         // Убираем query string для простоты, если она не влияет на содержимое
         $uri = strtok($uri, '?'); 
@@ -234,10 +245,44 @@ class PageCacheMiddleware implements MiddlewareInterface
                 mkdir($dir, 0755, true);
             }
 
+            // Сжимаем контент
             $compressedContent = gzencode($content, 9);
-
             file_put_contents($cacheFile, $compressedContent);
+
+            // Сохраняем Content-Type в мета-файл
+            $contentType = $this->detectContentType($content);
+            $metaFile = $cacheFile . '.meta';
+            file_put_contents($metaFile, $contentType);
         }
+    }
+
+    /**
+     * Определяет Content-Type по содержимому страницы.
+     *
+     * @param string $content Содержимое страницы (несжатое).
+     * @return string Content-Type для заголовка.
+     */
+    private function detectContentType(string $content): string
+    {
+        $trimmed = trim($content);
+        
+        // Проверяем XML (sitemap, RSS, llms.txt и т.д.)
+        if (str_starts_with($trimmed, '<?xml')) {
+            return 'application/xml; charset=utf-8';
+        }
+        
+        // Проверяем JSON
+        if (str_starts_with($trimmed, '{') || str_starts_with($trimmed, '[')) {
+            return 'application/json; charset=utf-8';
+        }
+        
+        // Проверяем Markdown (llms.txt)
+        if (str_starts_with($trimmed, '#') || str_contains($trimmed, '```')) {
+            return 'text/markdown; charset=utf-8';
+        }
+        
+        // По умолчанию — HTML
+        return 'text/html; charset=utf-8';
     }
 
     private function minifyHtml(string $html): string 
@@ -261,10 +306,19 @@ class PageCacheMiddleware implements MiddlewareInterface
         $cacheKey = self::encryptUri($uri);
         $cacheFile = self::getCacheFilename($cacheDir, $cacheKey);
 
+        $deleted = false;
+
+        // Удаляем основной файл кэша
         if (file_exists($cacheFile)) {
-            return unlink($cacheFile);
+            $deleted = unlink($cacheFile) || $deleted;
+        }
+
+        // Удаляем мета-файл (Content-Type)
+        $metaFile = $cacheFile . '.meta';
+        if (file_exists($metaFile)) {
+            $deleted = unlink($metaFile) || $deleted;
         }
         
-        return false;
+        return $deleted;
     }
 }

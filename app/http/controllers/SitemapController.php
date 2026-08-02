@@ -19,6 +19,11 @@ class SitemapController extends BaseController {
     private SitemapModel $model;
 
     /**
+     * @var SitemapService Объект сервиса для работы с данными карты сайта.
+     */
+    private SitemapService $sitemapService;
+
+    /**
      * Сервис для получения сео настроек
      */
     private SettingsService $settingsService;
@@ -30,14 +35,17 @@ class SitemapController extends BaseController {
      * @param View $view Объект представления, внедряемый через Dependency Injection.
      * @param SitemapModel $sitemapModel Объект модели, внедряемый через Dependency Injection.
      * @param ApplicationResponseFactory $responseFactory Фабрика для создания объектов Response, внедряемая через Dependency Injection.
-     * @param SettingsService $responseFactory Сервис для получения сео настроек, внедряемая через Dependency Injection.
+     * @param SettingsService $settingsService Сервис для получения сео настроек, внедряемая через Dependency Injection.
+     * @param SitemapService $sitemapService Сервис для получения и группировки данных для карты сайта, внедряемая через Dependency Injection.
      */
     public function __construct(Request $request, View $view, SitemapModel $sitemapModel,
-        ApplicationResponseFactory $responseFactory, SettingsService $settingsService) 
+        ApplicationResponseFactory $responseFactory, SettingsService $settingsService,
+        SitemapService $sitemapService) 
     {
         parent::__construct($request, $view, $responseFactory);
         $this->model = $sitemapModel;
         $this->settingsService = $settingsService;
+        $this->sitemapService = $sitemapService;
 
         $this->maxUrls = Config::get('posts.max_urls_in_sitemap');
     }
@@ -52,48 +60,12 @@ class SitemapController extends BaseController {
      * Метод получает все данные о постах и страницах и передает их в представление
      * для отображения в виде читабельной карты сайта.
      *
-     * @return void
+     * @return Response
      */
     public function showSitemap(): Response {
         try {
-            $posts = $this->model->getSitemapData();
-            if (!$posts) {
-                throw new HttpException('Страница не найдена', 404);
-            }
-
-            $result = [
-                'post' => [],
-                'page' => [
-                    'pages' => []
-                ]
-            ];
-            
-            foreach ($posts as $row) {
-                if ($row['type'] === 'post') {
-                    // Это обычный пост с категорией
-                    $categoryUrl = $row['category_url'];
-            
-                    if (!isset($result['post'][$categoryUrl])) {
-                        $result['post'][$categoryUrl] = [
-                            'name' => $row['category_name'],
-                            'url' => $row['category_url'],
-                            'posts' => []
-                        ];
-                    }
-            
-                    $result['post'][$categoryUrl]['posts'][] = [
-                        'title' => $row['post_title'],
-                        'url' => $row['post_url']
-                    ];
-            
-                } elseif ($row['type'] === 'page') {
-                    // Это страница без категории
-                    $result['page']['pages'][] = [
-                        'title' => $row['post_title'],
-                        'url' => $row['post_url']
-                    ];
-                }
-            }
+            $llmsDescriptionLength = Config::get('global.LlmsDescriptionLength');
+            $result = $this->sitemapService->getSitemapData($llmsDescriptionLength, false);
 
             $URL = $this->getRequest()->getBaseUrl();
 
