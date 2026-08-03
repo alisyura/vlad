@@ -18,7 +18,7 @@
 
 ## Рубрики сайта
 
-- [Главная](<?= $url ?>) — Главная страница Смехбука
+- [Главная](<?= $url ?>): Главная страница Смехбука
 <?php foreach ($posts as $cat_url => $cat_val): ?>
 <?php
 $cat_descr = ''; 
@@ -29,7 +29,7 @@ else {
     $cat_descr = htmlspecialchars($cat_val['name'] ?? '');
 }
 ?>
-- [<?= htmlspecialchars($cat_val['name'] ?? '') ?>](<?= $url ?>/cat/<?= htmlspecialchars($cat_val['url'] ?? '') ?>) — <?= $cat_descr ?>
+- [<?= htmlspecialchars($cat_val['name'] ?? '') ?>](<?= $url ?>/cat/<?= htmlspecialchars($cat_val['url'] ?? '') ?>): <?= $cat_descr ?>
 <?= "\n" ?>
 <?php endforeach; ?>
 
@@ -46,7 +46,7 @@ else {
     $post_descr = htmlspecialchars($post_val['title'] ?? '');
 }
 ?>
-- [<?= htmlspecialchars($post_val['title'] ?? '') ?>](<?= $url ?>/<?= htmlspecialchars($post_val['url'] ?? '') ?>.html) — <?= $post_descr ?>
+- [<?= htmlspecialchars($post_val['title'] ?? '') ?>](<?= $url ?>/<?= htmlspecialchars($post_val['url'] ?? '') ?>.html): <?= $post_descr ?>
 
 <?php endforeach; ?>
 <?= "\n" ?>
@@ -64,6 +64,6 @@ else {
     $page_descr = htmlspecialchars($page_val['title'] ?? '');
 }
 ?>
-- [<?= htmlspecialchars($page_val['title'] ?? '') ?>](<?= $url ?>/page/<?= htmlspecialchars($page_val['url'] ?? '') ?>.html) — <?= $page_descr ?>
+- [<?= htmlspecialchars($page_val['title'] ?? '') ?>](<?= $url ?>/page/<?= htmlspecialchars($page_val['url'] ?? '') ?>.html): <?= $page_descr ?>
 <?= "\n" ?>
 <?php endforeach; ?>
