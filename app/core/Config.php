@@ -39,7 +39,7 @@ class Config
             'posts' => [
                 'exerpt_len' => 200,
                 'ExcerptCategories' => ['istorii'],
-                'posts_per_page' => 10,
+                'posts_per_page' => 20,
                 'max_urls_in_sitemap' => 50000,
                 'allowed_tags' => '<p><b><i><strong><em><a><img><br><span><s><ul><li><ol><div><iframe>',
                 'maxTagsInResult' => 0, // кол-во отображаемых тэгов на странице поиска по тэгам. <=0 - показать все
