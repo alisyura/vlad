@@ -5,6 +5,16 @@
     RewriteCond %{HTTP_HOST} ^www\.(.+)$ [NC]
     RewriteRule ^(.*)$ https://%1/$1 [R=301,L]
 
+    # Если запрашивается llms.txt
+    # Проверяем существует ли файл
+    RewriteCond %{DOCUMENT_ROOT}/llms.txt -f
+    RewriteRule ^llms\.txt$ - [L]
+
+    # Если файла нет - передаем обработку index.php
+    RewriteCond %{REQUEST_URI} ^/llms\.txt$
+    RewriteCond %{DOCUMENT_ROOT}/llms.txt !-f
+    RewriteRule ^ /index.php [QSA,L]
+
     # Если запрашиваемый путь существует как файл на диске,
     # прекратить обработку правил и отдать файл напрямую.
     RewriteCond %{REQUEST_FILENAME} -f
