@@ -39,7 +39,7 @@ class SitemapService
      * 
      * @param int $llmsDescriptionLength Длина описания при обрезании content (в символах)
      * @param bool $withDescription Флаг, показывающий, включать или нет поле description в результат
-     * @param bool $withCatDesription Флаг, показывающий, включать или нет поле description рубрик в результат
+     * @param bool $withCatDescription Флаг, показывающий, включать или нет поле description рубрик в результат
      * 
      * @return array<string, mixed> Структурированные данные:
      *                               - post: массив категорий с постами
@@ -47,59 +47,6 @@ class SitemapService
      * 
      * @throws HttpException Если данные не найдены (HTTP 404)
      */
-    public function getSitemapData__(int $llmsDescriptionLength,
-        bool $withDescription = false, bool $withCatDesription = false): array
-    {
-        $posts = $this->sitemapModel->getSitemapData($llmsDescriptionLength);
-        if (!$posts) {
-            throw new HttpException('Страница не найдена', 404);
-        }
-
-        $result = [
-            'post' => [],
-            'page' => [
-                'pages' => []
-            ],
-            'last-modified' => null
-        ];
-        
-        foreach ($posts as $row) {
-            // Обновляем последнюю дату
-            if ($lastModified === null || $row['updated_at'] > $lastModified) {
-                $lastModified = $row['updated_at'];
-            }
-
-            if ($row['type'] === 'post') {
-                // Это обычный пост с категорией
-                $categoryUrl = $row['category_url'];
-        
-                // Вставляем категорию
-                if (!isset($result['post'][$categoryUrl])) {
-                    $result['post'][$categoryUrl] = [
-                        'name' => $row['category_name'],
-                        'url' => $row['category_url'],
-                        'posts' => []
-                    ];
-                }
-        
-                // Вставляем пост
-                $result['post'][$categoryUrl]['posts'][] = $this->addNewRow($row, $withDescription);
-            } elseif ($row['type'] === 'page') {
-                // Вставляем страницу
-                $result['page']['pages'][] = $this->addNewRow($row, $withDescription);
-            }
-        }
-
-        // Сохраняем последнюю дату в формате ISO 8601
-        $result['last-modified'] = $lastModified 
-            ? (new \DateTime($lastModified))->format('Y-m-d') 
-            : null;
-
-        return $result;
-    }
-
-
-
     public function getSitemapData(
         int $llmsDescriptionLength,
         bool $withDescription = false,
