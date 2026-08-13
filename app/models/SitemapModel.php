@@ -27,12 +27,14 @@ class SitemapModel {
      * затем по ID категории и дате обновления.
      *
      * @param int $descriptionLength длина описания поста
+     * @param bool $returnCursor возвращает массив данных или курсор для построчного обхода
      * 
-     * @return array Массив данных, готовых для отображения в карте сайта.
+     * @return array|PDOStatement Массив данных (или курсор), готовых для отображения в карте сайта.
      */
-    public function getSitemapData(int $descriptionLength = 250): array
+    public function getSitemapData(int $descriptionLength = 250, 
+        bool $returnCursor = false): array|PDOStatement
     {
-        $sql="(
+        $sql = "(
             SELECT 
                 'post' AS type,
                 c.id AS category_id,
@@ -55,7 +57,7 @@ class SitemapModel {
             WHERE 
                 p.article_type = 'post'
                 AND p.status = 'published'
-                AND c.url NOT IN ('video', 'tegi')  -- исключаем рубрики
+                AND c.url NOT IN ('video', 'tegi') -- исключаем некоторые рубрики
         )
         UNION
         (
@@ -88,7 +90,15 @@ class SitemapModel {
         $stmt = $this->db->prepare($sql);
         $stmt->execute([
             ':length_post' => $length, 
-            ':length_page' => $length]);
+            ':length_page' => $length
+        ]);
+        
+        // Если нужен курсор, возвращаем PDOStatement
+        if ($returnCursor) {
+            return $stmt;
+        }
+        
+        // Иначе возвращаем массив записей
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
@@ -114,7 +124,8 @@ class SitemapModel {
      * Получает часть постов/страниц для указанного типа и страницы.
      * 
      * @param int $offset Неотрицательное смещение
-     * @param string 'post'|'page' $type Тип записей
+     * @param string $type 'post'|'page' Тип записей
+     * @param int $max_urls Максимальное кол-во записей в выборке
      * @return array Массив URL-ов и дат обновления
      */
     public function getPostsByOffsetNum(int $offset, string $type, int $max_urls) : array
