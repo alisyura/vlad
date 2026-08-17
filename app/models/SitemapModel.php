@@ -20,85 +20,101 @@ class SitemapModel {
         $this->db =$pdo;
     }
 
+    
     /**
-     * Получает все данные для карты сайта (sitemap) из базы данных.
+     * Получить SQL запрос для получения данных для sitemap
+     */
+    private function getSitemapSql(): string
+    {
+        return "
+            (
+                SELECT 
+                    'post' AS type,
+                    c.id AS category_id,
+                    c.name AS category_name,
+                    c.url AS category_url,
+                    p.title AS post_title,
+                    p.url AS post_url,
+                    p.updated_at AS updated_at,
+                    CASE 
+                        WHEN p.meta_description IS NOT NULL AND p.meta_description != '' 
+                        THEN p.meta_description
+                        ELSE SUBSTRING(p.content, 1, :length_post)
+                    END AS description
+                FROM 
+                    categories c
+                JOIN 
+                    post_category pc ON c.id = pc.category_id
+                JOIN 
+                    posts p ON pc.post_id = p.id
+                WHERE 
+                    p.article_type = 'post'
+                    AND p.status = 'published'
+                    AND c.url NOT IN ('video', 'tegi') -- исключаем некоторые рубрики
+            )
+            UNION
+            (
+                SELECT 
+                    'page' AS type,
+                    NULL AS category_id,
+                    NULL AS category_name,
+                    NULL AS category_url,
+                    p.title AS post_title,
+                    p.url AS post_url,
+                    p.updated_at AS updated_at,
+                    CASE 
+                        WHEN p.meta_description IS NOT NULL AND p.meta_description != '' 
+                        THEN p.meta_description
+                        ELSE SUBSTRING(p.content, 1, :length_page)
+                    END AS description
+                FROM 
+                    posts p
+                WHERE 
+                    p.article_type = 'page'
+                    AND p.status = 'published'
+            )
+            ORDER BY 
+                FIELD(type, 'post', 'page'), -- Сначала посты, потом страницы
+                category_id ASC,
+                updated_at DESC;
+        ";
+    }
+
+    /**
+     * Получает все данные для карты сайта в виде курсора.
      *
      * Запрос объединяет данные о постах и страницах, сортируя их сначала по типу,
      * затем по ID категории и дате обновления.
      *
      * @param int $descriptionLength длина описания поста
-     * @param bool $returnCursor возвращает массив данных или курсор для построчного обхода
      * 
-     * @return array|PDOStatement Массив данных (или курсор), готовых для отображения в карте сайта.
+     * @return PDOStatement Курсор данных, готовых для построчной обработки.
      */
-    public function getSitemapData(int $descriptionLength = 250, 
-        bool $returnCursor = false): array|PDOStatement
+    public function getSitemapCursor(int $descriptionLength = 250): PDOStatement
     {
-        $sql = "(
-            SELECT 
-                'post' AS type,
-                c.id AS category_id,
-                c.name AS category_name,
-                c.url AS category_url,
-                p.title AS post_title,
-                p.url AS post_url,
-                p.updated_at AS updated_at,
-                CASE 
-                    WHEN p.meta_description IS NOT NULL AND p.meta_description != '' 
-                    THEN p.meta_description
-                    ELSE SUBSTRING(p.content, 1, :length_post)
-                END AS description
-            FROM 
-                categories c
-            JOIN 
-                post_category pc ON c.id = pc.category_id
-            JOIN 
-                posts p ON pc.post_id = p.id
-            WHERE 
-                p.article_type = 'post'
-                AND p.status = 'published'
-                AND c.url NOT IN ('video', 'tegi') -- исключаем некоторые рубрики
-        )
-        UNION
-        (
-            SELECT 
-                'page' AS type,
-                NULL AS category_id,
-                NULL AS category_name,
-                NULL AS category_url,
-                p.title AS post_title,
-                p.url AS post_url,
-                p.updated_at AS updated_at,
-                CASE 
-                    WHEN p.meta_description IS NOT NULL AND p.meta_description != '' 
-                    THEN p.meta_description
-                    ELSE SUBSTRING(p.content, 1, :length_page)
-                END AS description
-            FROM 
-                posts p
-            WHERE 
-                p.article_type = 'page'
-                AND p.status = 'published'
-        )
-        ORDER BY 
-            FIELD(type, 'post', 'page'), -- Сначала посты, потом страницы
-            category_id ASC,
-            updated_at DESC;";
-        
-        $length = (int)$descriptionLength;
-        
+        $sql = $this->getSitemapSql();
         $stmt = $this->db->prepare($sql);
         $stmt->execute([
-            ':length_post' => $length, 
-            ':length_page' => $length
+            ':length_post' => $descriptionLength,
+            ':length_page' => $descriptionLength
         ]);
         
-        // Если нужен курсор, возвращаем PDOStatement
-        if ($returnCursor) {
-            return $stmt;
-        }
-        
-        // Иначе возвращаем массив записей
+        return $stmt;
+    }
+
+    /**
+     * Получает все данные для карты сайта в виде массива.
+     *
+     * Запрос объединяет данные о постах и страницах, сортируя их сначала по типу,
+     * затем по ID категории и дате обновления.
+     *
+     * @param int $descriptionLength длина описания поста
+     * 
+     * @return array Массив данных, готовых для отображения в карте сайта.
+     */
+    public function getSitemapData(int $descriptionLength = 250): array
+    {
+        $stmt = $this->getSitemapCursor($descriptionLength);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 

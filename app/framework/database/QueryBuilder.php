@@ -64,7 +64,7 @@ class QueryBuilder
     }
     
     // WHERE
-    public function where(string $column, $operator, $value = null): self
+    public function where(string $column, string $operator, $value = null): self
     {
         if (func_num_args() === 2) {
             $value = $operator;
@@ -81,7 +81,7 @@ class QueryBuilder
         return $this;
     }
     
-    public function orWhere(string $column, $operator, $value = null): self
+    public function orWhere(string $column, string $operator, $value = null): self
     {
         if (func_num_args() === 2) {
             $value = $operator;
@@ -290,7 +290,7 @@ class QueryBuilder
     }
     
     // HAVING
-    public function having(string $column, $operator, $value = null): self
+    public function having(string $column, string $operator, $value = null): self
     {
         if (func_num_args() === 2) {
             $value = $operator;
@@ -308,7 +308,7 @@ class QueryBuilder
         return $this;
     }
     
-    public function orHaving(string $column, $operator, $value = null): self
+    public function orHaving(string $column, string $operator, $value = null): self
     {
         if (func_num_args() === 2) {
             $value = $operator;
