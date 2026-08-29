@@ -95,6 +95,9 @@ class Config
                 'SMTPServer' => $source['MAIL_HOST'] ?? 'localhost',
                 'SMTPPort' => (int)($source['MAIL_PORT'] ?? 465)
             ],
+            'cli' => [
+                'siteUrl' => $source['SITE_URL'] ?? 'localhost',
+            ],
             'security' => [
                 'APP_SECRET_KEY' => $source['APP_SECRET_KEY'] ?? null, 
                 'LogFilename' => 'security_alerts.log',

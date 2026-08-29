@@ -409,4 +409,14 @@ class Request
     {
         return isset($this->get[$name]);
     }
+
+    /**
+     * Проверяет, запущено ли из веб-сервера или нет
+     */
+    public function isWeb(): bool
+    {
+        return null !== $this->server('REQUEST_METHOD') ||
+                null !== $this->server('HTTP_HOST') ||
+                null !== $this->server('SERVER_PROTOCOL');
+    }
 }

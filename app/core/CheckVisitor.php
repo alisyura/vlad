@@ -10,13 +10,16 @@ if (!isset($_COOKIE['visitor_uid'])) {
     // $signature = hash_hmac('sha256', $uid, Config::get('app.secret'));
     // setcookie('visitor_uid', "$uid|$signature", [ ... ]);
     Logger::info("New visitor UID created", ['uid' => $uid]);
-    setcookie('visitor_uid', $uid, [
-        'expires' => time() + 3600 * 24 * 730, // ставим на 2 года. 730 кол-во дней
-        'path' => '/',
-        'secure' => strtolower($_SERVER['REQUEST_SCHEME']) === 'https',
-        'httponly' => true,
-        'samesite' => 'Strict'
-    ]);
+    if (isset($_SERVER['REQUEST_METHOD'])) {
+        // только если это HTTP-запрос
+        setcookie('visitor_uid', $uid, [
+            'expires' => time() + 3600 * 24 * 730, // ставим на 2 года. 730 кол-во дней
+            'path' => '/',
+            'secure' => strtolower($_SERVER['REQUEST_SCHEME']) === 'https',
+            'httponly' => true,
+            'samesite' => 'Strict'
+        ]);
+    }
 }
 
 // если $_SERVER['REQUEST_SCHEME'] не заполняется, использовать это

@@ -1,14 +1,18 @@
+AddDefaultCharset UTF-8
+AddCharset UTF-8 .txt
+
 <IfModule mod_rewrite.c>
     RewriteEngine On
-    
+
     # Перенаправляем на домен без www
     RewriteCond %{HTTP_HOST} ^www\.(.+)$ [NC]
     RewriteRule ^(.*)$ https://%1/$1 [R=301,L]
 
     # Если запрашивается llms.txt
     # Проверяем существует ли файл
+    # Устанавливаем MIME-тип ТОЛЬКО для llms.txt
     RewriteCond %{DOCUMENT_ROOT}/llms.txt -f
-    RewriteRule ^llms\.txt$ - [L]
+    RewriteRule ^llms\.txt$ - [T=text/markdown;charset=utf-8,L]
 
     # Если файла нет - передаем обработку index.php
     RewriteCond %{REQUEST_URI} ^/llms\.txt$
@@ -44,3 +48,4 @@
     ExpiresByType image/png "access plus 1 year"
     ExpiresByType text/css "access plus 1 year"
 </IfModule>
+

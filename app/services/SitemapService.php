@@ -127,7 +127,7 @@ class SitemapService
      * @param array $categoryUrls Список URL категорий.
      * @return array<string, string|null> Ассоциативный массив [ключ => описание].
      */
-    private function loadCategoryDescriptions(array $categoryUrls): array
+    public function loadCategoryDescriptions(array $categoryUrls): array
     {
         // Формируем массив ключей для массовой загрузки
         $keys = array_map(function($url) {
