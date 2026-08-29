@@ -35,9 +35,6 @@ if ($rootPath === false) {
 
 define('ROOT_PATH', $rootPath);
 
-// ... остальной код
-echo ROOT_PATH."\n";
-
 require ROOT_PATH . '/vendor/autoload.php';
 // Инициализируем и загружаем переменные окружения
 try {
@@ -61,10 +58,11 @@ try {
 
 require_once ROOT_PATH . '/app/bootstrap.php';
 
+$llmsDescriptionLength = Config::get('global.LlmsDescriptionLength');
+
 try
 {
     $llmsService = $container->make(LlmsService::class);
-    $llmsDescriptionLength = Config::get('global.LlmsDescriptionLength');
     $llmsTxtResult = $llmsService->generateLlmsTxt($llmsDescriptionLength);
 
     if (!$llmsTxtResult['success'])

@@ -13,7 +13,7 @@ class LlmsService
     /**
      * Имя файла llms.txt
      */
-    public const string LLMS_TXT = 'llms.txt';
+    public const LLMS_TXT = 'llms.txt';
 
     /**
      * @var SitemapModel Объект модели для работы с данными карты сайта.
