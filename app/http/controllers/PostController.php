@@ -58,6 +58,7 @@ class PostController extends BaseController {
     }
 
     private function showContent($url, $type = ArticleTypes::ARTICLE_POST): Response {
+        $errorMessage='';
         try {
             if ($type === ArticleTypes::ARTICLE_POST) {
                 $content = $this->model->getPostByUrl($url);
@@ -78,7 +79,6 @@ class PostController extends BaseController {
             $robots = $content['robots'] ?? '';
 
             $baseUrl = $this->getRequest()->getBaseUrl();
-            $URL = sprintf("%s/%s", $baseUrl, $content['url']).'.html';
         
             $seoSettings = $this->settingsService->getMassSeoSettings([
                 'index_page_title']);
@@ -90,7 +90,7 @@ class PostController extends BaseController {
             $metaDescription = $content['meta_description'] ?? '';
             $metaKeywords = $content['meta_keywords'] ?? '';
 
-            $canonical = $URL;
+            $canonical = $this->getRequest()->getRequestUrl();
             
             $ogParams = [
                 'page_type' => 'post',
@@ -109,7 +109,7 @@ class PostController extends BaseController {
 
             $renderParams = [
                 'post' => $content,
-                'full_url' => $URL,
+                'full_url' => $canonical,
                 'tags_baseUrl' => sprintf("%s/tag/", $baseUrl),
                 'is_post' => $isPost,
                 'export' => [

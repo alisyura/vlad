@@ -68,6 +68,7 @@ class SitemapController extends BaseController {
             $result = $this->sitemapService->getSitemapData($llmsDescriptionLength, false);
 
             $URL = $this->getRequest()->getBaseUrl();
+            $canonical = $this->getRequest()->getRequestUrl();
 
             $seoSettings = $this->settingsService->getMassSeoSettings([
                 'index_page_title',
@@ -84,7 +85,6 @@ class SitemapController extends BaseController {
             $keywords = $keywords['value'];
             $description = $description['value'];
 
-            $canonical = $URL;
             $opengraph = generateOpenGraph([
                     'page_type' => 'sitemap',
                     'site_name' => $seoSettings['index_page_title']['value'],
@@ -95,7 +95,7 @@ class SitemapController extends BaseController {
 
             $contentData = [
                 'data' => $result,
-                'full_url' => $this->getRequest()->getRequestUrl(),
+                'full_url' => $canonical,
                 'is_post' => false,
                 'export' => [
                     'robots' => 'index, follow',

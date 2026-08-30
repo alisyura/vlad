@@ -44,6 +44,7 @@ class ContactController extends BaseController
     public function showKontakty(): Response {
         try {
             $URL = $this->getRequest()->getBaseUrl();
+            $canonical = $this->getRequest()->getRequestUrl();
 
             $seoSettings = $this->settingsService->getMassSeoSettings([
                 'index_page_title',
@@ -61,7 +62,7 @@ class ContactController extends BaseController
             $description = $description['value'];
 
             $contentData = [
-                'full_url' => $this->getRequest()->getRequestUrl(),
+                'full_url' => $canonical,
                 'url_id' => 'kontakty',
                 'export' => [
                     'page_type' => 'kontakty',
@@ -72,6 +73,7 @@ class ContactController extends BaseController
                     'url' => $URL,
                     'image' => $URL . asset('pic/logo.png'),
                     'robots' => 'noindex, follow',
+                    'canonical' => $canonical,
                     'styles' => [
                         'kontakty.css'
                     ],
