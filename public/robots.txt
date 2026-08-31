@@ -2,11 +2,12 @@ User-agent: *
 Allow: /
 Allow: /llms.txt
 
+Disallow: /*?
 Disallow: /admin/
 Disallow: /eryfbh/
 Disallow: /tinymce/
 Disallow: /uploads/
-Disallow: /api/get-csrf-token
+Disallow: /api/get-csrf-token*
 
 Host:  https://smehbook.ru
 Sitemap: https://smehbook.ru/sitemap.xml
