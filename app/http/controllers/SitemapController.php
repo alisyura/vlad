@@ -68,7 +68,7 @@ class SitemapController extends BaseController {
             $result = $this->sitemapService->getSitemapData($llmsDescriptionLength, false);
 
             $URL = $this->getRequest()->getBaseUrl();
-            $canonical = $this->getRequest()->getRequestUrl();
+            $canonical = $this->getRequest()->getFullUrlWithoutQuery();
 
             $seoSettings = $this->settingsService->getMassSeoSettings([
                 'index_page_title',

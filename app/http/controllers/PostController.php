@@ -90,7 +90,7 @@ class PostController extends BaseController {
             $metaDescription = $content['meta_description'] ?? '';
             $metaKeywords = $content['meta_keywords'] ?? '';
 
-            $canonical = $this->getRequest()->getRequestUrl();
+            $canonical=$this->getRequest()->getFullUrlWithoutQuery();
             
             $ogParams = [
                 'page_type' => 'post',

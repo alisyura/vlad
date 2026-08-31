@@ -79,6 +79,19 @@ class Request
     }
 
     /**
+     * Получить полный URL запроса без GET-параметров
+     * 
+     * @return string Полный URL без строки запроса
+     */
+    public function getFullUrlWithoutQuery(): string
+    {
+        $baseUrl = $this->getBaseUrl();
+        $uri = $this->getUri(); // уже без query-параметров
+        
+        return $baseUrl . $uri;
+    }
+
+    /**
      * Получает базовый URL страницы без сегмента пагинации
      * 
      * Метод извлекает текущий URL-путь из глобальной переменной $_SERVER['REQUEST_URI']

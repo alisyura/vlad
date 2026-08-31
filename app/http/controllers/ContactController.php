@@ -44,7 +44,7 @@ class ContactController extends BaseController
     public function showKontakty(): Response {
         try {
             $URL = $this->getRequest()->getBaseUrl();
-            $canonical = $this->getRequest()->getRequestUrl();
+            $canonical = $this->getRequest()->getFullUrlWithoutQuery();
 
             $seoSettings = $this->settingsService->getMassSeoSettings([
                 'index_page_title',
