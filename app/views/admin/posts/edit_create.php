@@ -106,18 +106,18 @@ $adminRoute = $data['adminRoute'] ?? 'admin';
                 <div class="card-header">SEO Опции</div>
                 <div class="card-body">
                     <div class="mb-3">
-                        <label for="metaTitle" class="form-label">Мета-заголовок (title)</label>
+                        <label for="metaTitle" class="form-label">Мета-заголовок (title) / Максимально 55 символов</label>
                         <input type="text" class="form-control" id="metaTitle" name="meta_title"
                                value="<?= htmlspecialchars($post['meta_title'] ?? '') ?>">
                         <div class="form-text">Заголовок для поисковых систем (по умолчанию - заголовок поста).</div>
                     </div>
                     <div class="mb-3">
-                        <label for="metaDescription" class="form-label">Мета-описание (description)</label>
+                        <label for="metaDescription" class="form-label">Мета-описание (description) / Максимально 140 символов</label>
                         <textarea class="form-control" id="metaDescription" name="meta_description" rows="3"><?= htmlspecialchars($post['meta_description'] ?? '') ?></textarea>
                         <div class="form-text">Описание для поисковых систем.</div>
                     </div>
                     <div class="mb-3">
-                        <label for="metaKeywords" class="form-label">Мета-ключевые слова (keywords)</label>
+                        <label for="metaKeywords" class="form-label">Мета-ключевые слова (keywords) / 5-7 штук</label>
                         <input type="text" class="form-control" id="metaKeywords" name="meta_keywords"
                                value="<?= htmlspecialchars($post['meta_keywords'] ?? '') ?>">
                         <div class="form-text">Ключевые слова для поисковых систем, через запятую.</div>
